@@ -1,13 +1,10 @@
 /**
  * Studio widgets on a Free page (one-editor SPEC §3.3, §5.3): the widget record an Add panel row makes, the zone the
- * studio's widget inspector edits and the record it writes back, and the toast an add shows on a screen made for
- * InfoPanel. Pure, so the add and the inspector's round trip are tested without a canvas.
+ * studio's widget inspector edits and the record it writes back. Pure, so the add and the inspector's round trip are tested without a canvas.
  */
 import { PANEL_ID, type Placement, type UserPanelPreset } from "@/lib/layout";
 import { findPanelPreset } from "@/lib/panelPresets";
 import type { WidgetItem } from "@/lib/infopanel/import/stored";
-import { widgetItemRow } from "@/lib/infopanel/export-check";
-import { newWidgetItem, widgetRule } from "@/lib/infopanel/native/widget-item";
 import { withPreset } from "@/components/studio/studio-actions";
 import { widgetPlacement } from "@/components/studio/placement-content";
 import type { AddItem } from "@/components/studio/add-catalog";
@@ -35,21 +32,4 @@ export function widgetRecordFor(item: AddItem, saved?: UserPanelPreset[]): Widge
     return preset ? widgetFromZone(withPreset(widgetPlacement({ module: PANEL_ID }), preset)) : null;
   }
   return { module: item.drop.id, ...(item.drop.settings ? { settings: { ...item.drop.settings } } : {}) };
-}
-
-/** The toast after adding a widget to a screen made for InfoPanel (§5.3): what an export makes of it. */
-export function addedMessage(name: string, widget: WidgetItem): string {
-  const row = widgetItemRow(newWidgetItem(widget, { x: 0, y: 0, w: 1, h: 1 }, name), "0");
-  const rule = widgetRule(widget);
-  const fate =
-    row?.status === "out"
-      ? "is left out"
-      : row?.status === "ok"
-        ? widget.module === PANEL_ID
-          ? "exports as InfoPanel items"
-          : "exports as an InfoPanel item"
-        : rule === "snapshot"
-          ? "becomes a still picture"
-          : "becomes a picture with its live values on top";
-  return `${name} added. On InfoPanel export it ${fate}.`;
 }

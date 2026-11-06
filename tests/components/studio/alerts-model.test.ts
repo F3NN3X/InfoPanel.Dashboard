@@ -73,6 +73,11 @@ describe("rule edits", () => {
     expect(next.alerts?.rules.map((r) => r.id)).toEqual(["r1"]);
     expect(next.alerts?.defaults.seconds).toBe(8);
     expect(alertsOf(base).rules).toEqual([]);
+    expect(alertsOf(base).defaults.style).toBe("auto");
+    expect(next.alerts?.defaults.style).toBe("auto");
+    // Stored defaults stay what they are: existing rules keep their style (P-2).
+    const stored = { ...next, alerts: { ...next.alerts!, defaults: { ...next.alerts!.defaults, style: "toast" as const } } };
+    expect(alertsOf(stored).defaults.style).toBe("toast");
   });
 
   it("patches, removes and duplicates immutably", () => {

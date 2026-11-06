@@ -41,10 +41,10 @@ export function stepZoom(zoom: number, dir: 1 | -1): number {
 }
 
 /**
- * The scroll area's padding around the page (unscaled, 64 / 40 / 96 px): room for the
- * selection chip above, the ruler labels beside and the zoom bar below.
+ * The scroll area's padding around the page (unscaled, 64 / 34 / 96 px): room for the
+ * selection label above, the ruler labels beside and the bottom toolbar below.
  */
-export const CANVAS_PAD_X = 80;
+export const CANVAS_PAD_X = 68;
 export const CANVAS_PAD_Y = 160;
 
 /** The floating inspector card's width and its inset from the canvas edges (SPEC §3.5). */
@@ -52,8 +52,6 @@ export const FLOAT_WIDTH = 280;
 export const FLOAT_MARGIN = 10;
 /** The width the open floating inspector takes from the canvas (the card, its margin and a gap). */
 export const FLOAT_INSET = FLOAT_WIDTH + FLOAT_MARGIN + 10;
-/** Extra room over the page for the quick bar (12 + 46 px at the top of the canvas, below the page tabs) and the selection chip under it: about 16 px between them at a height-filling fit. */
-export const QUICK_BAR_INSET = 36;
 
 interface Size {
   width: number;
@@ -97,7 +95,7 @@ export interface LayoutInput {
   /** The studio body (below the top bar). */
   body: Size;
   page: PageSize;
-  /** Width of the rail. */
+  /** Width of a rail inside the body (the sidebar sits outside it: 0). */
   rail: number;
   /** Width of the open left panel (beside the canvas). */
   drawer?: number;
@@ -109,8 +107,6 @@ export interface LayoutInput {
   floatOpen?: boolean;
   /** The window's width, which picks the mode; the body's when unknown. */
   windowWidth?: number;
-  /** The quick bar is on (docked or floating): the page keeps clear of it. */
-  quickBar?: boolean;
   /** The bottom sheet's height (sheet mode): the page keeps clear of it up to the half snap. */
   sheet?: number;
 }
@@ -170,14 +166,12 @@ export function leftPanelFits(
 
 /** The inspector's mode, the canvas box, what the page keeps clear of, and the fit zoom. */
 export function computeLayout(input: LayoutInput): StudioLayout {
-  const { body, page, rail, drawer = 0, inspector, collapsed, floatOpen, quickBar, sheet = 0 } = input;
+  const { body, page, rail, drawer = 0, inspector, collapsed, floatOpen, sheet = 0 } = input;
   const mode = inspectorMode(input.windowWidth ?? body.width);
   const column = mode === "docked" && !collapsed ? inspector : 0;
   const box = { width: Math.max(0, body.width - rail - drawer - column), height: Math.max(0, body.height) };
   const inset: CanvasInset = {
     ...(mode === "floating" && floatOpen ? { right: FLOAT_INSET } : {}),
-    // Reserved whenever the bar is on, not only while something is selected: selecting must not refit the page.
-    ...(quickBar && mode !== "sheet" ? { top: QUICK_BAR_INSET } : {}),
     // The preview stays above the sheet (and the zoom bar on it) at peek and half; a full sheet covers it anyway.
     ...(mode === "sheet"
       ? { bottom: Math.max(0, Math.min(sheet, sheetHeight("half", body.height, true)) + 14 + ZOOM_BAR_ROOM - PAD_BOTTOM) }

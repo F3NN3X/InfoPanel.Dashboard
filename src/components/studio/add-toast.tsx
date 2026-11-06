@@ -5,14 +5,12 @@ export interface AddToastState {
   message: string;
   /** An add (it has an Undo); a failure has none. */
   added: boolean;
-  /** The added part has an On InfoPanel choice (a screen made for InfoPanel): Change shows it. */
-  change?: boolean;
 }
 
-const LINK = "shrink-0 cursor-pointer font-semibold text-ui-1 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
+const LINK = "shrink-0 cursor-pointer font-medium text-ui-1 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
-/** The Add panel's toast (Edit v3 SPEC §9.6): top centre of the canvas, with Undo after an add and Change on an InfoPanel screen. */
-export function AddToast({ toast, onUndo, onChange }: { toast: AddToastState; onUndo: () => void; onChange?: () => void }) {
+/** The Add panel's toast: bottom centre of the canvas (rules §4), with Undo after an add. */
+export function AddToast({ toast, onUndo }: { toast: AddToastState; onUndo: () => void }) {
   return (
     <div
       key={toast.id}
@@ -31,25 +29,6 @@ export function AddToast({ toast, onUndo, onChange }: { toast: AddToastState; on
           Undo
         </button>
       )}
-      {toast.added && toast.change && onChange && (
-        <button type="button" onClick={onChange} className={LINK}>
-          Change
-        </button>
-      )}
     </div>
   );
-}
-
-/** Change: the On InfoPanel control of the part just added (selected), once the inspector shows it. */
-export function focusOnInfoPanel() {
-  let tries = 0;
-  const go = () => {
-    const el = document.querySelector<HTMLElement>('[data-testid="on-infopanel"] [role="radio"][aria-checked="true"], [data-testid="on-infopanel"] button, [data-testid="on-infopanel"]');
-    if (el) {
-      if (!el.hasAttribute("tabindex") && !(el instanceof HTMLButtonElement)) el.tabIndex = -1;
-      el.scrollIntoView({ block: "nearest" });
-      el.focus();
-    } else if (++tries < 20) requestAnimationFrame(go);
-  };
-  requestAnimationFrame(go);
 }

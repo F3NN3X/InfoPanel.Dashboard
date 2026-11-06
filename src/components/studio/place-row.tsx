@@ -1,14 +1,13 @@
 /**
- * The inspector's Place row (Edit v3 SPEC §10.2, §10.3): a part on the grid shows `PLACE ON GRID`, the `On grid` chip
- * and its COL / ROW / W / H; one placed freely shows `POSITION AND SIZE (PX)`, the accent `Placed freely` chip, its
- * X / Y / W / H and Snap to grid. Each box takes a typed number on Enter or leaving; a value the part can't take
+ * The inspector's Place row (Edit v3 SPEC §10.2, §10.3): a part on the grid shows its C / R / W / H; one placed freely
+ * shows `Position and size (px)`, the accent `Placed freely` chip, its X / Y / W / H and Snap to grid. Each box takes a typed number on Enter or leaving; a value the part can't take
  * (a widget onto another) shows red until the next one. Without handlers the boxes only read.
  */
 import { useEffect, useState } from "react";
 import { Grid3x3, Move } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const SECTION_LABEL = "font-ui-mono text-micro uppercase tracking-[0.06em] text-ui-3";
+export const SECTION_LABEL = "text-caption font-medium text-ui-3";
 
 export type CellPatch = Partial<{ col: number; row: number; cols: number; rows: number }>;
 export type PxPatch = Partial<{ x: number; y: number; w: number; h: number }>;
@@ -27,7 +26,7 @@ interface PlaceRowProps {
 }
 
 /** One box: its label, then the number, typed and committed on Enter or leaving. */
-function Box({ label, value, onCommit, disabled }: { label: string; value: number; onCommit?: (n: number) => boolean | void; disabled?: boolean }) {
+function Box({ label, name = label, value, onCommit, disabled }: { label: string; name?: string; value: number; onCommit?: (n: number) => boolean | void; disabled?: boolean }) {
   const [draft, setDraft] = useState<string | null>(null);
   const [refused, setRefused] = useState(false);
   useEffect(() => setRefused(false), [value]);
@@ -42,14 +41,16 @@ function Box({ label, value, onCommit, disabled }: { label: string; value: numbe
     <label
       title={refused ? "That spot overlaps another widget or is outside the grid" : undefined}
       className={cn(
-        "flex h-7 min-w-0 items-center gap-1.5 rounded-ui-sm border bg-ui-app px-[7px] font-ui-mono text-micro text-ui-1 focus-within:border-ui-accent",
-        refused ? "border-ui-danger" : "border-ui-default",
+        "flex h-7 min-w-0 items-center gap-2 rounded-ui-sm border bg-ui-panel px-2 font-ui-mono text-caption text-ui-1 focus-within:border-ui-accent",
+        refused ? "border-ui-danger" : "border-ui-strong",
       )}
     >
-      <span className="shrink-0 text-nano text-ui-hint">{label}</span>
+      <span aria-hidden className="shrink-0 text-micro text-ui-hint">
+        {label}
+      </span>
       {onCommit && !disabled ? (
         <input
-          aria-label={label}
+          aria-label={name}
           inputMode="numeric"
           value={draft ?? String(Math.round(value))}
           onChange={(e) => setDraft(e.target.value)}
@@ -65,7 +66,7 @@ function Box({ label, value, onCommit, disabled }: { label: string; value: numbe
           className="w-full min-w-0 bg-transparent outline-none"
         />
       ) : (
-        <span role="img" aria-label={`${label} ${Math.round(value)}`}>{Math.round(value)}</span>
+        <span role="img" aria-label={`${name} ${Math.round(value)}`}>{Math.round(value)}</span>
       )}
     </label>
   );
@@ -74,19 +75,21 @@ function Box({ label, value, onCommit, disabled }: { label: string; value: numbe
 export function PlaceRow({ cell, px, onCells, onPx, onSnap, disabled }: PlaceRowProps) {
   const onGrid = cell !== undefined;
   return (
-    <section data-testid="inspector-place" data-mode={onGrid ? "grid" : "free"} className="flex flex-col gap-[7px] border-b border-ui-subtle px-3.5 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className={SECTION_LABEL}>{onGrid ? "Place on grid" : "Position and size (px)"}</span>
-        <span className={cn("inline-flex h-5 items-center gap-1 rounded-[5px] px-[7px] text-micro", onGrid ? "bg-ui-hover text-ui-3" : "bg-ui-accent/14 text-ui-accent")}>
-          {onGrid ? <Grid3x3 className="h-3 w-3" /> : <Move className="h-3 w-3" />}
-          {onGrid ? "On grid" : "Placed freely"}
-        </span>
-      </div>
-      <div className="grid grid-cols-4 gap-1">
+    <section data-testid="inspector-place" data-mode={onGrid ? "grid" : "free"} aria-label={onGrid ? "Place on grid" : "Position and size"} className="flex flex-col gap-2 border-b border-ui-subtle px-4 pb-3">
+      {!onGrid && (
+        <div className="flex items-center justify-between gap-2">
+          <span className={SECTION_LABEL}>Position and size (px)</span>
+          <span className="inline-flex h-5 items-center gap-1 rounded-[5px] bg-ui-accent/14 px-[7px] text-micro text-ui-accent">
+            <Move className="h-3 w-3" />
+            Placed freely
+          </span>
+        </div>
+      )}
+      <div className="grid grid-cols-4 gap-2">
         {onGrid ? (
           <>
-            <Box label="COL" value={cell.col} disabled={disabled} onCommit={onCells && ((n) => onCells({ col: n }))} />
-            <Box label="ROW" value={cell.row} disabled={disabled} onCommit={onCells && ((n) => onCells({ row: n }))} />
+            <Box label="C" name="COL" value={cell.col} disabled={disabled} onCommit={onCells && ((n) => onCells({ col: n }))} />
+            <Box label="R" name="ROW" value={cell.row} disabled={disabled} onCommit={onCells && ((n) => onCells({ row: n }))} />
             <Box label="W" value={cell.cols} disabled={disabled} onCommit={onCells && ((n) => onCells({ cols: n }))} />
             <Box label="H" value={cell.rows} disabled={disabled} onCommit={onCells && ((n) => onCells({ rows: n }))} />
           </>

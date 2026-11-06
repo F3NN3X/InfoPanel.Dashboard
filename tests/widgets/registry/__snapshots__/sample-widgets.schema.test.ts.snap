@@ -2,7 +2,7 @@
 
 exports[`AudioMeter > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.db",
@@ -15,19 +15,7 @@ exports[`AudioMeter > files its rows as drawn 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Device": [
-        "device",
-        "devices",
-        "flow",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -58,9 +46,21 @@ exports[`AudioMeter > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Device": [
+        "device",
+        "devices",
+        "flow",
+      ],
+    },
+  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -123,7 +123,7 @@ exports[`AudioMeter > files its rows as drawn 1`] = `
 
 exports[`CpuMonitor > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.load",
@@ -135,23 +135,7 @@ exports[`CpuMonitor > files its rows as drawn 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Processor": [
-        "device",
-      ],
-    },
-    {
-      "Units & format": [
-        "tempUnit",
-        "decimals",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -172,9 +156,25 @@ exports[`CpuMonitor > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Processor": [
+        "device",
+      ],
+    },
+    {
+      "Units & format": [
+        "tempUnit",
+        "decimals",
+      ],
+    },
+  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -236,7 +236,7 @@ exports[`CpuMonitor > files its rows as drawn 1`] = `
 
 exports[`NowPlaying > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Visualizer dynamics": [
         "vizGain",
@@ -259,25 +259,7 @@ exports[`NowPlaying > files its rows as drawn 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Player source": [
-        "source",
-      ],
-    },
-    {
-      "Visualizer audio": [
-        "vizDevices",
-        "flow",
-        "liveCapture · more",
-        "devices · more",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -320,9 +302,27 @@ exports[`NowPlaying > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Player source": [
+        "source",
+      ],
+    },
+    {
+      "Visualizer audio": [
+        "vizDevices",
+        "flow",
+        "liveCapture · more",
+        "devices · more",
+      ],
+    },
+  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -390,7 +390,7 @@ exports[`NowPlaying > files its rows as drawn 1`] = `
 
 exports[`SensorGroup > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.value",
@@ -399,6 +399,29 @@ exports[`SensorGroup > files its rows as drawn 1`] = `
     {
       "Motion": [
         "smoothing",
+      ],
+    },
+  ],
+  "Content": [
+    {
+      "Header": [
+        "showTitle",
+        "label",
+        "icon · more",
+      ],
+    },
+    {
+      "Readings": [
+        "mode",
+        "groupLayout",
+        "bars",
+        "maxRows",
+      ],
+    },
+    {
+      "Fit": [
+        "compact",
+        "sizeTier · more",
       ],
     },
   ],
@@ -423,32 +446,9 @@ exports[`SensorGroup > files its rows as drawn 1`] = `
       ],
     },
   ],
-  "Show": [
-    {
-      "Header": [
-        "showTitle",
-        "label",
-        "icon · more",
-      ],
-    },
-    {
-      "Readings": [
-        "mode",
-        "groupLayout",
-        "bars",
-        "maxRows",
-      ],
-    },
-    {
-      "Fit": [
-        "compact",
-        "sizeTier · more",
-      ],
-    },
-  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -512,24 +512,14 @@ exports[`SensorGroup > files its rows as drawn 1`] = `
 
 exports[`SteamProfile > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Account": [
-        "account · status",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -544,9 +534,19 @@ exports[`SteamProfile > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Account": [
+        "account · status",
+      ],
+    },
+  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -607,7 +607,7 @@ exports[`SteamProfile > files its rows as drawn 1`] = `
 
 exports[`SystemOverview > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Thresholds": [
         "warn.load",
@@ -627,32 +627,7 @@ exports[`SystemOverview > files its rows as drawn 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Drives": [
-        "diskFilter",
-        "diskPick",
-        "diskValue",
-      ],
-    },
-    {
-      "Network": [
-        "netAdapter",
-        "netDirection",
-        "netMax",
-      ],
-    },
-    {
-      "Units & format": [
-        "tempUnit",
-        "decimals",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "label",
@@ -713,9 +688,34 @@ exports[`SystemOverview > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Drives": [
+        "diskFilter",
+        "diskPick",
+        "diskValue",
+      ],
+    },
+    {
+      "Network": [
+        "netAdapter",
+        "netDirection",
+        "netMax",
+      ],
+    },
+    {
+      "Units & format": [
+        "tempUnit",
+        "decimals",
+      ],
+    },
+  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -784,15 +784,14 @@ exports[`SystemOverview > files its rows as drawn 1`] = `
 
 exports[`Uptime > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
       ],
     },
   ],
-  "Data (disabled)": [],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -812,9 +811,10 @@ exports[`Uptime > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data (disabled)": [],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -875,7 +875,7 @@ exports[`Uptime > files its rows as drawn 1`] = `
 
 exports[`Weather > files its rows as drawn 1`] = `
 {
-  "Behavior": [
+  "Behaviour": [
     {
       "Motion": [
         "smoothing",
@@ -887,23 +887,7 @@ exports[`Weather > files its rows as drawn 1`] = `
       ],
     },
   ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Source": [
-        "provider",
-        "location",
-      ],
-    },
-    {
-      "Units & format": [
-        "tempUnit",
-      ],
-    },
-  ],
-  "Show": [
+  "Content": [
     {
       "Header": [
         "showTitle",
@@ -947,9 +931,25 @@ exports[`Weather > files its rows as drawn 1`] = `
       ],
     },
   ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Source": [
+        "provider",
+        "location",
+      ],
+    },
+    {
+      "Units & format": [
+        "tempUnit",
+      ],
+    },
+  ],
   "Style": [
     {
-      "Look": [
+      "Theme": [
         "lookId",
         "graph · more",
         "meter · more",
@@ -1011,15 +1011,15 @@ exports[`Weather > files its rows as drawn 1`] = `
 
 exports[`WebPage > files its rows as drawn 1`] = `
 {
-  "Behavior (disabled)": [],
-  "Data (disabled)": [],
-  "Show": [
+  "Behaviour (disabled)": [],
+  "Content": [
     {
       "Page": [
         "url",
       ],
     },
   ],
+  "Data (disabled)": [],
   "Style": [
     {
       "Colors": [

@@ -7,7 +7,7 @@ import {
   prefKeyOf,
   resolveBindTarget,
   streamPath,
-  usedInCell,
+  usedInChips,
   type BindZone,
 } from "@/components/studio/explorer/explorer-model";
 import type { DataPoint, DataSource } from "@/lib/data-points";
@@ -76,10 +76,10 @@ describe("point display names", () => {
   });
 });
 
-describe("usedInCell", () => {
-  it("lists up to two screens, then counts, and dashes none", () => {
-    expect(usedInCell(undefined)).toEqual({ text: "—", used: false });
-    expect(usedInCell(["Bar", "Panel"])).toEqual({ text: "Bar, Panel", used: true });
-    expect(usedInCell(["A", "B", "C"])).toEqual({ text: "3 screens", used: true });
+describe("usedInChips", () => {
+  it("puts the alert first, shows two chips and counts the rest", () => {
+    expect(usedInChips(undefined, undefined)).toEqual({ chips: [], more: 0, title: "" });
+    expect(usedInChips(["Bar"], undefined)).toMatchObject({ chips: ["Bar"], more: 0 });
+    expect(usedInChips(["A", "B"], [{ name: "CPU hot" }])).toEqual({ chips: ["Alert", "A"], more: 1, title: "Alert: CPU hot, A, B" });
   });
 });

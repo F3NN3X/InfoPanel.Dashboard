@@ -159,7 +159,7 @@ export function destinationsOf(kind: ImportKind, current: { screen: string; page
         { id: "add-screens", title: "Add its screens only", text: "Keeps what you have; the file's screens are added as new screens" },
       ];
     case "profile":
-      return [{ id: "new-screen", title: "New screen", text: "Added beside your screens, with its pages and its own look" }];
+      return [{ id: "new-screen", title: "New screen", text: "Added beside your screens, with its pages and its own theme" }];
     case "infopanel":
     case "canvas-zip":
       return [

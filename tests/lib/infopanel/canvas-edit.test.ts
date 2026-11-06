@@ -10,9 +10,7 @@ import { duplicate, itemAt, moveBy, setField } from "@/lib/infopanel/editor/ops.
 import { groupId, indexCatalog } from "@/lib/infopanel/remap/remap.ts";
 import { STARTERS } from "@/lib/infopanel/gauges/presets.ts";
 import { normalizeGauge } from "@/lib/infopanel/gauges/vector.ts";
-import { loadExport, entriesFromZip } from "@/lib/infopanel/archive.ts";
 import { sensorOfCatalog } from "@/lib/infopanel/editor/bind.ts";
-import { infopanelExport } from "@/lib/infopanel/export/write.ts";
 import { bindingRef, buildCatalog } from "@/lib/infopanel/sensors.ts";
 import { newItem } from "@/lib/infopanel/editor/create.ts";
 import {
@@ -301,13 +299,13 @@ describe("native bindings follow the chosen sensor", () => {
   };
   const sensorOf = sensorOfCatalog(sensors);
 
-  it("a remap choice, exported to .infopanel, reads the remapped sensor", async () => {
+  it("a remap choice, saved and read back, reads the remapped sensor", () => {
     const items = editItems(canvas());
     const cpu = gid(items[0]);
     const next = withGroupKeys(items, (item) => (gid(item) === cpu ? { key: "hwinfo.fps", via: "chosen" } : null), new Set([cpu]), sensorOf);
     expect(editKeyOf(next[0])).toBe("hwinfo.fps");
     const stored = storeItems(canvas().stored, profile, next);
-    const back = await loadExport(entriesFromZip(infopanelExport(profile, readStored(stored).items, [])));
+    const back = readStored(stored);
     expect(back.items[0]).toMatchObject({ SensorType: "HwInfo", HwInfoRemoteIndex: -1, Id: 4026535920, Instance: 0, EntryId: 134217728, SensorName: "Framerate" });
     // The other groups keep their own binding.
     expect(bindingRef(back.items[2] as BoundItem)).toBe("libre:/fan/0");
@@ -341,7 +339,7 @@ describe("Reset to automatic after a remap choice", () => {
     return reopen(withRemap(items, itemOverrides(items), new Map([[gid(items[0]), "hwinfo.fps"]]), index, sensorOf));
   };
 
-  it("puts the imported binding back, resolves it again, and exports it", async () => {
+  it("puts the imported binding back, resolves it again, and saves it", () => {
     const chosen = choose();
     expect(bindingRef(chosen[0] as BoundItem)).toBe("hwinfo:-1/4026535920/0/134217728");
     expect(importOf(chosen[0])?.original).toMatchObject({ SensorType: "Libre", LibreSensorId: "/cpu/0", SensorName: "CPU" });
@@ -349,7 +347,7 @@ describe("Reset to automatic after a remap choice", () => {
     const reset = reopen(withRemap(chosen, itemOverrides(chosen), new Map(), index, sensorOf));
     expect(reset[0]).toMatchObject({ SensorType: "Libre", LibreSensorId: "/cpu/0", SensorName: "CPU" });
     expect(importOf(reset[0])).toEqual({ key: "libre.cpu", via: "exact" });
-    const back = await loadExport(entriesFromZip(infopanelExport(profile, readStored(storeItems(canvas().stored, profile, reset)).items, [])));
+    const back = readStored(storeItems(canvas().stored, profile, reset));
     expect(back.items[0]).toMatchObject({ SensorType: "Libre", LibreSensorId: "/cpu/0", SensorName: "CPU" });
   });
 

@@ -11,8 +11,6 @@ import { withItemLayers } from "@/lib/page-model/items-layer";
 import { openCanvas } from "@/lib/infopanel/canvas";
 import { storeItems } from "@/lib/infopanel/canvas-edit";
 import { newItem } from "@/lib/infopanel/editor/create";
-import { infopanelFile } from "@/lib/infopanel/export/studio-export";
-import { openStored } from "@/lib/infopanel/import/session";
 import { newStored, readStored, type StoredCanvas, type StoredItem } from "@/lib/infopanel/import/stored";
 import { newWidgetItem } from "@/lib/infopanel/native/widget-item";
 import { defaultItem, type DisplayItem } from "@/lib/infopanel/schema";
@@ -313,19 +311,13 @@ const madeHere = () =>
     { ...defaultItem("Text"), Name: "Hello", X: 300, Y: 200 } as DisplayItem,
   ]);
 
-/** The .infopanel bytes a canvas exports (no files in it). */
-async function bytesOf(canvas: StoredCanvas): Promise<Uint8Array> {
-  const opened = await openStored(canvas, async () => null);
-  return infopanelFile(opened.parsed.profile, { items: opened.parsed.items, assets: opened.assets }).bytes;
-}
-
 describe("v15: a profile made with New InfoPanel profile stays canvas-backed (Q2)", () => {
   const mine = (canvas: StoredCanvas, extra: Record<string, unknown> = {}) => ({
     id: "m", name: "Mine", width: 800, height: 480, cols: 2, rows: 1, fit: "fill", ...extra,
     pages: [{ id: "pg", name: "Main", placements: [zone("c", CANVAS_ID, [1, 1, 2, 1], { canvas })] }],
   });
 
-  it("keeps its canvas untouched and exports the same bytes; only the §3.7 grid is added", async () => {
+  it("keeps its canvas untouched; only the §3.7 grid is added", () => {
     const canvas = madeHere();
     const log: string[] = [];
     const p = load(v14([{ ...mine(canvas, { madeFor: "infopanel" }), pages: [{ ...mine(canvas).pages[0], layout: "free" }] }]), log).profiles[0];
@@ -334,7 +326,6 @@ describe("v15: a profile made with New InfoPanel profile stays canvas-backed (Q2
     expect(p.pages[0].placements[0]).toMatchObject({ id: "c", module: CANVAS_ID, colSpan: 8, rowSpan: 5 });
     expect(p.pages[0].placements[0].canvas).toEqual(canvas);
     expect(p.pages[0].groups).toBeUndefined();
-    expect(await bytesOf(p.pages[0].placements[0].canvas!)).toEqual(await bytesOf(canvas));
     expect(log).toEqual(["Mine: a grid of 8 × 5 cells; every item kept its place."]);
   });
 

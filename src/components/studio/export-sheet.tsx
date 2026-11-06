@@ -15,8 +15,8 @@ import { screenPayload } from "./profile-file";
 
 type Row = NonNullable<ExportRequest["row"]>;
 
-const PRIMARY = "h-7 shrink-0 rounded-[7px] bg-ui-inverse px-3 text-body font-semibold text-ui-inverse-fg hover:opacity-90 disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint";
-const OUTLINE = "h-7 shrink-0 rounded-[7px] border border-ui-strong px-3 text-body font-medium text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:cursor-not-allowed disabled:opacity-40";
+const PRIMARY = "h-7 shrink-0 rounded-ui-md bg-ui-inverse px-3 text-body font-medium text-ui-inverse-fg hover:opacity-90 disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint";
+const OUTLINE = "h-7 shrink-0 rounded-ui-md border border-ui-strong px-3 text-body font-medium text-ui-2 hover:bg-ui-hover hover:text-ui-1 disabled:cursor-not-allowed disabled:opacity-40";
 
 interface ExportRowProps {
   icon: LucideIcon;
@@ -40,11 +40,11 @@ interface ExportRowProps {
 function ExportRow({ icon: Icon, title, detail, picked, blocked, children, actions, copy, onCopied, copied, id }: ExportRowProps) {
   const toast = useToast();
   return (
-    <section aria-label={title} className={cn("flex flex-col gap-2 rounded-[10px] border px-3.5 py-3", picked ? "border-ui-accent bg-ui-accent-soft" : "border-ui-default bg-ui-chrome")}>
+    <section aria-label={title} className={cn("flex flex-col gap-2 rounded-ui-lg border px-3.5 py-3", picked ? "border-ui-accent bg-ui-accent-soft" : "border-ui-default bg-ui-chrome")}>
       <div className="flex items-start gap-3">
         <Icon className="mt-0.5 h-[18px] w-[18px] shrink-0 text-ui-3" strokeWidth={1.75} />
         <div className="min-w-0 flex-1">
-          <div className="text-body font-semibold text-ui-1">{title}</div>
+          <div className="text-body font-medium text-ui-1">{title}</div>
           <div className="text-pretty text-caption text-ui-4">{detail}</div>
         </div>
         <div className="flex shrink-0 items-center gap-2">{actions}</div>
@@ -117,7 +117,7 @@ interface ExportSheetProps {
   pageName: string;
   /** The page's canvas zone (the selected one, else the first); undefined when the page has none. */
   pageCanvas: Placement | undefined;
-  /** Open the InfoPanel export dialog (its options live there). */
+  /** Open the page export dialog (its font choices live there). */
   onExportPage: () => void;
   onClose: () => void;
   toast: (message: string) => void;
@@ -164,7 +164,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
         >
           <div className="flex items-start gap-3 border-b border-ui-subtle px-5 pb-3.5 pt-4">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <Dialog.Title className="text-head font-semibold text-ui-1">Export &amp; back up</Dialog.Title>
+              <Dialog.Title className="text-head font-medium text-ui-1">Export &amp; back up</Dialog.Title>
               <Dialog.Description className="text-body text-ui-3">Pick what to take out. Each one can also be copied as JSON.</Dialog.Description>
             </div>
             <Dialog.Close title="Close" aria-label="Close" className="grid h-8 w-8 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
@@ -192,7 +192,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
               id="screen"
               icon={Monitor}
               title="Export this screen"
-              detail={`${target.name} with its pages and own look · .json`}
+              detail={`${target.name} with its pages and own theme · .json`}
               picked={request.row === "screen"}
               copy={keep(screenFile)}
               copied={copied === "screen"}
@@ -206,8 +206,8 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
               {...common}
               id="page"
               icon={FileOutput}
-              title="Export a page for InfoPanel"
-              detail={`${pageName} as an .infopanel canvas`}
+              title="Export a page"
+              detail={`${pageName} as a stored .canvas.zip`}
               picked={request.row === "page"}
               blocked={pageCanvas ? undefined : "This page has no InfoPanel profile on it. Import an InfoPanel profile first, or open a page that has one."}
               copy={pageCanvas?.canvas ? { name: `${pageName}.canvas.json`, text: JSON.stringify(pageCanvas.canvas, null, 2) } : undefined}
@@ -226,7 +226,7 @@ export function ExportSheet({ open, request, config, screen, pageName, pageCanva
                 </button>
               }
             >
-              <p className="pl-[30px] text-micro text-ui-4">Bake gauges and elements first · Leave unused assets out · Stored form or .infopanel: you choose them in the next step.</p>
+              <p className="pl-[30px] text-micro text-ui-4">Fonts that may not be shared stay out unless you include them: you choose in the next step</p>
             </ExportRow>
             <ExportRow
               {...common}

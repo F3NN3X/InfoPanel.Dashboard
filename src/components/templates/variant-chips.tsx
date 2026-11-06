@@ -28,7 +28,7 @@ export function VariantChips({ variants, value, onChange, className = "mt-3" }: 
             aria-checked={value === v.id}
             onClick={() => onChange(v.id)}
             className={cn(
-              "flex h-[26px] items-center gap-1.5 rounded-[7px] border pl-1.5 pr-[9px] text-[11.5px]",
+              "flex h-[26px] items-center gap-1.5 rounded-ui-md border pl-1.5 pr-[9px] text-caption",
               value === v.id ? "border-ui-accent bg-ui-accent/10 text-ui-1" : "border-ui-default bg-ui-raised text-ui-2 hover:bg-ui-hover",
             )}
           >

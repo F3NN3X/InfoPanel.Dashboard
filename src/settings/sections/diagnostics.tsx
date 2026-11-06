@@ -24,16 +24,16 @@ function SeriesTable({ diag, filter }: { diag: Diagnostics; filter: "notable" | 
     // biome-ignore lint/a11y/noNoninteractiveTabindex: a scroller must take focus so the keyboard can scroll it.
     <div ref={found.ref} role="region" aria-label="Series readings" tabIndex={0} className={cn("overflow-auto rounded-xl border border-s-card-line bg-s-card", found.className)}>
       <div role="table" aria-label="Series" className="min-w-[560px]">
-        <div role="row" className={cn(GRID, "border-b border-s-divider px-4 py-2.5 text-[11.5px] text-s-dim")}>
+        <div role="row" className={cn(GRID, "border-b border-s-divider px-4 py-2.5 text-caption text-s-dim")}>
           <span role="columnheader">Series</span>
           <span role="columnheader" className="text-right">Latest</span>
           <span role="columnheader" className="text-right">Δ 30 min</span>
           <span role="columnheader" className="text-right">Δ 60 min</span>
         </div>
-        {groups.length === 0 && <div className="px-4 py-6 text-caption text-s-dim">Nothing stands out.</div>}
+        {groups.length === 0 && <div className="px-4 py-6 text-caption text-s-dim">Nothing stands out</div>}
         {groups.map((g) => (
           <div key={g.name} role="rowgroup">
-            <div role="row" className="px-4 pb-1 pt-2.5 text-micro uppercase tracking-[0.06em] text-s-dim"><span role="rowheader">{g.name}</span></div>
+            <div role="row" className="px-4 pb-1 pt-2.5 text-caption font-medium text-s-dim"><span role="rowheader">{g.name}</span></div>
             {g.rows.map(({ series, name }) => (
               <div key={series.name} role="row" className={cn(GRID, "items-center px-4 py-[7px] text-caption hover:bg-s-tile")}>
                 <span role="cell" className="flex min-w-0 items-center gap-2">
@@ -165,7 +165,7 @@ export function DiagnosticsSection() {
         <div className="flex flex-col gap-2.5">
           <div className="flex flex-wrap items-end gap-3 pl-0.5">
             <div className="flex min-w-[140px] flex-1 flex-col gap-[3px]">
-              <span className="text-xs font-medium text-s-muted">Samples</span>
+              <span className="text-caption font-medium text-s-muted">Samples</span>
               <span className="text-caption leading-[1.45] text-s-dim">
                 {sampleSummary(diag)} A series is flagged when it rose in 80% of samples over the last hour and by more than 20%.
               </span>

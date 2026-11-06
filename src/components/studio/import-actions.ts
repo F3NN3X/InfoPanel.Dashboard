@@ -110,7 +110,7 @@ export function canvasZoneOf(view: ProfileView, selectedId?: string): Placement 
   return zones.find((p) => p.id === selectedId) ?? zones[0];
 }
 
-/** One canvas zone's stored form replaced (the export's baked frames); same config when absent. */
+/** One canvas zone's stored form replaced; same config when absent. */
 export function withCanvas(config: DashboardConfig, zoneId: string, canvas: StoredCanvas): DashboardConfig {
   let hit = false;
   const profiles = config.profiles.map((p) => {
@@ -118,20 +118,6 @@ export function withCanvas(config: DashboardConfig, zoneId: string, canvas: Stor
       if (!pg.placements.some((z) => z.id === zoneId)) return pg;
       hit = true;
       return { ...pg, placements: pg.placements.map((z) => (z.id === zoneId ? { ...z, canvas } : z)) };
-    });
-    return pages.every((pg, i) => pg === p.pages[i]) ? p : { ...p, pages };
-  });
-  return hit ? { ...config, profiles } : config;
-}
-
-/** One zone's settings replaced (the InfoPanel conversion's remembered choices); same config when the zone is absent. */
-export function withZoneSettings(config: DashboardConfig, zoneId: string, settings: NonNullable<Placement["settings"]>): DashboardConfig {
-  let hit = false;
-  const profiles = config.profiles.map((p) => {
-    const pages = p.pages.map((pg) => {
-      if (!pg.placements.some((z) => z.id === zoneId)) return pg;
-      hit = true;
-      return { ...pg, placements: pg.placements.map((z) => (z.id === zoneId ? { ...z, settings } : z)) };
     });
     return pages.every((pg, i) => pg === p.pages[i]) ? p : { ...p, pages };
   });

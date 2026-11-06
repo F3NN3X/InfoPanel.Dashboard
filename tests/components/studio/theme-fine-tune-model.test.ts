@@ -59,8 +59,8 @@ describe("summaries", () => {
     expect(fineTuneSummary("colors", { accent: "#38bdf8" }, ctx)).toBe("Zinc · accent #38BDF8");
     expect(fineTuneSummary("type", { fontWeight: "auto", numGlow: "off" }, ctx)).toBe("Nunito · auto weight · glow off");
     expect(fineTuneSummary("spacing", { scale: 100, padding: "8" }, ctx)).toBe("100% size · 8 px padding");
-    expect(fineTuneSummary("surface", { surface: "auto", blur: "16", surfaceOpacity: 100 }, ctx)).toBe("Skin's card · blur 16 px");
-    expect(fineTuneSummary("surface", { surface: "auto", blur: "16", surfaceOpacity: 55 }, ctx)).toBe("Skin's card · blur 16 px · 55% opacity");
+    expect(fineTuneSummary("surface", { surface: "auto", blur: "16", surfaceOpacity: 100 }, ctx)).toBe("Theme's card · blur 16 px");
+    expect(fineTuneSummary("surface", { surface: "auto", blur: "16", surfaceOpacity: 55 }, ctx)).toBe("Theme's card · blur 16 px · 55% opacity");
     expect(fineTuneSummary("format", { tempUnit: "c", decimals: "auto", clock: "24" }, ctx)).toBe("°C · auto decimals · 24 h");
     expect(fineTuneSummary("thresholds", {}, ctx)).toBe("Load 80/92 · Temp 80/90 °C");
     expect(fineTuneSummary("motion", { smoothing: "smooth", meterBallistics: "peak" }, ctx)).toBe("Smooth graphs · peak meters");

@@ -3,12 +3,12 @@
  * one selection that holds widgets (the zone selection), InfoPanel items and elements (the item selection) and page
  * groups together, and every Layers change, menu action and layer key as page model ops, each one undo step. Keys:
  * with an item or a group in the selection every SPEC §14 key acts here, ahead of the zone shortcuts; with only
- * widgets, the keys the zone shortcuts don't have (Ctrl+] / [, Ctrl+G, Ctrl+L, Ctrl+H, F2). Ctrl+Shift+S saves the
- * selection to the Library, whatever it holds.
+ * widgets, the keys the zone shortcuts don't have (Ctrl+] / [, Ctrl+G, Ctrl+L, Ctrl+H, F2). Ctrl+Shift+O moves the
+ * selection out of its group; Ctrl+Shift+S saves it to the Library, whatever it holds.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { uid, type MonitorProfile, type Placement, type ProfilePage } from "@/lib/layout";
-import { applyOps, cellsOverlap, findNode, partsOf, type LayerNode, type PageModel, type PageOp } from "@/lib/page-model/model";
+import { applyOps, cellsOverlap, findNode, partsOf, type LayerNode, type PageModel, type PageOp, type PartNode } from "@/lib/page-model/model";
 import { partKeyOps } from "@/lib/page-model/keys";
 import { dropBlocked, dropOps, groupMoveOps, layerActionOps, layerActionsFor, type LayerAction } from "@/lib/page-model/layer-actions";
 import { readPlacements } from "@/lib/page-model/placements-adapter";
@@ -35,8 +35,6 @@ interface PageLayersDeps {
   applyPageOps: (ops: readonly PageOp[], key?: string) => void;
   /** A drag is in flight: the keys stand down. */
   dragging: () => boolean;
-  /** A part's Export check status icon by its id, on a screen made for InfoPanel. */
-  statusIcon?: (id: string) => ReactNode;
   /** Bring Layers into view (F2 renames there). */
   showLayers: () => void;
   /** Say something short (a refused group move). */
@@ -51,14 +49,16 @@ function widgetsOverlap(model: PageModel): boolean {
   return cells.some((a, i) => cells.some((b, j) => i < j && cellsOverlap(a, b)));
 }
 
+const sizeOf = (place: PartNode["place"]): string => ("px" in place ? `${Math.round(place.px.w)} px` : `${place.cell.cols}×${place.cell.rows}`);
+
 const treeOf = (nodes: readonly LayerNode[]): TreeNode[] =>
   nodes.map((n) =>
     n.type === "group"
       ? { id: n.id, type: "group", name: n.name, locked: n.locked, hidden: n.hidden, children: treeOf(n.children) }
-      : { id: n.id, type: "part", kind: n.kind, name: n.name, free: "px" in n.place, locked: n.locked, hidden: n.hidden },
+      : { id: n.id, type: "part", kind: n.kind, name: n.name, free: "px" in n.place, size: sizeOf(n.place), locked: n.locked, hidden: n.hidden },
   );
 
-export function usePageLayers({ profile, page, zones, items, focusZone, applyPageOps, dragging, statusIcon, showLayers, toast }: PageLayersDeps) {
+export function usePageLayers({ profile, page, zones, items, focusZone, applyPageOps, dragging, showLayers, toast }: PageLayersDeps) {
   const model = useMemo(() => readPlacements(profile, page, zoneName), [profile, page]);
   const nodes = useMemo(() => treeOf(model.root), [model]);
   const byId = useMemo(() => new Map(page.placements.map((p) => [p.id, p])), [page]);
@@ -137,6 +137,10 @@ export function usePageLayers({ profile, page, zones, items, focusZone, applyPag
     apply([{ type: "moveToGroup", ids: selection, groupId }]);
   };
 
+  /** The selected nodes that sit in a group: Move out of group takes them to the top. */
+  const grouped = selection.filter((id) => findNode(model.root, id)?.parentId != null);
+  const moveOut = () => apply([{ type: "moveToGroup", ids: grouped, groupId: null }]);
+
   const groupList = useMemo(() => {
     const out: { id: string; name: string }[] = [];
     const visit = (list: readonly LayerNode[]) => {
@@ -180,9 +184,8 @@ export function usePageLayers({ profile, page, zones, items, focusZone, applyPag
       const ops = dropOps(model, ids, parentId, index);
       if (ops) apply(ops);
     },
-    menu: { available: layerActionsFor(model, selection), groups: groupList, run, moveToGroup: (id) => moveInto(id ?? "new"), saveToLibrary: save.open },
+    menu: { available: layerActionsFor(model, selection), groups: groupList, run, moveToGroup: (id) => moveInto(id ?? "new"), moveOut: { enabled: grouped.length > 0, run: moveOut }, saveToLibrary: save.open },
     iconOf,
-    statusIcon,
     renameRequest,
   };
 
@@ -195,6 +198,10 @@ export function usePageLayers({ profile, page, zones, items, focusZone, applyPag
       // Taken here, so the studio's Ctrl+S doesn't save the screen as well.
       e.preventDefault();
       return save.open?.();
+    }
+    if (ctrl && e.shiftKey && !e.altKey && e.key.toLowerCase() === "o") {
+      e.preventDefault();
+      return grouped.length > 0 ? moveOut() : undefined;
     }
     if (e.key === "F2" && !ctrl && !e.altKey && !e.shiftKey) {
       e.preventDefault();

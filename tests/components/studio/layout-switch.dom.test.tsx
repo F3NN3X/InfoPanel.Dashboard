@@ -9,7 +9,6 @@ import { useConfigHistory } from "@/hooks/use-config-history";
 import { CANVAS_ID, type DashboardConfig, type MonitorProfile } from "@/lib/layout";
 import { switchLayout } from "@/lib/page-layout";
 import { isFreePage } from "@/lib/free-pages";
-import { MadeForControl } from "@/components/studio/made-for-control";
 import { pageMenuEntries } from "@/components/studio/page-tabs";
 import { PageInspector } from "@/components/studio/page-inspector";
 import { THEME_PRESETS } from "@/lib/theme";
@@ -96,17 +95,6 @@ describe("no Grid / Free anywhere (acceptance 5)", () => {
     fireEvent.change(cols, { target: { value: "6" } });
     fireEvent.blur(cols);
     expect(onGrid).toHaveBeenCalledWith(6, 3);
-  });
-});
-
-describe("Made for", () => {
-  it("reads unset as Studio panels and picks InfoPanel too", async () => {
-    const onChange = vi.fn();
-    render(<MadeForControl value={undefined} onChange={onChange} />);
-    const trigger = screen.getByRole("button", { name: "Made for: Studio panels" });
-    fireEvent.click(trigger);
-    fireEvent.click(await screen.findByRole("menuitemradio", { name: /InfoPanel too/ }));
-    expect(onChange).toHaveBeenCalledWith("infopanel");
   });
 });
 

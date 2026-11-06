@@ -1,10 +1,14 @@
-import { useState, type ReactNode } from "react";
-import { ContextMenu } from "@/components/ui/context-menu";
+import type { CSSProperties, ReactNode } from "react";
+import { FOCUS_RING } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { CardMenu, contextEntries, type CardAction } from "./card-actions";
+import { CardMenu, useCardContextMenu, type CardAction } from "./card-actions";
 
 /** The strip a profile is drawn in: its own shape, within 3:1 to 1:1. */
 export const aspectOf = (width: number, height: number): number => Math.min(3, Math.max(1, width && height ? width / height : 1.6));
+
+/** The preview well's height (a card's 150 px less its padding) and the box a screen's preview takes in it: its own shape, as wide as fits. */
+const WELL_HEIGHT = 122;
+export const previewBox = (aspect: number): CSSProperties => ({ aspectRatio: aspect, width: `min(100%, ${Math.round(WELL_HEIGHT * aspect)}px)` });
 
 /** A small pill on a card: "Dashboard", "Default", "Active on 2 kiosks". */
 export function Badge({ children, tone = "plain", title }: { children: ReactNode; tone?: "plain" | "accent" | "live"; title?: string }) {
@@ -15,7 +19,7 @@ export function Badge({ children, tone = "plain", title }: { children: ReactNode
         "inline-flex h-[18px] items-center whitespace-nowrap rounded px-1.5 text-micro leading-none",
         tone === "plain" && "bg-ui-hover text-ui-3",
         tone === "accent" && "bg-ui-accent-soft text-ui-accent-text",
-        tone === "live" && "bg-ui-ok/15 text-ui-ok"
+        tone === "live" && "bg-ui-ok/12 text-ui-ok"
       )}
     >
       {children}
@@ -34,13 +38,14 @@ export interface ProfileCardProps {
   meta: string;
   aspect: number;
   thumb: ReactNode;
+  /** Over the thumbnail's corner: "On 2 displays". */
+  chip?: ReactNode;
   /** Under the thumbnail: a screen's page strip. */
   strip?: ReactNode;
   /** A click on the card (the thumbnail button for the keyboard). */
   onClick: () => void;
   /** The thumbnail button's name: "Open Desk". */
   label: string;
-  selected?: boolean;
   /** The card's actions: its ⋯ menu and its right-click menu, named `actionsLabel` ("Screen actions"). */
   actions?: readonly CardAction[];
   actionsLabel?: string;
@@ -53,33 +58,21 @@ export interface ProfileCardProps {
  * footer of actions. Shared by the Screens manager and the InfoPanel home, so both look and behave alike. A right-click
  * opens the same actions as the ⋯ menu.
  */
-export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thumb, strip, onClick, label, selected, actions, actionsLabel = "Actions", children }: ProfileCardProps) {
-  const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thumb, chip, strip, onClick, label, actions, actionsLabel = "Actions", children }: ProfileCardProps) {
+  const context = useCardContextMenu(actions);
   return (
     <li
       onClick={onClick}
-      onContextMenu={
-        actions
-          ? (e) => {
-              // The rename field keeps the browser's own menu.
-              if (e.target instanceof HTMLInputElement) return;
-              e.preventDefault();
-              setMenuAt({ x: e.clientX, y: e.clientY });
-            }
-          : undefined
-      }
-      aria-current={selected ? "true" : undefined}
-      className={cn(
-        "group flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-[10px] border bg-ui-panel transition-colors",
-        selected ? "border-ui-1 ring-1 ring-ui-1" : "border-ui-default hover:border-ui-strong"
-      )}
+      onContextMenu={context.onContextMenu}
+      className="group flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-ui-lg border border-ui-default bg-ui-panel transition-colors duration-(--ui-dur-fast) ease-ui hover:border-ui-hover-edge"
     >
-      <div className="relative">
-        <button type="button" aria-label={label} className="block w-full outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ui-accent/60">
-          <div className="w-full bg-s-well" style={{ aspectRatio: aspect }}>
+      <div className="relative h-[150px] border-b border-ui-subtle bg-ui-chrome">
+        <button type="button" aria-label={label} className={cn("grid h-full w-full place-items-center p-3.5", FOCUS_RING, "focus-visible:-outline-offset-2")}>
+          <div className="overflow-hidden rounded-ui-sm border border-ui-strong bg-s-well" style={previewBox(aspect)}>
             {thumb}
           </div>
         </button>
+        {chip && <div className="pointer-events-none absolute left-2.5 top-2.5 z-10">{chip}</div>}
         {strip}
       </div>
       <div className="flex min-w-0 flex-col gap-1 px-3 pb-2 pt-2">
@@ -93,10 +86,8 @@ export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thu
         </div>
         {badges && <div className="flex flex-wrap gap-1">{badges}</div>}
         {detail && <span className="truncate text-micro text-ui-4">{detail}</span>}
-        <span className="@container">
-          {/* One line always: the grid part goes first when the card is narrow. */}
-          <span className="block whitespace-nowrap font-ui-mono text-micro text-ui-3 @[260px]:hidden">{meta.split(" · ").slice(0, 2).join(" · ")}</span>
-          <span className="hidden whitespace-nowrap font-ui-mono text-micro text-ui-3 @[260px]:block">{meta}</span>
+        <span className="block truncate font-ui-mono text-micro text-ui-3" title={meta}>
+          {meta}
         </span>
       </div>
       {children && (
@@ -104,16 +95,11 @@ export function ProfileCard({ name, nameField, badges, detail, meta, aspect, thu
           {children}
         </div>
       )}
-      {actions && menuAt && (
-        // The menu is portalled, but its clicks still bubble here through React: they must not reach the card.
-        <span className="contents" onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>
-          <ContextMenu x={menuAt.x} y={menuAt.y} entries={contextEntries(actions)} onClose={() => setMenuAt(null)} />
-        </span>
-      )}
+      {context.menu}
     </li>
   );
 }
 
 /** A footer button of a card. */
 export const CARD_BUTTON =
-  "inline-flex h-7 items-center gap-1.5 rounded-[7px] px-2 text-caption text-ui-2 outline-none hover:bg-ui-hover hover:text-ui-1 focus-visible:ring-2 focus-visible:ring-ui-accent/60 disabled:pointer-events-none disabled:text-ui-hint";
+  "inline-flex h-7 items-center gap-1.5 rounded-[7px] px-2 text-caption text-ui-2 hover:bg-ui-hover hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:pointer-events-none disabled:text-ui-hint";

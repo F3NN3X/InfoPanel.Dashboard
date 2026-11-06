@@ -8,7 +8,7 @@ import { DISPLAY_NAME_MAX, isDisplayName } from "@/lib/screens/display-name";
 import { kioskLink } from "@/lib/screens/kiosk-link";
 
 /** The address kiosks reach this dashboard at: this page's own in a browser, the local server from the desktop app. */
-const serverOrigin = () => (isTauri() ? `http://127.0.0.1:${DEFAULT_SERVER_PORT}` : window.location.origin);
+export const serverOrigin = () => (isTauri() ? `http://127.0.0.1:${DEFAULT_SERVER_PORT}` : window.location.origin);
 
 /** Copy the link that pins a kiosk to screen `id` (or names a display); the toast says if the clipboard refused. */
 export function useCopyKioskLink(): (id: string, display?: string) => void {
@@ -38,7 +38,7 @@ interface ShownOnProps {
 
 /**
  * "Shown on": the default (what the app opens on) apart from the active (what kiosks show now), and the link that
- * pins a kiosk to this screen. A named display takes its screen from the Displays list instead.
+ * pins a kiosk to this screen. A named display takes its screen from its card under Live on displays instead.
  */
 export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefault, displays }: ShownOnProps) {
   const copy = useCopyKioskLink();
@@ -95,7 +95,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         onChange={(e) => setDisplay(e.target.value)}
         className="h-7 rounded-md border border-ui-strong bg-ui-hover px-2 text-caption text-ui-1 outline-none focus:border-ui-accent"
       />
-      {display !== "" && !named && <span className="text-micro text-ui-4">Use letters, digits, - and _ only.</span>}
+      {display !== "" && !named && <span className="text-micro text-ui-4">Use letters, digits, - and _ only</span>}
       <button
         type="button"
         disabled={display !== "" && !named}
@@ -107,7 +107,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
       </button>
       <p className="text-pretty text-micro leading-[1.4] text-ui-4">
         {named
-          ? "Open the link on a kiosk. Choose its screen in the Displays list on this page."
+          ? "Open the link on a kiosk. Choose its screen on its card under Live on displays."
           : "Open the link on a kiosk to pin it to this screen."}{" "}
         From another device, use this PC's address in place of 127.0.0.1.
       </p>

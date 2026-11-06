@@ -111,8 +111,6 @@ interface PlacementFrameProps {
    * space. A double-click on an unselected zone is select-then-pick.
    */
   onSelectWidget?: (widgetId: string | null) => void;
-  /** The zone's Export check badge (studio view, a screen made for InfoPanel): its top-right corner, screen-sized at any zoom. */
-  badge?: ReactNode;
   children: ReactNode;
 }
 
@@ -151,7 +149,6 @@ export function PlacementFrame({
   onSelect,
   onOpenSettings,
   onSelectWidget,
-  badge,
   children,
 }: PlacementFrameProps) {
   const span = clampSpan(placement.colSpan, profile.cols);
@@ -372,11 +369,6 @@ export function PlacementFrame({
               style={{ borderWidth: 1 / zoom }}
             />
           )}
-          {badge && (
-            <span data-shot-skip className="pointer-events-none absolute right-0 top-0 z-[16] origin-top-right" style={{ scale: String(1 / zoom) }}>
-              {badge}
-            </span>
-          )}
 
           {/* Resize (the studio clamps to the grid + no overlap): invisible edges, the knob at the corner */}
           {canResize && !fixed &&
@@ -423,7 +415,7 @@ export function PlacementFrame({
           ) : (
             <>
               {design?.header && (
-                <div className="mb-1.5 shrink-0 text-nano font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="mb-1.5 shrink-0 text-caption font-medium text-ui-3">
                   {title}
                 </div>
               )}

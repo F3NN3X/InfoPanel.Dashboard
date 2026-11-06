@@ -86,6 +86,8 @@ export interface Pack {
   slots?: PackSlots;
   stage?: PackStageSpec;
   burnIn?: BurnIn;
+  /** The fonts the pack brings, by the family they come from and their licence (Theme's Font row and detail). */
+  fonts?: { source?: string; licence?: string }[];
   statusBar?: PackStatusBar;
   connectors?: PackConnectors;
   /** Page templates the New screen flow offers (opt-in; applying a pack never moves a widget). Each wears this pack's Look (`look.style.lookId`). */

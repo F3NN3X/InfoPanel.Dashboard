@@ -59,7 +59,7 @@ function Preview({ file, url }: { file: AssetFile | null; url: string | undefine
 
 function Chip({ finding }: { finding: Finding }) {
   return (
-    <span className={cn("rounded-[5px] border px-1.5 py-px text-micro", finding === "missing" ? "border-ui-danger/50 text-ui-danger" : "border-ui-warn/50 text-ui-warn")}>{FINDING_LABEL[finding]}</span>
+    <span className={cn("rounded-ui-sm border px-1.5 py-px text-micro", finding === "missing" ? "border-ui-danger/50 text-ui-danger" : "border-ui-warn/50 text-ui-warn")}>{FINDING_LABEL[finding]}</span>
   );
 }
 
@@ -99,13 +99,13 @@ export function FilesTable(p: FilesTableProps) {
 
   const uses = (refs: readonly AssetRef[], danger?: boolean) =>
     refs.length === 0 ? (
-      <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[5px] bg-ui-raised px-1.5 font-ui-mono text-[11.5px] text-ui-warn">0</span>
+      <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-ui-sm bg-ui-raised px-1.5 font-ui-mono text-caption text-ui-warn">0</span>
     ) : (
       <button
         type="button"
         title={`Select ${refs.length === 1 ? "this use" : "these uses"} on the canvas`}
         onClick={() => p.onSelectUses(pathsOf(refs))}
-        className={cn("inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-[5px] bg-ui-raised px-1.5 font-ui-mono text-[11.5px] hover:bg-ui-hover", danger ? "text-ui-danger" : "text-ui-1")}
+        className={cn("inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-ui-sm bg-ui-raised px-1.5 font-ui-mono text-caption hover:bg-ui-hover", danger ? "text-ui-danger" : "text-ui-1")}
       >
         {refs.length}
       </button>
@@ -138,7 +138,7 @@ export function FilesTable(p: FilesTableProps) {
         </span>
         <div role="cell">{uses(refs)}</div>
         <div role="cell" className="flex flex-wrap gap-1">
-          {isTiled(f, p.tiledSrc) && <span className="rounded-[5px] border border-ui-accent/50 px-1.5 py-px text-micro text-ui-accent-text">Tiled</span>}
+          {isTiled(f, p.tiledSrc) && <span className="rounded-ui-sm border border-ui-accent/50 px-1.5 py-px text-micro text-ui-accent-text">Tiled</span>}
           {(p.found.byName.get(assetKey(f.name)) ?? []).map((x) => (
             <Chip key={x} finding={x} />
           ))}
@@ -191,7 +191,7 @@ export function FilesTable(p: FilesTableProps) {
           <button type="button" aria-expanded={expanded} title={expanded ? "Hide the frames" : "Show the frames"} onClick={() => toggle(stem)} className="flex w-full min-w-0 items-center gap-1 text-left text-ui-1">
             <Chevron className="h-4 w-4 shrink-0 text-ui-4" strokeWidth={1.75} />
             <span className="truncate font-ui-mono">{stem}</span>
-            <span className="shrink-0 rounded-[5px] bg-ui-raised px-1.5 py-px text-micro text-ui-3">{frames.length} frames</span>
+            <span className="shrink-0 rounded-ui-sm bg-ui-raised px-1.5 py-px text-micro text-ui-3">{frames.length} frames</span>
           </button>
         </div>
         <span role="cell" className="text-ui-3">
@@ -206,7 +206,7 @@ export function FilesTable(p: FilesTableProps) {
         </span>
         <div role="cell">{uses(refs)}</div>
         <div role="cell" className="flex flex-wrap gap-1">
-          {frames.some((f) => isTiled(f, p.tiledSrc)) && <span className="rounded-[5px] border border-ui-accent/50 px-1.5 py-px text-micro text-ui-accent-text">Tiled</span>}
+          {frames.some((f) => isTiled(f, p.tiledSrc)) && <span className="rounded-ui-sm border border-ui-accent/50 px-1.5 py-px text-micro text-ui-accent-text">Tiled</span>}
           {kinds.map((x) => (
             <Chip key={x} finding={x} />
           ))}
@@ -219,7 +219,7 @@ export function FilesTable(p: FilesTableProps) {
   return (
     <div className="px-6 pb-8 font-ui">
       <div role="table" aria-label="Screen files">
-        <div role="row" className={cn("grid items-center gap-3 px-2 py-2 text-[11.5px] text-ui-4", COLUMNS)}>
+        <div role="row" className={cn("grid items-center gap-3 px-2 py-2 text-caption text-ui-4", COLUMNS)}>
           <span role="columnheader" />
           {["Name", "Type", "Pixels", "Drawn at", "Size", "Uses", "Findings"].map((h) => (
             <span key={h} role="columnheader">
@@ -259,15 +259,15 @@ export function FilesTable(p: FilesTableProps) {
             <span role="cell" />
           </div>
         ))}
-        {files.length + missing.length === 0 && <div className="border-t border-ui-subtle px-2 py-8 text-center text-[12.5px] text-ui-4">{p.filter || p.tiledOnly ? "No file matches." : "This canvas has no files."}</div>}
+        {files.length + missing.length === 0 && <div className="border-t border-ui-subtle px-2 py-8 text-center text-body text-ui-4">{p.filter || p.tiledOnly ? "No file matches." : "This canvas has no files."}</div>}
       </div>
 
       {outside.length > 0 && (
         <section className="mt-6" aria-label="Outside the screen">
-          <h3 className="mb-2 text-caption font-semibold text-ui-1">Outside the screen</h3>
+          <h3 className="mb-2 text-caption font-medium text-ui-1">Outside the screen</h3>
           {outside.map((o) => (
             <div key={`${o.kind}:${o.value}`} className="flex items-center gap-3 border-t border-ui-subtle py-2 text-caption">
-              <span className="w-[96px] shrink-0 rounded-[5px] bg-ui-raised px-2 py-0.5 text-center text-micro text-ui-3">{o.kind === "url" ? "URL" : "Absolute path"}</span>
+              <span className="w-[96px] shrink-0 rounded-ui-sm bg-ui-raised px-2 py-0.5 text-center text-micro text-ui-3">{o.kind === "url" ? "URL" : "Absolute path"}</span>
               <button
                 type="button"
                 title="Select the items that draw it"

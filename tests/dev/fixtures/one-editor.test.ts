@@ -9,7 +9,6 @@ import { itemAt } from "@/lib/infopanel/editor/ops";
 import { widgetBox, widgetOf } from "@/lib/infopanel/native/widget-item";
 import { CANVAS_ID } from "@/lib/layout";
 import { isFreePage } from "@/lib/free-pages";
-import { exportCheck } from "@/lib/infopanel/export-check";
 
 // The eight Edit v3 reference states the Playwright specs open: each must name a screen, page and selection that exist.
 
@@ -38,7 +37,6 @@ describe("the one-editor fixtures", () => {
     const [desk] = config.profiles;
     expect([desk.width, desk.height, desk.cols, desk.rows]).toEqual([1024, 600, 4, 3]);
     expect(desk.pages[0].placements.map((p) => [p.colStart, p.rowStart, p.colSpan, p.rowSpan])).toEqual([[1, 1, 2, 2], [3, 1, 2, 2], [1, 3, 1, 1], [2, 3, 1, 1], [3, 3, 2, 1]]);
-    expect(oneEditorFixture("export")!.config.profiles[0].madeFor).toBe("infopanel");
     expect(desk.madeFor).toBe("studio");
   });
 
@@ -51,13 +49,6 @@ describe("the one-editor fixtures", () => {
     const items = openCanvas(zone.canvas!).items;
     expect(fixture.canvasSelection).toHaveLength(1);
     expect(itemAt(items, fixture.canvasSelection![0])?.Name).toBe("CPU temp");
-  });
-
-  it("Neon Rig's check reads 7 as is and 1 approximated: NEON RIG's letter spacing (acceptance 24)", () => {
-    const [neon] = oneEditorFixture("profile")!.config.profiles;
-    const check = exportCheck(neon, neon.pages[0]);
-    expect(check.counts).toEqual({ ok: 7, approx: 1, pic: 0, out: 0 });
-    expect(check.rows.find((r) => r.status === "approx")).toMatchObject({ name: "NEON RIG", why: "Letter spacing (5 px) is dropped" });
   });
 
   it("the Add state has Weather at COL 7 ROW 5 W 2 H 1's box, and Layers F nests it with the Fan gauge", () => {

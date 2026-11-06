@@ -108,6 +108,8 @@ export function useLibraryFrames(open: FramesOpen, editorId: number): LibraryFra
     saveTo: null,
     link: null,
     dirty: isFramesDirty(fc),
+    draft: false,
+    autosave: false,
     history: {
       undo: () => setFc(undoFrames),
       redo: () => setFc(redoFrames),
@@ -117,6 +119,7 @@ export function useLibraryFrames(open: FramesOpen, editorId: number): LibraryFra
     commit: (next, key) => change((s) => withVectorSpec(s, next), key),
     rename: (name) => setFc((c) => renameFrames(c, name)),
     saved: (origin) => setFc((c) => markFramesSaved(c, origin)),
+    drafted: () => {},
   };
 
   const save = (o?: WriteOptions) =>

@@ -120,7 +120,7 @@ export function LogsSection() {
                 onClick={() => setLevel(c.value)}
                 {...radioProps(LEVEL_CHIPS.map((x) => x.value), level, c.value, setLevel)}
                 className={cn(
-                  "flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs",
+                  "flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-caption",
                   on ? "border-s-accent/50 bg-s-accent/12 text-s-t1" : "border-s-track-line bg-transparent text-s-muted hover:text-s-t1"
                 )}
               >
@@ -145,7 +145,7 @@ export function LogsSection() {
 
       <div className="flex flex-col overflow-hidden rounded-xl border border-s-card-line bg-s-well">
         {/* biome-ignore lint/a11y/noNoninteractiveTabindex: a scroller must take focus so the keyboard can scroll it. */}
-        <div ref={viewer} onScroll={onScroll} role="region" aria-label="Log lines" tabIndex={0} className="h-[420px] overflow-auto py-2.5 font-mono text-xs leading-[1.7]" data-testid="log-viewer">
+        <div ref={viewer} onScroll={onScroll} role="region" aria-label="Log lines" tabIndex={0} className="h-[420px] overflow-auto py-2.5 font-mono text-caption leading-[1.7]" data-testid="log-viewer">
           <div className="w-max min-w-full">
             {visible.map((l) => (
               <div key={l.id} className="flex items-baseline gap-3 whitespace-pre px-3.5 hover:bg-s-card">
@@ -163,21 +163,21 @@ export function LogsSection() {
             role="switch"
             aria-checked={follow}
             onClick={() => setFollow(!follow)}
-            className="flex h-7 cursor-pointer items-center gap-2 rounded-[7px] border-0 bg-transparent px-2.5 text-xs text-s-t2"
+            className="flex h-7 cursor-pointer items-center gap-2 rounded-ui-md border-0 bg-transparent px-2.5 text-caption text-s-t2"
           >
-            <span className={cn("relative h-4 w-7 rounded-lg forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas]", follow ? "bg-s-accent forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-s-menu")}>
-              <span className={cn("absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-white transition-transform forced-colors:bg-[color:ButtonText]", follow && "translate-x-3 forced-colors:bg-[color:HighlightText]")} />
+            <span className={cn("relative h-4 w-7 rounded-lg forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas]", follow ? "bg-s-strong forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-s-menu")}>
+              <span className={cn("absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-s-t1 transition-transform forced-colors:bg-[color:ButtonText]", follow && "translate-x-3 bg-s-on-accent forced-colors:bg-[color:HighlightText]")} />
             </span>
             Follow new lines
           </button>
-          <span className="min-w-0 flex-1 text-[11.5px] text-s-dim">
+          <span className="min-w-0 flex-1 text-caption text-s-dim">
             {unreadable ? "Can't read the log. It will keep trying." : `${visible.length} of ${buffer.lines.length} lines${settings.debug ? "" : " · debug lines hidden (debug mode off)"}`}
           </span>
-          <Button className="h-7 text-xs" onClick={() => void copy()}>
+          <Button className="h-7 text-caption" onClick={() => void copy()}>
             {copied ? <Check className="h-[15px] w-[15px]" /> : <Copy className="h-[15px] w-[15px]" />}
             {copied ? "Copied" : "Copy"}
           </Button>
-          <Button className="h-7 text-xs" disabled={!buffer.file} onClick={() => void ipc.revealPath(buffer.file as string).catch((e) => toast(errorText(e), true))}>
+          <Button className="h-7 text-caption" disabled={!buffer.file} onClick={() => void ipc.revealPath(buffer.file as string).catch((e) => toast(errorText(e), true))}>
             <FolderOpen className="h-[15px] w-[15px]" />
             Open file
           </Button>

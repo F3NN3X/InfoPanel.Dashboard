@@ -34,7 +34,9 @@ export function useCanvasZoom(page: { width: number; height: number }, inset: Ca
     scrollRef.current = el;
     setScrollEl(el);
   }, []);
-  const { pan, resetPan } = useHandPan(scrollEl);
+  /** The toolbar's Pan: the left button pans until Select. */
+  const [handTool, setHandTool] = useState(false);
+  const { pan, resetPan } = useHandPan(scrollEl, handTool);
   // A new page size (another profile, a resize) starts centred again.
   useEffect(resetPan, [page.width, page.height, resetPan]);
 
@@ -98,5 +100,5 @@ export function useCanvasZoom(page: { width: number; height: number }, inset: Ca
     requestAnimationFrame(() => requestAnimationFrame(() => el.scrollIntoView({ block: "center", inline: "center" })));
   };
 
-  return { zoom, fitting, setZoom, zoomStep, fitZoom, zoomToElement, pan, scrollRef, attachScroll };
+  return { zoom, fitting, setZoom, zoomStep, fitZoom, zoomToElement, pan, scrollRef, attachScroll, handTool, setHandTool };
 }

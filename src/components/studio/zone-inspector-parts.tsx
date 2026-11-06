@@ -1,9 +1,11 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ChevronDown,
   ChevronRight,
   CircleHelp,
   Copy,
+  MoreHorizontal,
+  Replace,
   BoxSelect,
   Eye,
   EyeOff,
@@ -12,6 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
 import { IconButton } from "@/components/ui/icon-button";
 import { BLANK_MODULE, type Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
@@ -47,9 +50,9 @@ export function CloseButton() {
 }
 /** The phone sheet's 44 px touch targets. */
 const TOUCH = "h-11 w-11";
-const TITLE = "truncate text-lead font-semibold leading-4 text-ui-1";
+const TITLE = "truncate text-lead font-medium leading-4 text-ui-1";
 
-/** Hide / Duplicate / Delete (28×28; delete turns red on hover). */
+/** Hide, Duplicate and "⋯" (02a): Change widget, Help and Delete, last and in red. */
 function ZoneActions({
   hidden,
   onToggleVisible,
@@ -57,6 +60,7 @@ function ZoneActions({
   onRemove,
   zoneKeys = true,
   onHelp,
+  onChangeWidget,
   stateIcon = true,
 }: {
   /** Every zone acted on is hidden (the eye shows them again). */
@@ -68,27 +72,40 @@ function ZoneActions({
   onRemove: () => void;
   /** Ctrl+D / Del act on the zone (not on a selected panel widget). */
   zoneKeys?: boolean;
-  /** A Help icon (F1) before the actions. */
+  /** Help (F1) in the menu. */
   onHelp?: () => void;
+  /** Change widget… in the menu. */
+  onChangeWidget?: () => void;
 }) {
   const touch = useInspectorChrome().mode === "sheet" ? TOUCH : undefined;
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const entries: ContextMenuEntry[] = [
+    ...(onChangeWidget ? [{ id: "change", label: "Change widget…", icon: <Replace />, onSelect: onChangeWidget }] : []),
+    ...(onHelp ? [{ id: "help", label: "Help (F1)", icon: <CircleHelp />, onSelect: onHelp }] : []),
+    ...(onChangeWidget || onHelp ? (["separator"] as const) : []),
+    { id: "delete", label: zoneKeys ? `Delete (${KEYS.remove})` : "Delete widget", icon: <Trash2 />, danger: true, onSelect: onRemove },
+  ];
   return (
     <span className="flex shrink-0 items-center">
-      {onHelp && (
-        <IconButton label="Help (F1)" onClick={onHelp} className={touch}>
-          <CircleHelp className="h-4 w-4" />
-        </IconButton>
-      )}
       <IconButton label={`${hidden ? "Show" : "Hide"} (${KEYS.hide})`} onClick={onToggleVisible} className={touch}>
         {hidden && stateIcon ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </IconButton>
       <IconButton label={zoneKeys ? `Duplicate (${KEYS.duplicate})` : "Duplicate widget"} onClick={onDuplicate} className={touch}>
         <Copy className="h-4 w-4" />
       </IconButton>
-      <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-ui-subtle" />
-      <IconButton label={zoneKeys ? `Delete (${KEYS.remove})` : "Delete widget"} danger onClick={onRemove} className={cn("text-ui-danger/80", touch)}>
-        <Trash2 className="h-4 w-4" />
+      <IconButton
+        label="More"
+        aria-haspopup="menu"
+        aria-expanded={menu !== null}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setMenu({ x: r.right - 200, y: r.bottom + 4 });
+        }}
+        className={touch}
+      >
+        <MoreHorizontal className="h-4 w-4" />
       </IconButton>
+      {menu && <ContextMenu x={menu.x} y={menu.y} entries={entries} onClose={() => setMenu(null)} />}
       <CloseButton />
     </span>
   );
@@ -145,6 +162,7 @@ export function ZoneHeader({
   onDuplicate,
   onRemove,
   onHelp,
+  onChangeWidget,
 }: {
   icon: ReactNode;
   name: string;
@@ -154,7 +172,7 @@ export function ZoneHeader({
   onName?: (name: string) => void;
   /** The sub line: the widget type and its count of values set here. */
   meta: string;
-  /** The sub line as the part's kind (Edit v3 SPEC §10.2, `Studio widget` in the accent) in place of `meta`. */
+  /** The sub line as the part's kind and place (02a, `Widget · col 5, row 5`) in place of `meta`. */
   kind?: string;
   /** Shown on hover over the sub line (size, minimum, data points). */
   details?: string;
@@ -166,8 +184,10 @@ export function ZoneHeader({
   onToggleVisible: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
-  /** The Help icon: F1's article for this zone. */
+  /** The menu's Help: F1's article for this zone. */
   onHelp: () => void;
+  /** The menu's Change widget…. */
+  onChangeWidget?: () => void;
 }) {
   return (
     <div className="space-y-2">
@@ -190,7 +210,7 @@ export function ZoneHeader({
             <div className={TITLE}>{name}</div>
           )}
           {kind ? (
-            <div data-testid="inspector-kind" className="truncate text-micro text-ui-accent" title={details}>
+            <div data-testid="inspector-kind" className="truncate text-caption text-ui-3" title={details}>
               {kind}
             </div>
           ) : (
@@ -205,6 +225,7 @@ export function ZoneHeader({
           onDuplicate={onDuplicate}
           onRemove={onRemove}
           onHelp={onHelp}
+          onChangeWidget={onChangeWidget}
           zoneKeys={widget === undefined}
         />
       </div>
@@ -295,7 +316,7 @@ export function WidgetPicker({ placement, onPickWidget }: { placement: Placement
 }
 
 /** The settings search box; Esc clears it. */
-export function SettingsSearch({ query, onQuery }: { query: string; onQuery: (query: string) => void }) {
+export function SettingsSearch({ query, onQuery, placeholder = "Search all settings" }: { query: string; onQuery: (query: string) => void; placeholder?: string }) {
   return (
     <div className="relative">
       <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-4" />
@@ -308,7 +329,7 @@ export function SettingsSearch({ query, onQuery }: { query: string; onQuery: (qu
           e.stopPropagation();
           onQuery("");
         }}
-        placeholder="Search all settings"
+        placeholder={placeholder}
         aria-label="Search settings"
         className={cn(FIELD, "h-8 w-full rounded-[7px] pl-[30px] pr-7")}
       />

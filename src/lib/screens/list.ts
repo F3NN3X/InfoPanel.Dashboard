@@ -43,9 +43,6 @@ export function importedFromInfoPanel(profile: Pick<MonitorProfile, "cols" | "ro
   });
 }
 
-/** A screen made for InfoPanel (SPEC §5.1, decision D5): the export marks, the Export check and the On InfoPanel lines show. */
-export const madeForInfoPanel = (profile: Pick<MonitorProfile, "madeFor">): boolean => profile.madeFor === "infopanel";
-
 /** One row of the list. `order` is where it sits in the config or the Library (the manual sort). */
 export interface ListEntry {
   id: string;

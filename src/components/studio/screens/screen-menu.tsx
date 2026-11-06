@@ -1,8 +1,10 @@
-import { ArrowDown, ArrowUp, Copy, Link, Pencil, PenLine, Rocket, Share, Shuffle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Link, Pencil, PenLine, Rocket, Settings2, Share, Trash2 } from "lucide-react";
 import type { CardAction } from "./card-actions";
 
 interface ScreenActionsProps {
   onOpen: () => void;
+  /** The drawer with size and fit, rotation, performance and the pages. */
+  onSettings: () => void;
   /** Any screen but the last one can be deleted. */
   canDelete: boolean;
   canMoveEarlier: boolean;
@@ -14,8 +16,6 @@ interface ScreenActionsProps {
   onMove: (by: number) => void;
   onCopyLink: () => void;
   onExport: () => void;
-  /** Opens the screen on the canvas and the Convert to InfoPanel profile dialog. */
-  onConvert: () => void;
   onDelete: () => void;
 }
 
@@ -23,6 +23,7 @@ interface ScreenActionsProps {
 export function screenActions(p: ScreenActionsProps): CardAction[] {
   return [
     { id: "open", label: "Open", icon: Pencil, run: p.onOpen },
+    { id: "settings", label: "Screen settings…", icon: Settings2, run: p.onSettings },
     { id: "rename", label: "Rename", icon: PenLine, run: p.onRename, focusesField: true },
     { id: "duplicate", label: "Duplicate", icon: Copy, run: p.onDuplicate },
     { id: "always-open", label: "Always open this one", icon: Rocket, run: p.onAlwaysOpen },
@@ -30,7 +31,6 @@ export function screenActions(p: ScreenActionsProps): CardAction[] {
     { id: "later", label: "Move later", icon: ArrowDown, run: () => p.onMove(1), disabled: !p.canMoveLater },
     { id: "copy-link", label: "Copy kiosk link", icon: Link, run: p.onCopyLink },
     { id: "export", label: "Export screen", icon: Share, run: p.onExport },
-    { id: "convert", label: "Convert to InfoPanel profile (experimental)", icon: Shuffle, run: p.onConvert },
     { id: "delete", label: "Delete", icon: Trash2, run: p.onDelete, disabled: !p.canDelete, danger: true },
   ];
 }

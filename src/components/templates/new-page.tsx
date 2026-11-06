@@ -304,7 +304,7 @@ function KindPage({ kind, onKind, screen, initial, carry, onCreateScreen, onCrea
     : [
         blankWay("Blank grid", "An empty grid, add widgets after"),
         { id: "sample", icon: LayoutTemplate, title: "The sample layout", note: "A bit of everything, made at once", does: "leave", onSelect: onSample },
-        { id: "infopanel", icon: PenTool, title: "An InfoPanel profile", note: "Free canvas, exports to .infopanel", does: "switch", onSelect: () => switchKind("ip") },
+        { id: "infopanel", icon: PenTool, title: "An InfoPanel profile", note: "A free canvas of InfoPanel items", does: "switch", onSelect: () => switchKind("ip") },
         { id: "import", icon: FileUp, title: "Import a file", note: "A screen or an .infopanel profile", does: "leave", onSelect: () => onImport("screen") },
       ];
 
@@ -358,17 +358,17 @@ function KindPage({ kind, onKind, screen, initial, carry, onCreateScreen, onCrea
         <input value={shownName} onChange={(e) => setName(e.target.value)} aria-label="Name" className={INPUT} />
       </label>
       {ip && (
-        <label className="flex items-center gap-2 text-[12.5px] text-ui-2">
+        <label className="flex items-center gap-2 text-body text-ui-2">
           <input type="checkbox" checked={toLibrary} onChange={(e) => setToLibrary(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--ui-accent)]" />
           Also save to Library
         </label>
       )}
       {error && (
-        <p role="alert" className="m-0 text-[11.5px] text-ui-danger">
+        <p role="alert" className="m-0 text-caption text-ui-danger">
           {error}
         </p>
       )}
-      <p className="m-0 text-[11.5px] leading-normal text-ui-4">
+      <p className="m-0 text-caption leading-normal text-ui-4">
         {ip
           ? "It comes in as a new screen and opens in Edit. You can change the size later in its profile settings."
           : "It comes in as a new screen. You can change its size and grid later on Screens."}
@@ -378,7 +378,7 @@ function KindPage({ kind, onKind, screen, initial, carry, onCreateScreen, onCrea
   const inspector = (
     <>
       <div className="flex min-w-0 items-baseline gap-2">
-        <h2 ref={heading} tabIndex={-1} className="m-0 shrink-0 text-body font-semibold text-ui-1 outline-none">
+        <h2 ref={heading} tabIndex={-1} className="m-0 shrink-0 text-body font-medium text-ui-1 outline-none">
           {entry ? entry.name : ip ? "Blank canvas" : "Blank grid"}
         </h2>
         <span className="min-w-0 truncate text-micro text-ui-4">{template ? `Made for ${classList(template.fits)}` : saved ? entry?.blurb : "Add widgets after you create it"}</span>

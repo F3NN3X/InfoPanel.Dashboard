@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Probes } from "@/components/studio/first-run/checks";
 import FirstRunPage, { type SetupOutcome } from "@/components/studio/first-run/first-run-page";
 import { applyFirstRun, isPristine } from "@/components/studio/first-run-model";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { defaultConfig } from "@/lib/layout";
 import { allPlacements } from "@/lib/pages";
 

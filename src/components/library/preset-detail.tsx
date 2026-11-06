@@ -24,12 +24,12 @@ export interface PresetDetailProps {
   onRename: (name: string) => void;
 }
 
-const BUTTON = "flex h-(--ui-h-field) items-center justify-center gap-2 rounded-ui-md px-3 text-[12.5px] disabled:pointer-events-none disabled:opacity-40";
+const BUTTON = "flex h-(--ui-h-field) items-center justify-center gap-2 rounded-ui-md px-3 text-body disabled:pointer-events-none disabled:opacity-40";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="border-t border-ui-subtle pt-3">
-      <div className="mb-1.5 text-micro font-medium uppercase tracking-[.06em] text-ui-4">{title}</div>
+      <div className="mb-1.5 text-caption font-medium text-ui-4">{title}</div>
       {children}
     </div>
   );
@@ -87,7 +87,7 @@ export function PresetDetail(p: PresetDetailProps) {
           onChange={(e) => setName(e.target.value)}
           onBlur={() => name.trim() && name !== item.name && p.onRename(name.trim())}
           onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-          className="-mx-1 w-full rounded-ui-sm border border-transparent bg-transparent px-1 py-0.5 text-[14px] font-semibold text-ui-1 outline-none hover:border-ui-default focus:border-ui-accent disabled:hover:border-transparent"
+          className="-mx-1 w-full rounded-ui-sm border border-transparent bg-transparent px-1 py-0.5 text-lead font-medium text-ui-1 outline-none hover:border-ui-default focus:border-ui-accent disabled:hover:border-transparent"
         />
         <div className="font-ui-mono text-micro text-ui-4">{metaLine(item) || KIND_LABEL[item.kind]}</div>
       </div>
@@ -96,7 +96,7 @@ export function PresetDetail(p: PresetDetailProps) {
         {p.secondary.length > 0 && <div className="grid grid-cols-2 gap-2 [&>*:last-child:nth-child(odd)]:col-span-2">{p.secondary.map((a) => button(a))}</div>}
       </div>
       <Section title="Settings">
-        {rows.length > 0 ? <Rows rows={rows} /> : <span className="text-caption text-ui-4">No settings: it clears the widget’s own look.</span>}
+        {rows.length > 0 ? <Rows rows={rows} /> : <span className="text-caption text-ui-4">No settings: it clears the widget’s own style</span>}
       </Section>
       <Section title="Kept in">
         <span className="text-caption text-ui-2">{user ? "this dashboard’s config" : "the Studio (built in)"}</span>

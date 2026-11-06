@@ -1,22 +1,24 @@
-import { Menu } from "@base-ui/react/menu";
-import type { ReactNode } from "react";
-import { Download, FileInput, FileOutput, MoreHorizontal, Radio, Redo2, Search, Tv, Undo2 } from "lucide-react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
+import { ChevronRight, Pencil, Play, Redo2, Search, Undo2 } from "lucide-react";
+import { FOCUS_RING } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
+import { StatusDot } from "@/components/ui/status-chip";
 import { isTauri } from "@/lib/desktop";
 import type { ControlKiosk, ControlState } from "@/lib/control";
 import type { MonitorProfile } from "@/lib/layout";
-import { importedFromInfoPanel } from "@/lib/screens/list";
 import { cn } from "@/lib/utils";
+import type { SaveChip } from "./editor/save-chip";
 import { LiveControl } from "./live-popover";
+import { focusSoon } from "./focus-soon";
+import { RenameInput } from "./rename-input";
 import { ScreenSwitcher } from "./screen-switcher";
-import { StudioLogo } from "./studio-logo";
 import { WindowControls } from "./window-controls";
 import { KEYS } from "./use-studio-shortcuts";
 
 /** Every view but Design is a full page of its own: the rail's (Sources is Data) and Screens. */
 export type StudioMode = "design" | "sources" | "library" | "gauges" | "theme" | "alerts" | "screens";
 
-interface StudioTopBarProps {
+export interface StudioTopBarProps {
   profiles: MonitorProfile[];
   /** The profile on the canvas. */
   profile: MonitorProfile;
@@ -24,197 +26,190 @@ interface StudioTopBarProps {
   pageId: string;
   /** Edit a screen on a page (the switcher). */
   onSelectScreen: (profileId: string, pageId: string) => void;
-  /** "Manage screens…". */
+  /** The breadcrumb's Screens, and "Manage screens…". */
   onManageScreens: () => void;
   /** The breadcrumb's "Screen settings…": Screens with the current screen selected (PLAN decision 24). */
   onScreenSettings: () => void;
-  /** The Live popover (the status bar's Kiosks item opens it too). */
+  /** The pencil: a new name for the screen (one undo step). */
+  onRename: (name: string) => void;
+  /** The page tabs, in the bar from 960 px; a narrow window keeps them in their own row. */
+  tabs?: ReactNode;
+  /** A phone: the bar has no room for the file actions, and no sidebar holds Live. */
+  phone: boolean;
+  /** The Live popover, on a phone (the sidebar holds it elsewhere). */
   liveOpen: boolean;
   onLiveOpenChange: (open: boolean) => void;
   kiosks: readonly ControlKiosk[];
   /** The runtime state the Live controls read (null while the server is unreachable). */
   control: ControlState | null;
-  /** Live's "Open kiosk view". */
+  /** Preview (Q25) and Live's "Open kiosk view". */
   onExitStudio: () => void;
-  /** Briefly true after a save (shows "Saved"). */
-  saved: boolean;
-  /** Edits the server does not have yet (the dot on Save). */
-  unsaved: boolean;
+  /** The saved state (P-1). */
+  saved: SaveChip;
+  /** Push now: the chip, the phone's menu and Ctrl+S. */
   onSave: () => void;
-  /** The Export & back up sheet. */
+  /** The Export & back up sheet (a phone's menu). */
   onExport: () => void;
-  /** The Import door. */
+  /** The Import door (a phone's menu). */
   onImport: () => void;
+  /** The File menu. */
+  fileMenu?: ReactNode;
   canUndo: boolean;
   canRedo: boolean;
+  /** What Undo and Redo would change, when it can be named. */
+  undoName?: string;
+  redoName?: string;
   onUndo: () => void;
   onRedo: () => void;
   onPalette: () => void;
 }
 
-const POPUP =
-  "min-w-52 rounded-ui-menu border border-ui-menu bg-ui-raised p-1 font-ui text-body text-ui-2 shadow-ui-menu outline-none";
-const ITEM =
-  "flex h-[30px] cursor-default items-center gap-2 rounded-md px-2 outline-none select-none data-disabled:text-ui-hint data-highlighted:bg-ui-active data-highlighted:text-ui-1 data-highlighted:shadow-[inset_2px_0_0_var(--ui-accent)]";
-const SEPARATOR = "mx-1 my-1 h-px bg-ui-subtle";
-
-/**
- * "⋯", on a phone only (the bar has no room there for Undo / Redo, Import and Export). Wider windows have the
- * buttons; the shortcut list is in Help (and `?`) and the build id in Settings › App › About.
- */
-function MoreMenu({
-  onExport,
-  onImport,
-  canUndo,
-  canRedo,
-  onUndo,
-  onRedo,
-  onLiveOpenChange,
-}: Pick<StudioTopBarProps, "onExport" | "onImport" | "canUndo" | "canRedo" | "onUndo" | "onRedo" | "onLiveOpenChange">) {
-  return (
-    <Menu.Root>
-      <Menu.Trigger
-        aria-label="More actions"
-        title="More actions"
-        className="flex h-8 w-8 items-center justify-center rounded-md text-ui-3 sm:hidden transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover data-popup-open:text-ui-1"
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
-          <Menu.Popup className={POPUP}>
-            <Menu.Item className={ITEM} disabled={!canUndo} onClick={onUndo}>
-              <Undo2 className="h-3.5 w-3.5" /> Undo
-            </Menu.Item>
-            <Menu.Item className={ITEM} disabled={!canRedo} onClick={onRedo}>
-              <Redo2 className="h-3.5 w-3.5" /> Redo
-            </Menu.Item>
-            <Menu.Separator className={SEPARATOR} />
-            <Menu.Item className={ITEM} onClick={() => onLiveOpenChange(true)}>
-              <Radio className="h-3.5 w-3.5" /> Live control…
-            </Menu.Item>
-            <Menu.Item className={ITEM} onClick={onImport}>
-              <FileInput className="h-3.5 w-3.5" /> Import…
-            </Menu.Item>
-            <Menu.Item className={ITEM} onClick={onExport}>
-              <FileOutput className="h-3.5 w-3.5" /> Export &amp; back up…
-            </Menu.Item>
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
-  );
-}
-
-/** Import / Export: outlined buttons before Live; icon-only under 960 px, in the "⋯" menu on a phone. */
-const FILE_BUTTON =
-  "flex h-7 items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong px-2.5 text-body font-medium text-ui-2 transition-colors hover:bg-ui-hover hover:text-ui-1 max-sm:hidden max-[959px]:px-1.5";
+/** "⋯", on a phone only, in its own chunk with what it reads (a desktop window and the kiosk never fetch it). */
+const MoreMenu = lazy(() => import("./more-menu"));
 
 /** Undo / redo: #c9c9cf when they can act, #4a4a52 when they cannot. */
 const HISTORY_BUTTON = "text-ui-2 disabled:text-ui-glyph-off disabled:opacity-100";
 
-/** The one Import and one Export button (SPEC §3.1): the Import door and the Export & back up sheet. */
-function FileButton({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
-  return (
-    <button type="button" title={label} onClick={onClick} className={FILE_BUTTON}>
-      {icon}
-      <span className="max-[959px]:sr-only">{label}</span>
-    </button>
-  );
-}
+/** The tooltip: `Undo: Outer ring → VRAM (Ctrl+Z)`, plain while the step has no name. */
+const historyLabel = (verb: string, name: string | undefined, keys: string) => `${verb}${name ? `: ${name}` : ""} (${keys})`;
 
-/** The screen's kind beside the breadcrumb (Edit v3 SPEC §6.1): imported from InfoPanel, or a screen made here. */
-function KindTag({ profile }: { profile: MonitorProfile }) {
-  const imported = importedFromInfoPanel(profile);
-  const Icon = imported ? Download : Tv;
+/** The breadcrumb's Screens › name and pencil (Q27): the name switches screen and page, the pencil renames it where it stands. */
+function Breadcrumb(props: StudioTopBarProps) {
+  const { profiles, profile, pageId, phone, onRename } = props;
+  const [renaming, setRenaming] = useState(false);
   return (
-    <span className="flex h-5 shrink-0 items-center gap-1 rounded-[5px] border border-ui-default bg-ui-hover px-1.5 text-micro text-ui-3 max-[959px]:hidden">
-      <Icon className="h-[13px] w-[13px]" strokeWidth={1.75} />
-      {imported ? "Imported from InfoPanel" : "Screen"}
-    </span>
+    <div className="flex min-w-0 shrink items-center gap-1">
+      {!phone && (
+        <>
+          <button type="button" onClick={props.onManageScreens} className={cn("h-7 shrink-0 rounded-ui-md px-1.5 text-body text-ui-3 transition-colors hover:text-ui-1 max-[1279px]:hidden", FOCUS_RING)}>
+            Screens
+          </button>
+          <ChevronRight className="h-4 w-4 shrink-0 text-ui-hint max-[1279px]:hidden" aria-hidden />
+        </>
+      )}
+      {renaming ? (
+        <span className="w-44 px-1">
+          <RenameInput
+            label="Screen name"
+            initial={profile.name}
+            onDone={(name, byKey) => {
+              setRenaming(false);
+              if (name && name !== profile.name) onRename(name);
+              if (byKey) focusSoon('button[aria-label="Rename screen"]');
+            }}
+          />
+        </span>
+      ) : (
+        <ScreenSwitcher
+          profiles={profiles}
+          profile={profile}
+          pageId={pageId}
+          compact={props.tabs === undefined}
+          onSelect={props.onSelectScreen}
+          onManage={props.onManageScreens}
+          onScreenSettings={props.onScreenSettings}
+        />
+      )}
+      {!renaming && !phone && (
+        <IconButton label="Rename screen" size={26} onClick={() => setRenaming(true)}>
+          <Pencil className="h-3.5 w-3.5" />
+        </IconButton>
+      )}
+    </div>
   );
 }
 
 /**
- * The studio's title bar (40 px; the window's title bar on desktop): mark, screen / page breadcrumb and kind tag, the command
- * entry, undo / redo, Import, Export, Live, Save, the phone's "⋯" menu and the window controls.
+ * The editor's top bar (56 px; the window's title bar on desktop, and on a phone on every page, where it is 40 px and
+ * keeps the screen, search, Live and "⋯"): the breadcrumb, the page tabs, search, undo and redo that say what they
+ * change, the saved state, Preview and File.
  */
 export function StudioTopBar(props: StudioTopBarProps) {
-  const { profiles, profile, pageId, saved, unsaved, onSave, canUndo, canRedo, onUndo, onRedo, onPalette } = props;
+  const { profiles, profile, saved, onSave, canUndo, canRedo, undoName, redoName, onUndo, onRedo, onPalette, phone, tabs } = props;
   return (
     // In the desktop app this bar is the window's title bar: its empty space drags the window
     // (data-tauri-drag-region only acts on the element itself) and the caption buttons sit at the end.
     <header
       data-tauri-drag-region
       className={cn(
-        "flex h-10 shrink-0 items-center gap-2 border-b border-ui-subtle bg-ui-chrome px-3 font-ui max-sm:gap-1.5 max-sm:px-2",
-        isTauri() && "pr-0"
+        "flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome pl-4 pr-4 font-ui max-[959px]:h-10 max-[959px]:gap-2 max-[959px]:pl-2 max-[959px]:pr-2",
+        isTauri() && "pr-0 max-[959px]:pr-0"
       )}
     >
-      <StudioLogo className="pointer-events-none h-5 w-5 shrink-0 max-sm:hidden" />
-      <ScreenSwitcher
-        profiles={profiles}
-        profile={profile}
-        pageId={pageId}
-        onSelect={props.onSelectScreen}
-        onManage={props.onManageScreens}
-        onScreenSettings={props.onScreenSettings}
-      />
-      <KindTag profile={profile} />
-      <div data-tauri-drag-region className="flex min-w-0 flex-1 justify-center">
+      <Breadcrumb {...props} />
+      {tabs}
+      <div data-tauri-drag-region className="flex min-w-8 flex-1 justify-center">
         <button
           type="button"
           onClick={onPalette}
-          title={`Search settings or run a command (${KEYS.palette})`}
-          className="flex h-8 min-w-8 max-w-[380px] flex-1 items-center gap-2 rounded-[7px] border border-ui-default bg-ui-app px-2 text-body text-ui-4 transition-colors hover:border-ui-strong hover:text-ui-3 max-[959px]:flex-none max-[959px]:justify-center max-[959px]:px-0 max-[959px]:w-8"
+          title={`Search or run a command (${KEYS.palette})`}
+          aria-label="Search or run a command"
+          className={cn(
+            "flex h-8 min-w-8 max-w-[300px] flex-1 items-center gap-2 rounded-ui-md border border-ui-strong bg-ui-panel px-2.5 text-body text-ui-3 transition-colors hover:text-ui-1 max-[1279px]:w-8 max-[1279px]:flex-none max-[1279px]:justify-center max-[1279px]:px-0",
+            FOCUS_RING
+          )}
         >
-          <Search className="h-4 w-4 shrink-0" />
-          <span className="min-w-0 flex-1 truncate text-left max-[959px]:sr-only">Search settings or run a command</span>
-          <kbd className="rounded border border-ui-default px-1.5 font-ui-mono text-micro text-ui-4 max-[959px]:hidden">{KEYS.palette}</kbd>
+          <Search className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 truncate text-left max-[1279px]:sr-only">Search or run a command</span>
+          <kbd className="rounded-ui-sm border border-ui-strong px-1.5 font-ui-mono text-micro text-ui-hint max-[1279px]:hidden">{KEYS.palette}</kbd>
         </button>
       </div>
-      <IconButton
-        label={`Undo (${KEYS.undo})`}
-        size={32}
-        className={cn(HISTORY_BUTTON, "max-sm:hidden")}
-        disabled={!canUndo}
-        onClick={onUndo}
-      >
-        <Undo2 className="h-[19px] w-[19px]" strokeWidth={1.75} />
-      </IconButton>
-      <IconButton
-        label={`Redo (${KEYS.redo})`}
-        size={32}
-        className={cn(HISTORY_BUTTON, "max-sm:hidden")}
-        disabled={!canRedo}
-        onClick={onRedo}
-      >
-        <Redo2 className="h-[19px] w-[19px]" strokeWidth={1.75} />
-      </IconButton>
-      <div className="h-[18px] w-px shrink-0 bg-ui-default max-sm:hidden" />
-      <FileButton label="Import" icon={<FileInput className="h-4 w-4" strokeWidth={1.75} />} onClick={props.onImport} />
-      <FileButton label="Export" icon={<FileOutput className="h-4 w-4" strokeWidth={1.75} />} onClick={props.onExport} />
-      <LiveControl
-        open={props.liveOpen}
-        onOpenChange={props.onLiveOpenChange}
-        profiles={profiles}
-        kiosks={props.kiosks}
-        screen={profile}
-        control={props.control}
-        onOpenKioskView={props.onExitStudio}
-      />
-      <button
-        type="button"
-        onClick={onSave}
-        title={`Save to the dashboard server and refresh the kiosk view (${KEYS.save})`}
-        className="flex h-7 items-center gap-[7px] whitespace-nowrap rounded-[7px] bg-ui-inverse px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
-      >
-        {!saved && unsaved && (
-          <span role="img" className="h-1.5 w-1.5 rounded-full bg-ui-unsaved" aria-label="Unsaved changes" />
-        )}
-        {saved ? "Saved" : "Save"}
-      </button>
-      <MoreMenu {...props} />
+      {!phone && (
+        <>
+          <span className="flex shrink-0 items-center gap-0.5">
+            <IconButton label={historyLabel("Undo", undoName, KEYS.undo)} size={32} className={HISTORY_BUTTON} disabled={!canUndo} onClick={onUndo}>
+              <Undo2 className="h-4 w-4" />
+            </IconButton>
+            <IconButton label={historyLabel("Redo", redoName, KEYS.redo)} size={32} className={HISTORY_BUTTON} disabled={!canRedo} onClick={onRedo}>
+              <Redo2 className="h-4 w-4" />
+            </IconButton>
+          </span>
+          <div className="h-5 w-px shrink-0 bg-ui-strong" />
+          <button
+            type="button"
+            data-testid="save-chip"
+            data-tone={saved.tone}
+            onClick={onSave}
+            title={saved.tip}
+            aria-label={saved.text}
+            className={cn(
+              "flex h-7 min-w-0 shrink items-center gap-2 whitespace-nowrap rounded-ui-md px-1.5 text-caption transition-colors hover:bg-ui-hover",
+              FOCUS_RING,
+              saved.tone === "danger" ? "text-ui-danger" : saved.tone === "warn" ? "text-ui-warn" : "text-ui-2"
+            )}
+          >
+            <StatusDot tone={saved.tone} />
+            <span role="status" className="min-w-0 truncate max-[1279px]:sr-only">
+              {saved.text}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={props.onExitStudio}
+            title="Open kiosk view"
+            className={cn("flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 transition-colors hover:bg-ui-hover max-[1279px]:w-8 max-[1279px]:justify-center max-[1279px]:px-0", FOCUS_RING)}
+          >
+            <Play className="h-3.5 w-3.5" aria-hidden /> <span className="max-[1279px]:sr-only">Preview</span>
+          </button>
+          {props.fileMenu}
+        </>
+      )}
+      {phone && (
+        <>
+          <LiveControl
+            open={props.liveOpen}
+            onOpenChange={props.onLiveOpenChange}
+            profiles={profiles}
+            kiosks={props.kiosks}
+            screen={profile}
+            control={props.control}
+            onOpenKioskView={props.onExitStudio}
+          />
+          <Suspense fallback={<div className="h-8 w-8 shrink-0" />}>
+            <MoreMenu {...props} />
+          </Suspense>
+        </>
+      )}
       <WindowControls />
     </header>
   );

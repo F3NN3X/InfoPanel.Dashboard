@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { LEFT_PANEL_PX, LEFT_STRIP_PX } from "@/components/studio/add-prefs";
 import {
   CANVAS_PAD_X,
   CANVAS_PAD_Y,
@@ -62,8 +63,17 @@ describe("fitZoomFor", () => {
 
   it("floors to 1% so the page never overshoots", () => {
     const z = fitZoomFor({ width: 1000, height: 9999 }, { width: 1920, height: 100 });
-    expect(z).toBe(0.47);
+    expect(z).toBe(0.48);
     expect(1920 * z + CANVAS_PAD_X).toBeLessThanOrEqual(1000);
+  });
+
+  // B6: a 1920×1080 page at 1600×900, with the sidebar open (Edit no longer collapses it), the docked inspector and the left panel open (its narrowest) or at its strip.
+  it("fits a 1080p page at 36% and a 1600×900 one at 44% with the left panel, and at 57% with its strip", () => {
+    const [sidebar, topBar, statusBar] = [232, 56, 28];
+    const canvas = (left: number) => ({ width: 1600 - sidebar - left - SIDE, height: 900 - topBar - statusBar });
+    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1920, height: 1080 })).toBeGreaterThanOrEqual(0.36);
+    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.44);
+    expect(fitZoomFor(canvas(LEFT_STRIP_PX), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.57);
   });
 
   it("clamps to the zoom range", () => {

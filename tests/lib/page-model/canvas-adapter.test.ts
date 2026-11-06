@@ -1,16 +1,11 @@
 // An imported profile's canvas through the page model (Edit v3 SPEC §3.4, §3.6, §3.7, acceptance 2 and 11): read and
-// written back, with Snap items toggled or the grid changed, it is the same canvas and exports the same bytes; each
+// written back, with Snap items toggled or the grid changed, it is the same canvas and holds the same items; each
 // op lands in the items it names and nothing else.
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { describe, expect, it } from "vitest";
 import { importAsProfile } from "@/components/studio/import-actions";
-import { assetFile, type Doc } from "@/lib/infopanel/assets/assets.ts";
 import { openCanvas } from "@/lib/infopanel/canvas";
-import { itemAt } from "@/lib/infopanel/editor/ops.ts";
-import { elementSignature, setElementFile, staleElements, staticOf } from "@/lib/infopanel/elements/bake.ts";
-import { infopanelFile, staleGauges } from "@/lib/infopanel/export/studio-export.ts";
-import { bakeSignature, setFrameFiles, vectorOf } from "@/lib/infopanel/gauges/frames.ts";
-import { buildCanvas, openStored, openZip } from "@/lib/infopanel/import/session.ts";
+import { buildCanvas, openStored } from "@/lib/infopanel/import/session.ts";
 import { encodeItem, newStored, readStored, type StoredCanvas, type StoredItem } from "@/lib/infopanel/import/stored.ts";
 import { newWidgetItem } from "@/lib/infopanel/native/widget-item";
 import { defaultItem, type DisplayItem } from "@/lib/infopanel/schema.ts";
@@ -23,50 +18,30 @@ import { applyPage, cellRect, findNode, readPage, writePage, type PartNode } fro
 import { applyCanvas, readCanvas } from "@/lib/page-model/canvas-adapter";
 
 const now = new Date("2026-10-25T00:00:00Z");
-const png = (n: number) => Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10, n % 256, (n >> 8) % 256]);
-
-/** Stand-in bakes (no canvas under Node), as the frozen export test makes them. */
-async function baked(items: DisplayItem[]): Promise<Doc> {
-  let doc: Doc = { items, assets: new Map() };
-  let n = 0;
-  for (const path of staleElements(doc.items)) {
-    const el = staticOf(itemAt(doc.items, path))!;
-    doc = setElementFile(doc, path, await assetFile(`el_${path}.png`, png(n++), "added"), elementSignature(el.spec, el.width, el.height));
-  }
-  for (const path of staleGauges(doc.items)) {
-    const spec = vectorOf(itemAt(doc.items, path))!;
-    const files = [await assetFile(`g${path}_0.png`, png(n++), "added"), await assetFile(`g${path}_1.png`, png(n++), "added")];
-    doc = setFrameFiles(doc, path, files, bakeSignature(spec, 2));
-  }
-  return doc;
-}
-
-/** A template's .infopanel file imported as a screen (no remap, no edits), kept in the config as JSON. */
-async function imported(id: string): Promise<{ file: Uint8Array; config: DashboardConfig; byHash: Map<string, Uint8Array> }> {
+/** A template's canvas imported as a screen through the importer (no remap, no edits), kept in the config as JSON. */
+async function imported(id: string): Promise<{ config: DashboardConfig }> {
   const template = TEMPLATES.find((t) => t.id === id)!;
   const { stored } = instantiate(template, { name: "Desk", width: 800, height: 480, sensors: MOCK_SENSORS, now });
   const fixed = { ...stored, profile: { ...stored.profile, Guid: "5f0c2a52-6c2e-4d0b-9a59-6c1a2f0e0b11" } };
-  const open = await openStored(JSON.parse(JSON.stringify(fixed)), async () => null);
-  const file = infopanelFile(open.parsed.profile, await baked(open.parsed.items)).bytes;
-  const source = await openZip("Desk.infopanel", file);
+  const source = await openStored(JSON.parse(JSON.stringify(fixed)), async () => null);
   const canvas = buildCanvas({ source, name: "Desk", mode: "infopanel", resolved: new Map(), overrides: new Map(), dataApi: null, uploaded: new Map(), now });
   const placed = importAsProfile({ profiles: [newProfile("Main", 1920, 1080)] } as unknown as DashboardConfig, canvas, "Desk", { width: 800, height: 480 }, false);
-  const config = upgradeConfig(JSON.parse(JSON.stringify(placed.config)) as StoredConfig);
-  return { file, config, byHash: new Map([...source.assets.values()].map((f) => [f.hash, f.bytes])) };
+  return { config: upgradeConfig(JSON.parse(JSON.stringify(placed.config)) as StoredConfig) };
 }
 
-/** The export dialog's bytes for the config's imported page. */
-async function exported(config: DashboardConfig, byHash: Map<string, Uint8Array>): Promise<Uint8Array> {
+/** The profile and items the config's imported page holds, read as the editor opens them. */
+async function opened(config: DashboardConfig) {
   const zone = config.profiles.flatMap((p) => p.pages.flatMap((pg) => pg.placements)).find((z) => z.module === CANVAS_ID && z.canvas)!;
-  const opened = await openStored(zone.canvas as StoredCanvas, async (hash) => byHash.get(hash) ?? null);
-  return infopanelFile(opened.parsed.profile, { items: opened.parsed.items, assets: opened.assets }).bytes;
+  const { parsed } = await openStored(zone.canvas as StoredCanvas, async () => null);
+  return { profile: parsed.profile, items: parsed.items };
 }
 
 const importedProfile = (c: DashboardConfig) => c.profiles.find((p) => p.name === "Desk")!;
 
 describe("an unedited imported profile through the page model (acceptance 2, 11)", () => {
-  it.each(TEMPLATES.map((t) => t.id))("%s: opened, Snap items toggled and the grid changed, it exports the bytes it was imported from", async (id) => {
-    const { file, config, byHash } = await imported(id);
+  it.each(TEMPLATES.map((t) => t.id))("%s: opened, Snap items toggled and the grid changed, it holds the profile and items it was imported with", async (id) => {
+    const { config } = await imported(id);
+    const before = await opened(config);
     const profile = importedProfile(config);
     const page = profile.pages[0];
     // Opened: read into the model and written back, the same page.
@@ -81,7 +56,7 @@ describe("an unedited imported profile through the page model (acceptance 2, 11)
     expect(regridded.pages[0].placements[0]).toMatchObject({ colSpan: 6, rowSpan: 4 });
     expect(regridded.pages[0].placements[0].canvas).toBe(page.placements[0].canvas);
     const after = { ...on, profiles: on.profiles.map((p) => (p.id === profile.id ? regridded : p)) };
-    expect(await exported(after, byHash)).toEqual(file);
+    expect(await opened(after)).toEqual(before);
   });
 });
 

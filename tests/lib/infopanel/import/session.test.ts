@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { buildZip } from "@tests/lib/infopanel/__fixtures__/builders.ts";
 import { assetFile, tableOf } from "@/lib/infopanel/assets/assets.ts";
 import { convertible } from "@/lib/infopanel/native/modes.ts";
+import { TEMPLATES } from "@/lib/infopanel/templates/catalog.ts";
+import { instantiate } from "@/lib/infopanel/templates/instantiate.ts";
+import { MOCK_SENSORS } from "@/lib/infopanel/templates/mock.ts";
 import { groupBindings } from "@/lib/infopanel/remap/remap.ts";
 import { bundle } from "@/lib/infopanel/import/bundle.ts";
 import { listEntries, readEntry } from "@/lib/infopanel/zip.ts";
@@ -215,5 +218,28 @@ describe("reopening a stored form from the asset store", () => {
     expect(tampered.restore?.missing).toEqual(["a.png"]);
     expect(tampered.assets.size).toBe(0);
     await expect(openStored({ format: "nope" }, async () => null)).rejects.toThrow(/Not an imported InfoPanel canvas/);
+  });
+});
+
+// Every built-in template stands in for an InfoPanel profile of its own shape: its stored form is reopened as a source
+// (the zip reader is covered above) and imported in both default modes. What the old frozen-export test proved of the
+// import half: nothing is lost or invented on the way in, and nothing the importer reads is refused.
+describe("every template imported in both default modes", () => {
+  const now = new Date("2026-10-25T00:00:00Z");
+  it.each(TEMPLATES.map((t) => t.id))("%s: the same items come out, faithful or native, and reopen from JSON", async (id) => {
+    const template = TEMPLATES.find((t) => t.id === id)!;
+    const { stored } = instantiate(template, { name: "Desk", width: 800, height: 480, sensors: MOCK_SENSORS, now });
+    const source = await openStored(JSON.parse(JSON.stringify(stored)), async () => null);
+    const count = (items: readonly { kind: string; DisplayItems?: unknown }[]): number =>
+      items.reduce((n, it) => n + 1 + (Array.isArray(it.DisplayItems) ? count(it.DisplayItems as never) : 0), 0);
+    const total = count(source.parsed.items);
+    for (const mode of ["infopanel", "native"] as const) {
+      const canvas = buildCanvas({ source, name: "Desk", mode, resolved: new Map(), overrides: new Map(), dataApi: null, uploaded: new Map(), now });
+      expect(canvas.defaultMode).toBe(mode);
+      const back = await openStored(JSON.parse(JSON.stringify(canvas)), async () => null);
+      expect(count(back.parsed.items)).toBe(total);
+      expect(back.parsed.items.map((i) => i.kind)).toEqual(source.parsed.items.map((i) => i.kind));
+      expect(back.parsed.issues.filter((i) => i.code !== "unknown-field")).toEqual([]);
+    }
   });
 });

@@ -5,8 +5,7 @@
  * topmost item the mouse takes (`hitTest`: locked and hidden items let it through). A move or
  * resize snaps to the canvas and the other items with guides drawn (Alt: off), Shift keeps a move
  * on one axis and a resize in proportion. A selected item gets an accent outline, and its size while
- * it is dragged or resized (its mode and kind are in the inspector); Show modes tints every item. On a screen made for
- * InfoPanel every part (never a group) carries its Export check badge in its top-right corner (Edit v3 SPEC §7.1).
+ * it is dragged or resized (its mode and kind are in the inspector); Show modes tints every item.
  * Coordinates are profile pixels.
  * Ported from the lab's EditLayer.
  */
@@ -33,10 +32,8 @@ import {
 } from "@/lib/infopanel/editor/snap";
 import type { DisplayItem } from "@/lib/infopanel/schema";
 import type { ModeState } from "@/lib/infopanel/canvas-edit";
-import { cn } from "@/lib/utils";
 import { elementOf } from "@/lib/infopanel/elements/apply";
 import { widgetBox } from "@/lib/infopanel/import/stored";
-import { STATUS_UI, useExportCheck } from "../export-check-panel";
 import type { CanvasEditor } from "./use-canvas-editor";
 
 const HANDLES: Handle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
@@ -156,9 +153,7 @@ export function EditLayer({ editor, profileWidth, profileHeight, showModes, grid
   const profile = { Width: profileWidth, Height: profileHeight };
   /** Profile pixels per screen pixel, so handles and labels keep their screen size at any zoom. */
   const [zoomK, setZoomK] = useState(1);
-  const check = useExportCheck();
-  const badged = check.on ? [...check.byPath.keys()] : [];
-  const measured = showModes || badged.length ? [...new Set([...(showModes ? editor.modes.keys() : []), ...badged, ...editor.selection])] : editor.selection;
+  const measured = showModes ? [...new Set([...editor.modes.keys(), ...editor.selection])] : editor.selection;
 
   useLayoutEffect(() => {
     const el = layer.current;
@@ -397,27 +392,6 @@ export function EditLayer({ editor, profileWidth, profileHeight, showModes, grid
             )
           );
         })}
-      {badged.map((p) => {
-        const b = boxes[p];
-        const row = check.byPath.get(p);
-        if (!b || !row) return null;
-        const { icon: Icon, text, border } = STATUS_UI[row.status];
-        const size = 16 * zoomK;
-        // A baked card's box has a margin for its shadow and glow: the badge sits on the card itself.
-        const pad = (elementOf(itemAt(editor.items, p)) as { pad?: number } | null)?.pad ?? 0;
-        return (
-          <span
-            key={`badge-${p}`}
-            data-check-badge={row.status}
-            data-testid="canvas-badge"
-            data-status={row.status}
-            className={cn("pointer-events-none absolute grid place-items-center rounded-full border bg-ui-chrome", text, border)}
-            style={{ left: b.x + b.width - pad - 4 * zoomK - size, top: b.y + pad + 4 * zoomK, width: size, height: size, borderWidth: zoomK }}
-          >
-            <Icon style={{ width: 11 * zoomK, height: 11 * zoomK }} strokeWidth={2.25} />
-          </span>
-        );
-      })}
       {editor.selection.map((p) => {
         const b = boxes[p];
         if (!b) {

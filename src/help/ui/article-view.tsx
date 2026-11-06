@@ -33,14 +33,14 @@ function Neighbour({ article, direction, onOpen }: { article: Article; direction
     <button
       type="button"
       onClick={() => onOpen(article.id)}
-      className={cn("flex cursor-pointer flex-col gap-[3px] rounded-[10px] border border-s-card-line bg-transparent px-3.5 py-2.5 text-s-t1 hover:border-s-card-hover", prev ? "items-start" : "items-end")}
+      className={cn("flex cursor-pointer flex-col gap-[3px] rounded-ui-lg border border-s-card-line bg-transparent px-3.5 py-2.5 text-s-t1 hover:border-s-card-hover", prev ? "items-start" : "items-end")}
     >
-      <span className="flex items-center gap-1 text-[11.5px] text-s-dim">
+      <span className="flex items-center gap-1 text-caption text-s-dim">
         {prev && <ArrowLeft className="h-3.5 w-3.5" />}
         {prev ? "Previous" : "Next"}
         {!prev && <ArrowRight className="h-3.5 w-3.5" />}
       </span>
-      <span className="text-[13.5px] font-medium">{article.title}</span>
+      <span className="text-body font-medium">{article.title}</span>
     </button>
   );
 }
@@ -56,31 +56,31 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
   return (
     <div className={cn("mx-auto box-border flex items-start gap-12 px-8 pb-20 pt-8", showToc ? "max-w-[1010px]" : "max-w-[784px]")}>
       <article className="flex min-w-0 max-w-[720px] flex-1 flex-col gap-4">
-        <div className="flex items-center gap-1.5 text-xs text-s-dim">
-          <button type="button" onClick={onHome} className="cursor-pointer border-0 bg-transparent p-0 text-xs text-s-muted hover:text-s-t1">
+        <div className="flex items-center gap-1.5 text-caption text-s-dim">
+          <button type="button" onClick={onHome} className="cursor-pointer border-0 bg-transparent p-0 text-caption text-s-muted hover:text-s-t1">
             Help
           </button>
           <ChevronRight className="h-3.5 w-3.5" />
           <span>{content.groupOf[article.id]}</span>
         </div>
         <div className="flex items-start gap-3.5">
-          <div className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[11px] bg-s-accent/14 text-s-accent-text">
+          <div className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-ui-lg bg-s-accent/14 text-s-accent-text">
             <Icon className="h-[23px] w-[23px]" strokeWidth={1.75} />
           </div>
-          <h1 className="m-0 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[26px] font-semibold leading-[1.2] tracking-[-0.02em]">
+          <h1 className="m-0 mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[26px] font-medium leading-[1.2]">
             {article.title}
             {article.status === "coming-soon" && <SoonChip />}
           </h1>
         </div>
         {article.lede && (
-          <p className="m-0 mb-2 max-w-[68ch] text-pretty text-[15.5px] leading-[1.6] text-s-body">
+          <p className="m-0 mb-2 max-w-[68ch] text-pretty text-title leading-[1.6] text-s-body">
             <InlineText text={article.lede} onOpen={onOpen} />
           </p>
         )}
 
         {article.blocks.map((block, n) =>
           block.type === "h" ? (
-            <h2 key={n} data-hid={block.id} className="m-0 mt-[18px] scroll-mt-5 text-lg font-semibold tracking-[-0.01em]">
+            <h2 key={n} data-hid={block.id} className="m-0 mt-[18px] scroll-mt-5 text-display font-medium">
               <InlineText text={block.text} onOpen={onOpen} />
             </h2>
           ) : (
@@ -90,7 +90,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
 
         {related.length > 0 && (
           <section className="mt-7 flex flex-col gap-2.5">
-            <h2 className="m-0 text-xs font-medium text-s-muted">Related</h2>
+            <h2 className="m-0 text-caption font-medium text-s-muted">Related</h2>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2">
               {related.map((r) => {
                 const RelatedIcon = iconFor(r.icon);
@@ -99,7 +99,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
                     key={r.id}
                     type="button"
                     onClick={() => onOpen(r.id)}
-                    className="flex cursor-pointer items-center gap-2.5 whitespace-normal rounded-[10px] border border-s-card-line bg-s-card px-3.5 py-3 text-left text-body font-medium text-s-t1 hover:border-s-card-hover"
+                    className="flex cursor-pointer items-center gap-2.5 whitespace-normal rounded-ui-lg border border-s-card-line bg-s-card px-3.5 py-3 text-left text-body font-medium text-s-t1 hover:border-s-card-hover"
                   >
                     <RelatedIcon className="h-[17px] w-[17px] shrink-0 text-s-dim" />
                     {r.title}
@@ -119,7 +119,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
 
       {showToc && (
         <nav aria-label="On this page" className="sticky top-8 flex w-[190px] shrink-0 flex-col gap-0.5">
-          <div className="pb-2 pl-3 text-micro font-medium uppercase tracking-[0.07em] text-s-dim">On this page</div>
+          <div className="pb-2 pl-3 text-caption font-medium text-s-dim">On this page</div>
           {headings.map((h) => {
             const on = h.id === active;
             return (
@@ -129,7 +129,7 @@ export function ArticleView({ article, content, showToc, active, onOpen, onHome,
                 aria-current={on ? "location" : undefined}
                 onClick={() => onToc(h.id)}
                 className={cn(
-                  "cursor-pointer whitespace-normal border-0 border-l-2 bg-transparent px-3 py-[5px] text-left text-[12.5px] leading-[1.4]",
+                  "cursor-pointer whitespace-normal border-0 border-l-2 bg-transparent px-3 py-[5px] text-left text-body leading-[1.4]",
                   on ? "border-s-accent text-s-t1" : "border-s-track-line text-s-muted"
                 )}
               >

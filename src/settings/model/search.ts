@@ -110,7 +110,6 @@ export const PREFERENCES_INDEX: SearchEntry<PageId>[] = [
   { row: "kiosk", label: "Page dots & swipe", section: "dashboard" },
   { row: "kiosk", label: "Hide cursor", section: "dashboard" },
   { row: "danger", label: "Reset everything", section: "dashboard" },
-  { row: "panels", label: "Quick bar", section: "studio" },
   { row: "panels", label: "Inspector sections", section: "studio" },
   { row: "panels", label: "Advanced settings", section: "studio" },
   { row: "canvas", label: "Default zoom", section: "studio" },

@@ -10,8 +10,8 @@
  * inside a group, a widget's too (`pressRef`), selects its outermost group first and drags it (SPEC §10.3 note).
  * Coordinates are the page's design px.
  */
-import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import type { MonitorProfile, Placement, ProfilePage, ProfileView } from "@/lib/layout";
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type MutableRefObject, type PointerEvent as ReactPointerEvent } from "react";
+import type { MonitorProfile, ProfilePage, ProfileView } from "@/lib/layout";
 import { boxOf, findNode, partsOf, type GroupNode, type PageModel, type PageOp, type PartNode, type PixelBox } from "@/lib/page-model/model";
 import { lockedInTree, unionBox } from "@/lib/page-model/layer-actions";
 import { readPlacements } from "@/lib/page-model/placements-adapter";
@@ -65,8 +65,6 @@ interface ItemPartsProps {
   /** A gesture started, changed (Alt) or ended (null). */
   onGesture: (gesture: ItemGesture | null) => void;
   onContextMenu?: (id: string, x: number, y: number) => void;
-  /** An item placement's Export check badge, on a screen made for InfoPanel. */
-  badgeOf?: (p: Placement) => ReactNode;
   /** The selected page groups, drawn as one box each that drags the group. */
   groups?: GroupMoves;
   /** Filled with the press on a grouped widget (the canvas's zones call it). */
@@ -100,7 +98,7 @@ interface Drag {
   moved: boolean;
 }
 
-export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, onDragBegin, onDragCommit, onDragCancel, onGesture, onContextMenu, badgeOf, groups, pressRef }: ItemPartsProps) {
+export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, onDragBegin, onDragCommit, onDragCancel, onGesture, onContextMenu, groups, pressRef }: ItemPartsProps) {
   const model = useMemo(() => readPlacements(profile as unknown as MonitorProfile, page), [profile, page]);
   const inHidden = useMemo(() => hiddenByGroups(page), [page]);
   const byId = useMemo(() => new Map(page.placements.map((p) => [p.id, p])), [page]);
@@ -299,7 +297,7 @@ export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, o
         >
           {/* The chip, 26 px above the box at its screen size whatever the zoom. */}
           <span className="absolute left-0 whitespace-nowrap" style={{ zoom: 1 / zoom, top: -26 }}>
-            <span data-testid="group-chip" className="rounded-[4px] bg-ui-accent px-1.5 py-0.5 text-micro font-semibold text-ui-inverse-fg">
+            <span data-testid="group-chip" className="rounded-[4px] bg-ui-accent px-1.5 py-0.5 text-micro font-medium text-ui-inverse-fg">
               {node.name} · group
             </span>
           </span>
@@ -325,7 +323,6 @@ export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, o
       ))}
       {parts.map((part) => {
         const b = boxOf(grid, part.place);
-        const placement = byId.get(part.id);
         const selected = selectedIds.includes(part.id);
         const free = "px" in part.place;
         const resizable = selected && part.id === primary && selectedIds.length === 1 && !part.locked;
@@ -348,11 +345,6 @@ export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, o
               onContextMenu(part.id, e.clientX, e.clientY);
             }}
           >
-            {placement && badgeOf && (
-              <span data-shot-skip className="pointer-events-none absolute right-0 top-0 origin-top-right" style={{ scale: String(1 / zoom) }}>
-                {badgeOf(placement)}
-              </span>
-            )}
             {resizable &&
               HANDLES.map((h) => (
                 <span
@@ -374,7 +366,7 @@ export function ItemParts({ profile, page, zoom, selectedIds, onSelect, onOps, o
             {drag?.free && drag.id === part.id && (
               // The live readout, 6 px under the part, at its screen size whatever the zoom.
               <span data-shot-skip data-testid="alt-readout" className="absolute left-0 top-full whitespace-pre" style={{ zoom: 1 / zoom, marginTop: 6 }}>
-                <span className="rounded-[4px] bg-ui-accent px-1.5 py-px font-ui-mono text-micro font-semibold text-ui-inverse-fg">
+                <span className="rounded-[4px] bg-ui-accent px-1.5 py-px font-ui-mono text-micro font-medium text-ui-inverse-fg">
                   X {Math.round(b.x)}  Y {Math.round(b.y)}  W {Math.round(b.w)}  H {Math.round(b.h)} · free
                 </span>
               </span>

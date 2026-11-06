@@ -1,10 +1,13 @@
 import { useRef } from "react";
-import { Copy, Download, ExternalLink, FileText, Link2, Plus, Trash2, Waypoints } from "lucide-react";
+import { Copy, Download, ExternalLink, FileText, Link2, Plus, Search, Trash2, Waypoints, X } from "lucide-react";
+import { CONTROL_MOTION, FOCUS_RING } from "@/components/ui/button";
+import { FIELD_BOX } from "@/components/ui/field";
 import { Popover } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/toast";
 import { refreshCatalog } from "@/lib/catalog";
 import type { DashboardConfig } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { BarFill, BarTitle, PageBar } from "../page-bar";
 import { useEndpoints } from "./explorer-endpoints";
 import { buildReport, saveReport } from "./report";
 import { useCopy } from "./use-copy";
@@ -12,15 +15,32 @@ import { useCopy } from "./use-copy";
 interface ExplorerHeaderProps {
   pointCount: number;
   sourceCount: number;
+  /** Points a screen or an alert rule uses. */
+  inUseCount: number;
+  /** Points the search, a tag, a switch or the source list leaves; null while none narrows the table. */
+  shownCount: number | null;
+  query: string;
+  onQuery: (query: string) => void;
   apiBase: string;
   config: DashboardConfig;
 }
 
-const MENU_ITEM =
-  "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-body text-ui-2 hover:bg-ui-hover hover:text-ui-1";
+const TRIGGER = cn(
+  "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-ui-md px-3 text-body font-medium [&_svg]:h-4 [&_svg]:w-4",
+  FOCUS_RING,
+  CONTROL_MOTION
+);
+const GHOST = cn(TRIGGER, "text-ui-2 hover:bg-ui-raised hover:text-ui-1 aria-expanded:bg-ui-raised aria-expanded:text-ui-1");
+const PRIMARY = cn(TRIGGER, "bg-ui-inverse text-ui-inverse-fg hover:bg-white");
 
-/** The Data view's top bar: title and counts, Report, Endpoints and Add source (the connection is its own card). */
-export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: ExplorerHeaderProps) {
+const MENU_ITEM = cn(
+  "flex h-8 w-full items-center gap-2 rounded-ui-sm px-2 text-left text-body text-ui-2 hover:bg-ui-hover hover:text-ui-1",
+  FOCUS_RING,
+  "[&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-ui-hint"
+);
+
+/** The Data sources page's bar: the title and count line, search, Endpoints, Report and Add source (the one primary). */
+export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount, query, onQuery, apiBase, config }: ExplorerHeaderProps) {
   const copy = useCopy();
   const toast = useToast();
   const endpoints = useEndpoints();
@@ -45,74 +65,61 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
   const saveIt = () => report((text) => saveReport(text).then((saved) => saved && toast("Report saved")));
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 py-3 font-ui">
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="text-lead font-semibold leading-[1.2] text-ui-1">Data</div>
-        <div className="text-micro leading-[1.2] text-ui-4">
-          {pointCount} data points from {sourceCount} sources
-        </div>
-      </div>
+    <PageBar>
+      <BarTitle
+        title="Data sources"
+        note={`${shownCount === null ? pointCount : `${shownCount} of ${pointCount}`} points · ${sourceCount} ${sourceCount === 1 ? "source" : "sources"} · ${inUseCount} in use`}
+      />
+      <BarFill />
 
-      <div ref={actionsRef} className="flex items-center gap-3">
-        <Popover
-          align="end"
-          className="w-[300px]"
-          triggerClassName="inline-flex h-[30px] items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-[11px] text-caption text-ui-1 hover:bg-ui-subtle aria-expanded:bg-ui-active"
-          trigger={
-            <>
-              <FileText className="h-4 w-4" />
-              Report
-            </>
-          }
-        >
-          <div className="px-2 pb-1.5 pt-1.5 text-micro leading-[1.4] text-ui-4">
-            A troubleshooting report to attach to a bug report: versions, the Data API's state and the hardware readings. It
-            leaves out names, addresses, folders, plugin entries and text values.
-          </div>
-          <button type="button" className={MENU_ITEM} onClick={copyReport}>
-            <Copy className="h-3.5 w-3.5 shrink-0" />
-            Copy troubleshooting report
-          </button>
-          <button type="button" className={MENU_ITEM} onClick={saveIt}>
-            <Download className="h-3.5 w-3.5 shrink-0" />
-            Save troubleshooting report…
-          </button>
-        </Popover>
+      <div ref={actionsRef} className="flex min-w-0 items-center gap-2 max-[599px]:w-full">
+        <label className="relative w-[300px] min-w-[120px] shrink max-[599px]:w-full">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-hint" strokeWidth={1.5} aria-hidden />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search key, name or value"
+            aria-label="Search key, name or value"
+            className={cn(FIELD_BOX, "w-full pl-8 pr-8 [&::-webkit-search-cancel-button]:hidden")}
+          />
+          {query && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => onQuery("")}
+              className={cn("absolute right-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-ui-sm text-ui-3 hover:text-ui-1", FOCUS_RING)}
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+            </button>
+          )}
+        </label>
 
         <Popover
           align="end"
           anchor={actionsRef}
-          className="w-[min(520px,calc(100vw-32px))] rounded-[10px] p-1.5"
-          triggerClassName="inline-flex h-[30px] items-center gap-1.5 whitespace-nowrap rounded-[7px] border border-ui-strong bg-ui-raised px-[11px] text-caption text-ui-1 hover:bg-ui-subtle aria-expanded:bg-ui-active"
+          className="w-[min(520px,calc(100vw-32px))] p-2"
+          triggerClassName={GHOST}
           trigger={
             <>
-              <Waypoints className="h-4 w-4" />
-              Endpoints
+              <Waypoints strokeWidth={1.5} />
+              <span className="max-[1279px]:sr-only">Endpoints</span>
             </>
           }
         >
           <div className="max-h-[70vh] overflow-y-auto">
-            <div className="px-2.5 pb-1.5 pt-2 text-micro text-ui-4">
-              All data is served by the local Data API. Click a path to copy it.
-            </div>
+            <div className="px-2.5 pb-1.5 pt-2 text-caption text-ui-3">All data is served by the local Data API. Click a path to copy it</div>
             {endpoints.map((e) => (
               <button
                 key={`${e.method} ${e.path}`}
                 type="button"
                 onClick={() => copy(`${apiBase}${e.path}`)}
-                className="grid w-full grid-cols-[44px_minmax(0,1fr)] gap-2.5 rounded-md px-2.5 py-2 text-left hover:bg-ui-subtle"
+                className={cn("grid w-full grid-cols-[44px_minmax(0,1fr)] gap-2.5 rounded-ui-sm px-2.5 py-2 text-left hover:bg-ui-hover", FOCUS_RING)}
               >
-                <span
-                  className={cn(
-                    "pt-px font-ui-mono text-micro font-medium",
-                    e.method === "GET" ? "text-ui-ok" : "text-ui-warn"
-                  )}
-                >
-                  {e.method}
-                </span>
+                <span className={cn("pt-px font-ui-mono text-caption font-medium", e.method === "GET" ? "text-ui-ok" : "text-ui-warn")}>{e.method}</span>
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="block break-all font-ui-mono text-micro text-ui-1">{e.path}</span>
-                  <span className="block text-micro text-ui-4">{e.description}</span>
+                  <span className="block break-all font-ui-mono text-caption text-ui-1">{e.path}</span>
+                  <span className="block text-caption text-ui-3">{e.description}</span>
                 </span>
               </button>
             ))}
@@ -121,29 +128,54 @@ export function ExplorerHeader({ pointCount, sourceCount, apiBase, config }: Exp
 
         <Popover
           align="end"
-          className="w-[280px]"
-          triggerClassName="inline-flex h-[30px] items-center gap-1.5 whitespace-nowrap rounded-[7px] bg-ui-inverse px-3 text-caption font-semibold text-ui-inverse-fg hover:opacity-90"
+          className="w-[300px]"
+          triggerClassName={GHOST}
           trigger={
             <>
-              <Plus className="h-4 w-4" />
+              <FileText strokeWidth={1.5} />
+              <span className="max-[1279px]:sr-only">Report</span>
+            </>
+          }
+        >
+          <div className="px-2 pb-1.5 pt-1.5 text-caption leading-[1.4] text-ui-3">
+            A troubleshooting report to attach to a bug report: versions, the Data API's state and the hardware readings. It leaves out names,
+            addresses, folders, plugin entries and text values.
+          </div>
+          <button type="button" className={MENU_ITEM} onClick={copyReport}>
+            <Copy strokeWidth={1.5} />
+            Copy troubleshooting report
+          </button>
+          <button type="button" className={MENU_ITEM} onClick={saveIt}>
+            <Download strokeWidth={1.5} />
+            Save troubleshooting report…
+          </button>
+        </Popover>
+
+        <Popover
+          align="end"
+          className="w-[280px]"
+          triggerClassName={PRIMARY}
+          trigger={
+            <>
+              <Plus strokeWidth={1.75} />
               Add source
             </>
           }
         >
           <button type="button" className={MENU_ITEM} onClick={() => copy(`${apiBase}/api/push`)}>
-            <Link2 className="h-3.5 w-3.5 shrink-0" />
+            <Link2 strokeWidth={1.5} />
             Copy the push URL (POST /api/push)
           </button>
           <button type="button" className={MENU_ITEM} onClick={clearPushed}>
-            <Trash2 className="h-3.5 w-3.5 shrink-0" />
+            <Trash2 strokeWidth={1.5} />
             Clear pushed values
           </button>
           <a href={`${apiBase}/`} target="_blank" rel="noreferrer" className={MENU_ITEM}>
-            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+            <ExternalLink strokeWidth={1.5} />
             Open the Data API index
           </a>
         </Popover>
       </div>
-    </div>
+    </PageBar>
   );
 }

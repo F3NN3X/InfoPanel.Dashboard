@@ -6,7 +6,7 @@ What counts as critical:
 - config and profile load, save and migrations (every version keeps a round-trip case and its edge cases);
 - schema validation of saved widget and panel data;
 - server API routes, request guards, path safety and the updater manifest;
-- InfoPanel import and export parsing, with the corpus round-trips;
+- InfoPanel import parsing, with the corpus round-trips;
 - the settings and update model, and the changelog parse;
 - the sensor data pipeline and the value formatting that feeds widgets;
 - every registered widget kind rendering without throwing, once per kind;
@@ -30,7 +30,7 @@ Add a test when a change touches one of those or fixes a regression. Don't test 
   which makes Windows Firewall prompt for every new `ips-server` build path, so it runs in CI and locally only with
   `VERIFY_LAN=1`. Perf specs (`tests/perf/`, `tests/desktop/`) measure and never gate.
 
-The Edit v3 fixtures (`?fixture=one-editor/<name>`, `src/dev/fixtures`) open the reference's eight states in dev builds and in
+The Edit v3 fixtures (`?fixture=one-editor/<name>`, `src/dev/fixtures`) open the reference's seven states in dev builds and in
 `vite build --mode fixtures`, never in a release build. `tests/visual/one-editor/` opens each in Edit (`npm run test:one-editor`, the
 `one-editor` check); each reference checklist line is a skipped test naming the phase that enables it, and that phase turns it on.
 
@@ -38,23 +38,9 @@ The HWiNFO names fixture (`tests/fixtures/hwinfo-names.json`) holds the reading 
 `tests/lib/hwinfo-names.test.ts` checks the alias rules against it. Refresh by hand with `node tools/hwinfo-names.mjs --github --live`
 (needs `gh` and takes minutes; `--live` needs InfoPanel running with HWiNFO readings), and CI only runs the test.
 
-## The InfoPanel export check
+## The InfoPanel import corpus
 
-`import-check` (`node lab/infopanel/scripts/import-check.mts`) hands our `.infopanel` exports to InfoPanel's own
-`XmlSerializer` (the .NET tool in `lab/infopanel/tools/import-check`) and compares what InfoPanel then holds with what we wrote,
-field by field. Its inputs are one export per item kind and one with all kinds (every field set,
-`tests/lib/infopanel/export/kind-cases.ts`, the same cases `kinds.test.ts` round-trips), one with empty lists, and every
-extracted corpus profile. The differences it allows are InfoPanel's computed values (TableSensor `Font` "", HttpImage `HttpUrl` and
-`Type`) and Profile fields an older InfoPanel build doesn't have (the WebView ones); anything else fails.
-
-- Needs Windows, the .NET SDK and an InfoPanel source folder: `INFOPANEL_PROJECT` (its `InfoPanel.csproj`), else
-  `PublicRepos/infopanel-pr173` beside any parent folder of the repo. Otherwise it exits 3 and `verify` reports it as not run.
-- It runs in `verify` for the `infopanel-import-export` and `import-lab` features, and so in `verify:full`, but **not in CI
-  or the nightly**: the runner has .NET but no InfoPanel source, and building InfoPanel (WPF, plugins) from a pinned fork
-  branch there is untested. The nightly Windows job therefore runs `--full --allow-incomplete`.
-- So it is a manual step before a release that touches the writer: run `npm run verify -- --feature infopanel-import-export`
-  on a PC with the InfoPanel source, and expect no NOT RUN for `import-check`.
-- The corpus tests that need `lab/infopanel/corpus` (`order.test.ts`, `idempotent.test.ts`, `corpus.test.ts`) run in
+- The corpus tests that need `lab/infopanel/corpus` (`idempotent.test.ts`, `corpus.test.ts`) run in
   `npm run lab:test` and skip where it is absent.
 
 ## The overflow runner

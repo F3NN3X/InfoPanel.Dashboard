@@ -1,12 +1,14 @@
-import { Link2, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { ArrowLeftRight, X } from "lucide-react";
+import { Sparkline, sparkSummary } from "@/components/ui/sensor-row";
 import { useToast } from "@/components/ui/toast";
 import { useSensors } from "@/hooks/useSensors";
 import type { DataModel, DataPoint } from "@/lib/data-points";
 import { bindPoint, unbindPoint, type UsageIndex } from "@/lib/data-usage";
+import { recordThrottled, SampleHistory } from "@/lib/sample-history";
 import type { DashboardConfig, ProfileView, Placement } from "@/lib/layout";
 import { cn } from "@/lib/utils";
 import { modules } from "@/modules";
-import { TypeIcon } from "../explorer/explorer-parts";
 import { boundRows, inProfile, liveText, pointPlace } from "./bound-data-model";
 import { DataPicker } from "./data-picker";
 import { widgetName } from "../widget-kinds";
@@ -30,10 +32,11 @@ interface BoundDataProps {
 }
 
 /**
- * The Data tab's "Bound data" (README §4.9): the points the zone reads with
- * their live values, Bind (the picker) and unbind. A widget binds through
- * its source setting (a whole container); a panel binds its selected
- * widget's sensor.
+ * The Data tab's Values (02c, README §4.9): the points the zone reads with their
+ * key, a sparkline of what this tab has seen and the live value, Change values…
+ * (the picker) and unbind. A widget binds through its source setting (a whole
+ * container); a panel binds its selected widget's sensor. Values the widget picks
+ * up by itself carry the Auto chip: they can't be unbound, only changed.
  */
 export function BoundData({
   zone,
@@ -50,6 +53,9 @@ export function BoundData({
   const { model, usage } = data;
   const rows = boundRows(zone, usage, model);
   const live = useSensors(rows.map((r) => r.key));
+  // The sparklines' last 60 samples, only of the rows in view, from the values this row already receives.
+  const history = useRef(new SampleHistory(60));
+  useEffect(() => void recordThrottled(history.current, live, Date.now()), [live]);
   const title = zoneName(zone);
   const widget = zone.panel?.widgets.find((w) => w.id === selectedWidgetId);
   const mode = zone.panel ? "item" : "widget";
@@ -72,6 +78,9 @@ export function BoundData({
   const canUnbind = (key: string, panelWidgetId: string | undefined) =>
     panelWidgetId !== undefined || unbindPoint(config, zone.id, undefined, key, modules, model) !== config;
 
+  /** The source the values come from, when the widget picked them itself: nothing here can be unbound. */
+  const auto = rows.length > 0 && rows.every((r) => !canUnbind(r.key, r.panelWidgetId)) ? (rows[0].point?.containerTitle ?? rows[0].point?.sourceName) : undefined;
+
   const openPicker = () => {
     if (zone.panel && !widget) return toast("Select a widget in the panel first");
     onPicker(true);
@@ -79,47 +88,32 @@ export function BoundData({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <span className="text-body font-semibold text-ui-1">Bound data</span>
-        <span className="font-ui-mono text-micro text-ui-4">{rows.length}</span>
-        <button
-          type="button"
-          onClick={openPicker}
-          className="ml-auto flex h-[26px] items-center gap-1 rounded-md border border-ui-strong bg-ui-raised px-[9px] text-micro text-ui-1 hover:bg-ui-subtle"
-        >
-          <Link2 className="h-[15px] w-[15px]" /> Bind
-        </button>
+      <div className="flex min-h-6 items-center gap-2">
+        <span className="text-body font-medium text-ui-1">Values</span>
+        {auto && <span className="ml-auto max-w-[200px] truncate rounded-full border border-ui-strong px-2 py-0.5 text-micro text-ui-3">Auto · {auto}</span>}
       </div>
       {rows.length === 0 ? (
-        <span className="block text-caption text-ui-4">No data bound yet. Bind a value to make this widget live.</span>
+        <span className="block text-caption text-ui-3">No data bound yet. Change values to make this widget live.</span>
       ) : (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-ui-subtle">
           {rows.map(({ key, point, panelWidgetId }) => {
             const value = liveText(live[key], point);
+            const samples = history.current.get(key);
+            const name = point?.name ?? key;
             return (
-              <li
-                key={`${panelWidgetId ?? ""}:${key}`}
-                className="flex items-center gap-[9px] rounded-[7px] border border-ui-subtle bg-ui-app py-[7px] pl-2 pr-1.5 hover:border-ui-menu"
-              >
+              <li key={`${panelWidgetId ?? ""}:${key}`} className="group/value flex min-h-12 items-center gap-1">
                 <button
                   type="button"
                   onClick={() => onOpenPoint(key)}
-                  title={`Open ${key} in Sources`}
-                  className="flex min-w-0 flex-1 items-center gap-[9px] text-left"
+                  title={`${pointPlace(point)}: open ${key} in Sources`}
+                  className="flex min-w-0 flex-1 items-center gap-2 rounded-ui-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
                 >
-                  <TypeIcon type={point?.type ?? "empty"} />
-                  <span className="flex min-w-0 flex-1 flex-col gap-px">
-                    <span className="block truncate text-caption leading-[15px] text-ui-1">{point?.name ?? key}</span>
-                    <span className="block truncate text-micro leading-[13px] text-ui-4">{pointPlace(point)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-body text-ui-1">{name}</span>
+                    <span className="block truncate font-ui-mono text-micro text-ui-hint">{key}</span>
                   </span>
-                  <span
-                    className={cn(
-                      "max-w-24 shrink-0 truncate font-ui-mono text-micro leading-[15px]",
-                      value === null ? "text-ui-warn" : "text-ui-2"
-                    )}
-                  >
-                    {value ?? "No data"}
-                  </span>
+                  <Sparkline samples={samples} label={sparkSummary(name, samples, point?.unit)} className="w-12" />
+                  <span className={cn("max-w-20 shrink-0 truncate text-right font-ui-mono text-caption tabular-nums", value === null ? "text-ui-warn" : "text-ui-1")}>{value ?? "No data"}</span>
                 </button>
                 {canUnbind(key, panelWidgetId) && (
                   <button
@@ -127,7 +121,7 @@ export function BoundData({
                     onClick={() => unbind(key, panelWidgetId)}
                     aria-label={`Unbind ${point?.name ?? key}`}
                     title="Unbind"
-                    className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[5px] text-ui-4 hover:bg-ui-default hover:text-ui-1"
+                    className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[5px] text-ui-3 hover:bg-ui-hover hover:text-ui-1"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -137,6 +131,14 @@ export function BoundData({
           })}
         </ul>
       )}
+      <button
+        type="button"
+        onClick={openPicker}
+        className="flex h-8 items-center gap-1.5 rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
+      >
+        <ArrowLeftRight className="h-4 w-4 text-ui-3" aria-hidden /> Change values…
+      </button>
+      {auto && <p className="text-caption leading-snug text-ui-3">The widget picks these up by itself. Change one to pin it.</p>}
       <DataPicker
         open={picker}
         onOpenChange={onPicker}

@@ -38,7 +38,7 @@ export function GeneralSection() {
               value={settings.zoom}
               onChange={(z) => void setZoom(z)}
             />
-            <div className="flex flex-wrap gap-3.5 text-xs text-s-dim">
+            <div className="flex flex-wrap gap-3.5 text-caption text-s-dim">
               <span className="flex items-center gap-1.5 whitespace-nowrap">
                 <Kbd>Ctrl +</Kbd>Zoom in
               </span>
@@ -63,7 +63,7 @@ export function GeneralSection() {
 
       <Group title="Startup">
         <Card>
-          <SwitchRow id="start-at-login" label="Start at login" hint="Starts in the tray so the kiosk has a server after a reboot." checked={settings.startAtLogin} onChange={(v) => void save("startAtLogin", v)} />
+          <SwitchRow id="start-at-login" label="Start at login" hint="Starts in the tray so the kiosk has a server after a reboot" checked={settings.startAtLogin} onChange={(v) => void save("startAtLogin", v)} />
           <SwitchRow
             id="open-studio"
             label="Open the studio on launch"
@@ -103,7 +103,7 @@ export function GeneralSection() {
               <option value="off">Off</option>
             </select>
           </Row>
-          <Row id="release-hidden-studio" label="Release the hidden studio" hint="Closes the hidden studio's page to give back its memory; it opens again from the tray in a moment.">
+          <Row id="release-hidden-studio" label="Release the hidden studio" hint="Closes the hidden studio's page to give back its memory; it opens again from the tray in a moment">
             <select
               aria-label="Release the hidden studio"
               className="h-[30px] cursor-pointer rounded-lg border border-s-input-line bg-s-input px-2.5 text-caption text-s-t1"
@@ -119,7 +119,7 @@ export function GeneralSection() {
           <SwitchRow
             id="reduce-unfocused-animation"
             label="Reduce studio animation when unfocused"
-            hint="After a minute in the background the studio's canvas moves at 5 frames a second and its weather, visualisers and other effects pause; they resume as soon as you come back."
+            hint="After a minute in the background the studio's canvas moves at 5 frames a second and its weather, visualisers and other effects pause; they resume as soon as you come back"
             checked={settings.reduceUnfocusedAnimation}
             onChange={(v) => void save("reduceUnfocusedAnimation", v)}
           />

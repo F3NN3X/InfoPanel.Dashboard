@@ -234,6 +234,19 @@ export function withThemeRadius(config: DashboardConfig, at: TwoLevelAt, radius:
   return withProfile(config, at.profileId, (p) => ({ ...p, radius }));
 }
 
+/**
+ * The one Corners control (L48): the same px in both stores, the widget knob `radius` (px) and the screen's `radius` (rem),
+ * so neither is left behind; what is read back is the screen's, so a config saved before the fold shows as it was.
+ */
+export const withCorners = (config: DashboardConfig, at: TwoLevelAt, px: number): DashboardConfig =>
+  withThemeRadius(withLookAt(config, at, { radius: String(px) }), at, px / 16);
+
+/** Corners' Reset: the widget knob cleared and the screen back to its theme's corners (the built-in ones when no theme names them). */
+export function resetCorners(config: DashboardConfig, at: TwoLevelAt, radius: number | undefined): DashboardConfig {
+  const cleared = withValuesAt(config, at, (values) => dropKeys(values, new Set(["radius"])) ?? {});
+  return radius === undefined ? withProfile(cleared, at.profileId, (p) => without(p, "radius")) : withThemeRadius(cleared, at, radius);
+}
+
 /** The page font (SPEC §11.1, PLAN decision 10): a screen writes its own `profile.font`. */
 export function withPageFont(config: DashboardConfig, at: TwoLevelAt, font: GeneralFont): DashboardConfig {
   return withProfile(config, at.profileId, (p) => ({ ...p, font }));

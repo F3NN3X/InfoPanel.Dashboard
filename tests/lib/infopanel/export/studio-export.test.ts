@@ -1,22 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { entriesFromZip, loadExport } from "@/lib/infopanel/archive.ts";
 import { assetFile, tableOf, type Doc } from "@/lib/infopanel/assets/assets.ts";
 import { openBundle } from "@/lib/infopanel/import/bundle.ts";
-import { readStored, toStored, type StoredCanvas, type StoredFont } from "@/lib/infopanel/import/stored.ts";
+import { toStored, type StoredCanvas, type StoredFont } from "@/lib/infopanel/import/stored.ts";
 import { parseDisplayItemsXml, parseProfileXml } from "@/lib/infopanel/parse.ts";
-import type { DisplayItem } from "@/lib/infopanel/schema.ts";
-import { DEFAULT_GAUGE } from "@/lib/infopanel/gauges/vector.ts";
 import {
   canvasZip,
   defaultFontChoice,
   fileStem,
   fontLicences,
-  infopanelFile,
-  restoreStored,
-  staleGauges,
   swapOptions,
   swapTargetOf,
-  unusedFiles,
   withFontChoices,
   withSwapFiles,
 } from "@/lib/infopanel/export/studio-export.ts";
@@ -50,42 +43,6 @@ async function setup() {
 }
 
 describe("export helpers", () => {
-  it("finds the unused files and their size", async () => {
-    const { doc } = await setup();
-    expect(unusedFiles(doc)).toEqual({ names: ["spare.png"], bytes: 14 });
-  });
-
-  it("lists vector gauges whose frames are out of date", () => {
-    const [gauge] = parse('<DisplayItem xsi:type="GaugeDisplayItem"><Name>g</Name></DisplayItem>');
-    const fresh = parse('<DisplayItem xsi:type="TextDisplayItem"><Name>t</Name></DisplayItem>');
-    expect(staleGauges([...fresh, { ...gauge, vector: DEFAULT_GAUGE } as unknown as DisplayItem])).toEqual(["1"]);
-    expect(staleGauges(fresh)).toEqual([]);
-  });
-
-  it("writes an .infopanel without the left-out files", async () => {
-    const { doc } = await setup();
-    const out = infopanelFile(profile, doc, unusedFiles(doc).names);
-    expect(out.files).toBe(1);
-    const parsed = await loadExport(entriesFromZip(out.bytes));
-    expect([...parsed.assets.keys()]).toEqual(["a.png"]);
-    expect(parsed.items.map((i) => i.kind)).toEqual(["Image", "Sensor"]);
-    expect(parsed.profile.Name).toBe("Arc");
-  });
-
-  it("rebuilds the stored form after an edit, keeping the source, keys, fonts and store extensions", async () => {
-    const { doc, stored } = await setup();
-    const keys = readStored(JSON.parse(JSON.stringify(stored))).keys;
-    const extra = await assetFile("frame.png", bytes("frame"), "added");
-    const next = restoreStored(stored, profile, { ...doc, assets: new Map([...doc.assets, ["frame.png", extra]]) }, keys, new Map([[extra.hash, "png"]]));
-    expect(next.source).toEqual(stored.source);
-    expect(next.defaultMode).toBe("native");
-    expect(next.fonts).toEqual(stored.fonts);
-    expect(next.items[1].$).toEqual({ key: "plugins.p", via: "chosen" });
-    expect(next.assets.find((a) => a.name === "a.png")?.ext).toBe("png");
-    expect(next.assets.find((a) => a.name === "frame.png")?.ext).toBe("png");
-    expect(next.assets.find((a) => a.name === "spare.png")?.ext).toBeUndefined();
-  });
-
   it("reviews each supplied font file once; one that may not be shared starts left out", async () => {
     const { stored } = await setup();
     const rows = fontLicences(stored);

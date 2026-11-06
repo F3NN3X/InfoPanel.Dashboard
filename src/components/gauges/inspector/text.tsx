@@ -1,4 +1,4 @@
-/** Value text (with the scale it reads) and the title. */
+/** Value text and the title; the scale they read is Value range's. */
 import { TEXT, TITLE } from "@/lib/gauge-studio/parts";
 import { DEFAULT_SCALE } from "@/lib/infopanel/gauges/parts";
 import type { Scale, Title, ValueText } from "@/lib/infopanel/gauges/vector";
@@ -11,14 +11,14 @@ const DECIMALS = [
   ...[0, 1, 2, 3, 4].map((d) => ({ value: String(d), label: String(d) })),
 ];
 
-/** The range the labels, text and thresholds read: shown whether or not the value text is on. */
+/** The range the labels, text and thresholds read: Value range, whether or not the value text is on. */
 export function ScaleRows({ g, set }: InspectorProps) {
   const s = g.scale ?? DEFAULT_SCALE;
   const patch = (p: Partial<Scale>, key?: string) => set({ ...g, scale: { ...s, ...p } }, key);
   return (
     <div className="space-y-1">
-      <NumRow label="Scale min" value={s.min} onChange={(min) => patch({ min }, "min")} />
-      <NumRow label="Scale max" value={s.max} onChange={(max) => patch({ max }, "max")} />
+      <NumRow label="Min" value={s.min} onChange={(min) => patch({ min }, "min")} />
+      <NumRow label="Max" value={s.max} onChange={(max) => patch({ max }, "max")} />
       <TextRow label="Unit" value={s.unit} placeholder="%, °C, rpm…" onChange={(unit) => patch({ unit: unit.slice(0, 16) }, "unit")} />
       <PickRow label="Decimals" value={s.decimals === null ? "auto" : String(s.decimals)} options={DECIMALS} onChange={(d) => patch({ decimals: d === "auto" ? null : Number(d) })} />
     </div>
@@ -40,7 +40,6 @@ export function TextInspector({ g, set }: InspectorProps) {
           <TextRow label="Font" value={t.font} placeholder="Default font" onChange={(f) => patch({ font: font(f) }, "font")} />
         </div>
       )}
-      <ScaleRows g={g} set={set} />
     </div>
   );
 }

@@ -17,6 +17,7 @@ export type CommandAction =
   | { type: "drawer"; drawer: Drawer }
   | { type: "alert-new" }
   | { type: "live" }
+  | { type: "data-api" }
   | { type: "help" }
   | { type: "toggle-grid" }
   | { type: "toggle-dock" }
@@ -27,10 +28,8 @@ export type CommandAction =
   | { type: "zoom-out" }
   | { type: "save" }
   | { type: "export" }
-  | { type: "export-check" }
   | { type: "import" }
   | { type: "new-infopanel" }
-  | { type: "convert"; scope: "zone" | "screen" }
   | { type: "undo" }
   | { type: "redo" }
   | { type: "shortcuts" }
@@ -117,8 +116,6 @@ export interface CommandState {
   appearancePresets: { id: string; name: string }[];
   /** That level's name, the themes' hint (This screen when unset). */
   themeLevel?: string;
-  /** The screen is made for InfoPanel: the palette offers its Export check. */
-  exportCheck?: boolean;
 }
 
 /** The Design left panel's two tabs. */
@@ -132,7 +129,7 @@ const DESTINATIONS: { id: string; label: string; target: NavTarget; hint?: strin
   { id: "infopanel", label: "InfoPanel profiles", target: { view: "infopanel" }, hint: "Screens, filtered to InfoPanel" },
   { id: "data", label: "Data", target: { view: "data" }, hint: "sources, points, display names" },
   { id: "alerts", label: "Alerts & Island", target: { view: "alerts" } },
-  { id: "alerts:rules", label: "Alerts & Island › Rules", target: { view: "alerts", tab: "rules" } },
+  { id: "alerts:rules", label: "Alerts & Island › Alerts", target: { view: "alerts", tab: "rules" } },
   { id: "alerts:island", label: "Alerts & Island › Island", target: { view: "alerts", tab: "island" }, hint: "Dynamic Island" },
   { id: "alerts:defaults", label: "Alerts & Island › Defaults", target: { view: "alerts", tab: "defaults" } },
   { id: "alerts:history", label: "Alerts & Island › History", target: { view: "alerts", tab: "history" } },
@@ -157,8 +154,6 @@ function generalCommands(s: CommandState): Command[] {
     ...(s.canUndo ? [general("undo", "Undo", { type: "undo" }, KEYS.undo)] : []),
     ...(s.canRedo ? [general("redo", "Redo", { type: "redo" }, KEYS.redo)] : []),
     general("export", "Export & back up…", { type: "export" }),
-    ...(s.exportCheck ? [general("export-check", "Export check", { type: "export-check" }, "what exports to InfoPanel")] : []),
-    general("convert-screen", "Convert screen to InfoPanel profile (experimental)…", { type: "convert", scope: "screen" }),
     general("import", "Import…", { type: "import" }),
     general("new-infopanel", "New InfoPanel profile…", { type: "new-infopanel" }, "blank or from a template"),
     general("shortcuts", "Keyboard shortcuts", { type: "shortcuts" }, KEYS.cheatsheet),
@@ -171,16 +166,16 @@ function generalCommands(s: CommandState): Command[] {
     ...DESTINATIONS.map(({ id, label, target, hint }) => general(`go:${id}`, label, { type: "navigate", target }, hint)),
     general("help", "Help", { type: "help" }, "F1"),
     general("alert-new", "New alert rule", { type: "alert-new" }),
-    general("theme", "Look", { type: "open-theme" }, "Look gallery, colors, saved looks, theme, skins, locks"),
-    general("background", "Look › Background", { type: "open-theme", section: "background" }),
-    general("font", "Look › Text", { type: "open-theme", section: "type" }, "page font, type, typography"),
+    general("theme", "Theme", { type: "open-theme" }, "Theme gallery, colors, saved themes, look, skins, locks"),
+    general("background", "Theme › Background", { type: "open-theme", section: "background" }),
+    general("font", "Theme › Text", { type: "open-theme", section: "type" }, "page font, type, typography"),
     general(
       "settings",
       "Settings › Dashboard",
       { type: "navigate", target: { view: "settings", tab: "dashboard" } },
       "performance, clock, locale, cursor, page dots"
     ),
-    general("connection", "Data › Connection", { type: "navigate", target: { view: "data", section: "connection", control: "url" } }, "Data API URL"),
+    general("connection", "Data › Connection", { type: "data-api" }, "Data API URL"),
     general("follow-all", "Make all widgets follow the theme", { type: "follow-all" }, "this screen"),
     general(
       "toggle-enforce",
@@ -342,8 +337,8 @@ function themeSettingCommands(): Command[] {
       (def): Command => ({
         id: `theme-setting:${s.id}:${def.key}`,
         label: def.label,
-        group: "Look",
-        hint: `Look › ${s.title}`,
+        group: "Theme",
+        hint: `Theme › ${s.title}`,
         action: { type: "goto-theme-setting", section: s.id, key: def.key },
       })
     )
@@ -405,15 +400,15 @@ export function buildCommands(s: CommandState): Command[] {
     ...generalCommands(s),
     ...pageCommands(s),
     ...s.appearancePresets.flatMap((p): Command[] => [
-      { id: `appearance:${p.id}`, label: `Apply look: ${p.name}`, group: "Looks", hint: s.themeLevel ?? "This screen", action: { type: "apply-appearance", id: p.id, keepBackground: false } },
+      { id: `appearance:${p.id}`, label: `Apply theme: ${p.name}`, group: "Themes", hint: s.themeLevel ?? "This screen", action: { type: "apply-appearance", id: p.id, keepBackground: false } },
       {
         id: `appearance-keep-bg:${p.id}`,
-        label: `Apply look, keep background: ${p.name}`,
-        group: "Looks",
+        label: `Apply theme, keep background: ${p.name}`,
+        group: "Themes",
         hint: s.themeLevel ?? "This screen",
         action: { type: "apply-appearance", id: p.id, keepBackground: true },
       },
-      { id: `appearance-all:${p.id}`, label: `Apply look to all screens: ${p.name}`, group: "Looks", action: { type: "apply-appearance-all", id: p.id } },
+      { id: `appearance-all:${p.id}`, label: `Apply theme to all screens: ${p.name}`, group: "Themes", action: { type: "apply-appearance-all", id: p.id } },
     ]),
     ...s.insertables.map(
       (item): Command => ({

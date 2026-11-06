@@ -1,4 +1,6 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { viewKeyOf, viewsOf } from "./editor/view-presets";
+import { useInspectorChrome } from "./inspector-layout";
 import { useToast } from "@/components/ui/toast";
 import { VectorGaugeSvg } from "@/components/infopanel/VectorGaugeSvg";
 import { useSensorCatalog } from "@/lib/catalog";
@@ -44,7 +46,7 @@ import type { ZoneRect } from "./zone-geometry";
 import { moduleIcon } from "./zone-icons";
 import { WidgetPicker, ZoneHeader, changedLabel } from "./zone-inspector-parts";
 import { PlaceRow } from "./place-row";
-import { pinsOf, setPin, useQuickPins } from "./inspector/inspector-prefs";
+import { pinsOf, useQuickPins } from "./inspector/inspector-prefs";
 import { defaultQuickKeys } from "./quick-sets";
 
 interface ZoneInspectorProps {
@@ -106,14 +108,12 @@ interface ZoneInspectorProps {
    * no inheritance chips.
    */
   place?: ReactNode;
-  /** The On InfoPanel section, last (a screen made for InfoPanel). */
-  onInfoPanel?: ReactNode;
-  /** The LAYER section (Edit v3 SPEC §10.2): z-order and the group it sits in. */
-  layer?: ReactNode;
 }
 
 // The Look knobs are the Theme view's chunk's, loaded with the Style tab.
 const WidgetLookKnobs = lazy(() => import("./look-knobs"));
+/** The widget's views as tiles (D-5), loaded with the first widget that has a choice of them. */
+const PresetRow = lazy(() => import("./editor/preset-row"));
 
 /** A Custom gauge zone's spec drawn small (at p = 0.6), with the way into its editor. */
 function GaugeNote({ zone, onEdit }: { zone: Placement; onEdit: () => void }) {
@@ -157,7 +157,7 @@ function cardParts(cards: SheetCard[]): SectionParts {
 /**
  * The inspector of one zone (README §4.6–4.7): the header (icon, editable
  * name, meta, Hide / Duplicate / Delete, the panel crumbs) and placement
- * row, then the registry's tabs — Show · Style · Data · Behaviour for widgets
+ * row, then the registry's tabs — Content · Style · Data · Behaviour for widgets
  * and panels, Widget + Zone frame for a blank zone. The zone's custom UI
  * (widget picker, inheritance chips, style toolbar, zone frame, a panel's
  * editors, Bound data) fills the sections the registry marks for it. A
@@ -196,12 +196,13 @@ export function ZoneInspector({
   request,
   onEditGauge,
   place,
-  onInfoPanel,
-  layer,
 }: ZoneInspectorProps) {
   const toast = useToast();
   const [picker, setPicker] = useState(false);
   const [makeThemePending, setMakeThemePending] = useState<MakeThemePending | null>(null);
+  /** Bumped by the Preset row's Save as style: the Style tab's name field opens. */
+  const [styleName, setStyleName] = useState(0);
+  const { mode: chromeMode } = useInspectorChrome();
   const catalog = useSensorCatalog();
   const data = useZoneData(profile);
   const mod = modules.find((m) => m.id === zone.module);
@@ -260,7 +261,7 @@ export function ZoneInspector({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request?.seq]);
 
-  // The quick bar's pins of this widget type (a panel's are shared by every panel).
+  // The phone sheet's Quick tool: the pins kept from the quick bar (a panel's are shared by every panel), else the defaults.
   const allPins = useQuickPins();
   const pinType = zone.panel ? "panel" : zone.module;
   const quickDefaults = defaultQuickKeys(defs);
@@ -279,9 +280,6 @@ export function ZoneInspector({
       return sec !== undefined && isLocked(appearance, sec);
     },
     onOpenExplorer,
-    pins: blank
-      ? undefined
-      : { has: (key) => pinned.includes(key), toggle: (key) => setPin(pinType, quickDefaults, key) },
   };
   const effective = shownValues(values, defs);
 
@@ -382,7 +380,7 @@ export function ZoneInspector({
   /** A section card's chip: the widget's inheritance of the theme sections it covers. */
   const inheritOf = (s: InspectorSection) => {
     const sections = chipSections(s);
-    return sections.length === 0 || blank || place ? undefined : sectionInherit({ sections, title: s.title, scope, ctx: inherit, onMakeTheme: askMakeTheme });
+    return sections.length === 0 || blank || place ? undefined : sectionInherit({ sections, title: s.title, scope, ctx: inherit, onMakeTheme: askMakeTheme, dot: true });
   };
 
   const present = (s: InspectorSection) =>
@@ -403,6 +401,7 @@ export function ZoneInspector({
       matched={matchingStyle(stylePresets, style)}
       onUpdate={(id) => onUpdatePreset(id, style)}
       onMakeTheme={(target) => askMakeTheme(customSections, target)}
+      askName={styleName}
     />
   );
   const knobs = (context.kind === "widget" || context.kind === "panel") && (
@@ -441,7 +440,7 @@ export function ZoneInspector({
           placeholder={mod?.title}
           onName={onName}
           meta={`${typeName} · ${changedLabel(changed)}`}
-          kind={blank || item ? undefined : "Studio widget"}
+          kind={blank || item ? undefined : `${zone.panel ? "Panel" : "Widget"} · col ${zone.colStart}, row ${zone.rowStart}`}
           details={zoneMeta(zone, { dataPoints: data.usage.byZone.get(zone.id)?.length ?? 0, min: zoneMinSize(zone) })}
           visible={zone.visible}
           widget={selectedWidget && widgetName(selectedWidget, catalog)}
@@ -451,17 +450,32 @@ export function ZoneInspector({
           onDuplicate={onDuplicate}
           onRemove={onRemove}
           onHelp={onHelp}
+          onChangeWidget={onPickWidget}
         />
     </>
   );
   const placeRow = place ?? (
     <PlaceRow cell={{ col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan }} onCells={(patch) => onZoneBox(patch)} />
   );
-  const after = (layer || onInfoPanel) && (
-    <>
-      {layer}
-      {onInfoPanel}
-    </>
+  // The widget's views: tiles in place of the view select, which stays for the phone sheet's tools.
+  const presetMod = !item && viewsOf(mod).length > 0 ? mod : undefined;
+  const viewKey = presetMod && viewKeyOf(presetMod);
+  const presets = presetMod && (
+    <Suspense fallback={null}>
+      <PresetRow
+        mod={presetMod}
+        settings={zone.settings}
+        onPick={(patch, clear) => update((p) => withoutSettings(customised(withSettings(p, patch), appearance, defs, Object.keys(patch)), clear), `setting:${viewKey}`)}
+        onSaveStyle={
+          Object.keys(style).length > 0
+            ? () => {
+                setInspectorTab(context.kind, "style");
+                setStyleName((n) => n + 1);
+              }
+            : undefined
+        }
+      />
+    </Suspense>
   );
 
   if (item)
@@ -472,7 +486,6 @@ export function ZoneInspector({
         appearance={appearance}
         header={header}
         place={placeRow}
-        after={after}
         bound={bound}
         update={update}
         onChangeKind={(kind) => update((p) => ({ ...p, panel: { ...p.panel!, widgets: p.panel!.widgets.map((w) => (w.id === item.id ? convertKind(w, kind) : w)) } }))}
@@ -498,7 +511,7 @@ export function ZoneInspector({
       contextKey={context.kind}
       header={header}
       fields={fields}
-      visible={(def) => isVisible(def, effective)}
+      visible={(def) => isVisible(def, effective) && (def.key !== viewKey || chromeMode === "sheet")}
       present={present}
       parts={parts}
       notes={notes}
@@ -514,9 +527,14 @@ export function ZoneInspector({
         onToggleVisible,
       }}
       quickKeys={blank ? [] : pinned}
-      place={placeRow}
-      after={after}
+      place={
+        <>
+          {placeRow}
+          {presets}
+        </>
+      }
       underline
+      searchLabel="Search this widget's settings"
     />
     <MakeThemeDialog
       pending={makeThemePending}

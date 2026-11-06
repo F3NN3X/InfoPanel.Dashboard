@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { expect, FIELD_KIT, makePack, manifest, settled, test, watchErrors } from "./fixtures";
 
-// User packs (P12b): a pack folder is imported in the Look gallery into the scratch data folder, worn on a screen and drawn by the kiosk
+// User packs (P12b): a pack folder is imported in the Browse themes into the scratch data folder, worn on a screen and drawn by the kiosk
 // from /api/packs; the page asks for nothing but its own origin (no font host). A hostile pack is refused with the issue shown and
 // nothing is stored.
 
@@ -28,10 +28,10 @@ test("a valid pack is imported, worn and drawn from the route with no request pa
     await settled(classic, manifest.kioskZoneSelector);
     await classic.close();
     await page.goto(`${scratch.base}/?studio=1&profile=${light}`);
-    await page.getByRole("button", { name: "Look", exact: true }).click();
-    await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
-    const section = page.getByRole("region", { name: "Your packs" });
-    await expect(section).toBeVisible();
+    await page.getByRole("button", { name: "Theme", exact: true }).click();
+    await page.getByRole("tab", { name: /Browse themes/ }).click();
+    const section = page.getByRole("region", { name: "Import a pack" });
+    await expect(section).toBeAttached();
 
     // A hostile pack: a script in an SVG. The issue is shown in words and the server stores nothing.
     const hostile = makePack(tmp, "bad", (dir) => fs.writeFileSync(path.join(dir, "assets", "hazard.svg"), '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'));
@@ -51,9 +51,10 @@ test("a valid pack is imported, worn and drawn from the route with no request pa
     await section.locator("[data-pack-folder]").setInputFiles(makePack(tmp, "mine"));
     await expect(report).toContainText("Imported Mine");
     expect((await packsOf(scratch.base)).map((p) => p.id)).toEqual(["mine"]);
-    const card = page.locator('[data-look-card="mine"]');
-    await expect(card).toContainText("your pack");
+    const card = page.getByRole("region", { name: "Yours" }).locator('[data-look-card="mine"]');
+    await expect(card).toContainText("Pack");
     await card.click();
+    await page.getByRole("complementary", { name: "Theme detail" }).getByRole("button", { name: /^Apply to/ }).click();
     await expect.poll(async () => {
       const config = await (await fetch(`${scratch.base}/api/config`)).json();
       return config.profiles.find((p: { id: string }) => p.id === light)?.widgetTheme?.values?.lookId;

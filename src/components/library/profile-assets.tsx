@@ -52,7 +52,7 @@ export function ProfileAssets({ zones, setConfig, onSelectUses, onSaveToLibrary,
   const zone = zones.find((z) => z.id === zoneId) ?? zones[0];
   if (!zone) {
     return (
-      <div className="flex flex-1 items-center justify-center p-6 text-center text-[12.5px] text-ui-4">
+      <div className="flex flex-1 items-center justify-center p-6 text-center text-body text-ui-4">
         This page has no canvas zone. Import an InfoPanel profile to see its files.
       </div>
     );
@@ -63,7 +63,7 @@ export function ProfileAssets({ zones, setConfig, onSelectUses, onSaveToLibrary,
         aria-label="Canvas zone"
         value={zone.id}
         onChange={(e) => setZoneId(e.target.value)}
-        className="h-[30px] max-w-[180px] rounded-[7px] border border-ui-default bg-ui-app px-2 text-[12.5px] text-ui-1"
+        className="h-[30px] max-w-[180px] rounded-ui-md border border-ui-default bg-ui-app px-2 text-body text-ui-1"
       >
         {zones.map((z, i) => (
           <option key={z.id} value={z.id}>
@@ -110,7 +110,7 @@ function ZoneAssets({ zoneId, stored, picker, setConfig, onSelectUses, onSaveToL
   const uses = useMemo(() => (doc ? usesOf(doc.items) : new Map()), [doc]);
   const shrinkable = useMemo(() => (doc && found ? found.larger.filter((o) => reencodable(doc.assets.get(o.name.toLowerCase())!)) : []), [doc, found]);
 
-  if (!doc || !found) return <div className="flex-1 p-6 text-[12.5px] text-ui-4">Reading the files…</div>;
+  if (!doc || !found) return <div className="flex-1 p-6 text-body text-ui-4">Reading the files…</div>;
 
   const total = [...doc.assets.values()].reduce((n, f) => n + f.bytes.length, 0);
   const external = new Set(scanRefs(doc.items).others.map((o) => `${o.kind}:${o.value}`)).size;
@@ -149,7 +149,7 @@ function ZoneAssets({ zoneId, stored, picker, setConfig, onSelectUses, onSaveToL
       <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
         <div className="flex flex-wrap items-center gap-3 px-6 py-3">
           {picker}
-          <span className="font-ui-mono text-[11.5px] text-ui-4">
+          <span className="font-ui-mono text-caption text-ui-4">
             {doc.assets.size} files · {formatBytes(total)} · {external} external
           </span>
           <div className="flex flex-wrap gap-1.5" role="group" aria-label="Findings">

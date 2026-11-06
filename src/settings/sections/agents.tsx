@@ -31,8 +31,8 @@ function AgentFile({ item }: { item: AgentStatus }) {
   return (
     <div ref={found.ref} className={cn("flex flex-wrap items-center gap-3 rounded-ui-menu border border-s-divider bg-s-side px-3 py-2.5", found.className)}>
       <span className="w-24 text-body font-medium">{AGENT_NAMES[item.agent]}</span>
-      <span className="min-w-40 flex-1 break-all font-mono text-xs text-s-t3">{item.path}</span>
-      <span className={cn("rounded-[10px] px-2 py-0.5 text-[11.5px]", chip.className)}>{chip.label}</span>
+      <span className="min-w-40 flex-1 break-all font-mono text-caption text-s-t3">{item.path}</span>
+      <span className={cn("rounded-ui-lg px-2 py-0.5 text-caption", chip.className)}>{chip.label}</span>
     </div>
   );
 }
@@ -87,13 +87,13 @@ export function AgentsSection() {
           <Terminal className="h-5 w-5" />
         </div>
         <div className="flex flex-1 flex-col gap-[3px]">
-          <span className="text-sm font-medium">Connect coding agents</span>
-          <span className="text-caption leading-[1.45] text-s-muted">Shows Claude Code and Codex sessions on the dashboard.</span>
+          <span className="text-lead font-medium">Connect coding agents</span>
+          <span className="text-caption leading-[1.45] text-s-muted">Shows Claude Code and Codex sessions on the dashboard</span>
         </div>
         <Switch checked={enabled} onChange={(v) => void toggle(v)} label="Connect coding agents" disabled={busy} />
       </div>
       <div className="flex flex-col gap-2.5 border-t border-s-divider px-[18px] py-3.5">
-        <span className="text-xs text-s-dim">{enabled ? "Edited files" : "Files that will be edited"}</span>
+        <span className="text-caption text-s-dim">{enabled ? "Edited files" : "Files that will be edited"}</span>
         {files.map((f) => (
           <AgentFile key={f.agent} item={f} />
         ))}

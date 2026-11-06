@@ -21,7 +21,7 @@ function FontCard({ item, selected, onSelect }: { item: LibraryItem; selected: b
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        "flex min-w-0 flex-col gap-1.5 rounded-ui-lg border border-ui-subtle bg-ui-panel p-3.5 text-left outline-none hover:border-ui-default focus-visible:border-ui-accent",
+        "flex min-w-0 flex-col gap-1.5 rounded-ui-lg border border-ui-subtle bg-ui-panel p-3.5 text-left hover:border-ui-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
         selected && "border-ui-accent bg-ui-accent/[.06] hover:border-ui-accent",
       )}
     >
@@ -29,8 +29,8 @@ function FontCard({ item, selected, onSelect }: { item: LibraryItem; selected: b
         {SAMPLE}
       </span>
       <span className="flex min-w-0 items-baseline justify-between gap-2">
-        <span className="truncate text-[12.5px] font-medium text-ui-1">{m.family ?? item.name}</span>
-        {m.licence && <span className={cn("shrink-0 text-[11.5px]", VERDICT_TONE[m.licence])}>{LICENCE_LABEL[m.licence]}</span>}
+        <span className="truncate text-body font-medium text-ui-1">{m.family ?? item.name}</span>
+        {m.licence && <span className={cn("shrink-0 text-caption", VERDICT_TONE[m.licence])}>{LICENCE_LABEL[m.licence]}</span>}
       </span>
       <span className="truncate font-ui-mono text-micro text-ui-4">{metaLine(item)}</span>
     </button>
@@ -38,7 +38,7 @@ function FontCard({ item, selected, onSelect }: { item: LibraryItem; selected: b
 }
 
 export function MyFonts({ fonts, selectedId, onSelect }: { fonts: LibraryItem[]; selectedId: string | null; onSelect: (item: LibraryItem) => void }) {
-  if (fonts.length === 0) return <div className="text-[12.5px] text-ui-4">No fonts yet. Add font files or get one for a missing font.</div>;
+  if (fonts.length === 0) return <div className="text-body text-ui-4">No fonts yet. Add font files or get one for a missing font.</div>;
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
       {fonts.map((f) => (

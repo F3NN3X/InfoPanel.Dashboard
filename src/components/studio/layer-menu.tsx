@@ -31,6 +31,8 @@ export interface LayerMenuHost {
   run: (action: LayerAction) => void;
   /** Into a group, or `null`: a new group around the selection. */
   moveToGroup: (groupId: string | null) => void;
+  /** Out of its group, to the top: in the Move to group submenu, where the page has one. */
+  moveOut?: { enabled: boolean; run: () => void };
   /** Rename the selected node inline (one node selected). */
   rename?: () => void;
   /** Save the selection to the Library (any selection, on every page); unset with nothing selected. */
@@ -66,6 +68,9 @@ export function layerMenuEntries(host: LayerMenuHost): ContextMenuEntry[] {
         ...host.groups.map((g): ContextMenuEntry => ({ id: `group:${g.id}`, label: g.name, onSelect: () => host.moveToGroup(g.id) })),
         ...(host.groups.length ? ["separator" as const] : []),
         { id: "new-group", label: "New group", icon: <FolderPlus />, onSelect: () => host.moveToGroup(null) },
+        ...(host.moveOut
+          ? [{ id: "move-out", label: "Move out of group", icon: <FolderMinus />, hint: "Ctrl+Shift+O", disabled: !host.moveOut.enabled, onSelect: host.moveOut.run } satisfies ContextMenuEntry]
+          : []),
       ],
     },
     "separator",

@@ -33,20 +33,20 @@ const TEMPLATE = state({ applied: applied("builtin:tpl-terminal-amber", "Termina
 describe("the theme card", () => {
   it("names the saved theme with its other uses, a template with its level, a custom or deleted look as not saved", () => {
     const others = [use("Gaming", "page"), use("Work", "page")];
-    expect(kindLine(DESK, others, "MyDefault")).toBe("Saved look · also on the Gaming and Work pages");
-    expect(kindLine(DESK, [], "MyDefault")).toBe("Saved look · only here");
-    expect(kindLine(DESK, [use("Wall", "profile"), use("Gaming", "page")], "MyDefault")).toBe("Saved look · also on Wall and the Gaming page");
+    expect(kindLine(DESK, others, "MyDefault")).toBe("Saved theme · also on the Gaming and Work pages");
+    expect(kindLine(DESK, [], "MyDefault")).toBe("Saved theme · only here");
+    expect(kindLine(DESK, [use("Wall", "profile"), use("Gaming", "page")], "MyDefault")).toBe("Saved theme · also on Wall and the Gaming page");
     expect(kindLine(TEMPLATE, [], "MyDefault")).toBe("From a screen template · applied to MyDefault");
-    expect([cardName(state({})), kindLine(state({}), [], "x")]).toEqual(["Custom look", "not saved"]);
+    expect([cardName(state({})), kindLine(state({}), [], "x")]).toEqual(["Custom theme", "not saved"]);
     expect(cardName(state({ applied: applied("look-x", "Night"), deleted: true }))).toBe("Night (deleted)");
   });
 
-  it("names a level's theme by one rule: the theme, Changed from it, (deleted), or Custom look", () => {
+  it("names a level's theme by one rule: the theme, Changed from it, (deleted), or Custom theme", () => {
     expect(themeLabel(DESK)).toBe("Desk");
     expect(themeLabel({ ...DESK, changed: ["skin"] })).toBe("Changed from Desk");
     expect(themeLabel({ ...TEMPLATE, changed: ["palette"] })).toBe("Changed from Terminal · Amber");
     expect(themeLabel(state({ applied: applied("look-x", "Night"), deleted: true, changed: ["corners"] }))).toBe("Night (deleted)");
-    expect(themeLabel(state({}))).toBe("Custom look");
+    expect(themeLabel(state({}))).toBe("Custom theme");
   });
 
   it("shows the Update bar only once a part changed, naming the other uses when there are some", () => {

@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { loadExport, entriesFromZip } from "@/lib/infopanel/archive.ts";
-import { withNewItem } from "@/lib/infopanel/canvas-edit.ts";
 import { centred, insertItem, namedFor, newItem, PALETTE, placed } from "@/lib/infopanel/editor/create.ts";
 import { ACCENT, lookOf } from "@/lib/infopanel/editor/look.ts";
 import { checkValue } from "@/lib/infopanel/editor/registry.ts";
-import { infopanelExport } from "@/lib/infopanel/export/write.ts";
 import { newStored, readStored } from "@/lib/infopanel/import/stored.ts";
 import { defaultItem, SCHEMAS, type DisplayItem, type FieldSpec, type GroupItem } from "@/lib/infopanel/schema.ts";
 
@@ -65,16 +62,13 @@ describe("the styled new-item look", () => {
     expect(newItem("Gauge", profile)).toMatchObject({ vector: { track: "#2C2C2E", fill: { mode: "solid", color: "#3B82F6" } } });
   });
 
-  it.each(PALETTE.map((p) => p.kind))("%s passes InfoPanel's setter checks and survives export, then parse", async (kind) => {
+  it.each(PALETTE.map((p) => p.kind))("%s passes InfoPanel's setter checks", (kind) => {
     const item = newItem(kind, profile);
     for (const [field, spec] of Object.entries(SCHEMAS[kind] as Record<string, FieldSpec<unknown>>)) {
       const value = (item as unknown as Record<string, unknown>)[field];
       if (value === null) continue;
       expect(checkValue(spec, value), field).toEqual({ ok: true, value });
     }
-    const { vector: _studioOnly, slots: _slots, ...plain } = item as DisplayItem & { vector?: unknown; slots?: unknown };
-    const back = await loadExport(entriesFromZip(infopanelExport(profile, [item], [])));
-    expect(back.items).toEqual([plain]);
   });
 });
 
@@ -113,17 +107,5 @@ describe("insertItem (AddDisplayItem's rules)", () => {
     expect(insertItem(items, group("n", []), "0").path).toBe("1");
     expect(insertItem(items, group("n", []), "1.0").path).toBe("3");
     expect(insertItem(items, group("n", []), null).path).toBe("3");
-  });
-});
-
-describe("a profile from scratch, exported", () => {
-  it("keeps every kind's creation defaults through .infopanel and back", async () => {
-    let items: DisplayItem[] = [];
-    for (const { kind } of PALETTE) items = withNewItem(items, profile, newItem(kind, profile), null).items;
-    const back = await loadExport(entriesFromZip(infopanelExport(profile, items, [])));
-    // A new gauge's ring is a vector spec (studio-only), baked to frames by the Export dialog; the palette slots are studio-only too.
-    expect(back.items).toEqual(items.map(({ vector: _v, slots: _s, ...plain }: DisplayItem & { vector?: unknown; slots?: unknown }) => plain));
-    expect(back.profile).toEqual(profile);
-    expect(back.issues.filter((i) => i.code !== "unknown-field")).toEqual([]);
   });
 });

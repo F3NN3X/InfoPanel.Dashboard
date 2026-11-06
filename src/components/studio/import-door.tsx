@@ -96,7 +96,7 @@ function DestinationCards({ group, value, onPick }: { group: Group; value: Desti
             role="radio"
             aria-checked={on}
             onClick={() => onPick(d.id)}
-            className={cn("flex items-center gap-3 rounded-[10px] border px-3.5 py-2.5 text-left transition-colors", on ? "border-ui-accent bg-ui-accent-soft" : "border-ui-default bg-ui-chrome hover:bg-ui-hover")}
+            className={cn("flex items-center gap-3 rounded-ui-lg border px-3.5 py-2.5 text-left transition-colors", on ? "border-ui-accent bg-ui-accent-soft" : "border-ui-default bg-ui-chrome hover:bg-ui-hover")}
           >
             <RadioDot on={on} />
             <span className="flex min-w-0 flex-col gap-0.5">
@@ -151,7 +151,7 @@ export function ImportDoorDialog({ open, files, choices, onChoices, busy, curren
           className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100vh-48px)] w-[min(560px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-ui-lg border border-ui-strong bg-ui-panel font-ui text-ui-1 shadow-ui-modal outline-none"
         >
           <div className="flex flex-col gap-1 border-b border-ui-subtle px-5 pb-3.5 pt-4">
-            <Dialog.Title className="text-head font-semibold text-ui-1">Import</Dialog.Title>
+            <Dialog.Title className="text-head font-medium text-ui-1">Import</Dialog.Title>
             <Dialog.Description className="text-pretty text-body text-ui-3">
               One door for every file. Drop it anywhere in Studio, or choose a file — we work out what it is.
             </Dialog.Description>
@@ -161,7 +161,7 @@ export function ImportDoorDialog({ open, files, choices, onChoices, busy, curren
               <button
                 type="button"
                 onClick={() => input.current?.click()}
-                className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-[10px] border border-dashed border-ui-strong text-center text-ui-3 hover:border-ui-accent hover:text-ui-1"
+                className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-ui-lg border border-dashed border-ui-strong text-center text-ui-3 hover:border-ui-accent hover:text-ui-1"
               >
                 <Upload className="h-6 w-6" strokeWidth={1.5} />
                 <span className="text-body">Drop files here, or choose them</span>
@@ -186,7 +186,7 @@ export function ImportDoorDialog({ open, files, choices, onChoices, busy, curren
               </div>
             )}
             {files.length === 0 ? null : (
-              <section aria-label="Detected" className="rounded-[10px] border border-ui-default bg-ui-chrome px-3.5 py-1.5">
+              <section aria-label="Detected" className="rounded-ui-lg border border-ui-default bg-ui-chrome px-3.5 py-1.5">
                 <ul className="divide-y divide-ui-subtle">
                   {files.map((f) => (
                     <FileRow key={f.id} file={f} onRemove={() => onRemove(f.id)} />
@@ -232,14 +232,14 @@ export function ImportDoorDialog({ open, files, choices, onChoices, busy, curren
           </div>
           <div className="flex shrink-0 items-center gap-2.5 border-t border-ui-subtle px-5 py-3">
             <span className="min-w-0 flex-1 text-pretty text-micro text-ui-3">{hint}</span>
-            <button type="button" onClick={onClose} className="h-8 rounded-[7px] px-3 text-body text-ui-3 hover:text-ui-1">
+            <button type="button" onClick={onClose} className="h-8 rounded-ui-md px-3 text-body text-ui-3 hover:text-ui-1">
               Cancel
             </button>
             <button
               type="button"
               disabled={!ready}
               onClick={onRun}
-              className="h-8 rounded-[7px] bg-ui-inverse px-4 text-body font-semibold text-ui-inverse-fg disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint"
+              className="h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint"
             >
               {busy ? "Importing…" : onlyConfig && replacing ? "Restore" : "Import"}
             </button>
@@ -268,7 +268,7 @@ export function DropOverlay() {
     <div aria-hidden className="pointer-events-none fixed inset-0 z-[90] grid place-items-center bg-black/60 p-6 font-ui">
       <div className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[18px] border-2 border-dashed border-ui-accent bg-ui-accent-soft">
         <Upload className="h-8 w-8 text-ui-accent-text" strokeWidth={1.5} />
-        <span className="text-display font-semibold text-ui-1">Drop to import</span>
+        <span className="text-display font-medium text-ui-1">Drop to import</span>
         <span className="text-body text-ui-3">We work out what each file is</span>
       </div>
     </div>

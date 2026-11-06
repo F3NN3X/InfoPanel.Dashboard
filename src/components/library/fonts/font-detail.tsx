@@ -46,7 +46,7 @@ export function FontDetail({ item }: { item: LibraryItem }) {
   return (
     <aside aria-label="Font details" className="flex w-[320px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-ui-subtle bg-ui-panel p-4 font-ui">
       <PreviewBox family={face} />
-      <div className="text-[14px] font-semibold text-ui-1">{m.family ?? item.name}</div>
+      <div className="text-lead font-medium text-ui-1">{m.family ?? item.name}</div>
       <div>
         <Fact label="Origin">{m.origin ?? "Added by you"}</Fact>
         <Fact label="Faces">{m.faces ?? "—"}</Fact>

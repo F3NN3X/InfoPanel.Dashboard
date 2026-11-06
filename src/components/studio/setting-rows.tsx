@@ -98,7 +98,7 @@ export function ToggleRow({
 }: RowLabelProps & { value: boolean; onChange: (value: boolean) => void }) {
   return (
     <InlineRow {...label}>
-      <Toggle checked={value} onChange={onChange} label={label.label} className="[&>span]:bg-ui-1" />
+      <Toggle checked={value} onChange={onChange} label={label.label} />
     </InlineRow>
   );
 }

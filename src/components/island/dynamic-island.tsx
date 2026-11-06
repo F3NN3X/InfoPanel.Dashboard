@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { PulseDot } from "@/components/pulse-dot";
-import { Info, OctagonAlert, TriangleAlert, type LucideIcon } from "lucide-react";
-import type { ActiveAlert, QuietHours, Severity } from "@/lib/alerts";
+import { OctagonAlert, TriangleAlert } from "lucide-react";
+import type { ActiveAlert, QuietHours } from "@/lib/alerts";
 import { statLevel, type IslandConfig, type IslandSize, type IslandStat } from "@/lib/island/config";
 import { islandBus, useIsland, type IslandBus } from "@/lib/island/bus";
 import { ALERTS_SOURCE, noticeFromAlert } from "@/lib/island/from-alerts";
@@ -20,6 +20,7 @@ import { useGeneral } from "@/hooks/use-general";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { useSensors } from "@/hooks/useSensors";
 import { useNow } from "@/components/widgets/hooks";
+import { ICONS } from "@/components/alerts/alert-layer";
 import { severityColor } from "@/components/alerts/alert-model";
 import { cn } from "@/lib/utils";
 import { usePack } from "@/looks/pack";
@@ -27,7 +28,6 @@ import { accentVars } from "@/widgets/core/tokens";
 import { islandClock, islandSkin, motionVars, shadowTransition, shapeSpring, springTransition, type IslandSkin, type PageSkin, type WornSurface } from "./island-look";
 import { fitIslandSize, idleViews, islandBox, islandFontPx, islandMode, islandTop, type IdleView, type IslandMode } from "./island-model";
 
-const ICONS: Record<Severity, LucideIcon> = { info: Info, warning: TriangleAlert, critical: OctagonAlert };
 /** How long a tap on the badge or the activity opens the island, ms. */
 export const PEEK_MS = 6000;
 /** The bus source a tapped activity opens as. */

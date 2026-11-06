@@ -2,10 +2,11 @@
  * A card's actions in one list, read by both of its menus: the ⋯ button's and the right-click one, so they always
  * offer the same items in the same order (Screens' screen and saved cards, the InfoPanel home's profile cards).
  */
-import { Fragment, useRef } from "react";
+import { Fragment, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { MoreHorizontal, type LucideIcon } from "lucide-react";
-import type { ContextMenuEntry } from "@/components/ui/context-menu";
+import { FOCUS_RING } from "@/components/ui/button";
+import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 import { ITEM, POPUP, SEPARATOR } from "../menu-styles";
 
@@ -29,6 +30,28 @@ export function contextEntries(actions: readonly CardAction[]): ContextMenuEntry
   });
 }
 
+/**
+ * A card's right-click menu: the same actions as its ⋯ menu. `onContextMenu` goes on the card (a name field keeps the
+ * browser's own menu); `menu` goes inside it, and its clicks never reach the card.
+ */
+export function useCardContextMenu(actions: readonly CardAction[] | undefined): { onContextMenu?: (e: MouseEvent) => void; menu: ReactNode } {
+  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
+  if (!actions) return { menu: null };
+  return {
+    onContextMenu: (e) => {
+      if (e.target instanceof HTMLInputElement) return;
+      e.preventDefault();
+      setAt({ x: e.clientX, y: e.clientY });
+    },
+    // The menu is portalled, but its clicks still bubble through React: they must not reach the card.
+    menu: at && (
+      <span className="contents" onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.stopPropagation()}>
+        <ContextMenu x={at.x} y={at.y} entries={contextEntries(actions)} onClose={() => setAt(null)} />
+      </span>
+    ),
+  };
+}
+
 /** The ⋯ button and its menu. */
 export function CardMenu({ actions, label }: { actions: readonly CardAction[]; label: string }) {
   // Rename hands the cursor to the card's name field: the menu must not take it back.
@@ -38,7 +61,7 @@ export function CardMenu({ actions, label }: { actions: readonly CardAction[]; l
       <Menu.Trigger
         title={label}
         aria-label={label}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ui-4 hover:bg-ui-active hover:text-ui-1 data-popup-open:bg-ui-active data-popup-open:text-ui-1"
+        className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ui-3 hover:bg-ui-active hover:text-ui-1 data-popup-open:bg-ui-active data-popup-open:text-ui-1", FOCUS_RING)}
       >
         <MoreHorizontal className="h-3.5 w-3.5" />
       </Menu.Trigger>

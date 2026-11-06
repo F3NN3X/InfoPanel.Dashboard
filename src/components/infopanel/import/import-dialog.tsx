@@ -73,7 +73,7 @@ const MODE_LABEL = { infopanel: "Faithful", native: "Native where possible", bot
 type SourceKind = "file" | "installed" | "canvas";
 
 const GHOST =
-  "inline-flex h-8 items-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] text-ui-1 transition-colors hover:bg-ui-hover";
+  "inline-flex h-8 items-center gap-1.5 rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 transition-colors hover:bg-ui-hover";
 
 const bytesOf = async (f: File) => new Uint8Array(await f.arrayBuffer());
 
@@ -161,24 +161,24 @@ function SourceStep({
               tabIndex={on ? 0 : -1}
               onClick={() => onKind(s.value)}
               className={cn(
-                "flex flex-col gap-1.5 rounded-[10px] border p-3.5 text-left transition-colors",
+                "flex flex-col gap-1.5 rounded-ui-lg border p-3.5 text-left transition-colors",
                 on ? "border-ui-accent bg-ui-accent-soft" : "border-ui-default bg-ui-tile hover:bg-ui-hover",
               )}
             >
               <Icon className={cn("h-[22px] w-[22px]", on ? "text-ui-accent" : "text-ui-3")} strokeWidth={1.75} />
-              <span className="text-body font-semibold text-ui-1">{s.title}</span>
-              <span className="text-[11.5px] text-ui-4">{s.text}</span>
+              <span className="text-body font-medium text-ui-1">{s.title}</span>
+              <span className="text-caption text-ui-4">{s.text}</span>
             </button>
           );
         })}
       </div>
 
       {opening && (
-        <div className={cn("flex flex-col gap-2.5 rounded-[10px] border bg-ui-chrome p-3.5", opening.error ? "border-ui-danger" : "border-ui-default")}>
+        <div className={cn("flex flex-col gap-2.5 rounded-ui-lg border bg-ui-chrome p-3.5", opening.error ? "border-ui-danger" : "border-ui-default")}>
           <div className="flex items-center gap-2.5">
             <FileArchive className={cn("h-5 w-5", opening.error ? "text-ui-danger" : "text-ui-3")} />
-            <span className="flex-1 truncate font-ui-mono text-[12.5px] text-ui-1">{opening.label}</span>
-            {opening.size !== undefined && <span className="font-ui-mono text-[11.5px] text-ui-4">{formatBytes(opening.size)}</span>}
+            <span className="flex-1 truncate font-ui-mono text-body text-ui-1">{opening.label}</span>
+            {opening.size !== undefined && <span className="font-ui-mono text-caption text-ui-4">{formatBytes(opening.size)}</span>}
           </div>
           {opening.error ? (
             <span role="alert" className="whitespace-pre-wrap text-caption text-ui-danger">
@@ -199,7 +199,7 @@ function SourceStep({
                   style={{ width: `${(state ? pct : 0.05) * 100}%` }}
                 />
               </div>
-              <div className="flex text-[11.5px] text-ui-3">
+              <div className="flex text-caption text-ui-3">
                 <span className="flex-1">
                   {!state
                     ? "Reading…"
@@ -225,7 +225,7 @@ function SourceStep({
           <button type="button" className={GHOST} onClick={() => folderRef.current?.click()}>
             <FolderOpen className="h-4 w-4" /> Choose folder…
           </button>
-          <span className="text-[11.5px] text-ui-hint">Or drop an .infopanel or a .canvas.zip here.</span>
+          <span className="text-caption text-ui-hint">Or drop an .infopanel or a .canvas.zip here.</span>
           <input
             ref={fileRef}
             type="file"
@@ -255,7 +255,7 @@ function SourceStep({
       )}
 
       {kind === "installed" && (
-        <div className="flex flex-col overflow-hidden rounded-[10px] border border-ui-default">
+        <div className="flex flex-col overflow-hidden rounded-ui-lg border border-ui-default">
           <div className="border-b border-ui-subtle bg-ui-chrome px-3 py-2 font-ui-mono text-micro text-ui-4">%LOCALAPPDATA%\InfoPanel\profiles · read-only</div>
           {installed === null && <span className="p-3 text-caption text-ui-4">Reading…</span>}
           {installed?.length === 0 && (
@@ -273,7 +273,7 @@ function SourceStep({
               className={cn("flex items-center gap-3 border-b border-ui-subtle px-3 py-2.5 text-left last:border-b-0 hover:bg-ui-hover", picked === p.guid && "bg-ui-hover")}
             >
               <Radio on={picked === p.guid} />
-              <span className="flex-1 truncate text-[12.5px] text-ui-1">{p.name || "(no name)"}</span>
+              <span className="flex-1 truncate text-body text-ui-1">{p.name || "(no name)"}</span>
               <span className="font-ui-mono text-micro text-ui-4">{p.assets.length === 1 ? "1 asset" : `${p.assets.length} assets`}</span>
               <span className="font-ui-mono text-micro text-ui-4">{formatBytes(p.bytes)}</span>
             </button>
@@ -283,8 +283,8 @@ function SourceStep({
 
       {kind === "canvas" && (
         <div className="flex flex-col gap-2.5">
-          <div className="flex flex-col overflow-hidden rounded-[10px] border border-ui-default">
-            <div className="flex items-center gap-2 border-b border-ui-subtle bg-ui-chrome px-3 py-2 text-[11.5px] text-ui-4">
+          <div className="flex flex-col overflow-hidden rounded-ui-lg border border-ui-default">
+            <div className="flex items-center gap-2 border-b border-ui-subtle bg-ui-chrome px-3 py-2 text-caption text-ui-4">
               <HardDrive className="h-3.5 w-3.5" /> My library · Imported canvases
             </div>
             {canvases === null && <span className="p-3 text-caption text-ui-4">Reading…</span>}
@@ -301,7 +301,7 @@ function SourceStep({
                 className={cn("flex items-center gap-3 border-b border-ui-subtle px-3 py-2.5 text-left last:border-b-0 hover:bg-ui-hover", picked === c.id && "bg-ui-hover")}
               >
                 <Radio on={picked === c.id} />
-                <span className="flex-1 truncate text-[12.5px] text-ui-1">{c.name}</span>
+                <span className="flex-1 truncate text-body text-ui-1">{c.name}</span>
                 <span className="font-ui-mono text-micro text-ui-4">{c.files.length === 1 ? "1 file" : `${c.files.length} files`}</span>
               </button>
             ))}
@@ -310,7 +310,7 @@ function SourceStep({
             <button type="button" className={GHOST} onClick={() => zipRef.current?.click()}>
               <FileArchive className="h-4 w-4" /> Open a .canvas.zip…
             </button>
-            <span className="text-[11.5px] text-ui-hint">Each file is checked against its SHA-256.</span>
+            <span className="text-caption text-ui-hint">Each file is checked against its SHA-256</span>
             <input
               ref={zipRef}
               type="file"
@@ -449,8 +449,8 @@ function ImportBody({ onClose, onCancel, onStep, profileName, profileSize, initi
     // The remap step has its own Help article (F1).
     <div data-help-article={step === 3 ? "remap" : "import"} className="grid h-full grid-cols-[210px_minmax(0,1fr)] max-md:grid-cols-1">
       <nav aria-label="Import steps" className="flex flex-col gap-1 border-r border-ui-subtle bg-ui-chrome px-3 py-[18px] max-md:hidden">
-        <span className="px-2 pb-0.5 text-[13.5px] font-semibold text-ui-1">Import InfoPanel</span>
-        <span className="px-2 pb-3.5 text-[11.5px] text-ui-4">Review before commit</span>
+        <span className="px-2 pb-0.5 text-body font-medium text-ui-1">Import InfoPanel</span>
+        <span className="px-2 pb-3.5 text-caption text-ui-4">Review before commit</span>
         {STEPS.map((label, i) => {
           const done = i < step;
           const cur = i === step;
@@ -465,14 +465,14 @@ function ImportBody({ onClose, onCancel, onStep, profileName, profileSize, initi
             >
               <span
                 className={cn(
-                  "grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border-[1.5px] font-ui-mono text-micro font-semibold",
-                  done ? "border-transparent bg-ui-accent text-ui-inverse-fg" : cur ? "border-transparent bg-ui-inverse text-ui-inverse-fg" : "border-ui-edge text-ui-4",
+                  "grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border-[1.5px] font-ui-mono text-micro font-medium",
+                  done ? "border-ui-strong bg-ui-raised text-ui-2" : cur ? "border-transparent bg-ui-inverse text-ui-inverse-fg" : "border-ui-edge text-ui-4",
                 )}
               >
                 {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
               </span>
               <span className="flex min-w-0 flex-col gap-px">
-                <span className="text-[12.5px] font-medium">{label}</span>
+                <span className="text-body font-medium">{label}</span>
                 <span className="truncate text-micro text-ui-4">{i <= step ? subs[i] : ""}</span>
               </span>
             </button>
@@ -484,11 +484,11 @@ function ImportBody({ onClose, onCancel, onStep, profileName, profileSize, initi
           <button type="button" aria-label="Close" onClick={onCancel} className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-md text-ui-3 hover:bg-ui-hover hover:text-ui-1">
             <X className="h-4 w-4" />
           </button>
-          <Dialog.Title className="text-[11.5px] font-normal text-ui-4">
+          <Dialog.Title className="text-caption font-normal text-ui-4">
             Import InfoPanel · Step {step + 1} of {STEPS.length}
           </Dialog.Title>
-          <span className="text-[16px] font-semibold text-ui-1">{TITLES[step]}</span>
-          <Dialog.Description className="text-pretty text-[12.5px] text-ui-3">{step === 4 && lockDest ? "Name it, then import." : SUBTITLES[step]}</Dialog.Description>
+          <span className="text-head font-medium text-ui-1">{TITLES[step]}</span>
+          <Dialog.Description className="text-pretty text-body text-ui-3">{step === 4 && lockDest ? "Name it, then import." : SUBTITLES[step]}</Dialog.Description>
         </div>
         <div className="min-h-0 flex-1 overflow-auto px-[22px] py-[18px]">
           {step === 0 && <SourceStep kind={kind} onKind={setKind} opening={opening} state={state} onOpen={open} />}
@@ -502,11 +502,11 @@ function ImportBody({ onClose, onCancel, onStep, profileName, profileSize, initi
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2.5 border-t border-ui-subtle px-[22px] py-3">
-          <button type="button" onClick={onCancel} className="h-8 rounded-[7px] px-3 text-[12.5px] text-ui-3 hover:text-ui-1">
+          <button type="button" onClick={onCancel} className="h-8 rounded-ui-md px-3 text-body text-ui-3 hover:text-ui-1">
             Cancel
           </button>
           {footNote && (
-            <span role={step === 4 && error ? "alert" : "status"} className={cn("text-[11.5px]", step === 4 && error ? "text-ui-danger" : "text-ui-3")}>
+            <span role={step === 4 && error ? "alert" : "status"} className={cn("text-caption", step === 4 && error ? "text-ui-danger" : "text-ui-3")}>
               {footNote}
             </span>
           )}
@@ -520,7 +520,7 @@ function ImportBody({ onClose, onCancel, onStep, profileName, profileSize, initi
             type="button"
             disabled={!canNext}
             onClick={next}
-            className="h-8 rounded-[7px] bg-ui-inverse px-4 text-[12.5px] font-semibold text-ui-inverse-fg disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint"
+            className="h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg disabled:cursor-not-allowed disabled:bg-ui-active disabled:text-ui-hint"
           >
             {nextLabel}
           </button>
@@ -553,13 +553,13 @@ export function ImportDialog({ open, onOpenChange, ...body }: ImportDialogProps)
         <Dialog.Portal>
           <Dialog.Backdrop className="fixed inset-0 z-(--z-dialog) bg-black/60" />
           <Dialog.Popup className="fixed left-1/2 top-1/2 z-(--z-dialog) w-[26rem] -translate-x-1/2 -translate-y-1/2 space-y-3 rounded-xl border border-ui-strong bg-ui-raised p-4 font-ui text-ui-1 shadow-ui-modal outline-none">
-            <Dialog.Title className="text-sm font-semibold text-ui-1">Discard this import?</Dialog.Title>
-            <Dialog.Description className="text-xs leading-relaxed text-ui-3">Your choices so far will be lost. Keep going to finish the import.</Dialog.Description>
+            <Dialog.Title className="text-lead font-medium text-ui-1">Discard this import?</Dialog.Title>
+            <Dialog.Description className="text-caption leading-relaxed text-ui-3">Your choices so far will be lost. Keep going to finish the import.</Dialog.Description>
             <div className="flex justify-end gap-2 pt-1">
-              <button type="button" onClick={guard.discard} className="h-8 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover">
+              <button type="button" onClick={guard.discard} className="h-8 rounded-ui-md border border-ui-default px-3 text-body text-ui-1 hover:bg-ui-hover">
                 Discard
               </button>
-              <button type="button" onClick={guard.keep} className="h-8 rounded-ui-md bg-ui-inverse px-3 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90">
+              <button type="button" onClick={guard.keep} className="h-8 rounded-ui-md bg-ui-inverse px-3 text-body font-medium text-ui-inverse-fg hover:opacity-90">
                 Keep going
               </button>
             </div>

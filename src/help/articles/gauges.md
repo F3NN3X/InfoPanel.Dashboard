@@ -10,7 +10,7 @@ Browse, edit and build gauges: vector gauges that need no frames, image sequence
 
 ## The Gauges view
 
-Open **Gauges** on the rail (your own gauges are also in Library › Gauges, and opening one there brings you here). The header has two tabs, **Gauges** and **Editor**, and the buttons **Import…** (the Import door, which takes `.gauge.json`, SVG and frames `.zip` files) and **New gauge**.
+Open **Gauges** in the sidebar (your own gauges are also in Library › Gauges, and opening one there brings you here). The header has two tabs, **Gauges** and **Editor**, and the buttons **Import…** (the Import door, which takes `.gauge.json`, SVG and frames `.zip` files) and **New gauge**.
 
 The list is in three sections: **Presets**, **In** the current screen, and **My library**. Select a gauge to see its detail pane:
 
@@ -31,7 +31,7 @@ Vector gauges are built from these parts:
 | Fill | Solid, Gradient, Zones or Thresholds; "Follow the theme" colors |
 | Parts | Track, Needle, Marker, Ticks, Labels, Value text, Title, Background, Face, Rings, Pattern, Icon row, Center icon, Glow, Shadow, and Wave, Shine and Bubbles for liquid |
 
-**Face** (arc only) is a disc inside the ring with a repeating pattern: Hex, Dots, Grid or Carbon, with its own color, opacity and cell size, and an optional disc color. It is drawn once under the arc, so the arc moving over it costs nothing extra. It is baked into the frames when you export for InfoPanel.
+**Face** (arc only) is a disc inside the ring with a repeating pattern: Hex, Dots, Grid or Carbon, with its own color, opacity and cell size, and an optional disc color. It is drawn once under the arc, so the arc moving over it costs nothing extra.
 
 ## SVG templates
 
@@ -40,9 +40,5 @@ Use your own SVG, driven by the CSS variables `--value` (0 to 1) and `--percent`
 ## Image sequences
 
 Preview at any value with a slider or play. Set **Frames per second**, **Recolor** by hue, saturation and brightness, or press **Convert to vector**. Frame tools: Reverse, Resample…, Duplicate, Replace… and Remove.
-
-## Baking for InfoPanel
-
-The bake bar reads "InfoPanel export" with a state: Frames baked, Frames out of date or No frames baked yet. **Bake frames** renders a vector gauge to PNG frames for InfoPanel. It is only needed when exporting to InfoPanel.
 
 Right-click a gauge card for **Open in editor**, **Add to canvas**, **Duplicate** and **Export**. Your own gauges also get **Rename** and **Delete from library…**, and `Delete` on a selected card does the same. Built-in presets can't be renamed or deleted.

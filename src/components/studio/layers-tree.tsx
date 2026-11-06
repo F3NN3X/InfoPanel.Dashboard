@@ -1,13 +1,12 @@
 /**
  * Layers (Edit v3 SPEC §8): one tree for every page, a screen's or an imported profile's, top first. Each row has a
- * chevron slot, an icon tile, the name (double-click renames), the kind word, the placed-freely mark, the Export
- * check's status (made for InfoPanel), the lock and the eye. Click selects, Shift a range, Ctrl toggles; a row drags
+ * chevron slot, an icon tile, the name (double-click renames), the kind word, the placed-freely mark, the lock and the eye. Click selects, Shift a range, Ctrl toggles; a row drags
  * between rows (a 2 px line where it lands) or onto a group's middle (an outline: into it), carrying the selection.
  * Right-click opens the layer menu. The chevron, lock and eye are pointer controls kept out of the accessibility tree (APG tree: no
  * interactive descendants of a treeitem); the keyboard has Left and Right, Ctrl+L and Ctrl+H, and the row's state is its aria-description. The page's host (`use-page-layers.ts` on a screen's page, `canvas-layers.ts` on an imported profile's) reads the
  * page into rows and runs every change.
  */
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from "react";
 import { ChevronDown, ChevronRight, ChevronsDownUp, Eye, EyeOff, Folder, FolderOpen, FolderPlus, Lock, Move, type LucideIcon } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import type { PartKind } from "@/lib/page-model/model";
@@ -24,6 +23,8 @@ export interface TreeNode {
   name: string;
   /** Placed freely (an item or element with a pixel box). */
   free?: boolean;
+  /** Its size, in cells (`2×3`) or px (`290 px`), when the page knows it. */
+  size?: string;
   locked?: boolean;
   hidden?: boolean;
   children?: TreeNode[];
@@ -49,8 +50,6 @@ export interface LayersHost {
   drop: (ids: readonly string[], parentId: string | null, index: number) => void;
   menu: Omit<LayerMenuHost, "rename">;
   iconOf: (node: TreeNode) => LucideIcon;
-  /** A part's Export check status icon (made for InfoPanel), with its label as the tooltip; none otherwise. */
-  statusIcon?: (id: string) => ReactNode;
   /** Each new value starts renaming the primary node (F2). */
   renameRequest?: number;
 }
@@ -248,7 +247,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
   return (
     <section aria-label="Layers" className="flex min-h-0 flex-1 flex-col font-ui">
       <div className="flex h-[38px] shrink-0 items-center gap-1.5 pl-3.5 pr-2.5">
-        <span className="text-caption font-semibold text-ui-1">Layers</span>
+        <span className="text-caption font-medium text-ui-1">Layers</span>
         <span className="text-micro text-ui-4">top first</span>
         <span className="flex-1" />
         <IconButton label="Group selection (Ctrl+G)" className="h-6 w-6 rounded-ui-sm text-ui-4 hover:bg-ui-hover hover:text-ui-2" disabled={!host.menu.available.group} onClick={() => host.menu.run("group")}>
@@ -275,7 +274,6 @@ export function LayersTree({ host }: { host: LayersHost }) {
           const Icon = group ? (open ? FolderOpen : Folder) : host.iconOf(node);
           const widget = node.kind === "widget";
           const isSelected = selected.includes(node.id);
-          const status = !group ? host.statusIcon?.(node.id) : undefined;
           const mark = drop?.id === node.id ? drop.where : null;
           const label = node.name || (group ? "Group" : "Part");
           return (
@@ -321,7 +319,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
                 setMenu({ x: e.clientX, y: e.clientY });
               }}
               className={cn(
-                "group/row relative flex h-(--ui-h-control) shrink-0 cursor-pointer items-center gap-[5px] rounded-ui-sm pr-1.5 outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
+                "group/row relative flex h-(--ui-h-control) shrink-0 cursor-pointer items-center gap-[5px] rounded-ui-sm pr-1.5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
                 isSelected ? "bg-ui-accent/18 text-white" : tinted.has(node.id) ? "bg-ui-accent/7" : "hover:bg-ui-hover",
                 mark === "inside" && "outline outline-1 -outline-offset-1 outline-ui-accent",
               )}
@@ -388,52 +386,51 @@ export function LayersTree({ host }: { host: LayersHost }) {
                 {group ? "group" : KIND_WORD[node.kind ?? "item"]}
               </span>
               {group && <span className={cn("shrink-0 font-ui-mono text-nano text-ui-hint", node.hidden && "opacity-45")}>{node.children?.length ?? 0}</span>}
-              {node.free && !widget && (
+              {group && node.children?.some((c) => c.free) && <span className="shrink-0 rounded-[4px] border border-ui-strong px-1 text-nano leading-[14px] text-ui-3">free</span>}
+              {node.size && <span className={cn("shrink-0 font-ui-mono text-micro text-ui-hint group-hover/row:invisible", (node.locked || node.hidden || isSelected) && "invisible")}>{node.size}</span>}
+              {node.free && !widget && !node.size && (
                 <span role="img" title="Placed freely (Alt)" aria-label="Placed freely (Alt)" className="inline-flex shrink-0 text-ui-4">
                   <Move className="h-3 w-3" aria-hidden="true" />
                 </span>
               )}
-              {status && (
-                <span data-testid="layers-row-status" className="inline-flex shrink-0">
-                  {status}
-                </span>
-              )}
-              <button
-                type="button"
-                title={node.locked ? "Unlock" : "Lock"}
-                aria-hidden="true"
-                data-row-action="lock"
-                tabIndex={-1}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  host.setLocked(node.id, !node.locked);
-                }}
-                className={cn(
-                  "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
-                  node.locked ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100"),
-                )}
-              >
-                <Lock className="h-[13px] w-[13px]" />
-              </button>
-              <button
-                type="button"
-                title={node.hidden ? "Show" : "Hide"}
-                aria-hidden="true"
-                data-row-action="hide"
-                tabIndex={-1}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  host.setHidden(node.id, !node.hidden);
-                }}
-                className={cn(
-                  "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
-                  node.hidden ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100")
-                )}
-              >
-                {node.hidden ? <EyeOff className="h-[13px] w-[13px]" /> : <Eye className="h-[13px] w-[13px]" />}
-              </button>
+              <span className="absolute inset-y-0 right-1.5 flex items-center gap-0.5">
+                <button
+                  type="button"
+                  title={node.locked ? "Unlock" : "Lock"}
+                  aria-hidden="true"
+                  data-row-action="lock"
+                  tabIndex={-1}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    host.setLocked(node.id, !node.locked);
+                  }}
+                  className={cn(
+                    "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
+                    node.locked ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100"),
+                  )}
+                >
+                  <Lock className="h-[13px] w-[13px]" />
+                </button>
+                <button
+                  type="button"
+                  title={node.hidden ? "Show" : "Hide"}
+                  aria-hidden="true"
+                  data-row-action="hide"
+                  tabIndex={-1}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    host.setHidden(node.id, !node.hidden);
+                  }}
+                  className={cn(
+                    "relative grid h-[18px] w-[16px] shrink-0 place-items-center after:absolute after:-inset-1 after:content-['']",
+                    node.hidden ? "text-ui-2" : cn("text-ui-hint opacity-0 group-hover/row:opacity-100", isSelected && "opacity-100")
+                  )}
+                >
+                  {node.hidden ? <EyeOff className="h-[13px] w-[13px]" /> : <Eye className="h-[13px] w-[13px]" />}
+                </button>
+              </span>
             </div>
           );
         })}
@@ -456,11 +453,11 @@ export function LayersTree({ host }: { host: LayersHost }) {
           />
         </Suspense>
       )}
-      <div className="flex shrink-0 flex-col gap-0.5 border-t border-ui-subtle px-3.5 py-2.5 text-micro">
-        <span className="text-ui-3">
+      <div className="flex shrink-0 flex-col gap-0.5 border-t border-ui-subtle px-3 py-2 text-micro text-ui-3">
+        <span>Drag to reorder · right-click for more</span>
+        <span>
           {total.parts} part{total.parts === 1 ? "" : "s"} · {total.groups} group{total.groups === 1 ? "" : "s"}
         </span>
-        <span className="text-ui-hint">Drag to reorder or into a group · right-click for more</span>
       </div>
     </section>
   );

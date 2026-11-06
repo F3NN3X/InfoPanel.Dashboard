@@ -1,10 +1,10 @@
 // Adding Studio widgets to a Free page (one-editor SPEC §5.3) and editing them as zones (§5.5).
 import { describe, expect, it } from "vitest";
-import { addCatalog } from "@/components/studio/add-catalog";
+import { addCatalog, widgetRows } from "@/components/studio/add-catalog";
 import { freeSize } from "@/components/studio/add-place";
 import { parseAddFilter } from "@/components/studio/add-prefs";
 import { mergePrefixes, placementPrefixes, widgetPlacement } from "@/components/studio/placement-content";
-import { addedMessage, widgetFromZone, widgetRecordFor, zoneOfWidget } from "@/components/infopanel/edit/widget-add";
+import { widgetFromZone, widgetRecordFor, zoneOfWidget } from "@/components/infopanel/edit/widget-add";
 import { newStored, readStored, toStored } from "@/lib/infopanel/import/stored";
 import { newWidgetItem } from "@/lib/infopanel/native/widget-item";
 import { CANVAS_ID, PANEL_ID, type Placement } from "@/lib/layout";
@@ -15,7 +15,7 @@ const row = (id: string) => catalog.widget.find((w) => w.id === id)!;
 describe("an Add row as a widget record", () => {
   it("is the widget, with the settings its view adds", () => {
     expect(widgetRecordFor(row("Weather"))).toEqual({ module: "Weather" });
-    const view = catalog.widget.find((w) => w.id.includes(":") && w.drop.settings)!;
+    const view = widgetRows(catalog.widget).find((w) => w.id.includes(":") && w.drop.settings)!;
     expect(widgetRecordFor(view)).toEqual({ module: view.drop.id, settings: view.drop.settings });
   });
 
@@ -53,15 +53,6 @@ describe("the Add filter", () => {
     expect(parseAddFilter(null)).toBe("all");
     expect(parseAddFilter("items")).toBe("items");
     expect(parseAddFilter("everything")).toBe("all");
-  });
-});
-
-describe("the toast after adding a widget to a screen made for InfoPanel", () => {
-  it("says what an export makes of it", () => {
-    expect(addedMessage("Weather", { module: "Weather" })).toBe("Weather added. On InfoPanel export it becomes a picture with its live values on top.");
-    expect(addedMessage("Timer", { module: "Timer" })).toBe("Timer added. On InfoPanel export it is left out.");
-    expect(addedMessage("Clock", { module: "Clock" })).toBe("Clock added. On InfoPanel export it exports as an InfoPanel item.");
-    expect(addedMessage("Weather", { module: "Weather", onInfoPanel: "snapshot" })).toBe("Weather added. On InfoPanel export it becomes a still picture.");
   });
 });
 

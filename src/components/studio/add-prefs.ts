@@ -11,9 +11,13 @@ export type LeftPanelWidth = "narrow" | "default" | "wide";
 export type AddListDensity = "comfortable" | "compact";
 
 /** The left panel's width in px per option (Layers and Add). */
-export const LEFT_PANEL_PX: Record<LeftPanelWidth, number> = { narrow: 300, default: 340, wide: 380 };
+export const LEFT_PANEL_PX: Record<LeftPanelWidth, number> = { narrow: 272, default: 300, wide: 340 };
+/** The closed left panel's strip (from 960 px; below it the page tabs' row has the toggle). */
+export const LEFT_STRIP_PX = 52;
 
 export const LEFT_WIDTH_KEY = "studio.editor.leftPanelWidth";
+/** Whether the left panel is open; nothing stored = open from 1280 px (rules §6: the layout choice is remembered). */
+export const LEFT_OPEN_KEY = "studio.editor.leftPanelOpen";
 export const DENSITY_KEY = "studio.editor.addListDensity";
 export const PREVIEW_KEY = "studio.editor.addPreviewOnHover";
 /** The old free-form width (px), migrated to the nearest option on first read. */
@@ -22,10 +26,10 @@ export const OLD_WIDTH_KEY = "studio.drawerWidth";
 const WIDTHS: readonly LeftPanelWidth[] = ["narrow", "default", "wide"];
 const DENSITIES: readonly AddListDensity[] = ["comfortable", "compact"];
 
-/** The option nearest an old stored pixel width: under 320 narrow, 360 and over wide, else default. */
+/** The option nearest an old stored pixel width: under 320 narrow, 360 and over wide, else default; nothing usable = narrow, the 272 px the editor opens at. */
 export function widthFromPx(raw: string | null): LeftPanelWidth {
   const px = raw === null ? NaN : Number(raw);
-  if (!Number.isFinite(px)) return "default";
+  if (!Number.isFinite(px)) return "narrow";
   return px < 320 ? "narrow" : px >= 360 ? "wide" : "default";
 }
 
@@ -97,6 +101,18 @@ export function useAddListDensity() {
 /** The Add list's segment (Edit v3 SPEC §9.1): All, only Studio widgets, or only InfoPanel items and elements. */
 export type AddFilter = "all" | "widgets" | "items";
 const FILTERS: readonly AddFilter[] = ["all", "widgets", "items"];
+
+/** The stored chip of before the Items tab: read once, as that tab. */
+export const INFOPANEL_CHIP = "InfoPanel";
+
+/**
+ * The tab Add opens on: Items for a start that asks for it, or for the old InfoPanel chip, when the page takes items
+ * at all; else Widgets. A start that asks for Widgets wins.
+ */
+export function startTab(facts: { takesItems: boolean; segment?: AddFilter; storedChip: string }): "items" | "widget" {
+  const { takesItems, segment, storedChip } = facts;
+  return takesItems && segment !== "widgets" && (segment === "items" || storedChip === INFOPANEL_CHIP) ? "items" : "widget";
+}
 
 export function parseAddFilter(raw: string | null): AddFilter {
   return FILTERS.includes(raw as AddFilter) ? (raw as AddFilter) : "all";

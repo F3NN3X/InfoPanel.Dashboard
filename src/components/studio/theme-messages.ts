@@ -23,21 +23,21 @@ export interface AppliedOutcome {
   widgets: number;
 }
 
-const REPLACED: Record<ThemeLevel, string> = { screen: "Replaced this screen's look", page: "Replaced this page's look" };
+const REPLACED: Record<ThemeLevel, string> = { screen: "Replaced this screen's theme", page: "Replaced this page's theme" };
 
 /** The toast after a theme is applied (SPEC §5.4). */
 export function appliedToast(name: string, level: ThemeLevel, outcome: AppliedOutcome, screen: string): ToastText {
   const { replaced, background, kept, widgets } = outcome;
   const parts =
     level === "page"
-      ? `${replaced ? `${REPLACED.page}.` : "Skin changed."} ${pageParts(screen)}`
+      ? `${replaced ? `${REPLACED.page}.` : "Widget style changed."} ${pageParts(screen)}`
       : replaced
         ? `${REPLACED[level]}${background ? ", background included." : ". Background kept."}`
         : background
-          ? "Palette, skin, corners and background changed."
-          : "Palette, skin and corners changed. Background kept.";
+          ? "Colors, widget style, corners and background changed."
+          : "Colors, widget style and corners changed. Background kept.";
   const keptText = kept > 0 ? ` ${kept} fine-tune ${kept === 1 ? "change" : "changes"} kept.` : "";
-  const widgetText = widgets > 0 ? ` ${widgets} ${widgets === 1 ? "widget keeps its" : "widgets keep their"} own look.` : "";
+  const widgetText = widgets > 0 ? ` ${widgets} ${widgets === 1 ? "widget keeps its" : "widgets keep their"} own style.` : "";
   return { title: `Applied ${name}.`, sub: `${parts}${keptText}${widgetText}` };
 }
 
@@ -47,11 +47,11 @@ export const appliedToScreensToast = (name: string, screens: number, keepBackgro
   sub: keepBackground ? "Backgrounds kept." : "Backgrounds included.",
 });
 
-export const paletteToast = (name: string): ToastText => ({ title: `Palette changed to ${name}.`, sub: "Skin, corners, background and the rest of the fine-tune kept." });
+export const paletteToast = (name: string): ToastText => ({ title: `Colors changed to ${name}.`, sub: "Widget style, corners, background and the rest of the fine-tune kept." });
 
 /** A Look picked in the gallery: the level keeps its own values (a page's palette, corners and background are its screen's). */
 export const lookToast = (name: string, level: ThemeLevel, background: boolean, screen: string): ToastText => ({
-  title: `Look changed to ${name}.`,
+  title: `Theme changed to ${name}.`,
   sub:
     level === "page"
       ? `Your fine-tune changes kept. ${pageParts(screen)}`

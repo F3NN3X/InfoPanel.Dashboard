@@ -1,11 +1,10 @@
 /**
- * The Gauges page (spec §6, A7): browse presets, the profile's gauges and My library's, and edit
- * one. A [Gauges | Editor] segment in the header; lazily loaded by studio-view.
+ * The Gauges page (spec §5): browse what is on your screens, the presets and My library's gauges, and edit
+ * one (the editor's own header carries the way back); lazily loaded by studio-view.
  */
-import { onRovingKeyDown } from "@/lib/roving";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Upload } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { addGaugeZone, type StudioBridge } from "@/components/library/library-actions";
 import { dropLibraryItem } from "@/components/library/library-drop";
 import { useMyLibrary } from "@/components/library/use-my-library";
@@ -13,7 +12,8 @@ import { RemoveItemDialog } from "@/components/library/remove-item-dialog";
 import { ContextMenu } from "@/components/ui/context-menu";
 import { useToast } from "@/components/ui/toast";
 import type { LibraryItem } from "@/lib/library";
-import { presetGauges, profileGauges, sourceKey, type GaugeEntry, type GaugeSource } from "@/lib/gauge-studio/model";
+import { configGauges, presetGauges, sourceKey, type GaugeEntry, type GaugeSource } from "@/lib/gauge-studio/model";
+import { configRings, type RingsEntry } from "@/lib/gauge-studio/rings";
 import { editorOpenOf, newGaugeOpen, type EditorOpen } from "@/lib/gauge-studio/open";
 import { previewScope } from "@/lib/gauge-studio/preview";
 import { closeSession, openSession, sessionEditor, type EditorSlot } from "@/lib/gauge-studio/session";
@@ -28,8 +28,10 @@ import { gaugeActions, gaugeMenuEntries, libraryMenuHandlers } from "./gauge-act
 import { GaugeDetail, EmptyDetail } from "./gauge-detail";
 import { GaugeEditor, type EditorHandle } from "./gauge-editor";
 import { openImportDoor } from "@/components/studio/file-doors";
+import { BarFill, BarTitle, PageBar } from "@/components/studio/page-bar";
 import { downloadFrames, downloadSpec } from "./gauge-files";
 import { GaugesBrowse, type GaugeSection } from "./gauges-browse";
+import { OnScreens, opensOnCanvas } from "./on-screens";
 import { saveGauge } from "./save-gauge";
 import { useGaugeKeys } from "./use-gauge-keys";
 import { useLibraryGauges } from "./use-library-gauges";
@@ -37,7 +39,6 @@ import { useThumbClock } from "./use-playback";
 
 export interface GaugesPageProps {
   bridge: StudioBridge;
-  profileName: string;
   /** The dashboard theme's tokens: "Theme colours follow '<theme>'" and live previews. */
   theme: ThemeTokens;
   /** A gauge to open in the editor (set by "Edit gauge…"); `onOpened` clears it once taken. */
@@ -45,11 +46,18 @@ export interface GaugesPageProps {
   onOpened: () => void;
   /** Back to the canvas (a drag from a gauge card springs there, as on the Library page). */
   onShowCanvas: () => void;
+  /** Open a widget on its screen and page (a ring row's "Open widget"). */
+  onOpenZone: (profileId: string, pageId: string, zoneId: string) => void;
+  /** An alert rule, in Alerts (Colour zones' "From <rule>"). */
+  onOpenRule: (ruleId: string) => void;
+  /** The preview sensor picker's "Open data explorer". */
+  onOpenSources: () => void;
 }
 
-const HEADER_BUTTON = "flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover";
+/** Presets shown before "Show all". */
+const PRESETS_AT_FIRST = 12;
 
-export default function GaugesPage({ bridge: studio, profileName, theme, initial, onOpened, onShowCanvas }: GaugesPageProps) {
+export default function GaugesPage({ bridge: studio, theme, initial, onOpened, onShowCanvas, onOpenZone, onOpenRule, onOpenSources }: GaugesPageProps) {
   const toast = useToast();
   const lib = useMyLibrary(studio.config);
   const library = useLibraryGauges(lib.items);
@@ -75,11 +83,15 @@ export default function GaugesPage({ bridge: studio, profileName, theme, initial
   const bridge: StudioBridge = { ...studio, addCopy: (item, copy) => (item.id.startsWith("cfg-") ? undefined : lib.addCopy(item, copy)) };
   const scope = previewScope(theme);
   const presets = useMemo(presetGauges, []);
-  const inProfile = useMemo(() => profileGauges(studio.profile), [studio.profile]);
-  const all = useMemo(() => [...presets, ...inProfile, ...library.entries], [presets, inProfile, library.entries]);
+  // Every screen and page, not only the one on the canvas (B3).
+  const onScreens = useMemo(() => configGauges(studio.config), [studio.config]);
+  const rings = useMemo(() => configRings(studio.config), [studio.config]);
+  const all = useMemo(() => [...presets, ...onScreens, ...library.entries], [presets, onScreens, library.entries]);
   const selected = all.find((e) => e.key === selectedKey) ?? null;
 
   const openEditor = (open: EditorOpen) => setEditor(openSession(open));
+  // An image sequence placed on a page is edited on the canvas, not here.
+  const openEntry = (e: GaugeEntry) => (opensOnCanvas(e) && e.on ? onOpenZone(e.on.profileId, e.on.pageId, e.source.kind === "item" ? e.source.zoneId : "") : openEditor(editorOpenOf(e)));
   const closeEditor = () => {
     closeSession();
     setEditor(null);
@@ -97,9 +109,8 @@ export default function GaugesPage({ bridge: studio, profileName, theme, initial
   }, [initial, all, lib.loading, lib.items]);
 
   const sections: GaugeSection[] = [
-    { id: "presets", title: "Presets", note: "Customizing one makes your own copy", entries: presets, empty: "No presets." },
-    { id: "profile", title: `In ${profileName}`, entries: inProfile, empty: "No gauges on this page yet. Add one with Add to canvas." },
-    { id: "library", title: "My library", entries: library.entries, empty: "Nothing saved yet. Save a gauge from the editor." },
+    { id: "presets", title: "Presets", note: "customizing one makes your own copy", entries: presets, limit: PRESETS_AT_FIRST, empty: "No presets." },
+    { id: "library", title: "Saved in your library", entries: library.entries, empty: "Nothing saved yet. Customize a preset, or save a gauge from the editor." },
   ];
 
   const addToCanvas = (e: GaugeEntry) => {
@@ -132,7 +143,7 @@ export default function GaugesPage({ bridge: studio, profileName, theme, initial
   const actionsOf = (entry: GaugeEntry) =>
     gaugeActions(entry, {
       canvasZones,
-      onEdit: () => openEditor(editorOpenOf(entry)),
+      onEdit: () => openEntry(entry),
       onAddToCanvas: () => addToCanvas(entry),
       onAddToZone: (zoneId) => addToZone(entry, zoneId),
       onDuplicate: () => duplicate(entry),
@@ -174,7 +185,35 @@ export default function GaugesPage({ bridge: studio, profileName, theme, initial
     gaugeMenuEntries(actionsOf(e), libraryMenuHandlers(library.itemOf(e.key), { onRename: () => startRename(e), onDelete: () => askRemove(e) }));
 
   const detail = (entry: GaugeEntry, sheet: boolean) => (
-    <GaugeDetail key={entry.key} entry={entry} sheet={sheet} copies={library.itemOf(entry.key)?.copies.length} scope={scope} actions={actionsOf(entry)} />
+    <GaugeDetail key={entry.key} entry={entry} sheet={sheet} copies={library.itemOf(entry.key)?.copies.length} scope={scope} actions={actionsOf(entry)} onOpenSources={onOpenSources} />
+  );
+
+  const onYourScreens = (
+    <section aria-label="On your screens" className="mb-8">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-body font-medium text-ui-1">On your screens</h2>
+        {onScreens.length + rings.length > 0 && <span className="text-caption text-ui-3">{onScreens.length + rings.length}</span>}
+      </div>
+      {onScreens.length + rings.length === 0 ? (
+        <p className="mt-3 rounded-ui-lg border border-dashed border-ui-strong px-4 py-5 text-center text-caption text-ui-3">No gauges on your screens yet. Pick one below and use Add to canvas.</p>
+      ) : (
+        <div className="mt-3">
+          <OnScreens
+            gauges={onScreens}
+            rings={rings}
+            selectedKey={selected?.key ?? null}
+            p={clock}
+            scope={scope}
+            onSelect={(e) => setSelectedKey(e.key)}
+            onOpen={openEntry}
+            onDragStart={(e, dt) => startGaugeDrag(dt, e, library.itemOf(e.key))}
+            onMenu={(entry, x, y) => setMenu({ entry, x, y })}
+            onOpenWidget={(r: RingsEntry) => onOpenZone(r.on.profileId, r.on.pageId, r.zoneId)}
+          />
+          <p className="mt-2 text-caption text-ui-3">Canvas gauges and Custom gauge widgets open in the gauge editor. Widget rings are part of their widget’s settings.</p>
+        </div>
+      )}
+    </section>
   );
 
   return (
@@ -186,49 +225,22 @@ export default function GaugesPage({ bridge: studio, profileName, theme, initial
         setActiveLibraryDrag(null);
       }}
     >
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4">
-        <h1 className="text-[15px] font-semibold text-ui-1">Gauges</h1>
-        <div role="tablist" aria-label="Gauges" onKeyDown={(e) => onRovingKeyDown(e, '[role="tab"]')} className="flex h-(--ui-h-field) items-center gap-0.5 rounded-ui-menu border border-ui-default p-0.5">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!editor}
-            tabIndex={editor ? -1 : 0}
-            onClick={() => (editorRef.current ? editorRef.current.requestBack() : closeEditor())}
-            className={cn("h-full rounded-[7px] px-3 text-[12.5px] text-ui-3 hover:text-ui-1", !editor && "bg-ui-active text-ui-1")}
-          >
-            Gauges
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={!!editor}
-            tabIndex={editor ? 0 : -1}
-            disabled={!editor}
-            title={editor ? undefined : "Open a gauge to edit it"}
-            className={cn("h-full rounded-[7px] px-3 text-[12.5px] text-ui-3 disabled:opacity-40", editor && "bg-ui-active text-ui-1")}
-          >
-            Editor
-          </button>
-        </div>
-        <span className="flex-1" />
-        {!editor && (
-          <>
-            <button type="button" onClick={() => openImportDoor()} className={HEADER_BUTTON}>
-              <Upload className="h-4 w-4" /> Import…
-            </button>
-            <button
-              type="button"
-              onClick={() => openEditor(newGaugeOpen())}
-              className="flex h-(--ui-h-field) items-center gap-1.5 rounded-ui-md bg-ui-inverse px-3 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90"
-            >
-              <Plus className="h-4 w-4" /> New gauge
-            </button>
-          </>
-        )}
-      </header>
+      {!editor && (
+        <PageBar>
+          <BarTitle title="Gauges" note={`${presets.length} presets · ${onScreens.length + rings.length} on your screens · ${library.entries.length} saved`} />
+          <BarFill />
+          <div className="flex items-center gap-2">
+            <Button icon={<Upload strokeWidth={1.5} />} onClick={() => openImportDoor()}>
+              Import
+            </Button>
+            <Button variant="primary" icon={<Plus strokeWidth={1.5} />} onClick={() => openEditor(newGaugeOpen())}>
+              New gauge
+            </Button>
+          </div>
+        </PageBar>
+      )}
       {editor ? (
-        <GaugeEditor key={editor.id} ref={editorRef} bridge={bridge} open={editor.open} editorId={editor.id} theme={theme} onBack={closeEditor} onSaved={lib.refresh} />
+        <GaugeEditor key={editor.id} ref={editorRef} bridge={bridge} open={editor.open} editorId={editor.id} theme={theme} onBack={closeEditor} onSaved={lib.refresh} onOpenRule={onOpenRule} onOpenSources={onOpenSources} />
       ) : (
         <div className="relative flex min-h-0 flex-1">
           <div className="flex min-w-0 flex-1 flex-col">
@@ -237,7 +249,7 @@ export default function GaugesPage({ bridge: studio, profileName, theme, initial
                 {lib.error}
               </div>
             )}
-            <GaugesBrowse sections={sections} selectedKey={selected?.key ?? null} p={clock} scope={scope} onSelect={(e) => setSelectedKey(e.key)} onOpen={(e) => openEditor(editorOpenOf(e))} onDragStart={(e, dt) => startGaugeDrag(dt, e, library.itemOf(e.key))} onMenu={(entry, x, y) => setMenu({ entry, x, y })} onRemove={askRemove} renamingKey={renameKey} onRenamed={renamed} />
+            <GaugesBrowse head={onYourScreens} sections={sections} selectedKey={selected?.key ?? null} p={clock} scope={scope} onSelect={(e) => setSelectedKey(e.key)} onOpen={(e) => openEditor(editorOpenOf(e))} onDragStart={(e, dt) => startGaugeDrag(dt, e, library.itemOf(e.key))} onMenu={(entry, x, y) => setMenu({ entry, x, y })} onRemove={askRemove} renamingKey={renameKey} onRenamed={renamed} />
           </div>
           {selected ? (
             narrow ? (

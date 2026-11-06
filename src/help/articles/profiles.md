@@ -10,7 +10,7 @@ A screen (profile) is a design for one display size. Its grid decides where widg
 
 ## Managing screens
 
-Open **Screens** from the rail, from **Manage screens…** or **Screen settings…** (Screens on the screen you are editing) in the screen name's list, or from a size link.
+Open **Screens** from the sidebar, from **Manage screens…** or **Screen settings…** (Screens on the screen you are editing) in the screen name's list, or from a size link.
 
 - Each screen is a card: a small picture of it, its name, a kind badge and a line such as `1920×550 · 3 pages · grid 12 × 6`. The badge says **Studio**, **InfoPanel** (the screen is one InfoPanel profile) or **Mixed** (both). An InfoPanel screen is drawn live; the others show a screenshot of the first page. The screenshot of the screen you are editing updates a couple of seconds after you stop editing and when you save. The others are drawn in the background the first time. Screenshots are kept in this browser only, so a new browser draws them again.
 - Click a card to select it; its details open on the right. Clicking a card doesn't change which screen your displays show. **Open** on a card (or in the panel) opens the screen in Edit, whether it is a grid or one InfoPanel profile.
@@ -38,7 +38,7 @@ A fresh install has one blank screen, **Main display**, at 1920 × 1080 with a 1
 
 **New** opens **New screen**, one page. The templates fill the left, and the panel on the right shows the one you picked: a preview at its size, then **Size**, **Variant**, **Sensors** and **Name**. Press **Create screen**, or Enter, whenever it looks right. **Cancel** or Esc goes back to Screens without making anything.
 
-- **Screen** and **InfoPanel profile** at the top switch what the page makes. A screen is a grid of widgets with live data; an InfoPanel profile is a free canvas you can export to the InfoPanel app (see [InfoPanel profiles in Edit](infopanel-editor#a-new-profile)). Switching starts the size, name and search over and keeps your template when the other kind has one of the same name.
+- **Screen** and **InfoPanel profile** at the top switch what the page makes. A screen is a grid of widgets with live data; an InfoPanel profile is a free canvas of InfoPanel items, new or imported (see [InfoPanel profiles in Edit](infopanel-editor#a-new-profile)). Switching starts the size, name and search over and keeps your template when the other kind has one of the same name.
 - The row above the templates is always in view: **Blank grid** (an empty grid at 1024 × 600, picked like a card), **The sample layout**, **An InfoPanel profile** (the same as the switch) and **Import a file**.
 - **Search** finds a template by its name, its description, the widgets it uses or the sensors it reads, so `fps` finds the ones that show your frame rate. Enter in the search picks the first one it found. When nothing matches, **Start blank** or **Clear search**.
 - Click a card to pick it, double-click to make it at once at the size it shows, or use the arrow keys to move from card to card. The dots under a card are its variants: click one to pick the template in that variant.
@@ -63,7 +63,7 @@ With them are 17 templates that copy the look of the InfoPanel profile templates
 - A template comes at the size its card shows: **Status bar** at 1280 × 160, **Tower** at 480 × 1920, General at 1024 × 600. **Blank grid** starts at 1024 × 600, or at the size of the screen you are editing when that is one of the presets. The size you'd get is marked with a star in **Size**, and the line above it says **Follows** and the template's name.
 - **Size** lists the panel sizes by shape, with the panel each one is in its tooltip. Type any width and height under **Custom**: whole pixels from 1 to 8192. Once you pick or type a size yourself it says **Set by you**, and picking another template keeps your size. **Use** and the template's size goes back to it.
 - A template can be made at any size. At a shape it isn't made for, a note says how its widgets are squeezed, with **Use its own size** to go back, and the cards that don't fit your size are tagged, for example **Tall only**.
-- The template brings its look as the screen's own: colors, background, widget skin and effects. Change them in **Look** with the screen as the level.
+- The template brings its theme as the screen's own: colors, background, widget skin and effects. Change them in **Theme** with the screen as the level.
 - Every template has a size it is made for, and its text and readings are sized for that size. At a smaller or larger size they shrink or grow with it (down to 60 % and up to 160 % of their size), so a template no longer overflows on a small panel or looks tiny on a big one.
 - The grid is split to suit the size. A strip twice as long for its height gets twice the columns, so widgets keep their shape and the ones you add later get sensible boxes.
 - Widgets that read one sensor, such as Minimal's three readings, find this PC's sensor for it. A reading that isn't found is named in the message after **Create**; pick its sensor in the inspector.
@@ -73,7 +73,7 @@ The first-run setup's **Start from a template** offers the same templates at the
 
 ## Screen settings
 
-Select a screen's card in **Screens**. The panel on the right holds the settings of that screen. The look is in **Look** on the rail.
+Select a screen's card in **Screens**. The panel on the right holds the settings of that screen. The theme is in **Theme** in the sidebar.
 
 | Group | What it does |
 |---|---|
@@ -84,7 +84,7 @@ Select a screen's card in **Screens**. The panel on the right holds the settings
 | **Performance** | The frame-rate cap, **Animations** and the rendering switches (**Ring glides**, **Limit blur**, **Blur inside widgets**, **Live graph glow**) for this screen. The chip says whether they are the built-in values or changed here. |
 | **Pages · order & rotation** | **Add page**, drag a page's handle to reorder it (the page tabs follow), switch it in or out of the rotation, or **Open** it in Edit. |
 
-The Look, colors and background are in **Look**: pick the screen at the top and pick a Look, turn a knob or change a fine-tune section to give this screen its own. See [Themes](themes#the-look-view).
+The theme, colors and background are in **Theme**: pick the screen at the top and pick a theme, turn a quick change or change a fine-tune section to give this screen its own. See [Themes](themes#the-theme-view).
 
 ## Pages
 

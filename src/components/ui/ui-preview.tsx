@@ -1,10 +1,11 @@
-import { useState, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { Copy, Eye, Plus, Sun, Trash2, Zap } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Segmented } from "@/components/ui/segmented";
 import { IconButton } from "@/components/ui/icon-button";
 import { Kbd } from "@/components/ui/kbd";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { ContextMenu } from "@/components/ui/context-menu";
 import { Popover } from "@/components/ui/popover";
 import { IconGrid } from "@/components/ui/icon-grid";
@@ -31,10 +32,13 @@ const DEVICES = [
   { id: "c", label: "Microphone" },
 ];
 
+/** The redesign's primitives: a chunk of their own, so the entry's preload list does not grow with this gallery. */
+const Foundation = lazy(() => import("./ui-preview-foundation"));
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2 border-b border-ui-subtle py-4">
-      <h2 className="text-[12.5px] font-semibold text-ui-1">{title}</h2>
+      <h2 className="text-[12.5px] font-medium text-ui-1">{title}</h2>
       {children}
     </section>
   );
@@ -59,8 +63,11 @@ function Gallery() {
       }}
     >
       <div className="mx-auto max-w-[340px]">
-        <h1 className="text-[14px] font-semibold text-ui-1">UI primitives</h1>
+        <h1 className="text-[14px] font-medium text-ui-1">UI primitives</h1>
         <p className="text-micro text-ui-4">Right-click anywhere for the context menu.</p>
+        <Suspense fallback={null}>
+          <Foundation Section={Section} />
+        </Suspense>
         <Section title="Toggle">
           <Toggle checked={on} onChange={setOn} label="Example" />
         </Section>

@@ -64,7 +64,7 @@ export function ShapeExtras({ g, onPreview, onCommit }: ShapeExtrasProps) {
           </Row>
           <Row label="Wave">
             height <Num {...bind(liquid.amplitude, (v) => withLiquid({ amplitude: v }))} min={0} max={64} /> px, <Num {...bind(liquid.waves, (v) => withLiquid({ waves: v }))} min={0.5} max={8} step={0.5} /> across, one wave every{" "}
-            <Num {...bind(liquid.speed, (v) => withLiquid({ speed: v }))} min={0} max={30} step={0.5} /> s <small>(0: still; baked frames are still)</small>
+            <Num {...bind(liquid.speed, (v) => withLiquid({ speed: v }))} min={0} max={30} step={0.5} /> s <small>(0: still)</small>
           </Row>
           <Row label="Bubbles">
             <Toggle on={!!bubbles} onChange={() => onCommit(bubbles ? withLiquid({ bubbles: undefined }) : withLiquid({ bubbles: BUBBLES }))} />
@@ -73,7 +73,7 @@ export function ShapeExtras({ g, onPreview, onCommit }: ShapeExtrasProps) {
                 {" "}
                 <Num {...bind(bubbles.count, (v) => withLiquid({ bubbles: { ...bubbles, count: v } }))} min={1} max={40} /> up to{" "}
                 <Num {...bind(bubbles.size, (v) => withLiquid({ bubbles: { ...bubbles, size: v } }))} min={1} max={64} /> px, rising in about{" "}
-                <Num {...bind(bubbles.speed, (v) => withLiquid({ bubbles: { ...bubbles, speed: v } }))} min={0} max={30} step={0.5} /> s <small>(0: still; baked frames show them still)</small>
+                <Num {...bind(bubbles.speed, (v) => withLiquid({ bubbles: { ...bubbles, speed: v } }))} min={0} max={30} step={0.5} /> s <small>(0: still)</small>
               </>
             )}
           </Row>

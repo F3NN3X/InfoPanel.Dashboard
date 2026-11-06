@@ -29,6 +29,9 @@ const saved = vi.hoisted(() => ({
 const library = vi.hoisted(() => ({
   listLibrary: vi.fn(async () => [saved]),
   createLibraryItem: vi.fn(async (body: { name: string }) => ({ id: "new1", kind: "gauge", name: body.name, files: [], copies: [] })),
+  getLibraryItem: vi.fn(async (id: string) => ({ ...saved, id })),
+  updateLibraryItem: vi.fn(async (id: string, patch: { name?: string }) => ({ id, kind: "gauge", name: patch.name ?? "x", files: [], copies: [] })),
+  deleteLibraryItem: vi.fn(async () => {}),
 }));
 vi.mock("@/lib/library", async (importOriginal) => ({ ...(await importOriginal<object>()), ...library }));
 
@@ -50,7 +53,7 @@ function Host({ b, initial, onOpened }: { b: StudioBridge; initial: GaugeSource 
   return (
     <GaugesPage
       bridge={b}
-      profileName="Main"
+
       theme={DEFAULT_THEME}
       initial={initial === taken ? null : initial}
       onOpened={() => {
@@ -58,6 +61,9 @@ function Host({ b, initial, onOpened }: { b: StudioBridge; initial: GaugeSource 
         onOpened();
       }}
       onShowCanvas={vi.fn()}
+      onOpenZone={vi.fn()}
+      onOpenRule={vi.fn()}
+      onOpenSources={vi.fn()}
     />
   );
 }
@@ -76,43 +82,95 @@ beforeEach(() => {
   saved.data.vector = STARTERS[0].gauge;
   saved.data.frames = undefined;
   closeSession();
-  library.createLibraryItem.mockClear();
+  for (const fn of Object.values(library)) fn.mockClear();
 });
 
 describe("Gauges page", () => {
 
-  describe("leaving with unsaved changes", () => {
-    const dirtyAndLeave = async () => {
+  describe("a draft saved as you edit (P-3)", () => {
+    const edited = async () => {
       const user = userEvent.setup({ delay: null });
       renderPage();
       await openNewGauge(user);
       await user.click(flippable()[0]);
-      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
-      const dialog = await screen.findByRole("dialog");
-      return { user, dialog };
+      return user;
     };
+    const draftMade = () => waitFor(() => expect(library.createLibraryItem).toHaveBeenCalledTimes(1), { timeout: 3000 });
 
-    it("Cancel stays in the editor", async () => {
-      const { user, dialog } = await dirtyAndLeave();
-      await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    it("saves the first edit to the library as a draft, and leaving never asks", async () => {
+      const user = await edited();
+      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
+      await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
       expect(screen.queryByRole("dialog")).toBeNull();
-      expect(screen.getByRole("textbox", { name: "Gauge name" })).toBeTruthy();
+      expect(library.createLibraryItem).toHaveBeenCalledWith(expect.objectContaining({ kind: "gauge", name: "New gauge" }));
     });
 
-    it("Discard goes back to the list without saving", async () => {
-      const { user, dialog } = await dirtyAndLeave();
-      await user.click(within(dialog).getByRole("button", { name: "Discard" }));
-      expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull();
-      expect(screen.getByRole("tab", { name: "Gauges", selected: true })).toBeTruthy();
+    it("keeps one item: the next edit updates the draft instead of making another", async () => {
+      const user = await edited();
+      await draftMade();
+      await user.click(flippable()[1]);
+      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
+      await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
+      expect(library.createLibraryItem).toHaveBeenCalledTimes(1);
+      expect(library.updateLibraryItem).toHaveBeenCalledWith("new1", expect.objectContaining({ name: "New gauge" }));
+    });
+
+    it("makes nothing until something is edited", async () => {
+      const user = userEvent.setup({ delay: null });
+      renderPage();
+      await openNewGauge(user);
+      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
+      await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
+      expect(screen.queryByRole("dialog")).toBeNull();
       expect(library.createLibraryItem).not.toHaveBeenCalled();
     });
 
-    it("Save to library writes the item, then goes back", async () => {
-      const { user, dialog } = await dirtyAndLeave();
-      await user.click(within(dialog).getByRole("button", { name: "Save to library" }));
-      await act(async () => {});
-      expect(library.createLibraryItem).toHaveBeenCalledWith(expect.objectContaining({ kind: "gauge", name: "New gauge" }));
-      expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull();
+    it("Discard draft deletes the item and closes the editor", async () => {
+      const user = await edited();
+      await draftMade();
+      await user.click(screen.getByRole("button", { name: "More gauge actions" }));
+      await user.click(await screen.findByRole("menuitem", { name: "Discard draft" }));
+      await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Discard draft" }));
+      await waitFor(() => expect(library.deleteLibraryItem).toHaveBeenCalledWith("new1"));
+      await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
+    });
+
+    it("leaving the page mid-write and coming back updates the one draft instead of making another", async () => {
+      // The create is still in flight when the page is left and opened again.
+      library.createLibraryItem.mockImplementationOnce(async (body: { name: string }) => {
+        await new Promise((r) => setTimeout(r, 300));
+        return { id: "new1", kind: "gauge", name: body.name, files: [], copies: [] };
+      });
+      const user = userEvent.setup({ delay: null });
+      const view = renderPage();
+      await openNewGauge(user);
+      await user.click(flippable()[0]);
+      view.unmount();
+      renderPage();
+      await screen.findByRole("textbox", { name: "Gauge name" });
+      await waitFor(() => expect(library.updateLibraryItem).toHaveBeenCalledWith("new1", expect.anything()), { timeout: 4000 });
+      expect(library.createLibraryItem).toHaveBeenCalledTimes(1);
+    });
+
+    it("writes nothing more after Discard in the Unsaved dialog", async () => {
+      library.createLibraryItem.mockRejectedValueOnce(new Error("disk full"));
+      const user = await edited();
+      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
+      await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Discard" }));
+      await waitFor(() => expect(screen.queryByRole("textbox", { name: "Gauge name" })).toBeNull());
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 200));
+      });
+      expect(library.createLibraryItem).toHaveBeenCalledTimes(1);
+    });
+
+    it("asks as before when the draft could not be written", async () => {
+      library.createLibraryItem.mockRejectedValueOnce(new Error("disk full"));
+      const user = await edited();
+      await user.click(screen.getByRole("button", { name: "Back to Gauges" }));
+      const dialog = await screen.findByRole("dialog");
+      await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+      expect(screen.getByRole("textbox", { name: "Gauge name" })).toBeTruthy();
     });
   });
 
@@ -129,7 +187,7 @@ describe("Gauges page", () => {
       saved.data.vector = undefined;
       saved.data.frames = [{ id: `${"a".repeat(64)}.png`, name: "1.png" }, { id: `${"b".repeat(64)}.png`, name: "2.png" }];
       renderPage(b);
-      const mine = await screen.findByRole("region", { name: "My library" });
+      const mine = await screen.findByRole("region", { name: "Saved in your library" });
       await user.click(await within(mine).findByRole("button", { name: /Saved ring/ }));
       const details = await screen.findByRole("complementary", { name: "Gauge details" });
       return { user, add: within(details).getByRole("button", { name: "Add to canvas" }) as HTMLButtonElement, details };
@@ -153,7 +211,7 @@ describe("Gauges page", () => {
   describe("renaming a profile gauge", () => {
     const widget: Placement = { id: "w1", module: CUSTOM_GAUGE_ID, colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true, settings: { label: "CPU" } };
     const config = { profiles: [{ id: "p", name: "Main", pages: [{ id: "pg", placements: [widget] }] }] } as unknown as DashboardConfig;
-    const profileBridge = { ...bridge, profile: { id: "p", name: "Main", placements: [widget] }, setConfig: vi.fn() } as unknown as StudioBridge;
+    const profileBridge = { ...bridge, config, profile: { id: "p", name: "Main", placements: [widget] }, setConfig: vi.fn() } as unknown as StudioBridge;
 
     it("is editable in the header and writes the widget's label through the config", async () => {
       const user = userEvent.setup({ delay: null });
@@ -170,24 +228,16 @@ describe("Gauges page", () => {
   });
 
   describe("Edit gauge… over a working copy", () => {
-    const edited = async () => {
+    it("saves the draft, then opens the requested gauge without asking", async () => {
       const user = userEvent.setup({ delay: null });
       const onOpened = vi.fn();
       const view = render(pageOf(bridge, null, onOpened));
       await openNewGauge(user);
       await user.click(flippable()[0]);
       view.rerender(pageOf(bridge, { kind: "preset", index: 0 }, onOpened));
-      return { user, dialog: await screen.findByRole("dialog"), onOpened };
-    };
-    // A modal hides the page from the accessibility tree while it is open.
-    const nameNow = () => (screen.getByRole("textbox", { name: "Gauge name", hidden: true }) as HTMLInputElement).value;
-
-    it("Save to library saves the working copy, then opens the requested gauge", async () => {
-      const { user, dialog } = await edited();
-      await user.click(within(dialog).getByRole("button", { name: "Save to library" }));
-      await act(async () => {});
+      await waitFor(() => expect((screen.getByRole("textbox", { name: "Gauge name" }) as HTMLInputElement).value).toContain("copy"));
+      expect(screen.queryByRole("dialog")).toBeNull();
       expect(library.createLibraryItem).toHaveBeenCalledWith(expect.objectContaining({ name: "New gauge" }));
-      await waitFor(() => expect(nameNow()).toContain("copy"));
     });
   });
 

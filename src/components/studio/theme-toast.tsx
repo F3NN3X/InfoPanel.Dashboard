@@ -57,7 +57,7 @@ export function ThemeToastRow({ toast, onUndo, onDismiss }: ThemeToastRowProps) 
     <div role="status" className="flex w-full items-center gap-3 rounded-ui-menu border border-ui-strong bg-ui-panel px-3 py-[9px] text-body">
       <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-ui-saved" aria-hidden />
       <p className="min-w-0 flex-1">
-        <b className="font-semibold text-ui-1">{toast.title}</b> <span className="text-ui-soft">{toast.sub}</span>
+        <b className="font-medium text-ui-1">{toast.title}</b> <span className="text-ui-soft">{toast.sub}</span>
       </p>
       {toast.reset && (
         <button type="button" className={`${LINK} text-ui-accent`} onClick={toast.reset.run}>

@@ -257,7 +257,7 @@ Placement.settings
   `chromeOf` in `src/modules/standard-settings.ts`, `surfaceBox`, `tokenScope`
   and the `--wp-*` helpers in `src/components/widget-style.ts`, and the
   shared materials (`makeSurface`, the theme surface) in
-  `src/components/surfaces.ts`. The keys and their effects
+  `src/looks/materials.ts`. The keys and their effects
   are in [widget-settings.md](widget-settings.md).
 - Every zone type that is a module goes this way: the library templates and the
   "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`
@@ -356,9 +356,9 @@ would be 102 GB/s; as bytes it is 860 Mb/s, and only bytes match the adapter's
 `auto` or a fixed `RateUnit` (MB/s, Mb/s, KB/s, Kb/s, Mbps; Network Traffic's `rateUnit`), and `toMBps`
 gives the number for widgets that print the unit apart.
 `compact` (Small zones, with `dense` the dense view) is a layout mode
-under Fit, not a style, and no theme sets it. In the studio, Theme › Start from lists
-every skin beside the palettes and the user's saved Themes (`theme-start-from.tsx`), and the Surface & effects
-card holds the surface and skin rows.
+under Fit, not a style, and no theme sets it. In the studio, Theme › Browse themes
+(`theme-browse.tsx`) lists every theme as a card: the skins, the sample themes, the user's saved themes and imported
+packs; the theme card holds the skin row and Fine-tune the surface rows.
 A skin's accent applies only when no accent is set and the surface is not
 light. Skin fonts load lazily (`ensureSkinFonts`). Custom panels use the skin
 through `components/widgets/panel-skin.tsx` when a skin is set; with `auto`
@@ -473,7 +473,7 @@ old or was loaded rather than sent, so undo never points at a swept file.
 
 ### Importing and exporting an InfoPanel profile
 
-Import (top bar Import, the "⋯" menu, or the Add panel's "Canvas zone ·
+Import (Screens' Import, the editor's File menu, or the Add panel's "Canvas zone ·
 Import .infopanel" card) is a five-step dialog,
 `src/components/infopanel/import/`, loaded on first open so neither the
 kiosk nor the studio's first paint carries the parser. Nothing reaches the
@@ -507,13 +507,12 @@ Export (`src/components/infopanel/export-dialog.tsx`, helpers in
 `src/lib/infopanel/export/studio-export.ts`) writes the selected canvas
 zone, else the page's first: the stored form as `<name>.canvas.zip` (with
 the supplied fonts the canvas still draws with, after the licence review),
-or an `.infopanel` for InfoPanel, which carries no fonts. Baking stale
-vector gauges first uploads the new frames and puts them on the zone as one
-undo step. Both download through the browser.
+downloaded through the browser. Studio writes no `.infopanel`: import is
+one way.
 
 ### The Library page
 
-The rail's Library opens a full page (`src/components/library/`, lazy-loaded, studio mode
+The sidebar's Library opens a full page (`src/components/library/`, lazy-loaded, studio mode
 `library`) in place of the canvas, drawer and inspector; the studio's zone shortcuts are held back
 while it is open.
 
@@ -551,7 +550,7 @@ while it is open.
 
 ### The Gauges page
 
-The rail's Gauges item opens a full page (`src/components/gauges/`, lazy-loaded, spec §6). The model is
+The sidebar's Gauges item opens a full page (`src/components/gauges/`, lazy-loaded, spec §6). The model is
 `src/lib/gauge-studio/`: a gauge lives in one of four places (`GaugeSource`): a preset (read-only;
 customising makes a copy), a My library item (`kind: "gauge"`, `data` = `{ vector?, frames?, min, max,
 animationSpeed }`, frames by asset id), a Gauge item in an imported canvas zone (its spec in the item's `$.vector`,
@@ -569,8 +568,8 @@ string in its hidden `gauge` setting, bound to any one sensor).
   (previewed with a CSS filter, applied to every frame at once) and Convert to vector (a preset closest in shape,
   scaled to the frame size; the frames stay). A canvas gauge's frame edits go through the zone's asset `Doc`
   (`profile-doc-io.ts`, shared with Profile assets), so each is one undo step.
-- **Bake bar:** a canvas gauge with a spec shows whether its frames match it (`$.vectorBaked`) and bakes them for the
-  `.infopanel` export; the dashboard always draws the spec live.
+- A canvas gauge with a spec is always drawn live from it. Frames a gauge already holds (`Images`, and `$.vectorBaked`
+  where an older save recorded a bake) stay in the saved data and keep rendering; nothing makes new ones.
 - "Edit gauge…" in a Custom gauge zone's inspector, on a canvas Gauge item and on a library card opens the editor
   (`openGauge` in `studio-view.tsx`). Uploads run at most two at once (`uploadBytes`), the server's limit.
 
@@ -578,17 +577,17 @@ string in its hidden `gauge` setting, bound to any one sensor).
 
 Below 900 px (`NARROW_PAGE_WIDTH`, `useViewportBelow`) the Library and Gauges detail panes open as a bottom sheet
 (`pane-sheet.tsx`, over the shared `BottomSheet`) and the gauge editor stacks parts, stage and inspector. The canvas
-editor's inspector follows the studio inspector's modes (`inspectorMode`): docked from 1100 px, a floating card from
-640 px, a sheet below. A push the server never answered (`isUnreachable` in `dashboard-server.ts`, not a refusal)
-shows "Offline · edits kept locally" in the top bar until the next push lands. A canvas image whose file can't load
+editor's inspector follows the studio inspector's modes (`inspectorMode`): docked from 960 px, a floating card from
+600 px, a sheet below. A push the server never answered (`isUnreachable` in `dashboard-server.ts`, not a refusal)
+shows "Offline · edits kept locally" in the editor's saved chip (`editor/save-chip.ts`) until the next push lands. A canvas image whose file can't load
 draws a hatched tile with a broken-image icon (`MissingImage.tsx`); with the Data API unreachable the canvas editor's
 Live sensor source is disabled. The rest of spec §10 is listed in `docs/redesign/FEATURE_MAP.md` §20.
 
 ### Editing a canvas zone: Edit
 
-There is one editor view, Edit (rail item `design`). On a grid page it shows the grid; on a Free page
+There is one editor view, Edit (the sidebar's Edit, view `design`). On a grid page it shows the grid; on a Free page
 (`isFreePage` in `lib/free-pages.ts`: one canvas zone filling the grid, read from the page's shape since v15) it hosts the canvas editor
-(`src/components/infopanel/edit/canvas-editor.tsx`, lazy-loaded) in the same studio shell: the rail, the left panel
+(`src/components/infopanel/edit/canvas-editor.tsx`, lazy-loaded) in the same studio shell: the sidebar, the left panel
 frame (`LeftPanelFrame`, Layers and Add tabs), the page tabs and the inspector column. Since Edit v3 phase 6 there
 is no separate canvas-zone editor: an .infopanel imported onto a screen's page becomes a group of item placements
 (`importIntoProfile` in `studio/import-actions.ts`, through `canvasAsGroup` in `lib/page-model/canvas-group.ts`, kept
@@ -629,9 +628,7 @@ so it follows the grid). Over that drawing the studio canvas lays `item-parts.ts
 them through the model's ops (`gesture.ts`: cells, or the pixel while Alt is held; `keys.ts`: SPEC §14's keys), a drag
 being one history transaction. The canvas editor of an imported profile gets the page's grid (`canvasGrid`): cell
 lines, cell edges as snap targets, and widget items moved by whole cells, never onto another widget
-(`lib/infopanel/editor/cells.ts`). A screen's conversion to InfoPanel (`convert-view.ts`) takes the page as its layer
-tree (`exportParts`): each zone by its choice, each run of item placements as the items they are, at their box, and
-each page group as an InfoPanel Group named after it holding its own parts, so an import shows the same tree.
+(`lib/infopanel/editor/cells.ts`).
 
 Layers (SPEC §8) is one tree for every page, `layers-tree.tsx` over a `LayersHost` (rows top first, the selection,
 open groups, and each change). `use-page-layers.ts` hosts a screen's page: the page model's rows, one selection of
@@ -642,26 +639,12 @@ widget). It also takes the layer keys, and a selected group is drawn as one box 
 drags the group, with the Group inspector (`group-inspector.tsx`). `canvas-layers.ts` hosts an imported profile's
 canvas: the canvas editor's items as rows (ids are item paths) and each change through the editor, so its history and
 an untouched item's bytes hold; a group's open state is InfoPanel's `IsExpanded`. The layer menu (`layer-menu.tsx`),
-the inspector's LAYER section (`layer-section.tsx`) and the keys run the same actions. A widget renamed in Layers
+and the keys run the same actions (the inspectors no longer carry layer buttons). A widget renamed in Layers
 keeps its name in `Placement.name` (studio-only, no version bump).
 
-The Export check (`lib/infopanel/export-check.ts`) classifies each item and, on a screen with widgets, each widget,
-as exports as is, approximated, becomes a picture or left out, and names the studio-only looks it loses. The editor
-shows it on a screen made for InfoPanel (`madeForInfoPanel`, which reads `MonitorProfile.madeFor`; the Made for
-control in the page strip sets it): the pill after Made for in the page strip (the canvas editor hands its pill to
-the studio's `PageTabs` through `EditorShell.pageTabs`), the check panel in the inspector column
-(`export-check-panel.tsx`), marks in Layers, a badge on every part on the canvas and marks on inspector fields. The
-Export window reads the same check, so the two can't disagree. On a grid page the pill, the panel, each zone's badge
-(`PlacementFrame`'s `badge`) and each widget's On InfoPanel section come from `components/infopanel/grid-export.tsx`, loaded only on a screen made for InfoPanel; the rule is
-stored as the zone's `settings.$onInfoPanel`, and the Convert dialog starts from it (`startChoices`).
-The zoom bar's `Studio | InfoPanel` (`ExportView` in `studio/zoom-toolbar.tsx`, shown on a screen made for InfoPanel)
-is a view only: on a grid page the canvas skips the zones the check leaves out (`StudioCanvas` `leftOut`, their cells
-stay taken) and draws the export's own conversion over the rest (`studio/infopanel-view-layer.tsx`, loaded with the
-view: `convertView` with each zone's start choices from `withExportChoices`, drawn by `ProfileView` above the zones and
-below the selection and badges, converted again when the page changes); on an imported profile the canvas draws `asExported` (`lib/infopanel/export-view.ts`: no native drawing,
-no letter spacing, left-out parts hidden) while edits still go to the stored items. An imported profile has no strip
+An imported profile has no strip
 over its canvas: Show modes, Sensors, Compare and Save to Library are the page settings' Preview section
-(`infopanel/edit/canvas-toolbar.tsx`); the zoom bar's view replaces Draw all as. A widget item draws through
+(`infopanel/edit/canvas-toolbar.tsx`). A widget item draws through
 `widgetDrawer` (`infopanel/CanvasZone.tsx`): in Edit (`editing`) one with no live data yet shows the grid editor's
 stand-in, in the kiosk it is left out, as a grid zone is. Hidden parts aren't drawn in Edit either; a selected one shows
 a dashed outline at its box (`placement-frame.tsx`, `item-parts.tsx`, `infopanel/edit/edit-layer.tsx`).
@@ -685,13 +668,13 @@ a dashed outline at its box (`placement-frame.tsx`, `item-parts.tsx`, `infopanel
 - **Add palette** (`add-palette.tsx`, `editor/create.ts`): the 14 kinds with InfoPanel's creation defaults
   (`newItem`), styled from the profile (`editor/look.ts`: text in the profile's Color; Bar, Graph and Donut on a
   track 14 % from the background toward the text colour, filled with `ACCENT` #FF3B82F6, no frame; a Gauge as a
-  vector ring in the same accent, baked to frames on export; a Shape as a 12 px rounded card 7 % off the
-  background, no frame or gradient). All are ordinary InfoPanel fields, so the export is unchanged. Inserted by
+  vector ring in the same accent; a Shape as a 12 px rounded card 7 % off the
+  background, no frame or gradient). All are ordinary InfoPanel fields. Inserted by
   `AddDisplayItem`'s rules (`insertItem`), centred on a click or on the drop point of a drag onto the canvas
   (`placed`, snapped as a move). Sensor kinds then open the sensor picker; Image and Sensor image first take a
   My library file (`withNewFileItem`, as a Library drop).
 - **Native bindings** (`editor/bind.ts`, `bindingFromRef` in `sensors.ts`): a chosen sensor's Data API `ref`
-  becomes SensorType and its id fields, plus SensorName, so the `.infopanel` export reads it. The sensor picker
+  becomes SensorType and its id fields, plus SensorName, so the item reads the sensor as InfoPanel would. The sensor picker
   (`sensor-picker.tsx`) does this, and so does a Remap choice, in the editor (`withGroupKeys`) and at import
   (`rebindChosen` in `buildCanvas`). A sensor with no ref binds the preview only. A bound Table takes its plugin's
   `TableFormat` from the Data API's `table.format` (the fork's `IPluginTable.DefaultFormat`), else keeps the default.
@@ -700,35 +683,30 @@ a dashed outline at its box (`placement-frame.tsx`, `item-parts.tsx`, `infopanel
   Reset to automatic puts it back, then the group resolves as usual. Older stored forms have no original and
   resolve from the binding they have.
 - **Profile settings** (`profile-settings.tsx`): the inspector with nothing selected; every field InfoPanel's
-  export carries, checked by `checkValue` over `PROFILE`, committed with the items unchanged.
+  profile carries, checked by `checkValue` over `PROFILE`, committed with the items unchanged.
 - **Studio elements** (`src/lib/infopanel/elements/`): Ring, LED bar, Card, Glow, Divider, Icon, Cores and Sparkline.
   Each is an ordinary InfoPanel item carrying a spec in the studio-only `$.element` (`spec.ts`, checked by
   `normalizeElement` in `readStored`, and only on the kinds it can be). `applyElement` (`apply.ts`) derives the
   item's InfoPanel fields from the spec and the item's box, and the editor runs it over the tree on every commit
   (`syncElements`), so a resize, a moved group or a spec edit lands as one step:
   - Ring and LED bar are Gauges whose `$.vector` is derived (`ringVector`, `ledVector`; the vector spec gained an
-    optional end `dot`). They bake to frames like any vector gauge (`$.vectorBaked`).
-  - Card and Divider are a Shape while one colour, a stroke and corners say it all (Native), else an Image (Baked).
-    A baked card's image is grown by its shadow and glow; the margin is kept as `pad` in the spec.
-  - Glow and Icon are Images (Baked). The icons are a curated lucide set, generated as markup
+    optional end `dot`). They are drawn live like any vector gauge.
+  - Card and Divider are a Shape while one colour, a stroke and corners say it all, else an Image. A card's image is
+    grown by its shadow and glow; the margin is kept as `pad` in the spec.
+  - Glow and Icon are Images. The icons are a curated lucide set, generated as markup
     (`icons.generated.ts`, `tools/gen-element-icons.mjs`), loaded as their own chunk on first use (`icons.ts`):
     a kiosk with no Icon element never fetches them.
   - Cores is a Group of Bars, each bound natively to a per-core load sensor (`cores.ts` reads Libre refs
     `/<cpu>/<n>/load/<i>` named "Core #n"), laid out from the group's X and Y (`coresLayout`).
-  - Sparkline is a Graph (Native, or Approximated when its end dot or gradient fill is on).
+  - Sparkline is a Graph.
 
   Static elements are drawn live from the spec (`svg.ts`, the `element` scene node, `ElementSvg`), in both draw
-  modes and on the kiosk. **Baking runs on export**, as for vector gauges: the Export dialog bakes every stale
-  vector gauge to frames and every stale static element to one PNG (`elements/raster.ts`), content-addressed by
-  SHA-256 in the canvas's assets, and records what it baked (`$.elementBaked`: spec and size); the old files
-  become unused and the export's unused-files cleanup leaves them out. `badgeOf` gives each element's export
-  badge (Native, Baked or Approximated, with a reason and what is lost), shown on Layers rows, in the inspector
-  header and, for approximations, in the Export dialog.
+  modes and on the kiosk. Nothing is baked: `$.elementBaked` in an older save is kept as saved and read by no one.
 - **Palette** (`elements/palette.ts`): the stored form's studio-only `palette` (accent 1–3, text, sub-text, track,
   card, warn, crit; without one, `defaultPalette` from the profile, accent 1 being the styled defaults' accent).
   An element's colours are inks (`{ color, slot? }`) and a styled native field records its slot in `$.slots`
-  (`{ Field: { slot, alpha? } }`), so the colour InfoPanel exports is always a plain field. `recolour` carries a
-  slot change into every ink and slot field, then re-derives the elements, which marks the baked ones stale.
+  (`{ Field: { slot, alpha? } }`), so the colour InfoPanel reads is always a plain field. `recolour` carries a
+  slot change into every ink and slot field, then re-derives the elements.
 
 - **State** (`use-canvas-editor.ts`): the zone's stored form opened
   (`openCanvas`) and its items as edited (`editItems`,
@@ -845,8 +823,7 @@ least one widget is visible.
   and `sampleVersion` (set on the profiles earlier versions shipped; kept, no
   longer read). `madeFor?` (`"studio"` or `"infopanel"`, v14) records what the
   profile was made for: the v14 step sets `infopanel` on a profile whose every
-  page is free, and an imported .infopanel profile gets it. Every gate reads it
-  (`madeForInfoPanel`): unset or `studio` hides the Export check and its marks.
+  page is free, and an imported .infopanel profile gets it. It is saved and loaded unchanged (`tests/lib/config-export-fields.test.ts`); only the v15 step reads it, and no screen shows it.
 - `ProfilePage.layout?` was v14's Free flag; v15 drops it (a page that is one full-size canvas zone is canvas-backed,
   read from its shape). `freeCanvas?` holds the page's InfoPanel side besides its items (profile, files, fonts,
   palette): what its item placements' files and fonts resolve against, and what a switch to Free starts from.
@@ -866,11 +843,7 @@ least one widget is visible.
 - A free page's canvas holds Studio widgets as items (`$.widget` on an `Image`
   item: `module`, `settings`, `design`, `follow`, `panel`, `onInfoPanel`, `cell` (v15),
   `lib/infopanel/native/widget-item.ts`). The kiosk and the editor draw the
-  registry widget at the item's box. An .infopanel export replaces each by its
-  `onInfoPanel` rule (`native/widget-export.ts`, drawn offscreen with their
-  values tagged by `WidgetsOffscreen` in the Export window, whichever way it opened:
-  recreate as one Group, snapshot as one Image, or nothing), and any left
-  unconverted are stripped (`withoutWidgets`), so InfoPanel never sees `widget`.
+  registry widget at the item's box. `onInfoPanel` is a saved field and nothing reads it.
 - `ProfileView` - one page of a profile as the studio and kiosk edit and draw it:
   the profile minus `pages`, plus that page's `placements` and `pageId`.
   `src/lib/pages.ts` converts (`profileWithPage`, `applyView`, `onPage`) and
@@ -1357,9 +1330,9 @@ survives a reload of the source). With `muted: false` the element tries to
 play with sound and falls back to muted when the browser refuses
 (`NotAllowedError`).
 
-**Studio shell** (`src/components/studio/studio-view.tsx`). The studio is a
-top bar over the studio body, which `studio-shell.tsx` assembles: the labelled
-rail (`left-rail.tsx`), in Design the left panel (`design-left-panel.tsx`: Layers
+**Studio shell** (`src/components/studio/studio-view.tsx`). The studio is the
+sidebar (`sidebar/studio-sidebar.tsx`, a lazy chunk) beside, in Edit, a top bar over
+the studio body, which `studio-shell.tsx` assembles: in Design the left panel (`design-left-panel.tsx`: Layers
 | Add), the canvas (`studio-canvas.tsx`) with the floating zoom bar over it
 (`zoom-toolbar.tsx`) and the inspector, docked, floating or in a bottom
 sheet by the studio width, see Studio layout below. The other views (Screens,
@@ -1449,17 +1422,11 @@ context in localStorage (`studio.inspectorTabs`)
 and the accordion mode (`studio.accordion`, one open or many open, default
 one). The open section is plain component state; there is no scroll-spy.
 
-*Quick bar* (`quick-bar.tsx`, `quick-sets.ts`). A floating pill centred at the
-top of the canvas, below the page tabs and over the canvas only (docked and floating placements; Settings › Studio ›
-Editor › Quick bar, `studio.quickBar`, default on): identity, the pinned
-settings as compact controls, visibility and, floating, "All settings". Pins
-are set from the pin button on each inspector row, are kept per widget type (all
-panels share one set), at most 6, in `studio.quickPins`. `quick-sets.ts` is
-pure: before any pin a type gets the default set (Layout and Accent when
-present, then its first two own compact settings, max 4), and a multi
-selection shows only the pins every selected type shares and writes to all of
-them. The canvas keeps its top room reserved while the bar is on
-(`QUICK_BAR_INSET`), so selecting never refits the page.
+*Quick settings.* The floating quick bar and the pin buttons on inspector rows are gone (redesign P-11); the
+selection label (`selection-chip.tsx`) keeps the name, Change widget, Hide and the ⋯ menu. What stays is the pure
+`quick-sets.ts` and the stored pins (`studio.quickPins`, per widget type, at most 6; before any pin a type gets the
+default set: Layout and Accent when present, then its first two own compact settings, max 4): the phone sheet's
+Quick tile reads them, and a multi selection shows only the pins every selected type shares and writes to all of them.
 
 *Source dots.* `settings-model.ts`'s `settingStateOf` classifies a row as
 `default`, `dashboard`, `profile`, `here`, `overriding` (set here over a global
@@ -1500,8 +1467,10 @@ page font, background). Pure scope edits: `withScopeValues`, `withLock` / `withL
 `withPageFollow`, `customiseCard`, `resetCard`, and `withToken`, `withThemeRadius`, `withPageFont`,
 `withBackgroundAt`. The rows are `THEME_EDITOR_SETTINGS` (the `theme` inspector context), the preview is
 `ThemePreview` over `previewProfile` (the page at that scope), and `exceptionsOf` finds the widgets and pages
-that do not follow (`makeFollow`, `makeAllFollow`). Saved Themes: `theme-gallery.tsx`,
-`theme-start-from.tsx`, `use-appearance-presets.ts`. The page background is `background-editor.tsx` and
+that do not follow (`makeFollow`, `makeAllFollow`). Saved themes and the theme list:
+`theme-browse.tsx` and `theme-browse-model.ts` (Browse themes: the filters, the cards, the detail with Apply to),
+`theme-pickers.tsx` (the saved and template themes list), `use-appearance-presets.ts`; imported packs come through
+`user-packs.tsx` and `use-imported-packs.ts`. The page background is `background-editor.tsx` and
 `background-video.tsx`; its edits go through `withBackground`, undo-keyed per scope by `backgroundKey`.
 
 *Page inspector* (`page-inspector.tsx`, nothing selected; Edit v3 SPEC §10.1): the header and GRID section
@@ -1552,36 +1521,34 @@ preferences) and `explorer-header.tsx`.
 
 **Studio layout** (`studio-layout.ts`, `use-studio-layout.ts`). The inspector's
 placement is picked from the studio's width (`inspectorMode`), there is no
-setting: **docked** from `DOCKED_MIN_WIDTH` (1100 px), **floating** from
-`FLOATING_MIN_WIDTH` (640 px), else a **sheet**. Docked is a 320 px column
+setting: **docked** from `DOCKED_MIN_WIDTH` (960 px), **floating** from
+`FLOATING_MIN_WIDTH` (600 px), else a **sheet**. Docked is a 320 px column
 (`INSPECTOR_WIDTH`) that Ctrl+\ collapses to a slim strip
 (`dock-toggle.tsx`; `studio.dockCollapsed`). Floating is a 320 px card with
-12 px margins over the right of the canvas, closed by default; "All settings"
-in the quick bar, a double-click on a zone or Ctrl+\ opens it, its X, Ctrl+\ or
+12 px margins over the right of the canvas, closed by default; a double-click on a zone or Ctrl+\ opens it, its X, Ctrl+\ or
 clearing the selection closes it. The sheet (`bottom-sheet.tsx`) has three
 snaps (`sheetHeight`): peek (150 px, 96 with nothing selected), half
 (max(320, 56% of the canvas height)) and full (height - 8); a handle drag
 snaps to the nearest (`nearestSnap`), a tap toggles peek / half. The pure
 `computeLayout({ body, page, rail, drawer, inspector, collapsed, floatOpen,
-quickBar, sheet })` returns `{ mode, canvasWidth, canvasHeight, inset,
+windowWidth, sheet })` returns `{ mode, canvasWidth, canvasHeight, inset,
 fitZoom }`. `body` is the studio below the top bar; `page` the profile's
 design size (`height` 0 for a scroll profile, then `naturalHeight` from its
 grid). The left panel (`drawer`) is a column beside the canvas in every mode
 (`leftPanelFits` lays it over the canvas when it would squeeze the canvas
 below `MIN_CANVAS`). The `inset` is what the page keeps clear of inside the
-canvas box: the open floating card (`FLOAT_INSET`), the quick bar's top room
-(`QUICK_BAR_INSET`, reserved whenever the bar is on) and, in sheet mode, the
+canvas box: the open floating card (`FLOAT_INSET`) and, in sheet mode, the
 sheet up to its half snap plus the zoom bar. `fitZoomFor` is the largest zoom
 (floored to 1%, within 0.25 .. 2) at which the page plus 32 design px of
 padding fit a box minus the inset; a page without a height is fitted to the
 width only. `useStudioLayout` measures the body with a ResizeObserver
 (`bodyRef`) and keeps the collapsed flag in localStorage
 (`studio.dockCollapsed`, in try/catch); `pageSize(profile)` gives the page as
-the canvas draws it. `studio-shell.tsx` renders the mode: a row (rail, left
+the canvas draws it. `studio-shell.tsx` renders the mode: a row (left
 panel, canvas with the zoom bar floating over it, inspector column) when
 docked, the same row with the card over the canvas when floating, and the
 sheet over the canvas bottom on a phone, where the top bar also hides the
-summary and Undo / Redo, Import and Export (they move into the "..." menu).
+summary and Undo / Redo, Import and Export (they move into the "..." menu). The sidebar sits outside the shell.
 
 **Sticky fit** (`use-canvas-zoom.ts`, `zoom-pref.ts`). `useCanvasZoom(page)`
 measures the canvas scroll container with a ResizeObserver; while `fitting`
@@ -1600,26 +1567,31 @@ and value box (left panels keep the stacked slider).
 `inspector-scroll.ts` finds the scrolling element for scroll-to-top and the
 widget-editor reveal.
 
-**Studio left rail and views** (`left-rail.tsx`). A labelled rail (72 px, 48 px under 960 px) opens one full
-view at a time: **Screens**, **Design**, **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data**,
-with Help and Settings at the foot (each opens its own page or window). Design's left panel
+**Studio sidebar and views** (`sidebar/studio-sidebar.tsx`). A 232 px sidebar, a 60 px rail when collapsed (the user's choice, one local
+flag for every page, open by default, always a rail under 960 px, a bottom bar on a phone), opens one full view at a time: **Screens**,
+**Edit** (Design), **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data sources**, with Settings,
+Help and shortcuts, the attention rows and the Data API card at the foot. The card reads `use-status-bar.ts`, whose
+10 s grace (`use-data-api-grace.ts`) is studio-only; `page-bar.tsx` is the 56 px bar of every other page (title, controls, and the desktop caption buttons). Design's left panel
 (`design-left-panel.tsx`) is **Layers** (`layers-tree.tsx`, the page's parts and groups top first, see the page
 model above) | **Add** (`add-panel.tsx` over `use-add-panel.ts` and `add-catalog.ts`: search, category chips
 and, on the Widgets tab, a tile grid of widgets, InfoPanel items and elements (`add-tiles.ts`: sections, Recently used,
 search and the 2D arrow-key order; `add-tile-grid.tsx`; the details card `add-tile-card.tsx`, its item render the lazy
-`infopanel/edit/add-item-stage.tsx` and its Export check status the lazy `infopanel/edit/add-status.tsx`; the add
+`infopanel/edit/add-item-stage.tsx`;
+the add
 message `add-toast.tsx`), panel and layout rows on the other tabs. Tiles and rows drag (HTML5 drag, MIME in
 `studio-modules.ts`, `PALETTE_DRAG_MIME` for items) or click to place; `searchItems` and `categoriesOf` filter). `insert-panel.tsx` keeps `filterInsertables`, `InsertFilters` and
 `InsertList` for the widget picker and the palette. Screens are the cards of `screens-view.tsx`: the
 a card per screen (the launch rule, `resolveProfile`'s Auto, is Settings › Dashboard › Startup screen).
 
-**Studio top bar.** `studio-top-bar.tsx` holds the screen / page switcher (`screen-switcher.tsx`, with a ⚙ to
-Screens), the search field that opens the command palette, Undo / Redo, Import and Export (`file-doors.ts`:
-the Import door and the Export & back up sheet, `config-file.ts` underneath), the Live popover
-(`live-popover.tsx`: Show on a page, Rotation, Mute alerts, Dynamic Island, Dim screens, Reload all kiosks, Open
-kiosk view), Save (a dot while edits are not pushed yet) and, on a phone, a "..." menu with the same actions.
-Reset everything is in Settings › Dashboard (behind `reset-config-dialog.tsx`), the shortcut list in Help, the
-build id in Settings › App › About. In the desktop app the bar is also the
+**Studio top bar** (Edit only; the other views have a `PageBar` from `page-bar.tsx` of the same height, in the page itself). `studio-top-bar.tsx`
+holds the breadcrumb (Screens › the screen, with its rename pencil › the page: `screen-switcher.tsx`), the page tabs
+(from 960 px), the search field that opens the command palette, named Undo / Redo, the saved chip (`editor/save-chip.ts`:
+"Saved · live on N displays", unsaved, offline, refused and read-only), Preview (the kiosk view) and the File menu
+(`editor/file-menu.tsx`: Import, and Export & back up; `file-doors.ts` and `config-file.ts` underneath). On a phone a "..."
+menu holds the same actions and the Live popover (`live-popover.tsx`: Show on a page, Rotation, Mute alerts, Dynamic
+Island, Dim screens, Reload all kiosks, Open kiosk view) sits in the bar; elsewhere it is a row of the sidebar's foot.
+Reset everything is in Settings › Dashboard (behind `reset-config-dialog.tsx`), the shortcut list in the sidebar's Help
+menu, the build id in Settings › App › About. In the desktop app the bar is also the
 window's title bar: its empty space carries `data-tauri-drag-region` and
 `window-controls.tsx` adds minimize, maximize and close at the right end.
 `widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign a
@@ -1825,12 +1797,12 @@ with the app.
 - **Navigation guard** (`nav.rs`). Only the server origin (not `/api/*`) and the
   local pages load in the window; everything else, including `target="_blank"`,
   opens in the system browser.
-- **Window.** No native frame: the studio top bar is the title bar (see above), and
+- **Window.** No native frame: the editor's top bar, or the `PageBar` of the other views, is the title bar (see above), and
   closing hides to the tray while the server keeps serving the kiosk.
 - **Studio bridge** `src/lib/desktop.ts`. `isTauri()` gates everything and
   `@tauri-apps/api` is imported lazily, so the browser and kiosk bundles carry no
   Tauri code and every call is a no-op outside the app. `config-file.ts` uses the
-  native Save and Open dialogs there, and the rail's Settings button opens the settings window.
+  native Save and Open dialogs there, and the sidebar's Settings item opens the settings window.
 - **Flush on hide and quit.** Before the window hides or the app quits, Rust emits
   `studio://flush`; `App.tsx` pushes the pending config (the push is otherwise
   debounced 400 ms; the studio gives up after 1200 ms) and calls `flush_done`. Rust

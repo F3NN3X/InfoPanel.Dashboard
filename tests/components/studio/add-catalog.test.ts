@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BLANK_MODULE } from "@/lib/layout";
 import type { UserPanelPreset } from "@/lib/panel-model";
-import { addCatalog, addGroups, categoriesOf, firstSentence, sameDrop, searchItems, type AddItem } from "@/components/studio/add-catalog";
+import { addCatalog, addGroups, categoriesOf, firstSentence, sameDrop, searchItems, widgetRows, type AddItem } from "@/components/studio/add-catalog";
 
 const catalog = addCatalog();
 const names = (list: AddItem[]) => list.map((i) => i.name);
@@ -26,8 +26,10 @@ describe("addCatalog", () => {
     });
   });
 
-  it("lists a widget with views once per view: the first as the widget itself, the others added with their settings", () => {
-    const rows = catalog.widget.filter((w) => w.drop.id === "Weather");
+  it("lists a widget with views once, its views as styles with their settings, found by name (D-5)", () => {
+    expect(catalog.widget.filter((w) => w.drop.id === "Weather").map((w) => w.id)).toEqual(["Weather"]);
+    expect(searchItems(catalog.widget, "glance").map((w) => w.id)).toContain("Weather");
+    const rows = widgetRows(catalog.widget).filter((w) => w.drop.id === "Weather");
     expect(rows.map((w) => [w.id, w.name])).toEqual([
       ["Weather", "Weather"],
       ["Weather:now", "Weather · Now"],
@@ -42,7 +44,7 @@ describe("addCatalog", () => {
   });
 
   it("stores a view under the widget's own key and takes the view's size", () => {
-    const ticker = catalog.widget.find((w) => w.id === "GameSpotlight:ticker")!;
+    const ticker = widgetRows(catalog.widget).find((w) => w.id === "GameSpotlight:ticker")!;
     expect(ticker).toMatchObject({ name: "Game Spotlight · Ticker", w: 4, h: 1, mw: 1, mh: 1 });
     expect(ticker.drop.settings).toEqual({ spotlightLayout: "ticker" });
   });
@@ -53,7 +55,7 @@ describe("addCatalog", () => {
   });
 
   it("tells a widget's views apart by their settings", () => {
-    const [full, now] = catalog.widget.filter((w) => w.drop.id === "Weather");
+    const [full, now] = widgetRows(catalog.widget).filter((w) => w.drop.id === "Weather");
     expect(sameDrop(full.drop, { kind: "module", id: "Weather" })).toBe(true);
     expect(sameDrop(now.drop, { kind: "module", id: "Weather" })).toBe(false);
     expect(sameDrop(now.drop, { ...now.drop, settings: { ...now.drop.settings } })).toBe(true);

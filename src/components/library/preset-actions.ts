@@ -31,7 +31,7 @@ const dataId = (item: LibraryItem) => (item.data as { id: string }).id;
 /** Why a Style can't take the selection's look, or undefined when it can. */
 function updateBlocked(ctx: PresetContext): string | undefined {
   if (ctx.selectionStyle === null) return "Select a widget on the canvas first";
-  return Object.keys(ctx.selectionStyle).length === 0 ? "The selected widget follows the theme: it has no look of its own" : undefined;
+  return Object.keys(ctx.selectionStyle).length === 0 ? "The selected widget follows the theme: it has no style of its own" : undefined;
 }
 
 /** The item's main action (double-click, Enter): apply the Style to the selection. */
@@ -57,7 +57,7 @@ export function presetSecondary(item: LibraryItem, ctx: PresetContext): DetailAc
       label: "Update from selection",
       icon: RefreshCw,
       disabled: blocked !== undefined,
-      title: blocked ?? "Replace this Style's settings with the selected widget's look",
+      title: blocked ?? "Replace this Style's settings with the selected widget's style",
       run: () => {
         bridge.setConfig((c) => updateStylePreset(c, dataId(item), ctx.selectionStyle ?? {}));
         bridge.toast(`Updated ${item.name} from the selection`);

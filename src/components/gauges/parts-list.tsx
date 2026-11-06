@@ -1,4 +1,5 @@
 /** The editor's left column: the parts the shape has, grouped, each with a toggle; a click selects it for the inspector. */
+import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Toggle } from "@/components/ui/toggle";
 import { ALWAYS_ON, groupedParts, hasPart, togglePart, type PartId } from "@/lib/gauge-studio/parts";
@@ -16,7 +17,7 @@ export function PartsList({ g, selected, onSelect, set }: PartsListProps) {
     <nav aria-label="Parts" className="w-[220px] shrink-0 overflow-y-auto border-r border-ui-subtle bg-ui-panel py-2 font-ui max-[899px]:flex max-[899px]:max-h-[240px] max-[899px]:w-full max-[899px]:border-b max-[899px]:border-r-0">
       {groupedParts(g.shape).map(({ group, parts }) => (
         <section key={group} className="pb-2 max-[899px]:w-[200px] max-[899px]:shrink-0">
-          <h3 className="px-4 pb-1 pt-2 text-micro font-medium uppercase tracking-[0.06em] text-ui-4">{group}</h3>
+          <h3 className="px-4 pb-1 pt-2 text-caption font-medium text-ui-3">{group}</h3>
           {parts.map((p) => {
             const on = hasPart(g, p.id);
             const fixed = ALWAYS_ON.includes(p.id);
@@ -33,16 +34,20 @@ export function PartsList({ g, selected, onSelect, set }: PartsListProps) {
                 >
                   {p.label}
                 </button>
-                <Toggle
-                  checked={on}
-                  label={`${p.label} on`}
-                  disabled={fixed}
-                  onChange={() => {
-                    set(togglePart(g, p.id));
-                    onSelect(p.id);
-                  }}
-                  className="[&>span]:bg-ui-1"
-                />
+                {fixed ? (
+                  <span title={`${p.label} is always on`} className="grid h-[18px] w-[30px] shrink-0 place-items-center text-ui-hint">
+                    <Lock className="h-3.5 w-3.5" aria-label={`${p.label} is always on`} />
+                  </span>
+                ) : (
+                  <Toggle
+                    checked={on}
+                    label={`${p.label} on`}
+                    onChange={() => {
+                      set(togglePart(g, p.id));
+                      onSelect(p.id);
+                    }}
+                  />
+                )}
               </div>
             );
           })}

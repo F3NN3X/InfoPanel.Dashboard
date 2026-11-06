@@ -14,7 +14,7 @@ Ready-made modules that read sensors and adapt to their size.
 
 To browse them, open the **Add** tab in Edit's left panel. On the **Widgets** tab the chips are All, System, Hardware, Storage, Network, Media, Audio, Info, Gaming and Generic. Rest the pointer on a tile for a card with a preview and what the widget does (see [Add](studio#add)). Panels and layout starters have their own tabs.
 
-On an InfoPanel profile, **Add** lists InfoPanel's items above the widgets, and a widget goes on the canvas at any place and size. Each one has an **On InfoPanel** choice for the export. See [Studio widgets on a profile](infopanel-editor#studio-widgets-on-a-profile).
+On an InfoPanel profile, **Add** lists the widgets first, then InfoPanel's items, and a widget goes on the canvas at any place and size.
 
 ## Adapting to size
 

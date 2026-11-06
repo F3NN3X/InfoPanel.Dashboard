@@ -106,7 +106,7 @@ export function YoutubeBlock({ state, clientConfigured, chatInterval, pending, o
           <StackRow label="Client ID">
             <input aria-label="Google client ID" autoComplete="off" value={clientId} placeholder={clientConfigured ? "Saved" : "…apps.googleusercontent.com"} onChange={(e) => setClientId(e.target.value)} className={cn(FIELD, "h-[30px] w-full")} />
           </StackRow>
-          <StackRow label="Client secret" hint="Saved on the dashboard server only; leave blank to keep the saved one.">
+          <StackRow label="Client secret" hint="Saved on the dashboard server only; leave blank to keep the saved one">
             <input aria-label="Google client secret" type="password" autoComplete="off" value={secret} placeholder={clientConfigured ? "Saved" : "None"} onChange={(e) => setSecret(e.target.value)} className={cn(FIELD, "h-[30px] w-full")} />
           </StackRow>
           <div className="flex gap-2">

@@ -21,7 +21,6 @@ import { fromCss, toCss } from "@/components/studio/inspector/infopanel-defs";
 import { Segmented } from "./canvas-toolbar";
 import { IconPicker } from "./icon-picker";
 import { DriveIcons, IconFileButtons } from "./icon-source";
-import { ApproxMark, useExportCheck } from "../export-check-panel";
 import type { CanvasEditor } from "./use-canvas-editor";
 
 /** The spec as plain data without one key (a switched-off effect is an absent key, not a null). */
@@ -29,20 +28,17 @@ const withoutKey = (spec: ElementSpec, key: string) => Object.fromEntries(Object
 
 const INPUT = "h-7 w-full min-w-0 rounded-ui-sm border border-ui-default bg-ui-raised px-2 font-ui-mono text-caption text-ui-1 outline-none focus:border-ui-accent";
 
-function Row({ label, children, approx = false }: { label: string; children: ReactNode; approx?: boolean }) {
+function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex min-h-7 items-center justify-between gap-3 text-caption text-ui-2">
-      <span className="flex shrink-0 items-center gap-1.5">
-        {label}
-        {approx && <ApproxMark />}
-      </span>
+      <span className="shrink-0">{label}</span>
       <div className="flex min-w-0 justify-end">{children}</div>
     </div>
   );
 }
 
 /** A number, stored on Enter or leaving; the spec's normalizer keeps it in range. */
-export function NumberField({ label, value, onCommit, approx = false }: { label: string; value: number; onCommit: (n: number) => void; approx?: boolean }) {
+export function NumberField({ label, value, onCommit }: { label: string; value: number; onCommit: (n: number) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   const commit = () => {
     if (draft === null) return;
@@ -51,7 +47,7 @@ export function NumberField({ label, value, onCommit, approx = false }: { label:
     setDraft(null);
   };
   return (
-    <Row label={label} approx={approx}>
+    <Row label={label}>
       <input
         aria-label={label}
         inputMode="decimal"
@@ -123,11 +119,10 @@ function InksField({ label, inks, max, palette, onChange }: { label: string; ink
   );
 }
 
-/** A switch; `studioOnly` marks a look InfoPanel can't draw, Approximated while it is on and the screen is made for InfoPanel (D4). */
-function SwitchRow({ label, on, onChange, studioOnly = false }: { label: string; on: boolean; onChange: (on: boolean) => void; studioOnly?: boolean }) {
-  const check = useExportCheck();
+/** A labelled switch. */
+function SwitchRow({ label, on, onChange }: { label: string; on: boolean; onChange: (on: boolean) => void }) {
   return (
-    <Row label={label} approx={studioOnly && on && check.on}>
+    <Row label={label}>
       <Toggle checked={on} onChange={onChange} label={label} />
     </Row>
   );
@@ -144,7 +139,6 @@ interface ElementPanelProps {
 
 export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanelProps) {
   const { palette } = editor;
-  const check = useExportCheck();
   const key = (field: string) => `canvas-element:${editor.zone.id}:${path}:${field}`;
   const set = (patch: Record<string, unknown>, field = Object.keys(patch)[0]) => {
     const next = normalizeElement({ ...spec, ...patch });
@@ -345,7 +339,7 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
             )}
           />
           {found.length === 0 ? (
-            <p className="text-[11.5px] leading-snug text-ui-warn">This machine’s drives weren’t found: the Data API reports no LibreHardwareMonitor or HWiNFO drive sensors. The tiles are placeholders and export unbound.</p>
+            <p className="text-[11.5px] leading-snug text-ui-warn">This machine’s drives weren’t found: the Data API reports no LibreHardwareMonitor or HWiNFO drive sensors. The tiles are placeholders and stay unbound.</p>
           ) : (
             <p className="text-[11.5px] leading-snug text-ui-4">{found.length} drives found in the Data API.</p>
           )}
@@ -375,12 +369,7 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
           {num("Offset Y", "dy", spec.dy)}
           {ink("Shadow color", "color", spec.color)}
           <p className="text-[11.5px] leading-snug text-ui-4">
-            {check.on && (
-              <span className="mr-1 inline-flex align-[-2px]">
-                <ApproxMark />
-              </span>
-            )}
-            InfoPanel can’t blur a shadow, so this is a sharp dark copy behind the text. Select the second item in Layers to change the text or its sensor. For a glow, use the Text’s own Glow.</p>
+            This is a sharp dark copy behind the text. Select the second item in Layers to change the text or its sensor. For a glow, use the Text’s own Glow.</p>
         </>
       );
       break;
@@ -434,12 +423,11 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
               <InkField label="Shadow color" ink={spec.shadow.color} palette={palette} onChange={(color) => set({ shadow: { ...spec.shadow, color } }, "shadow-color")} />
             </>
           )}
-          {/* The editor and the kiosk no longer draw a card's blur (L92); a blur a saved card holds stays loadable, is baked into its export as before, and can be switched off here. */}
+          {/* The editor and the kiosk no longer draw a card's blur (L92); a blur a saved card holds stays loadable and can be switched off here. */}
           {!!spec.blur && (
             <>
               <SwitchRow
                 label="Background blur"
-                studioOnly
                 on
                 onChange={() => {
                   const next = normalizeElement(withoutKey(spec, "blur"));
@@ -447,7 +435,7 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
                 }}
               />
               {num("Blur radius", "blur", spec.blur)}
-              <p className="text-[11.5px] leading-snug text-ui-4">This card holds a blur from an earlier version. It is not drawn here any more, but the export still bakes the background, images and shapes under it into the card’s image. Switch it off to drop it.</p>
+              <p className="text-[11.5px] leading-snug text-ui-4">This card holds a blur from an earlier version. It is not drawn any more. Switch it off to drop it.</p>
             </>
           )}
           <SwitchRow label="Outer glow" on={spec.glow !== null} onChange={(on) => set({ glow: on ? { blur: 16, color: slotInk(palette, "accent1") } : null })} />
@@ -521,7 +509,7 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
           {ink("Fill", "fill", spec.fill)}
           {found.length === 0 ? (
             <p className="text-[11.5px] leading-snug text-ui-warn">
-              This machine’s cores weren’t found: the Data API reports no per-core CPU load (LibreHardwareMonitor’s Core loads). The bars are placeholders and export unbound.
+              This machine’s cores weren’t found: the Data API reports no per-core CPU load (LibreHardwareMonitor’s Core loads). The bars are placeholders and stay unbound.
             </p>
           ) : (
             <p className="text-[11.5px] leading-snug text-ui-4">{found.length} cores found in the Data API.</p>
@@ -555,9 +543,8 @@ export function ElementPanel({ editor, path, item, spec, sensors }: ElementPanel
           </Row>
           {spec.style !== "line" && <NumberField label="Fill (%)" value={spec.fillAlpha * 100} onCommit={(n) => set({ fillAlpha: n / 100 })} />}
           {ink("Color", "color", spec.color)}
-          <SwitchRow label="End dot" studioOnly on={spec.dot} onChange={(dot) => set({ dot })} />
-          {spec.style === "area" && <SwitchRow label="Gradient fill" studioOnly on={spec.gradient} onChange={(gradient) => set({ gradient })} />}
-          <p className="text-[11.5px] leading-snug text-ui-4">InfoPanel draws its own Graph: the end dot and a gradient fill show only in the studio.</p>
+          <SwitchRow label="End dot" on={spec.dot} onChange={(dot) => set({ dot })} />
+          {spec.style === "area" && <SwitchRow label="Gradient fill" on={spec.gradient} onChange={(gradient) => set({ gradient })} />}
         </>
       );
       break;

@@ -9,5 +9,5 @@ export const POPUP =
 export const HIGHLIGHT =
   "data-highlighted:bg-ui-active data-highlighted:text-ui-1 data-highlighted:shadow-[inset_2px_0_0_var(--ui-accent)]";
 export const ITEM =
-  `flex h-[30px] cursor-default items-center justify-between gap-3 rounded-md px-2 outline-none select-none data-disabled:text-ui-hint ${HIGHLIGHT} data-popup-open:bg-ui-hover`;
+  `group flex h-8 cursor-default items-center justify-between gap-3 rounded-ui-md px-2 outline-none select-none data-disabled:text-ui-hint ${HIGHLIGHT} data-popup-open:bg-ui-hover`;
 export const SEPARATOR = "mx-1 my-1 h-px bg-ui-subtle";

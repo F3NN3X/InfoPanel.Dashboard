@@ -19,8 +19,6 @@ export interface Rect {
   h: number;
 }
 
-/** InfoPanel draws FontSize × FontScale px (the profile's FontScale, 1.33 by default): a size in px as its FontSize. */
-export const fontSizeOf = (px: number, scale = 1.33): number => Math.max(1, Math.round(px / scale));
 
 export type Look = Pick<Profile, "Font" | "FontSize" | "Color" | "BackgroundColor">;
 

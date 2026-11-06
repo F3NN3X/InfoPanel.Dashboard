@@ -1,22 +1,20 @@
-// The Add panel's tiles (Edit v3 SPEC §9.2–§9.4, acceptance 19): the sections and their order for each Made for, the
-// status sort, Recently used, the segment and chip filters, the flat search, and the arrow keys across the grid.
+// The Add panel's tiles (Edit v3 SPEC §9.2–§9.4, acceptance 19): the sections and their order, Recently used, the segment and chip filters, the flat search, and the arrow keys across the grid.
 import { describe, expect, it } from "vitest";
 import { addCatalog } from "@/components/studio/add-catalog";
-import { addSections, chipsFor, ELEMENT_TILES, ITEM_TILES, moveInGrid, partKey, searchTiles, tileRows, widgetTile, type AddTile, type SectionOptions, type TileStatus } from "@/components/studio/add-tiles";
+import { addSections, chipsFor, ELEMENT_TILES, ITEM_TILES, moveInGrid, partKey, searchTiles, tileRows, widgetTile, type SectionOptions } from "@/components/studio/add-tiles";
 import { cardCategory, cardDescription, cardSize } from "@/components/studio/add-tile-card";
 import { PALETTE } from "@/lib/infopanel/editor/palette-entries";
 import { ELEMENTS } from "@/lib/infopanel/elements/entries";
 
 const catalog = addCatalog();
 const widgets = catalog.widget.map(widgetTile);
-const base: SectionOptions = { widgets, items: ITEM_TILES, elements: ELEMENT_TILES, segment: "all", chip: "All", query: "", recent: [], infoPanel: false };
+const base: SectionOptions = { widgets, items: ITEM_TILES, elements: ELEMENT_TILES, segment: "all", chip: "All", query: "", recent: [] };
 const titles = (o: Partial<SectionOptions>) => addSections({ ...base, ...o }).map((s) => s.title);
 const tile = (key: string) => [...widgets, ...ITEM_TILES, ...ELEMENT_TILES].find((t) => t.key === key)!;
 
 describe("Add sections", () => {
-  it("lists Studio widgets first on a screen for Studio panels, InfoPanel items first when made for InfoPanel", () => {
-    expect(titles({})).toEqual(["STUDIO WIDGETS", "INFOPANEL ITEMS", "ELEMENTS"]);
-    expect(titles({ infoPanel: true })).toEqual(["INFOPANEL ITEMS", "ELEMENTS", "STUDIO WIDGETS"]);
+  it("lists Studio widgets first, then InfoPanel items and Elements", () => {
+    expect(titles({})).toEqual(["Studio widgets", "InfoPanel items", "Elements"]);
   });
 
   it("counts every tile of a kind and groups items by Text, Data, Media and Layout", () => {
@@ -32,39 +30,26 @@ describe("Add sections", () => {
     expect(w.groups.every((g) => g.sub !== null && g.tiles.every((t) => t.category === g.sub))).toBe(true);
   });
 
-  it("sorts each category by status when made for InfoPanel, keeping curated order within a status", () => {
-    const rank: Record<TileStatus, number> = { ok: 0, approx: 1, pic: 2, out: 3 };
-    // Every other widget left out, so the sort shows against the curated order.
-    const status = (t: AddTile): TileStatus => (t.kind !== "widget" ? "ok" : (["pic", "out", "ok", "approx"] as const)[widgets.indexOf(t) % 4]);
-    const [, , w] = addSections({ ...base, infoPanel: true, status });
-    for (const g of w.groups) {
-      const ranks = g.tiles.map((t) => rank[status(t)]);
-      expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
-      for (const r of [0, 1, 2, 3]) {
-        const same = g.tiles.filter((t) => rank[status(t)] === r).map((t) => widgets.indexOf(t));
-        expect(same).toEqual([...same].sort((a, b) => a - b));
-      }
-    }
-    // Not made for InfoPanel: curated order, whatever the statuses.
-    const [plain] = addSections({ ...base, status });
-    expect(plain.groups[0].tiles.map((t) => widgets.indexOf(t))).toEqual([...plain.groups[0].tiles.map((t) => widgets.indexOf(t))].sort((a, b) => a - b));
-  });
-
   it("puts up to four Recently used tiles of any kind first, hidden when none, while searching or on a chip", () => {
     const recent = [widgets[0].key, partKey("Text"), partKey("element:ring"), widgets[1].key, widgets[2].key];
     const [r] = addSections({ ...base, recent });
-    expect(r.title).toBe("RECENTLY USED");
+    expect(r.title).toBe("Recently used");
     expect(r.groups[0].tiles.map((t) => t.key)).toEqual(recent.slice(0, 4));
-    expect(titles({ recent: [] })[0]).toBe("STUDIO WIDGETS");
+    expect(titles({ recent: [] })[0]).toBe("Studio widgets");
     expect(titles({ recent, query: "clock" })).toEqual([null]);
-    expect(titles({ recent, chip: widgets[0].category })[0]).toBe("STUDIO WIDGETS");
+    expect(titles({ recent, chip: widgets[0].category })[0]).toBe("Studio widgets");
     // The Widgets segment keeps only the widgets of it.
     expect(addSections({ ...base, recent, segment: "widgets" })[0].groups[0].tiles.map((t) => t.kind)).toEqual(["widget", "widget", "widget"]);
   });
 
+  it("reads a view's Recently used key from before D-5 as its widget, once", () => {
+    const [r] = addSections({ ...base, recent: ["Weather:now", "Weather:week", "Weather"] });
+    expect(r.groups[0].tiles.map((t) => t.key)).toEqual(["Weather"]);
+  });
+
   it("shows only Studio widgets on the Widgets segment, items and elements on the InfoPanel items one", () => {
-    expect(titles({ segment: "widgets" })).toEqual(["STUDIO WIDGETS"]);
-    expect(titles({ segment: "items" })).toEqual(["INFOPANEL ITEMS", "ELEMENTS"]);
+    expect(titles({ segment: "widgets" })).toEqual(["Studio widgets"]);
+    expect(titles({ segment: "items" })).toEqual(["InfoPanel items", "Elements"]);
   });
 
   it("offers widget categories as chips, or the item groups and Elements on the InfoPanel items segment", () => {
@@ -72,11 +57,11 @@ describe("Add sections", () => {
     expect(chipsFor("all", catalog.widget)[0]).toBe("All");
     expect(chipsFor("all", catalog.widget)).toContain("System");
     expect(addSections({ ...base, segment: "items", chip: "Media" }).flatMap((s) => s.groups.flatMap((g) => g.tiles.map((t) => t.name)))).toEqual(["Image", "Web image", "Sensor image"]);
-    expect(titles({ segment: "items", chip: "Elements" })).toEqual(["ELEMENTS"]);
+    expect(titles({ segment: "items", chip: "Elements" })).toEqual(["Elements"]);
   });
 
   it("leaves out InfoPanel items where the page takes none", () => {
-    expect(titles({ items: [], elements: [] })).toEqual(["STUDIO WIDGETS"]);
+    expect(titles({ items: [], elements: [] })).toEqual(["Studio widgets"]);
   });
 });
 

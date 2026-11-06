@@ -39,7 +39,7 @@ export function SaveComponentDialog({ open, onOpenChange, count, initialName, on
             }}
           >
             <div className="flex items-center gap-3 border-b border-ui-subtle px-5 py-3.5">
-              <Dialog.Title className="flex-1 text-[15px] font-semibold">Save as component</Dialog.Title>
+              <Dialog.Title className="flex-1 text-[15px] font-medium">Save as component</Dialog.Title>
               <Dialog.Close aria-label="Close" className="grid h-7 w-7 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
                 <X className="h-4 w-4" />
               </Dialog.Close>
@@ -58,7 +58,7 @@ export function SaveComponentDialog({ open, onOpenChange, count, initialName, on
               <Dialog.Close type="button" className="h-8 rounded-ui-md px-3 text-[12.5px] text-ui-3 hover:text-ui-1">
                 Cancel
               </Dialog.Close>
-              <button type="submit" disabled={!ok} className="h-8 rounded-ui-md bg-ui-accent px-4 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90 disabled:opacity-40">
+              <button type="submit" disabled={!ok} className="h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg hover:bg-white disabled:opacity-40">
                 Save
               </button>
             </div>

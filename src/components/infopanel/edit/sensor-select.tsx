@@ -9,7 +9,8 @@ import { Popover } from "@base-ui/react/popover";
 import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { refreshCatalog, useSensorCatalog } from "@/lib/catalog";
-import { buildDataModel, type DataPoint } from "@/lib/data-points";
+import type { DataPoint } from "@/lib/data-points";
+import { useDataModel } from "@/lib/use-data-model";
 import type { ChosenSensor } from "@/lib/infopanel/editor/bind";
 import { chosenOf, flatPoints, isNative, NOT_EXPORTABLE, pickerSections } from "@/lib/infopanel/editor/sensor-list";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
@@ -43,7 +44,7 @@ export function SensorSelect({ label, current, fallbackName, placeholder = "Choo
   useEffect(() => {
     if (open) void refreshCatalog();
   }, [open]);
-  const model = useMemo(() => buildDataModel(catalog.sources, catalog.sensors), [catalog.sources, catalog.sensors]);
+  const model = useDataModel();
   const sections = useMemo(() => (open ? pickerSections(model.points, sensors, query, pluginOnly) : []), [open, model, sensors, query, pluginOnly]);
   const flat = useMemo(() => flatPoints(sections), [sections]);
   const at = Math.min(cursor, flat.length - 1);
@@ -73,7 +74,7 @@ export function SensorSelect({ label, current, fallbackName, placeholder = "Choo
         aria-haspopup="listbox"
         aria-expanded={open}
         className={cn(
-          "flex h-9 w-full items-center gap-2 rounded-lg border border-ui-default bg-ui-raised px-2.5 text-left hover:border-ui-strong focus-visible:border-ui-accent focus-visible:outline-none",
+          "flex h-9 w-full items-center gap-2 rounded-lg border border-ui-default bg-ui-raised px-2.5 text-left hover:border-ui-strong focus-visible:border-ui-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
           className,
         )}
       >
@@ -126,13 +127,13 @@ export function SensorSelect({ label, current, fallbackName, placeholder = "Choo
                   Leave unbound
                 </button>
               )}
-              {catalog.status === "error" && <p className="px-3 py-5 text-center text-caption text-ui-4">The Data API isn’t reachable, so there are no sensors to choose.</p>}
+              {catalog.status === "error" && <p className="px-3 py-5 text-center text-caption text-ui-4">The Data API isn’t reachable, so there are no sensors to choose</p>}
               {catalog.status !== "error" && flat.length === 0 && (
                 <p className="px-3 py-5 text-center text-caption text-ui-4">{pluginOnly ? "No plugin sensors match." : "No sensors match."}</p>
               )}
               {sections.map((s) => (
                 <div key={s.title} role="group" aria-label={s.title}>
-                  <div className="sticky top-0 bg-ui-tile px-2.5 pb-1 pt-2 text-micro font-medium uppercase tracking-wide text-ui-4">{s.title}</div>
+                  <div className="sticky top-0 bg-ui-tile px-2.5 pb-1 pt-2 text-caption font-medium text-ui-3">{s.title}</div>
                   {s.points.map((p) => {
                     const index = flat.indexOf(p);
                     const native = isNative(p.key, sensors);

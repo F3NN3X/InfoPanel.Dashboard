@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { ArrowLeft, ArrowRight, Cast, Copy, File, LayoutDashboard, MoreHorizontal, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Settings2, Shapes, Trash2 } from "lucide-react";
 import { ContextMenu, type ContextMenuEntry } from "@/components/ui/context-menu";
@@ -12,7 +12,9 @@ import { pastDragThreshold, trackPointer } from "./pointer-drag";
 import { RenameInput } from "./rename-input";
 
 interface PageTabsProps {
-  /** Design's left panel is open; the toggle at the row's start shows or hides it. */
+  /** In the top bar (from 960 px): the tabs alone. Unset, on a narrow window, they are a row of their own with the left-panel toggle. */
+  inBar?: boolean;
+  /** Design's left panel is open; the row's toggle shows or hides it. */
   leftOpen: boolean;
   onToggleLeft: () => void;
   pages: ProfilePage[];
@@ -30,8 +32,6 @@ interface PageTabsProps {
   onIcon: (id: string) => void;
   /** Page settings: show the page and deselect, so the Page inspector shows. */
   onPageSettings: (id: string) => void;
-  /** At the end of the row: the screen's Made for, then the Export check pill (made for InfoPanel) or the Studio note. */
-  extra?: ReactNode;
   /** The page being renamed inline (the palette asks for this too). */
   renamingId: string | null;
   onRenamingChange: (id: string | null) => void;
@@ -113,7 +113,7 @@ function DeleteDialog({
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/50" />
         <AlertDialog.Popup className="fixed left-1/2 top-1/2 z-50 w-[24rem] -translate-x-1/2 -translate-y-1/2 space-y-3 rounded-xl border border-ui-strong bg-ui-raised p-4 font-ui text-ui-1 shadow-ui-modal outline-none">
-          <AlertDialog.Title className="text-sm font-semibold text-ui-1">Delete {page?.name}?</AlertDialog.Title>
+          <AlertDialog.Title className="text-sm font-medium text-ui-1">Delete {page?.name}?</AlertDialog.Title>
           <AlertDialog.Description className="text-xs leading-relaxed text-ui-3">
             {n === 0 ? "This page is empty." : `This removes the page and its ${n} ${n === 1 ? "part" : "parts"}.`} Undo
             (Ctrl+Z) brings it back.
@@ -122,7 +122,7 @@ function DeleteDialog({
             <AlertDialog.Close render={<button type="button" className={DIALOG_BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-body font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-[7px] bg-ui-danger px-3 text-body font-medium text-ui-inverse-fg transition-opacity hover:opacity-90"
               onClick={() => {
                 onConfirm();
                 onClose();
@@ -138,11 +138,10 @@ function DeleteDialog({
 }
 
 /**
- * The strip above the canvas (Edit v3 SPEC §6.2, 40 px): the left-panel toggle, one
- * tab per page of the profile with its icon (click to switch, double-click to rename, drag
- * to reorder; the page the kiosk shows has a green cast icon), "+" to add one,
- * a "⋯" / right-click menu (rename, icon, duplicate, delete, page settings),
- * and the screen's Made for and Export check (`extra`).
+ * The page tabs (Edit v3 SPEC §6.2), in the top bar: one tab per page of the profile with
+ * its icon (click to switch, double-click to rename, drag to reorder; the page the kiosk
+ * shows has a green cast icon), "+" to add one, and a "⋯" / right-click menu (rename, icon,
+ * duplicate, delete, page settings). A narrow window keeps them in a 40 px row with the left-panel toggle.
  */
 export function PageTabs({
   pages,
@@ -155,7 +154,7 @@ export function PageTabs({
   onDelete,
   onIcon,
   onPageSettings,
-  extra,
+  inBar = false,
   leftOpen,
   onToggleLeft,
   renamingId,
@@ -219,15 +218,17 @@ export function PageTabs({
   const marker = <span aria-hidden className="h-4 w-0.5 shrink-0 rounded-full bg-ui-accent" />;
 
   return (
-    <div className="flex h-10 shrink-0 items-center gap-1 overflow-hidden border-b border-ui-subtle bg-ui-panel px-2 font-ui text-caption">
-      <IconButton
-        label={leftOpen ? "Hide the left panel" : "Show the left panel"}
-        className="h-7 w-7"
-        aria-pressed={leftOpen}
-        onClick={onToggleLeft}
-      >
-        {leftOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
-      </IconButton>
+    <div className={cn("flex min-w-0 items-center gap-1 font-ui text-caption", inBar ? "shrink" : "h-10 shrink-0 overflow-hidden border-b border-ui-subtle bg-ui-panel px-2")}>
+      {!inBar && (
+        <IconButton
+          label={leftOpen ? "Hide the left panel" : "Show the left panel"}
+          className="h-7 w-7"
+          aria-pressed={leftOpen}
+          onClick={onToggleLeft}
+        >
+          {leftOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+        </IconButton>
+      )}
       <div
         ref={rowRef}
         role="tablist"
@@ -250,7 +251,7 @@ export function PageTabs({
                 }}
                 className={cn(
                   "group flex h-7 shrink-0 items-center rounded-[7px] transition-colors",
-                  active ? "bg-ui-hover text-ui-1" : "text-ui-3 hover:bg-ui-hover hover:text-ui-1",
+                  active ? "border border-ui-strong bg-ui-raised text-ui-1" : "border border-transparent text-ui-3 hover:bg-ui-hover hover:text-ui-1",
                   drag?.id === page.id && "opacity-50"
                 )}
               >
@@ -296,7 +297,7 @@ export function PageTabs({
                       onDoubleClick={() => onRenamingChange(page.id)}
                       title={thumbProfile ? undefined : `${page.name}: double-click to rename, drag to reorder`}
                       aria-description={thumbProfile ? "Double-click to rename, drag to reorder" : undefined}
-                      className="flex h-7 max-w-44 items-center gap-1.5 rounded-[7px] pl-2.5 pr-1 outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60"
+                      className="flex h-7 max-w-44 items-center gap-1.5 rounded-[7px] pl-2.5 pr-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
                     >
                       <Icon className="h-[15px] w-[15px] shrink-0" />
                       <span className="truncate">{page.name}</span>
@@ -330,7 +331,6 @@ export function PageTabs({
       <IconButton label="Add page" className="h-7 w-7" onClick={onAdd}>
         <Plus className="h-4 w-4" />
       </IconButton>
-      {extra && <div className="ml-auto flex shrink-0 items-center gap-1.5 pl-2">{extra}</div>}
       {thumbProfile && thumbPage && thumb.anchor && (
         <ThumbBoundary key={thumb.anchor.id} onFail={resetThumb}>
           <Suspense fallback={null}>

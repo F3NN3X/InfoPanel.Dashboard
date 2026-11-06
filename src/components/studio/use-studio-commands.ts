@@ -11,9 +11,8 @@ import type { HistorySetter } from "@/hooks/use-config-history";
 import type { Appearance } from "@/lib/style-resolve";
 import { addRule, alertsKey } from "./alerts-model";
 import { followAll, toggleEnforce } from "./appearance-actions";
-import { madeForInfoPanel } from "@/lib/screens/list";
 import { buildCommands, type CommandAction } from "./commands";
-import { openConvertDialog, openExportSheet, openImportDoor, openNewInfoPanel } from "./file-doors";
+import { openExportSheet, openImportDoor, openNewInfoPanel } from "./file-doors";
 import { insertables } from "./insert-panel";
 import { widgetContext, type InspectorContext } from "./inspector-model";
 import { toggleAdvanced } from "./inspector/inspector-prefs";
@@ -25,6 +24,7 @@ import type { StudioMutations } from "./use-studio-mutations";
 import type { StudioSelection } from "./use-studio-selection";
 import { useStudioShortcuts, type ShortcutAction } from "./use-studio-shortcuts";
 import type { StudioUi } from "./use-studio-ui";
+import { isPhone } from "./use-studio-layout";
 import { validScope } from "./theme-editor-model";
 import { getKeepBackground } from "./theme-keep-background";
 import { commandThemeAt } from "./theme-view-model";
@@ -46,8 +46,6 @@ interface CommandDeps {
   onSelectProfile: (id: string) => void;
   /** Open Help at the article for where the user is. */
   onHelp: () => void;
-  /** Open the Export check in the inspector (palette: Export check). */
-  onExportCheck: () => void;
 }
 
 /**
@@ -69,7 +67,6 @@ export function useStudioCommands({
   onPageChange,
   onSelectProfile,
   onHelp,
-  onExportCheck,
 }: CommandDeps) {
   const { selected, selectedWidget } = sel;
   const toast = useToast();
@@ -156,6 +153,9 @@ export function useStudioCommands({
         return !ui.showSources && ui.studioLayout.toggleInspector();
       case "live":
         return ui.setLiveOpen(true);
+      case "data-api":
+        // The sidebar's card owns the popover; a phone has no sidebar, so Data's own connection card takes the address.
+        return isPhone(ui.windowWidth) ? ui.navigateTo({ view: "data", section: "connection", control: "url" }) : ui.setDataApiOpen(true);
       case "toggle-preview":
         return togglePreviewFrozen();
       case "refresh-preview":
@@ -179,12 +179,8 @@ export function useStudioCommands({
         return ui.handleSave();
       case "export":
         return openExportSheet();
-      case "export-check":
-        return onExportCheck();
       case "import":
         return openImportDoor();
-      case "convert":
-        return openConvertDialog(action.scope);
       case "new-infopanel":
         return openNewInfoPanel();
       case "undo":
@@ -250,7 +246,7 @@ export function useStudioCommands({
       }
       case "apply-appearance-all": {
         const preset = appearancePresets.presets.find((p) => p.id === action.id);
-        return preset && appearancePresets.applyToScreens(preset, config.profiles.map((p) => p.id), getKeepBackground());
+        return preset && appearancePresets.applyToScreens(preset, config.profiles.map((p) => p.id), getKeepBackground(themeAt.profileId));
       }
     }
     if (!selected) return;
@@ -350,7 +346,6 @@ export function useStudioCommands({
         enforced: allLocked(appearance.profile),
         appearancePresets: appearancePresets.presets,
         themeLevel,
-        exportCheck: madeForInfoPanel(config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0]),
       })
     : [];
 

@@ -194,7 +194,7 @@ interface InsertListProps {
   onDeletePreset?: (id: string) => void;
 }
 
-const GROUP_LABEL = "text-micro font-medium uppercase tracking-wider text-ui-4";
+const GROUP_LABEL = "text-caption font-medium text-ui-3";
 
 /**
  * The insertable widgets, layout starters, panels and saved panels as

@@ -82,13 +82,13 @@ describe("every setting is in exactly one section of exactly one tab", () => {
 });
 
 describe("inspectorTabs", () => {
-  it("has Show, Style, Data and Behavior for widgets and panels", () => {
+  it("has Content, Style, Data and Behaviour for widgets and panels", () => {
     for (const context of [spotify, panel]) {
       expect(inspectorTabs(context)).toEqual([
-        { id: "show", label: "Show" },
+        { id: "show", label: "Content" },
         { id: "style", label: "Style" },
         { id: "data", label: "Data" },
-        { id: "behaviour", label: "Behavior" },
+        { id: "behaviour", label: "Behaviour" },
       ]);
     }
   });
@@ -115,7 +115,7 @@ describe("widget sections", () => {
   it("files the look sections in Style, the widget's colors merged into Colors", () => {
     const style = sectionsFor(system, "style");
     expect(titles(style)).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Typography",
       "Shape & spacing",
@@ -263,7 +263,7 @@ describe("panel sections", () => {
 
   it("has the same look sections as a widget, lists its sensors in Data and its graph updates in Behaviour", () => {
     expect(titles(sectionsFor(panel, "style"))).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Typography",
       "Shape & spacing",
@@ -288,7 +288,7 @@ describe("blank zone and several zones", () => {
   it("shows only the shared look sections for several zones", () => {
     const sections = sectionsFor({ kind: "multi", defs: spotify.kind === "widget" ? spotify.defs : [] });
     expect(titles(sections)).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Typography",
       "Shape & spacing",
@@ -309,7 +309,7 @@ describe("theme editor sections", () => {
   it("files Style with Status & series colors after Colors, Data = Units & format, Behaviour = Thresholds + Motion", () => {
     expect(sectionsFor(theme, "show")).toEqual([]);
     expect(titles(sectionsFor(theme, "style"))).toEqual([
-      "Look",
+      "Theme",
       "Colors",
       "Status & series colors",
       "Typography",
@@ -524,11 +524,11 @@ describe("searchAll", () => {
   it("searches every tab and labels each result with its tab", () => {
     const { groups, total } = searchAll(spotify, "mirror");
     // The visualiser's Style matches by its Mirror option; "peak" by the labels in Show and Style.
-    expect(groups.map((g) => [g.tabLabel, g.section.title])).toEqual([["Show", "Visualizer"]]);
+    expect(groups.map((g) => [g.tabLabel, g.section.title])).toEqual([["Content", "Visualizer"]]);
     expect(total).toBe(groups.reduce((n, g) => n + g.section.settings.length, 0));
     expect(keysOf(groups.map((g) => g.section))).toEqual(["vizStyle"]);
     expect(searchAll(spotify, "peak").groups.map((g) => [g.tabLabel, g.section.title])).toEqual([
-      ["Show", "Visualizer"],
+      ["Content", "Visualizer"],
       ["Style", "Colors"],
     ]);
   });

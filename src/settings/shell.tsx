@@ -76,7 +76,7 @@ export function Sidebar({ groups = NAV_GROUPS, index }: SidebarProps) {
       <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-auto px-2 pb-3 pt-1">
         {query ? (
           <>
-            <div role="status" className="px-2.5 pb-1.5 pt-2 text-micro uppercase tracking-[0.07em] text-s-dim">{results.length === 0 ? "No matches" : `${results.length} result${results.length === 1 ? "" : "s"}`}</div>
+            <div role="status" className="px-2.5 pb-1.5 pt-2 text-micro text-s-dim">{results.length === 0 ? "No matches" : `${results.length} result${results.length === 1 ? "" : "s"}`}</div>
             <div id="settings-results" role="listbox" aria-label="Settings search results" className="contents">
             {results.map((r, i) => {
               const Icon = PAGE_ICONS[r.section];
@@ -92,7 +92,7 @@ export function Sidebar({ groups = NAV_GROUPS, index }: SidebarProps) {
                   className={cn("flex w-full cursor-pointer flex-col gap-0.5 rounded-lg border-0 px-2.5 py-2 text-left text-s-t1 hover:bg-s-nav-hover", i === active ? "bg-s-nav-hover outline outline-2 -outline-offset-2 outline-s-accent" : "bg-transparent")}
                 >
                   <span className="text-body">{r.label}</span>
-                  <span className="flex items-center gap-1 text-[11.5px] text-s-dim">
+                  <span className="flex items-center gap-1 text-caption text-s-dim">
                     <Icon className="h-[13px] w-[13px]" />
                     {PAGE_NAMES[r.section]}
                   </span>
@@ -117,7 +117,7 @@ export function Sidebar({ groups = NAV_GROUPS, index }: SidebarProps) {
                     {id === "server" && <span aria-hidden="true" className={cn("h-[7px] w-[7px] rounded-full", t.dot)} />}
                     {id === "diagnostics" && settings.debug && <span aria-hidden="true" className="h-[7px] w-[7px] rounded-full bg-s-amber" />}
                     {id === "updates" && updateBadge && (
-                      <span aria-hidden="true" className="rounded-full bg-s-accent/18 px-1.5 py-px text-micro font-semibold text-s-accent-text">
+                      <span aria-hidden="true" className="rounded-full bg-s-accent/18 px-1.5 py-px text-micro font-medium text-s-accent-text">
                         1
                       </span>
                     )}
@@ -146,14 +146,14 @@ export function Sidebar({ groups = NAV_GROUPS, index }: SidebarProps) {
       <div className="flex items-center gap-2.5 border-t border-s-side-line px-3.5 py-3 rail:flex-col rail:px-0">
         <span role="img" aria-label={card.title.replace("…", "")} title={`${card.title.replace("…", "")}: ${status.state === "running" ? displayAddress(status.host, status.port, lanIp) : stateWord(status.state)}`} className={cn("h-2 w-2 shrink-0 rounded-full", t.dot, t.halo)} />
         <div className="flex min-w-0 flex-1 flex-col rail:hidden">
-          <span className="text-xs font-medium text-s-t2">{card.title.replace("…", "")}</span>
+          <span className="text-caption font-medium text-s-t2">{card.title.replace("…", "")}</span>
           <span className="truncate font-mono text-micro text-s-dim">{status.state === "running" ? displayAddress(status.host, status.port, lanIp) : stateWord(status.state)}</span>
         </div>
         <button
           type="button"
           title="Help (F1)"
           onClick={() => void ipc.openHelp(settingsHelpTarget(section)).catch((e) => toast(errorText(e), true))}
-          className="flex h-6 cursor-pointer items-center gap-1 rounded-md border-0 bg-transparent px-1.5 text-[11.5px] text-s-muted hover:bg-s-nav-hover hover:text-s-t1"
+          className="flex h-6 cursor-pointer items-center gap-1 rounded-md border-0 bg-transparent px-1.5 text-caption text-s-muted hover:bg-s-nav-hover hover:text-s-t1"
         >
           <CircleHelp className="h-[14px] w-[14px]" />
           <span className="rail:sr-only">Help</span>
@@ -176,10 +176,10 @@ export function RestartBar() {
     <div role="status" className="sticky top-0 z-[4] flex min-h-11 items-center gap-3 py-1.5 border-b border-s-bar-line bg-s-bar-bg px-7 max-sm:px-4">
       <RotateCcw className="h-[18px] w-[18px] shrink-0 text-s-bar-button" />
       <span className="flex-1 text-body text-s-bar-text">{restartText(pending)}</span>
-      <button type="button" onClick={() => void undoRestart()} className="h-[30px] cursor-pointer rounded-[7px] border border-s-bar-button-line bg-transparent px-3 text-caption text-s-bar-text">
+      <button type="button" onClick={() => void undoRestart()} className="h-[30px] cursor-pointer rounded-ui-md border border-s-bar-button-line bg-transparent px-3 text-caption text-s-bar-text">
         Undo
       </button>
-      <button type="button" aria-label="Restart server" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-[7px] border-0 bg-s-bar-button px-3 text-caption font-semibold text-s-bar-button-text">
+      <button type="button" aria-label="Restart server" onClick={() => void restartServer()} className="h-[30px] cursor-pointer rounded-ui-md border-0 bg-s-bar-button px-3 text-caption font-medium text-s-bar-button-text">
         {/* Complementary ranges, so one label shows at any fractional width. */}
         <span className="[@media(width<=800px)]:hidden">Restart server</span>
         <span className="[@media(width>800px)]:hidden">Restart</span>

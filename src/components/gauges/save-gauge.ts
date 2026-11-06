@@ -43,7 +43,7 @@ export async function saveGauge(p: SaveGauge): Promise<SavedGauge> {
   const forkOf = p.itemId ?? old?.id;
   const prev = p.asNew && forkOf ? (gaugeDataOf((await getLibraryItem(forkOf).catch(() => undefined))?.data) ?? undefined) : undefined;
   const from = p.from;
-  const inProfile = from?.source.kind === "canvas" || from?.source.kind === "widget";
+  const inProfile = from?.source.kind === "canvas" || from?.source.kind === "widget" || from?.source.kind === "item";
   const data = gaugeDataFor({
     gauge: p.gauge,
     frames: p.frames ?? from?.files,

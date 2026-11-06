@@ -23,6 +23,8 @@ export interface InheritChipProps {
   onCustomise?: () => void;
   /** Widget only: "Make this the theme for… ▸". */
   onMakeTheme?: (target: MakeThemeTarget) => void;
+  /** A dot in place of the words (a section of the editor's inspector, rules §4): hollow follows, filled is set here. */
+  dot?: boolean;
   className?: string;
 }
 
@@ -48,7 +50,7 @@ const LOOK: Readonly<Record<ChipState, ChipLook>> = {
   },
   theme: {
     icon: Palette,
-    text: () => "From look",
+    text: () => "From theme",
     tip: () => "The value comes from the theme applied at this level.",
     className: INHERITED,
   },
@@ -102,7 +104,7 @@ function parentLine(state: ChipState, value: string | undefined, source: string)
  * Make this the theme for… ▸). Esc closes it. Pure: the caller resolves
  * the state (`useInheritance`) and acts.
  */
-export function InheritChip({ state, from, fromName, parentText, onReset, onJump, onCustomise, onMakeTheme, className }: InheritChipProps) {
+export function InheritChip({ state, from, fromName, parentText, onReset, onJump, onCustomise, onMakeTheme, dot = false, className }: InheritChipProps) {
   const look = LOOK[state];
   const Icon = look.icon;
   const level = LEVEL_LABELS[from ?? "screen"];
@@ -112,20 +114,29 @@ export function InheritChip({ state, from, fromName, parentText, onReset, onJump
   const source = levelWithName(level, from, fromName);
   const line = parentLine(state, parentText, source);
   const changedHere = state === "custom" || state === "base";
+  const asDot = dot && state !== "locked";
   return (
     <Menu.Root>
       <Menu.Trigger
         title={look.tip(name)}
         aria-description={look.tip(name)}
+        aria-label={asDot ? look.text(shown) : undefined}
         className={cn(
-          "inline-flex h-5 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border border-transparent px-1 font-ui text-micro font-normal leading-none transition-[filter] hover:brightness-[1.3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+          "inline-flex h-5 shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border border-transparent font-ui text-micro font-normal leading-none transition-[filter] hover:brightness-[1.3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
+          asDot ? "w-5 justify-center" : "px-1",
           look.className,
           state === "locked" && "px-2 font-medium",
           className
         )}
       >
-        {changedHere ? <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ui-blue" aria-hidden /> : <Icon className="h-3 w-3" strokeWidth={1.5} aria-hidden />}
-        {look.text(shown)}
+        {asDot ? (
+          <span className={cn("h-[7px] w-[7px] shrink-0 rounded-full", changedHere ? "bg-ui-accent" : "border border-ui-source")} aria-hidden />
+        ) : (
+          <>
+            {changedHere ? <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ui-blue" aria-hidden /> : <Icon className="h-3 w-3" strokeWidth={1.5} aria-hidden />}
+            {look.text(shown)}
+          </>
+        )}
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner className="z-(--z-menu)" sideOffset={4} align="start">

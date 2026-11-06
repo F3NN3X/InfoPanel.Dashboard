@@ -49,6 +49,7 @@ export function SvgTemplateView({ gauge, p, width, height, style }: SvgTemplateV
       src={url}
       sandbox="allow-same-origin"
       title="SVG gauge"
+      tabIndex={-1}
       width={width}
       height={height}
       onLoad={apply}

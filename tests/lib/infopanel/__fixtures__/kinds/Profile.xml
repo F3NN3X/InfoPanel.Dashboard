@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Guid>11111111-2222-3333-4444-555555555555</Guid>
+  <Name>Profile.Name &amp; &lt;é&gt;</Name>
+  <Width>607</Width>
+  <Height>407</Height>
+  <Drag>true</Drag>
+  <BackgroundColor>#FF2468AC</BackgroundColor>
+  <Active>true</Active>
+  <Topmost>false</Topmost>
+  <Font>Fira Sans</Font>
+  <FontSize>33</FontSize>
+  <Color>#FF2468AC</Color>
+  <WindowX>0</WindowX>
+  <WindowY>0</WindowY>
+  <Resize>true</Resize>
+  <StrictWindowMatching>false</StrictWindowMatching>
+  <WebViewEnabled>true</WebViewEnabled>
+  <WebViewUrl>Profile.WebViewUrl &amp; &lt;é&gt;</WebViewUrl>
+  <WebViewInteractive>true</WebViewInteractive>
+  <WebViewDisableCache>true</WebViewDisableCache>
+  <WebViewAutoRefreshSeconds>7</WebViewAutoRefreshSeconds>
+  <WebViewMaxFps>7</WebViewMaxFps>
+  <IsSelected>false</IsSelected>
+  <ShowFps>true</ShowFps>
+  <OpenGL>true</OpenGL>
+  <FontScale>1.58</FontScale>
+  <FutureProfile>7 &amp; Profile</FutureProfile>
+</Profile>

@@ -20,8 +20,7 @@ import { assetKey } from "./infopanel/assets/assets";
 import { decodeWidget, encodeItem, newStored, type AreaRecord, type StoredCanvas, type StoredItem, type WidgetItem } from "./infopanel/import/stored";
 import { newWidgetItem } from "./infopanel/native/widget-item";
 import { defaultItem, type DisplayItem } from "./infopanel/schema";
-import { ON_INFOPANEL_KEY } from "./infopanel/export/native-choices";
-import { joinAssets, joinFonts, moved, num, obj, renameFiles, roughBox, union, withoutItems } from "./page-model/stored-items";
+import { ON_INFOPANEL_KEY, joinAssets, joinFonts, moved, num, obj, renameFiles, roughBox, union, withoutItems } from "./page-model/stored-items";
 
 /**
  * On the free area a switch to Grid made of loose parts: where its canvas sat on the page's canvas, so the switch

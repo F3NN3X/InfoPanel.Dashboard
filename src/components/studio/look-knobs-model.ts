@@ -96,7 +96,7 @@ const SHORT: Readonly<Record<string, string>> = { "matte-light": "Light", "matte
 
 /** The Surface chips: the Look's own card (no value stored) and the app's four materials; the rest stay in Advanced. */
 export const SURFACES: readonly { value: string; label: string; name: string }[] = [
-  { value: "", label: "Look", name: "The Look's own" },
+  { value: "", label: "Theme's own", name: "The theme's own" },
   ...SURFACE_OPTIONS.slice(0, 4).map((o) => ({ value: o.value, label: SHORT[o.value] ?? o.label, name: o.label })),
 ];
 

@@ -65,13 +65,12 @@ export function islandSectionId(mod: DashboardModule | undefined): string | unde
   return allSections(widgetContext(mod)).find((s) => s.settings.some((d) => d.key === ISLAND_SETTING))?.id;
 }
 
-/** The alert rules that show on this profile's island: display style Island (or the default), for this profile. */
+/** The alert rules that show on this profile's island: display style Island or Auto (their own or the default), for this profile. */
 export function islandRules(alerts: AlertsConfig, profileId: string): AlertRule[] {
-  return alerts.rules.filter(
-    (r) =>
-      (r.outputs.display?.style ?? alerts.defaults.style) === "island" &&
-      (!r.profiles || r.profiles.length === 0 || r.profiles.includes(profileId))
-  );
+  return alerts.rules.filter((r) => {
+    const style = r.outputs.display?.style ?? alerts.defaults.style;
+    return (style === "island" || style === "auto") && (!r.profiles || r.profiles.length === 0 || r.profiles.includes(profileId));
+  });
 }
 
 /** What a read-only island row shows: the value, where it comes from, and whether the island still holds its own. */

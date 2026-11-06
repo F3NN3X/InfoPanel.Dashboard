@@ -14,8 +14,6 @@ import { widgetOf } from "@/lib/infopanel/native/widget-item";
 import type { DisplayItem } from "@/lib/infopanel/schema";
 import { nearestCells, type PageGrid } from "@/lib/page-model/model";
 import type { LayerAction } from "@/lib/page-model/layer-actions";
-import { createElement } from "react";
-import { StatusIcon, type ExportCheckState } from "../export-check-panel";
 import { ELEMENT_ICONS } from "./element-ui";
 import { kindIcon } from "./item-icons";
 import type { CanvasEditor } from "./use-canvas-editor";
@@ -47,10 +45,9 @@ const listOf = (items: readonly DisplayItem[], parent: Path): readonly DisplayIt
 };
 
 /**
- * `grid`: the page's cells (none on a free area), for Snap to grid; each new `renameRequest` renames the primary (F2);
- * `check`: the editor's Export check, for the rows' statuses.
+ * `grid`: the page's cells (none on a free area), for Snap to grid; each new `renameRequest` renames the primary (F2).
  */
-export function useCanvasLayers(editor: CanvasEditor, grid: PageGrid | undefined, renameRequest: number, check: ExportCheckState): LayersHost {
+export function useCanvasLayers(editor: CanvasEditor, grid: PageGrid | undefined, renameRequest: number): LayersHost {
   const items = editor.committed;
   const nodes = useMemo(() => nodesOf(items), [items]);
   const selection = editor.selection;
@@ -164,6 +161,8 @@ export function useCanvasLayers(editor: CanvasEditor, grid: PageGrid | undefined
         if (groupId === null) return editor.group();
         editor.move(groupId, listOf(items, groupId).length);
       },
+      // To the top list, at the front, as a drop on the top does.
+      moveOut: { enabled: selection.some((p) => parentOf(p) !== ""), run: () => (selection.some((p) => parentOf(p) !== "") ? editor.move("", items.length) : undefined) },
     },
     iconOf: (node) => {
       const item = itemAt(items, node.id);
@@ -172,12 +171,6 @@ export function useCanvasLayers(editor: CanvasEditor, grid: PageGrid | undefined
       const element = elementOf(item);
       return element ? ELEMENT_ICONS[element.type] : kindIcon(item?.kind ?? "Shape");
     },
-    statusIcon: check.on
-      ? (id) => {
-          const status = check.byPath.get(id)?.status;
-          return status ? createElement(StatusIcon, { status }) : null;
-        }
-      : undefined,
     renameRequest,
   };
 }

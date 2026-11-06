@@ -267,29 +267,27 @@ AnimationSpeed with a crossfade. Every change is one undo step.
   (`v0-themely-resource-creator`, Canvas 2D, 101 PNG frames); rewritten as pure SVG geometry. A new one starts from
   a starter; **Convert to vector** puts a spec on an imported gauge. The spec lives in the lab field `vector`.
 - A vector gauge needs no frames: the canvas draws it live at the value, moving at AnimationSpeed percent of the
-  range a second (what 101 baked frames would do in InfoPanel), and native mode draws it as the studio's custom
-  gauge widget (a prototype; the app's widget is an app phase) with nothing lost. **Bake** is only for InfoPanel:
-  it renders N PNG frames (frame i at i / (N − 1) of the range, the one InfoPanel picks); the list says when
-  there are none or they are out of date. **Back to frames only** drops the spec and keeps the frames.
+  range a second (what the creator's 101 PNG frames did), and native mode draws it as the studio's custom
+  gauge widget (a prototype; the app's widget is an app phase) with nothing lost. The lab no longer renders
+  frames from a spec. **Back to frames only** drops the spec and keeps the frames.
 - **Gauge parts** (L10, `parts.ts`, `VectorParts.tsx`, shaped for the app's widgets): colours can be theme colours
   (accent, warning, critical, text, muted, track: the widgets' `--accent`, `--w-*` variables, live in the studio and
-  their dark-surface values when baked); a threshold fill uses the ok colour below `warn`, then warning and critical,
+  their dark-surface values outside the studio); a threshold fill uses the ok colour below `warn`, then warning and critical,
   like the widgets' tone; a scale (min, max, unit, decimals: automatic is one decimal below 10) feeds tick labels,
   value text (`{value}{unit}`) and thresholds, independent of the item's MinValue / MaxValue. Also minor ticks,
   needle styles (taper, line, arrow, blade), a background (disc or rounded rect, with a border), glow around the
   fill, a drop shadow and track opacity. Text may use any installed font. Every part is optional: specs from before
-  keep drawing (and their baked frames stay up to date). One renderer (`vector-svg.ts`) draws live and baked
-  gauges. Presets in `presets.ts`; **Export spec** / *from a spec file* save and load one gauge as `.gauge.json`.
+  keep drawing. One renderer (`vector-svg.ts`) draws the gauges. Presets in `presets.ts`; **Export spec** / *from a spec file* save and load one gauge as `.gauge.json`.
 - **Later parts** (L13, `shapes.ts`, `VectorShapes.tsx`; the gauge creator's, as geometry): shape **liquid** (a
   round, rect, diamond or point-up hexagon container filled with the track, the liquid clipped to it at the value,
-  a wave of a height and count that drifts live, an optional shine along the surface and bubbles rising to it;
-  baked, the bubbles stay put, spread through the liquid) and shape **grid** (rows × columns of square, rounded or
+  a wave of a height and count that drifts live, an optional shine along the surface and bubbles rising to it)
+  and shape **grid** (rows × columns of square, rounded or
   round cells with an optional border, lit from the bottom left along the rows or up the columns, or in a stable
   random order, or from the middle out; each cell coloured by its place in that order); **rings** outside an arc (decoration
   fading outwards, as in the creator: the value does not drive them); a **pattern** over a bar's continuous fill
   (stripes, dots or chevrons, optionally moving along the fill); a row of **icons** instead of a bar (each lit in
   turn, the one at the value partly when progressive); a **centre icon**. Icons are the app's widget icon set
-  (lucide, `src/lib/widget-icons.ts`). Motion is live only; baked frames are still. Not ported: the creator's
+  (lucide, `src/lib/widget-icons.ts`). Motion is live only. Not ported: the creator's
   reflection (never drawn there) and its blinking "activity" and "wave" grid fills (not driven by the value alone).
 - The lab draws gauges with the widget colour variables set as the app's Widget shell sets them: the lab page's
   own `--accent` is a shadcn HSL triple, which drew theme-coloured parts black.
@@ -320,21 +318,6 @@ The **Import** panel (`src/import/`) runs the import end to end, as the app's ca
   what it drops. **Save stored form** downloads it with its files as `<name>.canvas.zip` (`bundle.ts`:
   `canvas.json`, `assets/<sha256>`, `fonts/<sha256>`, each checked against its hash on open); open it again under
   "or a saved canvas" and the mode, remap choices, fonts and assets come back.
-- **Export .infopanel** (`src/export/write.ts`): writes `Profile.xml` and `DisplayItems.xml` in InfoPanel's field
-  order (doubles and floats as .NET prints them, unknown fields kept, lab fields left out) and the assets. Stale
-  vector gauges can be baked first (one undo step); unused assets can be left out. Every corpus profile round-trips
-  through the writer in the tests.
 - **Lab asset store** (`asset-store-plugin.ts`, `src/assets/store.ts`, on `hash-store.ts` shared with the gauge
   library): stands in for the app's asset store, so native images have a URL; files go to `asset-store/`
   (gitignored), raster images only, stored by hash and served with nosniff and a sandbox CSP.
-- **import-check** (`tools/import-check/`): reads exports with InfoPanel's own `XmlSerializer` types and writes
-  what InfoPanel then holds:
-
-  ```
-  dotnet run --project lab/infopanel/tools/import-check -p:Platform=x64 -- <out-folder> <a.infopanel> [...]
-  ```
-
-  It builds against the InfoPanel checkout at `E:\GitHub\PublicRepos\infopanel-pr173` (override with
-  `-p:InfoPanelProject=...`). For ARCv2_WIDE, Dashboard,
-  Umbrella_V.2 and [Import]_TheForeverWinter, the lab's export of the untouched profile reads back identical to
-  the original.

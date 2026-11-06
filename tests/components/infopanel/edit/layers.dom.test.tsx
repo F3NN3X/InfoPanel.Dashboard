@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { createEvent, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { HostedEditor } from "@tests/components/infopanel/edit/hosted-editor";
 import { withCanvas } from "@/components/studio/import-actions";
 import { openCanvas } from "@/lib/infopanel/canvas";
@@ -22,7 +22,6 @@ const items: DisplayItem[] = [
 const canvas = storeItems(base, openCanvas(base).profile, items);
 const zone = { id: "z", module: CANVAS_ID, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas } as Placement & { canvas: StoredCanvas };
 const config = { profiles: [{ id: "p1", name: "Main", pages: [{ id: "pg", name: "Page 1", placements: [zone] }] }] } as unknown as DashboardConfig;
-const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
 
 /** A dragover at a height in the row (happy-dom drops clientY from the init). */
 const over = (el: Element, clientY: number) => {
@@ -37,7 +36,7 @@ describe("Layers", () => {
     const setConfig = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={setConfig} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={setConfig} profileId="p1" />
       </ToastProvider>,
     );
     const group = row("Panel");
@@ -60,7 +59,7 @@ describe("Layers", () => {
   it("marks where a drop lands: a line above or below a row, a box inside a group", () => {
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     const rect = { top: 0, bottom: 30, height: 30, left: 0, right: 100, width: 100, x: 0, y: 0, toJSON: () => ({}) };
@@ -84,7 +83,7 @@ describe("Layers", () => {
   it("shows why a drop can't land: a group into itself", () => {
     render(
       <ToastProvider>
-        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} history={history} profileId="p1" />
+        <HostedEditor tab="layers" zone={zone} setConfig={vi.fn()} profileId="p1" />
       </ToastProvider>,
     );
     const group = row("Panel");
@@ -93,5 +92,26 @@ describe("Layers", () => {
     over(group, 15);
     expect(within(screen.getByRole("region", { name: "Layers" })).getByRole("status").textContent).toContain("can’t go into itself");
     expect(group.getAttribute("data-drop")).toBeNull();
+  });
+  it("moves a grouped item out of its group from the layer menu, as one step", async () => {
+    const inner: DisplayItem[] = [{ ...defaultItem("Group"), Name: "Panel", IsExpanded: true, DisplayItems: [{ ...defaultItem("Text"), Name: "Inner", X: 5, Y: 5 }] }];
+    const grouped = storeItems(base, openCanvas(base).profile, inner);
+    const gzone = { ...zone, canvas: grouped } as Placement & { canvas: StoredCanvas };
+    const setConfig = vi.fn();
+    render(
+      <ToastProvider>
+        <HostedEditor tab="layers" zone={gzone} setConfig={setConfig} profileId="p1" />
+      </ToastProvider>,
+    );
+    fireEvent.click(row("Inner"));
+    fireEvent.contextMenu(row("Inner"), { clientX: 10, clientY: 10 });
+    const menu = await screen.findByTestId("layer-menu");
+    fireEvent.click(within(menu).getByRole("menuitem", { name: /Move to group/ }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: /Move out of group/ }));
+
+    expect(setConfig).toHaveBeenCalledTimes(1);
+    const next = setConfig.mock.calls[0][0](withCanvas(config, "z", grouped)) as DashboardConfig;
+    const saved = readStored(next.profiles[0].pages[0].placements[0].canvas).items;
+    expect(saved.map((i) => i.Name)).toEqual(["Panel", "Inner"]);
   });
 });

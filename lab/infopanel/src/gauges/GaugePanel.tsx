@@ -1,7 +1,7 @@
 /**
  * Gauges (L7): the profile's gauges, a preview at any value with InfoPanel's
  * frame pick and AnimationSpeed smoothing, frame editing (order, replace,
- * resample, recolour), vector gauges (spec, bake into frames) and the gauge
+ * resample, recolour), vector gauges (spec) and the gauge
  * library. Every change is one undo step.
  */
 import { useEffect, useRef, useState } from "react";
@@ -12,11 +12,11 @@ import type { Editor } from "../editor/useEditor.ts";
 import { gaugeFrame, smoothIndex } from "@/lib/infopanel/render/geometry.ts";
 import type { GaugeItem } from "@/lib/infopanel/schema.ts";
 import {
-  bakeSignature, duplicateOrder, frameNames, gaugePaths, insertFramesGauge, insertVectorGauge, isGauge, isStale, moveOrder,
+  duplicateOrder, frameNames, gaugePaths, insertFramesGauge, insertVectorGauge, isGauge, moveOrder,
   removeOrder, reorderFrames, resampleOrder, reverseOrder, safeStem, setFrameFile, setFrameFiles, setVector, vectorOf,
 } from "@/lib/infopanel/gauges/frames.ts";
 import { deleteEntry, entrySignature, fetchFrame, fetchLibrary, newId, saveEntry, type LibraryEntry } from "./library.ts";
-import { bake, NO_RECOLOUR, recolourFilter, recolourFrames, type Recolour } from "@/lib/infopanel/gauges/raster.ts";
+import { NO_RECOLOUR, recolourFilter, recolourFrames, type Recolour } from "@/lib/infopanel/gauges/raster.ts";
 import { STARTERS } from "@/lib/infopanel/gauges/presets.ts";
 import { readSpecFile, specFile } from "@/lib/infopanel/gauges/spec-file.ts";
 import { VectorForm } from "./VectorForm.tsx";
@@ -202,7 +202,6 @@ export function GaugePanel({ editor, profileName }: { editor: Editor; profileNam
   const [playing, setPlaying] = useState(false);
   const [filter, setFilter] = useState<string | undefined>();
   const [starter, setStarter] = useState(0);
-  const [bakeCount, setBakeCount] = useState(101);
   const [library, setLibrary] = useState<LibraryEntry[] | null>(null);
   const [libraryError, setLibraryError] = useState<string | null>(null);
   const doc: Doc = { items: editor.present, assets: editor.assets };
@@ -349,7 +348,6 @@ export function GaugePanel({ editor, profileName }: { editor: Editor; profileNam
                   <td>{gauge.Name}</td>
                   <td>
                     {vectorOf(gauge) ? "vector, live" : "frames"}
-                    {isStale(gauge) && <span style={{ color: "#999" }}> ({gauge.Images.length ? "InfoPanel frames out of date" : "no InfoPanel frames"})</span>}
                   </td>
                   <td>
                     {gauge.Images.length}
@@ -417,20 +415,7 @@ export function GaugePanel({ editor, profileName }: { editor: Editor; profileNam
                     onCommit={(next) => editor.apply(setVector(editor.present, selected, next))}
                   />
                   <p>
-                    The studio draws this gauge live. For InfoPanel (optional), bake it into{" "}
-                    <input type="number" min={2} max={1000} value={bakeCount} style={{ width: 64 }} onChange={(e) => setBakeCount(Math.max(2, Math.min(1000, Number(e.target.value) || 2)))} />{" "}
-                    PNG frames{" "}
-                    <button
-                      onClick={() =>
-                        run("Baking", async () => {
-                          const files = await bake(vector, bakeCount, safeStem(g.Name), (done) => setNote(`Baking… ${done}/${bakeCount}`));
-                          editor.applyDoc(setFrameFiles(doc, selected, files, bakeSignature(vector, bakeCount)));
-                        })
-                      }
-                    >
-                      Bake
-                    </button>{" "}
-                    {!isStale(g) ? "frames are up to date" : g.Images.length ? "the frames are out of date" : "no frames yet"} ·{" "}
+                    The studio draws this gauge live.{" "}
                     <button onClick={() => editor.apply(setVector(editor.present, selected, null))} title="Keeps the frames">
                       Back to frames only
                     </button>{" "}
@@ -441,7 +426,7 @@ export function GaugePanel({ editor, profileName }: { editor: Editor; profileNam
                 <p>
                   <button
                     onClick={() => editor.apply(setVector(editor.present, selected, { ...STARTERS[starter].gauge }))}
-                    title="Draws the gauge from a vector spec (the starter chosen above); the frames stay until baked"
+                    title="Draws the gauge from a vector spec (the starter chosen above); the frames stay"
                   >
                     Convert to vector ({STARTERS[starter].name})
                   </button>

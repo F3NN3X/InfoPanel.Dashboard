@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDisplayItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DisplayItem xsi:type="ImageDisplayItem">
+    <Name>Image.Name &amp; &lt;é&gt;</Name>
+    <Hidden>true</Hidden>
+    <X>107</X>
+    <Y>107</Y>
+    <IsLocked>true</IsLocked>
+    <Rotation>7</Rotation>
+    <Type>URL</Type>
+    <FilePath>pic &amp; more.png</FilePath>
+    <RelativePath>true</RelativePath>
+    <RtspUrl>rtsp://cam.local/stream</RtspUrl>
+    <HttpUrl>https://example.com/a.png</HttpUrl>
+    <Cache>false</Cache>
+    <Scale>107</Scale>
+    <Layer>true</Layer>
+    <LayerColor>#FF2468AC</LayerColor>
+    <ShowPanel>true</ShowPanel>
+    <Volume>7</Volume>
+    <Width>7</Width>
+    <Height>7</Height>
+    <FutureImage>7 &amp; Image</FutureImage>
+  </DisplayItem>
+</ArrayOfDisplayItem>

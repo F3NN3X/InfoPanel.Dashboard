@@ -1,15 +1,18 @@
 /**
- * The Gauges view's right pane (spec §6): a large live preview with play and a scrubber, name,
- * "kind · where", copies placed, the primary action (Customise a copy / Edit) and Add to canvas,
- * Duplicate and Export.
+ * The Gauges view's right pane (spec §5): a large live preview (the sweep with play and a scrubber, or the sensor
+ * picked in "Preview with"), name, "kind · where", copies placed, and the actions: Add to canvas, Customise a copy
+ * or Edit, Duplicate and Export. A sensor here is only for looking: it is not saved with the gauge.
  */
 import { useState } from "react";
-import { Pencil, Eye } from "lucide-react";
+import { Eye, Pencil, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SensorField } from "@/components/studio/widget-editor/sensor-field";
 import { cn } from "@/lib/utils";
 import { KIND_LABEL, type GaugeEntry } from "@/lib/gauge-studio/model";
 import type { GaugeActions } from "./gauge-actions";
 import { GaugeView } from "./gauge-view";
 import { PlayControls } from "./play-controls";
+import { useGaugeView, useLiveReading } from "./use-gauge-view";
 import { usePlayback } from "./use-playback";
 
 export interface GaugeDetailProps {
@@ -21,13 +24,18 @@ export interface GaugeDetailProps {
   scope: Record<string, string>;
   /** What the pane's buttons do: the same actions as the card's menu. */
   actions: GaugeActions;
+  /** The preview sensor picker's "Open data explorer". */
+  onOpenSources: () => void;
 }
 
-export function GaugeDetail({ entry, sheet, copies, scope, actions }: GaugeDetailProps) {
+export function GaugeDetail({ entry, sheet, copies, scope, actions, onOpenSources }: GaugeDetailProps) {
   const playback = usePlayback();
+  const [view, setView] = useGaugeView();
+  const live = useLiveReading(view, entry.min, entry.max);
   const [picking, setPicking] = useState(false);
   const { edit, secondary } = actions;
   const choices = secondary.find((a) => a.choices)?.choices ?? [];
+  const [add, ...rest] = secondary;
   return (
     <aside
       aria-label="Gauge details"
@@ -36,13 +44,13 @@ export function GaugeDetail({ entry, sheet, copies, scope, actions }: GaugeDetai
         sheet ? "min-w-0 flex-1" : "w-[320px] shrink-0 border-l border-ui-subtle",
       )}
     >
-      <div className={cn("flex aspect-square w-full items-center justify-center rounded-[10px] border border-ui-subtle bg-ui-app", sheet && "max-w-[248px] self-center")}>
-        <GaugeView gauge={entry.gauge} frames={entry.frames} p={playback.p} size={248} scope={scope} />
+      <div className={cn("flex aspect-square w-full items-center justify-center rounded-ui-lg border border-ui-subtle bg-ui-app", sheet && "max-w-[248px] self-center")}>
+        <GaugeView gauge={entry.gauge} frames={entry.frames} p={live.p ?? playback.p} size={248} scope={scope} />
       </div>
-      <PlayControls playback={playback} />
+      {live.p === null && <PlayControls playback={playback} />}
       <div>
-        <div className="truncate text-[14px] font-semibold text-ui-1">{entry.name}</div>
-        <div className="font-ui-mono text-micro text-ui-4">
+        <div className="truncate text-title font-medium text-ui-1">{entry.name}</div>
+        <div className="font-ui-mono text-micro text-ui-3">
           {KIND_LABEL[entry.kind]} · {entry.where}
         </div>
         {copies !== undefined && (
@@ -51,30 +59,20 @@ export function GaugeDetail({ entry, sheet, copies, scope, actions }: GaugeDetai
           </div>
         )}
       </div>
+      <SensorField label="Preview with" hint="Only for looking: not saved with the gauge" value={view.sensor ?? undefined} onChange={(sensor) => setView({ sensor: sensor ?? null })} onOpenExplorer={onOpenSources} />
       <div className="flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={edit.run}
-          className="flex h-(--ui-h-field) w-full items-center justify-center gap-2 rounded-ui-md bg-ui-inverse px-3 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90"
-        >
-          <Pencil className="h-4 w-4" strokeWidth={1.75} />
-          {entry.source.kind === "preset" ? "Customize a copy" : "Edit"}
-        </button>
-        <div className="grid grid-cols-2 gap-2 [&>*:last-child:nth-child(odd)]:col-span-2">
-          {secondary.map((a) => (
-            <button
-              key={a.label}
-              type="button"
-              onClick={a.choices ? () => setPicking((p) => !p) : a.run}
-              disabled={a.disabled}
-              title={a.title}
-              className={cn("flex h-(--ui-h-field) items-center justify-center gap-2 rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover disabled:pointer-events-none disabled:opacity-40")}
-            >
-              <a.icon className="h-4 w-4" strokeWidth={1.75} />
-              {a.label}
-            </button>
-          ))}
-        </div>
+        {add && (
+          <Button
+            onClick={add.choices ? () => setPicking((p) => !p) : add.run}
+            disabled={add.disabled}
+            title={add.title}
+            aria-expanded={add.choices ? picking : undefined}
+            icon={<Plus strokeWidth={1.5} />}
+            className="w-full"
+          >
+            {add.label}
+          </Button>
+        )}
         {picking && choices.length > 0 && (
           <div role="group" aria-label="Canvas zones" className="flex flex-col gap-1 rounded-ui-md border border-ui-subtle p-1">
             {choices.map((c) => (
@@ -85,21 +83,32 @@ export function GaugeDetail({ entry, sheet, copies, scope, actions }: GaugeDetai
                   setPicking(false);
                   c.run();
                 }}
-                className="h-8 truncate rounded-ui-sm px-2 text-left text-[12.5px] text-ui-1 hover:bg-ui-hover"
+                className="h-8 truncate rounded-ui-sm px-2 text-left text-body text-ui-1 hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
               >
                 {c.label}
               </button>
             ))}
           </div>
         )}
+        <Button onClick={edit.run} icon={<Pencil strokeWidth={1.5} />} className="w-full">
+          {entry.source.kind === "preset" ? "Customize a copy" : "Edit"}
+        </Button>
+        <div className="flex flex-wrap items-center justify-center gap-1">
+          {rest.map((a) => (
+            <Button key={a.label} variant="ghost" small onClick={a.run} disabled={a.disabled} title={a.title} icon={<a.icon strokeWidth={1.5} />}>
+              {a.label}
+            </Button>
+          ))}
+        </div>
       </div>
+      {entry.source.kind === "preset" && <p className="text-caption leading-snug text-ui-3">Customizing saves a draft copy in your library as soon as you change something, so leaving the editor never loses work</p>}
     </aside>
   );
 }
 
 export function EmptyDetail() {
   return (
-    <aside className="flex w-[320px] shrink-0 flex-col items-center justify-center gap-2 border-l border-ui-subtle bg-ui-panel p-6 text-center font-ui text-[12.5px] text-ui-4">
+    <aside className="flex w-[320px] shrink-0 flex-col items-center justify-center gap-2 border-l border-ui-subtle bg-ui-panel p-6 text-center font-ui text-body text-ui-3">
       <Eye className="h-5 w-5" />
       Select a gauge to see it here. Double-click one to edit it.
     </aside>

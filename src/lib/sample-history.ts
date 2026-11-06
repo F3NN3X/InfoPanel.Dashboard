@@ -1,7 +1,7 @@
 import type { SensorMap } from "@/modules/types";
 
-/** Samples kept per key (the inspector's sparkline). */
-export const HISTORY_SIZE = 24;
+/** Samples kept per key: about the last minute at the stream's 1 s cadence. */
+export const HISTORY_SIZE = 60;
 /** Spacing of recorded samples; a hair under the stream's 1 s cadence so none is skipped. */
 export const SAMPLE_GAP_MS = 900;
 
@@ -52,19 +52,16 @@ export class SampleHistory {
     };
   }
 
+  /** Forget one key's samples (it left the rows being watched). */
+  forget(key: string): void {
+    this.buffers.delete(key);
+  }
+
   /** Forget everything (the Data API URL changed). */
   clear(): void {
     this.buffers.clear();
     this.lastRecordedAt = 0;
   }
-}
-
-/** Sparkline bar heights (percent, 20 to 100) for samples scaled between their min and max. */
-export function barHeights(samples: readonly number[]): number[] {
-  if (samples.length === 0) return [];
-  const min = Math.min(...samples);
-  const span = Math.max(...samples) - min || 1;
-  return samples.map((v) => 20 + ((v - min) / span) * 80);
 }
 
 /** Push every numeric reading of a snapshot into the history. */

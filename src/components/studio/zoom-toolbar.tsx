@@ -1,9 +1,11 @@
-import { Grid3x3, Minus, Plus, RefreshCw, RulerDimensionLine, Snowflake } from "lucide-react";
+import { Menu } from "@base-ui/react/menu";
+import { ChevronUp, Grid3x3, Hand, Maximize, Minus, MousePointer2, PanelRight, Plus, RefreshCw, Snowflake } from "lucide-react";
 import type { PreviewDataState } from "@/hooks/use-preview-data";
 import { openSettings } from "@/lib/desktop";
 import { IconButton } from "@/components/ui/icon-button";
 import type { ProfileView } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { ITEM, POPUP } from "./menu-styles";
 import { KEYS } from "./use-studio-shortcuts";
 
 interface ZoomToolbarProps {
@@ -32,32 +34,27 @@ interface ZoomToolbarProps {
   bottom?: number;
   /** The Design preview data (a `Frozen` chip while frozen); none outside Design. */
   preview?: PreviewDataState;
-  /** The page's Snap items (Edit v3 SPEC §7.2): the bar says how parts snap; unset outside Edit. */
+  /** The bar says how parts snap (the InfoPanel editor's; on a grid page the status bar does). */
   snapItems?: boolean;
-  /**
-   * `Studio | InfoPanel` (decision Q10): on a screen made for InfoPanel too, the canvas drawn as it is or as the page
-   * exports; unset otherwise.
-   */
-  exportView?: ExportView;
+  /** Select and Pan: Pan keeps the hand tool on (Space and the middle button still hold it); unset outside the studio canvas. */
+  tool?: { hand: boolean; onHand: (hand: boolean) => void };
+  /** Add widget: the left panel's Add tab. */
+  onAdd?: () => void;
+  /** A floating inspector's opener (a narrow window: it starts closed). */
+  inspector?: { open: boolean; onToggle: () => void };
 }
 
-/** The canvas's view on a screen made for InfoPanel too: true draws the page as it exports. */
-export interface ExportView {
-  infoPanel: boolean;
-  onChange: (infoPanel: boolean) => void;
-}
-
-const BAR_BUTTON = "h-7 w-7 rounded-md hover:bg-ui-default";
-const TOGGLE_BUTTON = cn(BAR_BUTTON, "text-ui-2");
-const TEXT_BUTTON = "flex h-[26px] items-center gap-1 rounded-md px-2 text-micro text-ui-2 transition-colors hover:bg-ui-default";
+const BAR_BUTTON = "h-7 w-7 rounded-ui-md hover:bg-ui-hover";
+const TEXT_BUTTON = "flex h-7 items-center gap-1 rounded-ui-md px-2 text-micro text-ui-2 transition-colors hover:bg-ui-hover";
 
 function Divider() {
   return <div className="mx-1 h-[18px] w-px shrink-0 bg-ui-strong" />;
 }
 
 /**
- * The floating bar over the canvas (16 px from the bottom, centred): grid
- * and ruler toggles, zoom, Fit and the size link (Screens).
+ * The bottom toolbar over the canvas (16 px from the bottom, centred): Select and Pan, Add widget, zoom, Fit and the
+ * grid with its menu (rulers, 100%, Zoom to selection and the size link). The Frozen chip
+ * follows while it applies.
  */
 export function ZoomToolbar({
   zoom,
@@ -77,113 +74,111 @@ export function ZoomToolbar({
   bottom,
   preview,
   snapItems,
-  exportView,
+  tool,
+  onAdd,
+  inspector,
 }: ZoomToolbarProps) {
+  const actual = !fitting && Math.abs(zoom - 1) < 0.005;
   return (
     <div
       style={bottom === undefined ? undefined : { bottom }}
       className={cn(
-        // Narrower than the canvas (a phone), it scrolls sideways rather than widening the studio.
-        "absolute bottom-4 left-1/2 z-30 flex h-9 max-w-[calc(100%-16px)] -translate-x-1/2 items-center gap-0.5 overflow-x-auto whitespace-nowrap px-1 [scrollbar-width:none] [&>*]:shrink-0",
-        "rounded-[10px] border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
+        "absolute bottom-4 left-1/2 z-30 flex h-[42px] max-w-[calc(100%-16px)] -translate-x-1/2 items-center gap-0.5 px-1.5",
+        "rounded-ui-menu border border-ui-strong bg-ui-raised font-ui shadow-ui-float"
       )}
     >
-      {onToggleGrid && (
-        <IconButton label="Toggle grid" className={TOGGLE_BUTTON} active={showGrid} aria-pressed={showGrid} onClick={onToggleGrid}>
-          <Grid3x3 className="h-[18px] w-[18px]" />
-        </IconButton>
-      )}
-      <IconButton label="Toggle rulers" className={TOGGLE_BUTTON} active={showRulers} aria-pressed={showRulers} onClick={onToggleRulers}>
-        <RulerDimensionLine className="h-[18px] w-[18px]" />
-      </IconButton>
-      <Divider />
-      <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
-        <Minus className="h-[18px] w-[18px]" />
-      </IconButton>
-      <span className="min-w-11 text-center font-ui-mono text-micro text-ui-1">{Math.round(zoom * 100)}%</span>
-      <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
-        <Plus className="h-[18px] w-[18px]" />
-      </IconButton>
-      <button
-        type="button"
-        onClick={onFit}
-        aria-pressed={fitting}
-        title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
-        className={cn(
-          "h-[26px] rounded-md px-[9px] text-micro font-medium transition-colors",
-          fitting ? "bg-ui-active text-ui-1" : "text-ui-4 hover:bg-ui-default"
+      {/* Narrower than the canvas (a phone), the controls scroll sideways rather than widening the studio; the inspector's opener stays. */}
+      <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&>*]:shrink-0">
+        {tool && (
+          <>
+            <IconButton label="Select" className={BAR_BUTTON} active={!tool.hand} aria-pressed={!tool.hand} onClick={() => tool.onHand(false)}>
+              <MousePointer2 className="h-4 w-4" />
+            </IconButton>
+            <IconButton label="Pan (hold Space)" className={BAR_BUTTON} active={tool.hand} aria-pressed={tool.hand} onClick={() => tool.onHand(true)}>
+              <Hand className="h-4 w-4" />
+            </IconButton>
+            <Divider />
+          </>
         )}
-      >
-        Fit
-      </button>
-      {onActualSize && (
+        {onAdd && (
+          <>
+            <button type="button" onClick={onAdd} className="flex h-7 items-center gap-1.5 rounded-ui-md border border-ui-strong px-2.5 text-caption font-medium text-ui-1 transition-colors hover:bg-ui-hover">
+              <Plus className="h-4 w-4" aria-hidden /> Add widget
+            </button>
+            <Divider />
+          </>
+        )}
+        <IconButton label={`Zoom out (${KEYS.zoomOut})`} className={BAR_BUTTON} onClick={() => onZoomStep(-1)}>
+          <Minus className="h-4 w-4" />
+        </IconButton>
+        <span className="min-w-11 text-center font-ui-mono text-caption tabular-nums text-ui-1">{Math.round(zoom * 100)}%</span>
+        <IconButton label={`Zoom in (${KEYS.zoomIn})`} className={BAR_BUTTON} onClick={() => onZoomStep(1)}>
+          <Plus className="h-4 w-4" />
+        </IconButton>
         <button
           type="button"
-          onClick={onActualSize}
-          aria-pressed={!fitting && Math.abs(zoom - 1) < 0.005}
-          title="Show the page at its real size"
-          className={cn("h-[26px] rounded-md px-[9px] text-micro font-medium transition-colors", !fitting && Math.abs(zoom - 1) < 0.005 ? "bg-ui-active text-ui-1" : "text-ui-4 hover:bg-ui-default")}
+          onClick={onFit}
+          aria-label="Fit"
+          aria-pressed={fitting}
+          title={`Fit the page to the canvas and keep it fitted (${KEYS.fit})`}
+          className={cn("grid h-7 w-7 place-items-center rounded-ui-md transition-colors", fitting ? "bg-ui-active text-ui-1" : "text-ui-3 hover:bg-ui-hover hover:text-ui-1")}
         >
-          100%
+          <Maximize className="h-4 w-4" aria-hidden />
         </button>
-      )}
-      {onZoomSelection && (
-        <button
-          type="button"
-          onClick={onZoomSelection}
-          disabled={!hasSelection}
-          title={hasSelection ? `Zoom to the selected widget (${KEYS.zoomSelection})` : "Select a widget to zoom to it"}
-          className="h-[26px] rounded-md px-[9px] text-micro font-medium text-ui-4 transition-colors hover:bg-ui-default disabled:pointer-events-none disabled:opacity-40"
-        >
-          Selection
-        </button>
-      )}
-      <Divider />
-      <button
-        type="button"
-        onClick={onOpenProfile}
-        title={sizeTitle}
-        className={cn(TEXT_BUTTON, "font-ui-mono text-micro")}
-      >
-        {profile.width}×{profile.height} ↗
-      </button>
-      {snapItems !== undefined && (
+        <Divider />
+        {onToggleGrid && (
+          <IconButton label="Toggle grid" className={BAR_BUTTON} active={showGrid} aria-pressed={showGrid} onClick={onToggleGrid}>
+            <Grid3x3 className="h-4 w-4" />
+          </IconButton>
+        )}
+        <Menu.Root>
+          <Menu.Trigger aria-label="View options" title="View options" className="grid h-7 w-5 place-items-center rounded-ui-md text-ui-3 transition-colors hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover">
+            <ChevronUp className="h-3.5 w-3.5" aria-hidden />
+          </Menu.Trigger>
+          <Menu.Portal>
+            <Menu.Positioner className="z-[80]" side="top" sideOffset={8} align="end">
+              <Menu.Popup className={POPUP}>
+                <Menu.Item className={ITEM} onClick={onToggleRulers}>
+                  {showRulers ? "Hide rulers" : "Show rulers"}
+                </Menu.Item>
+                {onActualSize && (
+                  <Menu.Item className={ITEM} disabled={actual} onClick={onActualSize}>
+                    Show at 100%
+                  </Menu.Item>
+                )}
+                {onZoomSelection && (
+                  <Menu.Item className={ITEM} disabled={!hasSelection} onClick={onZoomSelection}>
+                    Zoom to selection <span className="text-micro text-ui-hint">{KEYS.zoomSelection}</span>
+                  </Menu.Item>
+                )}
+                <Menu.Item className={ITEM} onClick={onOpenProfile} title={sizeTitle}>
+                  <span className="font-ui-mono">
+                    {profile.width} × {profile.height}
+                  </span>{" "}
+                  ↗
+                </Menu.Item>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+        {snapItems !== undefined && (
+          <>
+            <Divider />
+            <span data-testid="snap-label" className="px-2 text-micro text-ui-3">
+              {snapItems ? "Snap to cells · hold Alt to place freely" : "Items: free · widgets: cells"}
+            </span>
+          </>
+        )}
+        {preview?.frozen && <FrozenChip preview={preview} />}
+      </div>
+      {inspector && (
         <>
           <Divider />
-          <span data-testid="snap-label" className="px-2 text-micro text-ui-3">
-            {snapItems ? "Snap: cells · Alt frees items" : "Items: free · widgets: cells"}
-          </span>
+          <IconButton label="All settings" className={cn(BAR_BUTTON, "shrink-0")} active={inspector.open} aria-pressed={inspector.open} onClick={inspector.onToggle}>
+            <PanelRight className="h-4 w-4" />
+          </IconButton>
         </>
       )}
-      {exportView && (
-        <>
-          <Divider />
-          <ExportViewSwitch view={exportView} />
-        </>
-      )}
-      {preview?.frozen && <FrozenChip preview={preview} />}
-    </div>
-  );
-}
-
-/** `Studio | InfoPanel`: the page as Studio draws it, or as InfoPanel will after export. */
-function ExportViewSwitch({ view }: { view: ExportView }) {
-  const option = (infoPanel: boolean, label: string, title: string) => (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={view.infoPanel === infoPanel}
-      title={title}
-      onClick={() => view.onChange(infoPanel)}
-      className={cn("h-[22px] rounded-[5px] px-2 text-micro transition-colors", view.infoPanel === infoPanel ? "bg-ui-active text-ui-1" : "text-ui-4 hover:text-ui-1")}
-    >
-      {label}
-    </button>
-  );
-  return (
-    <div role="radiogroup" aria-label="View as" data-testid="export-view" className="flex h-[26px] items-center gap-0.5 rounded-md bg-ui-app p-0.5">
-      {option(false, "Studio", "The page as Studio panels show it")}
-      {option(true, "InfoPanel", "The page as it exports to InfoPanel: items drawn by InfoPanel, the parts left out hidden")}
     </div>
   );
 }
@@ -206,7 +201,7 @@ function FrozenChip({ preview }: { preview: PreviewDataState }) {
         type="button"
         onClick={() => void openSettings("studio")}
         title={`The canvas shows a snapshot of the sensor values, with weather, visualisers and other effects still (Design preview data: ${preview.mode === "frozenWhenUnfocused" ? "frozen when unfocused" : "frozen"}). Clocks still tick. The Data view, sensor pickers, kiosks and Kiosk view stay live. Click to change it in Settings › Studio.`}
-        className={cn(TEXT_BUTTON, "text-sky-300")}
+        className={cn(TEXT_BUTTON, "text-ui-2")}
       >
         <Snowflake className="h-[14px] w-[14px]" aria-hidden />
         {label}

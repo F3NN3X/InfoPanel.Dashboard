@@ -4,8 +4,7 @@
  * shown one picked from the value over Min..Max.
  *
  * A vector gauge keeps its spec in the lab field `vector` (not an InfoPanel
- * field) next to its frames; baking writes the frames InfoPanel draws and
- * records what they were baked from, so a changed spec shows as stale.
+ * field) next to its frames, which are kept as saved (the spec draws live).
  */
 import { add, assetKey, type AssetFile, type Doc } from "../assets/assets.ts";
 import { itemAt, updateAt, type Path } from "../editor/ops.ts";
@@ -24,17 +23,6 @@ export const isGauge = (item: DisplayItem | undefined): item is GaugeItem => ite
 export function vectorOf(item: DisplayItem | undefined): VectorGauge | null {
   const raw = isGauge(item) ? (item as GaugeItem & LabGauge).vector : undefined;
   return raw === undefined ? null : normalizeGauge(raw);
-}
-
-/** What baking `g` into `count` frames is recorded as. */
-export const bakeSignature = (g: VectorGauge, count: number) => JSON.stringify([count, g]);
-
-/** The spec changed since the frames were baked (or never baked). */
-export function isStale(item: DisplayItem | undefined): boolean {
-  const g = vectorOf(item);
-  if (!g || !isGauge(item)) return false;
-  const baked = (item as GaugeItem & LabGauge).vectorBaked;
-  return baked !== bakeSignature(g, item.Images.length);
 }
 
 /** Frame file names (lower case, as the asset table keys them); null for a frame that is no asset. */

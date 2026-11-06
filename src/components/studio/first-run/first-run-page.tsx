@@ -13,6 +13,7 @@ import { appSettings, isTauri, openHelp } from "@/lib/desktop";
 import type { MonitorProfile } from "@/lib/layout";
 import { SCREEN_TEMPLATES } from "@/lib/screen-templates/catalog";
 import { cn } from "@/lib/utils";
+import { StudioLogo } from "@/components/studio/studio-logo";
 import { useToast } from "@/components/ui/toast";
 import { SCREEN_KIT } from "../../templates/screen-kit";
 import type { Size } from "../../templates/size-presets";
@@ -325,7 +326,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
     <div key="data" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h1 ref={head} tabIndex={-1} className="m-0 text-title font-semibold text-ui-1 outline-none">
+          <h1 ref={head} tabIndex={-1} className="m-0 text-title font-medium text-ui-1 outline-none">
             Check your data
           </h1>
           <p className="m-0 mt-1 max-w-[560px] text-body leading-[1.5] text-ui-3">
@@ -421,11 +422,11 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
         <>
           {canAct && (
             <>
-              <Switch label="Start Studio with Windows" note="Studio starts minimised so your panels show the dashboard after you sign in." checked={options.login} onChange={(login) => setOptions((o) => ({ ...o, login }))} />
-              <Switch label="Check for updates" note="Studio checks once a day and asks before installing." checked={options.updates} onChange={(updates) => setOptions((o) => ({ ...o, updates }))} />
+              <Switch label="Start Studio with Windows" note="Studio starts minimised so your panels show the dashboard after you sign in" checked={options.login} onChange={(login) => setOptions((o) => ({ ...o, login }))} />
+              <Switch label="Check for updates" note="Studio checks once a day and asks before installing" checked={options.updates} onChange={(updates) => setOptions((o) => ({ ...o, updates }))} />
             </>
           )}
-          <Switch label="Open the kiosk in the browser" note="When you finish, opens your dashboard in a browser tab on this PC." checked={options.kiosk} onChange={(kiosk) => setOptions((o) => ({ ...o, kiosk }))} />
+          <Switch label="Open the kiosk in the browser" note="When you finish, opens your dashboard in a browser tab on this PC" checked={options.kiosk} onChange={(kiosk) => setOptions((o) => ({ ...o, kiosk }))} />
         </>
       }
     />,
@@ -436,8 +437,8 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
   return (
     <div data-help-article="quickstart" className="fixed inset-0 z-50 flex flex-col bg-ui-app font-ui text-ui-1">
       <header data-tauri-drag-region className="flex h-10 shrink-0 items-center gap-2.5 border-b border-ui-subtle pl-3">
-        <span aria-hidden className="h-5 w-5 rounded-ui-sm bg-ui-accent" />
-        <span data-tauri-drag-region className="text-body font-semibold">
+        <StudioLogo className="h-5 w-5 shrink-0" />
+        <span data-tauri-drag-region className="text-body font-medium">
           {rerun ? "Run setup again" : "Set up InfoPanel Studio"}
         </span>
         <span data-tauri-drag-region className="text-micro text-ui-4">
@@ -447,7 +448,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
         {isTauri() ? (
           <WindowControls />
         ) : (
-          <button type="button" aria-label={rerun ? "Close setup" : "Skip setup"} onClick={() => setAskSkip(true)} className="mr-2 grid h-8 w-8 place-items-center rounded-[7px] text-ui-3 hover:bg-ui-hover hover:text-ui-1">
+          <button type="button" aria-label={rerun ? "Close setup" : "Skip setup"} onClick={() => setAskSkip(true)} className="mr-2 grid h-8 w-8 place-items-center rounded-ui-md text-ui-3 hover:bg-ui-hover hover:text-ui-1">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -547,7 +548,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
             initialFocus={keepButton}
             className="fixed left-1/2 top-1/2 z-(--z-dialog) flex w-[420px] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-ui-lg border border-ui-strong bg-ui-panel p-5 shadow-ui-modal outline-none"
           >
-            <AlertDialog.Title className="m-0 text-lead font-semibold text-ui-1">{rerun ? "Close setup?" : "Skip setup?"}</AlertDialog.Title>
+            <AlertDialog.Title className="m-0 text-lead font-medium text-ui-1">{rerun ? "Close setup?" : "Skip setup?"}</AlertDialog.Title>
             <AlertDialog.Description className="m-0 text-body leading-[1.5] text-ui-2">
               {rerun
                 ? "Nothing has changed. Your data address, screens and options stay as they were."

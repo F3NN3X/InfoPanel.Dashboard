@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 import { SET_HERE, type SettingState } from "../settings-model";
 
-/** The mark of each source state (README §5.6), told apart by shape first and hue second: `default` is an empty ring, app a diamond, screen theme a square, here a dot, overriding a ringed dot. */
+/** The mark of each source state (rules §4): hollow follows the level above, whichever it is (the tooltip names it), filled accent is set here, a ringed dot overrides. */
 const DOT: Record<SettingState, string> = {
   default: "rounded-full border border-ui-source",
-  app: "rotate-45 rounded-[1px] bg-ui-dot-dashboard",
-  profile: "rounded-[2px] bg-ui-dot-profile",
+  app: "rounded-full border border-ui-source",
+  profile: "rounded-full border border-ui-source",
   here: "rounded-full bg-ui-accent",
   overriding: "rounded-full bg-ui-accent shadow-[0_0_0_2px_var(--ui-bg-panel),0_0_0_3px_var(--ui-accent)]",
   ignored: "rounded-full shadow-[inset_0_0_0_1.5px_var(--ui-warn)]",
@@ -22,7 +22,7 @@ export const DOT_MEANING: Record<SettingState, string> = {
 };
 
 /** The legend order (a zone's own values that don't apply show no dot: their section follows the theme). */
-export const DOT_LEGEND: readonly SettingState[] = ["default", "app", "profile", "here", "overriding"];
+export const DOT_LEGEND: readonly SettingState[] = ["default", "here", "overriding"];
 
 /** The 7 px source dot before a field's label; a "changed here" dot is a reset button. */
 export function SourceDot({ state, onReset }: { state: SettingState; onReset?: () => void }) {
@@ -49,7 +49,7 @@ export function DotLegend() {
       {DOT_LEGEND.map((state) => (
         <li key={state} className="flex items-center gap-2">
           <span aria-hidden="true" className={cn("block h-[7px] w-[7px] shrink-0", DOT[state])} />
-          {state === "default" ? "None — the default" : DOT_MEANING[state]}
+          {state === "default" ? "Follows the level above" : DOT_MEANING[state]}
         </li>
       ))}
       <li className="pt-1 text-micro text-ui-4">Click a dot set here to reset it.</li>

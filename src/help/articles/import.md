@@ -72,16 +72,9 @@ Press **Export & back up** in the title bar. The sheet has a row for each thing 
 
 - **Back up everything**: **Save backup** writes `infopanel-studio-config.json`, which the Import door restores.
 - **Export this screen**: one screen as a `.json` file.
-- **Export a page for InfoPanel**: **Export…** opens the InfoPanel export below. It is off, with its reason, when the page has no InfoPanel profile on it.
+- **Export a page**: **Export…** writes an imported page as its stored form, below. It is off, with its reason, when the page has no InfoPanel profile on it.
 - **Export a gauge**: **Choose…** lists Library › Gauges.
 
-## Exporting a canvas for InfoPanel
+## Exporting an imported page
 
-The InfoPanel export dialog is titled "Export" followed by the canvas name.
-
-| Choice | Writes |
-|---|---|
-| **Stored form** | A `.canvas.zip` that reopens with your modes, remaps, fonts and assets intact |
-| **.infopanel for InfoPanel** | A profile InfoPanel can open, with assets included |
-
-For the InfoPanel form you can turn on **Bake stale gauges and elements first** and **Leave unused assets out**. The dialog also reviews font licenses before you share.
+The export dialog is titled "Export" followed by the canvas name. It writes the stored form: a `.canvas.zip` that reopens with your modes, remaps, fonts and assets intact. It does not write an `.infopanel` file. The dialog reviews font licenses before you share.

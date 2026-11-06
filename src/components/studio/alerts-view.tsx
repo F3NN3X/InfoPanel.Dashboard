@@ -1,26 +1,28 @@
-import { onRovingKeyDown } from "@/lib/roving";
 import { useEffect, useState } from "react";
+import { Download, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs } from "@/components/ui/tabs";
+import { Toggle } from "@/components/ui/toggle";
 import type { HistorySetter } from "@/hooks/use-config-history";
 import type { ActiveAlert, AlertRule } from "@/lib/alerts";
+import type { ControlState } from "@/lib/control";
 import type { DataPoint } from "@/lib/data-points";
 import type { DashboardConfig, MonitorProfile } from "@/lib/layout";
-import { cn } from "@/lib/utils";
 import { AlertDefaults } from "./alerts-defaults";
-import { ActiveList, HistoryList, useAlertHistory } from "./alerts-live";
-import { addRule, alertsKey, alertsOf } from "./alerts-model";
+import { AlertsHistory } from "./alerts-history";
+import { historyCsv, filterHistory, type HistoryFilter } from "./alerts-history-model";
+import { useAlertHistory } from "./alerts-live";
+import { addRule, alertsKey, alertsOf, setAlertsEnabled } from "./alerts-model";
 import { AlertRules, NewRuleMenu } from "./alerts-rules";
+import { saveFilePayload } from "./config-file";
 import { IslandTab } from "./island-tab";
-import type { NavTarget } from "./studio-nav";
+import { isMuted, liveActions } from "./live-model";
+import { BarFill, BarTitle, PageBar } from "./page-bar";
+import type { NavRequest, NavTarget } from "./studio-nav";
+import { blankSensorRule } from "@/lib/alert-presets";
 
-/** The tabs of Alerts & Island (SPEC §10.3). */
+/** The tabs of Alerts & Island. "defaults" is no tab any more: a link to it opens the Defaults dialog. */
 export type AlertsTab = "rules" | "island" | "defaults" | "history";
-
-const TABS: { id: AlertsTab; label: string }[] = [
-  { id: "rules", label: "Rules" },
-  { id: "island", label: "Island" },
-  { id: "defaults", label: "Defaults" },
-  { id: "history", label: "History" },
-];
 
 interface AlertsViewProps {
   tab: AlertsTab;
@@ -29,6 +31,8 @@ interface AlertsViewProps {
   setConfig: HistorySetter;
   /** The alerts the server holds now (the control channel). */
   active: ActiveAlert[];
+  /** The runtime state (null while the server is unreachable): the mute. */
+  control: ControlState | null;
   /** The live catalogue: summaries name sensors, presets pick one. */
   points: readonly DataPoint[];
   /** The stored screen and its page on the canvas. */
@@ -36,9 +40,11 @@ interface AlertsViewProps {
   page: string;
   /** Edits the server does not have yet (Test waits). */
   pushPending: boolean;
-  /** The rule open in the editor (view state), null = the list. */
+  /** The rule open in the editor (view state); null = the first one. */
   editingId: string | null;
   onEdit: (id: string | null) => void;
+  /** The last link: Create alert on a Data point names the sensor a new rule starts on. */
+  navRequest?: NavRequest;
   /** The sensor pickers' "Open data explorer". */
   onOpenSources: () => void;
   /** Show a widget on the canvas (its screen and page) and open its Behaviour tab. */
@@ -46,84 +52,116 @@ interface AlertsViewProps {
   navigateTo: (target: NavTarget) => void;
 }
 
-/** History: "Active now" on top (acknowledge or dismiss), then what fired before. */
-function HistoryTab({ active }: { active: ActiveAlert[] }) {
-  const history = useAlertHistory(active);
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 5000);
-    return () => clearInterval(t);
-  }, []);
+/** The last link Alerts acted on (it outlives a remount, so a stale one is not replayed). */
+let handledNav = 0;
+
+/** The mute (moved here from the sidebar's Live popover): an hour of no alerts on the kiosks, the time it ends in its place. */
+function MuteToggle({ control }: { control: ControlState | null }) {
+  const muted = isMuted(control, Date.now());
+  const until = muted && control?.mutedUntil ? new Date(control.mutedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
   return (
-    <div className="flex max-w-[720px] flex-col gap-5">
-      <section className="flex flex-col gap-2">
-        <h2 className="font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">Active now</h2>
-        <ActiveList active={active} now={now} />
-      </section>
-      <section className="flex flex-col gap-2">
-        <h2 className="font-ui-mono text-nano font-medium uppercase tracking-[.06em] text-ui-4">History</h2>
-        <HistoryList history={history} now={now} />
-      </section>
-    </div>
+    <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2" title="Mute alerts for 1 h">
+      <span className={until ? undefined : "max-[1279px]:sr-only"}>{until ? `Muted until ${until}` : "Mute for 1 h"}</span>
+      <Toggle checked={muted} disabled={control === null} label="Mute alerts for 1 h" onChange={(next) => void liveActions.mute(next)} />
+    </label>
   );
 }
 
 /**
- * Alerts & Island (SPEC §10.3): the rules and their editor, the island's settings, the display defaults and
- * the history with the alerts active now. Rules are config, so each edit is an undo step; the live list is
- * server state.
+ * Alerts & Island: the rules with what is active now, the island's settings and the history. Rules are config, so each
+ * edit is an undo step; the live list is server state.
  */
-export function AlertsView({ tab, onTab, config, setConfig, active, points, screen, page, pushPending, editingId, onEdit, onOpenSources, onOpenZone, navigateTo }: AlertsViewProps) {
+export function AlertsView({ tab, onTab, config, setConfig, active, control, points, screen, page, pushPending, editingId, onEdit, navRequest, onOpenSources, onOpenZone, navigateTo }: AlertsViewProps) {
+  const alerts = alertsOf(config);
+  const history = useAlertHistory(active);
+  const [defaultsOpen, setDefaultsOpen] = useState(false);
+  const [filter, setFilter] = useState<HistoryFilter>({ severity: "all", tests: true });
+  // Create alert on a Data point: a rule on that sensor opens in the editor, held here until its first edit puts it in the config.
+  const [draft, setDraft] = useState<AlertRule>();
+  useEffect(() => {
+    const key = navRequest?.target.view === "alerts" ? navRequest.target.sensorKey : undefined;
+    if (!navRequest || navRequest.seq <= handledNav || !key) return;
+    handledNav = navRequest.seq;
+    const rule = blankSensorRule();
+    const name = points.find((p) => p.key === key)?.name;
+    setDraft({
+      ...rule,
+      ...(name ? { name: `${name} alert` } : {}),
+      source: { kind: "sensor", conditions: [{ key, op: ">", value: 80 }], forSeconds: 0 },
+    });
+    onEdit(rule.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navRequest?.seq]);
+  // The first edit saved it: the config's rule is the one shown from then on.
+  useEffect(() => {
+    if (draft && alerts.rules.some((r) => r.id === draft.id)) setDraft(undefined);
+  }, [draft, alerts.rules]);
+  // Old links and the palette still say Defaults.
+  useEffect(() => {
+    if (tab !== "defaults") return;
+    setDefaultsOpen(true);
+    onTab("rules");
+  }, [tab, onTab]);
   const add = (rule: AlertRule) => {
     setConfig((c) => addRule(c, rule), alertsKey(`add:${rule.id}`));
     onEdit(rule.id);
   };
+  const tabs = [
+    {
+      value: "rules" as const,
+      label: (
+        <span className="flex items-center gap-2">
+          Alerts
+          {active.length > 0 && <span className="grid h-[18px] min-w-[18px] place-items-center rounded-full bg-ui-danger/15 px-1 text-micro font-medium text-ui-danger">{active.length}</span>}
+        </span>
+      ),
+    },
+    { value: "island" as const, label: "Island" },
+    { value: "history" as const, label: "History" },
+  ];
+  const exportCsv = () => void saveFilePayload({ name: "alert-history.csv", text: historyCsv(filterHistory(history, filter), config.profiles) });
   return (
     <section aria-label="Alerts & Island" className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
-      <div className="flex shrink-0 items-center gap-4 border-b border-ui-subtle px-6 max-sm:flex-wrap max-sm:gap-x-3 max-sm:px-3">
-        <h1 className="whitespace-nowrap py-3 text-title font-semibold text-ui-1">Alerts &amp; Island</h1>
-        {/* On a phone the tabs take their own row under the title and the New rule button. */}
-        <div role="tablist" aria-label="Alerts & Island" onKeyDown={(e) => onRovingKeyDown(e, '[role="tab"]')} className="flex gap-1 self-stretch max-sm:order-last max-sm:w-full max-sm:overflow-x-auto">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              tabIndex={tab === t.id ? 0 : -1}
-              onClick={() => onTab(t.id)}
-              className={cn(
-                "shrink-0 border-b-2 px-3 text-body hover:text-ui-1 max-sm:py-2.5",
-                tab === t.id ? "border-ui-1 text-ui-1" : "border-transparent text-ui-3"
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <span className="flex-1" />
-        {tab === "rules" && !editingId && <NewRuleMenu onAdd={add} points={points} />}
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 max-sm:px-3">
+      <PageBar>
+        <BarTitle title="Alerts & Island" />
+        <Tabs label="Alerts & Island" tabs={tabs} value={tab === "defaults" ? "rules" : tab} onChange={onTab} className="shrink-0 gap-5 self-stretch border-b-0 max-[599px]:order-last max-[599px]:w-full [&>button]:h-auto" />
+        <BarFill />
+        <MuteToggle control={control} />
         {tab === "rules" && (
-          <AlertRules
-            config={config}
-            setConfig={setConfig}
-            active={active}
-            points={points}
-            current={{ profile: screen.id, page }}
-            pushPending={pushPending}
-            editingId={editingId}
-            onEdit={onEdit}
-            onOpenSources={onOpenSources}
-          />
+          <div className="flex items-center gap-3 max-[599px]:flex-wrap">
+            <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2" title="Alerts on">
+              <span className="max-[1279px]:sr-only">Alerts on</span>
+              <Toggle checked={alerts.enabled} label="Alerts on" onChange={(on) => setConfig((c) => setAlertsEnabled(c, on), alertsKey("enabled"))} />
+            </label>
+            <span aria-hidden className="h-5 w-px bg-ui-subtle" />
+            <Button variant="ghost" title="Defaults" icon={<SlidersHorizontal aria-hidden />} onClick={() => setDefaultsOpen(true)}>
+              <span className="max-[1279px]:sr-only">Defaults</span>
+            </Button>
+            <NewRuleMenu onAdd={add} points={points} />
+          </div>
         )}
-        {tab === "island" && (
-          <IslandTab config={config} setConfig={setConfig} current={screen} onOpenZone={onOpenZone} onOpenExplorer={onOpenSources} navigateTo={navigateTo} />
+        {tab === "history" && (
+          <Button variant="ghost" icon={<Download aria-hidden />} onClick={exportCsv}>Export CSV</Button>
         )}
-        {tab === "defaults" && <AlertDefaults alerts={alertsOf(config)} setConfig={setConfig} />}
-        {tab === "history" && <HistoryTab active={active} />}
-      </div>
+      </PageBar>
+      {(tab === "rules" || tab === "defaults") && (
+        <AlertRules
+          config={config}
+          setConfig={setConfig}
+          active={active}
+          history={history}
+          points={points}
+          current={{ profile: screen.id, page }}
+          pushPending={pushPending}
+          editingId={editingId}
+          onEdit={onEdit}
+          draft={draft}
+          onOpenSources={onOpenSources}
+        />
+      )}
+      {tab === "island" && <IslandTab config={config} setConfig={setConfig} current={screen} onOpenZone={onOpenZone} onOpenExplorer={onOpenSources} navigateTo={navigateTo} />}
+      {tab === "history" && <AlertsHistory history={history} profiles={config.profiles} filter={filter} onFilter={setFilter} />}
+      <AlertDefaults open={defaultsOpen} onOpenChange={setDefaultsOpen} alerts={alerts} setConfig={setConfig} />
     </section>
   );
 }

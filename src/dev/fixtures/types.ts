@@ -14,8 +14,6 @@ export interface FixtureStart {
   addSegment?: "all" | "widgets" | "items";
   hoverTile?: string;
   recent?: string[];
-  /** The toast after adding the selected widget (the reference's state 3). */
-  toast?: "addw";
   /** The tile just added, by name: Add's 1.5 s highlight on it (the reference's state 3). */
   added?: string;
 }
@@ -32,5 +30,5 @@ export interface Fixture extends FixtureStart {
   contextMenuFor?: string;
 }
 
-export const FIXTURE_NAMES = ["screen", "profile", "addw", "alt", "export", "layersF", "layersG", "hover"] as const;
+export const FIXTURE_NAMES = ["screen", "profile", "addw", "alt", "layersF", "layersG", "hover"] as const;
 export type FixtureName = (typeof FIXTURE_NAMES)[number];

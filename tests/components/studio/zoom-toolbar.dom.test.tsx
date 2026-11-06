@@ -12,16 +12,18 @@ describe("Zoom to selection", () => {
   it("is disabled with nothing selected", () => {
     const onZoomSelection = vi.fn();
     render(<ZoomToolbar {...bar} onZoomSelection={onZoomSelection} />);
-    const button = screen.getByRole("button", { name: "Selection" }) as HTMLButtonElement;
-    expect(button.disabled).toBe(true);
-    fireEvent.click(button);
+    fireEvent.click(screen.getByRole("button", { name: "View options" }));
+    const item = screen.getByRole("menuitem", { name: /Zoom to selection/ });
+    expect(item.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(item);
     expect(onZoomSelection).not.toHaveBeenCalled();
   });
 
   it("zooms once a widget is selected", () => {
     const onZoomSelection = vi.fn();
     render(<ZoomToolbar {...bar} onZoomSelection={onZoomSelection} hasSelection />);
-    fireEvent.click(screen.getByRole("button", { name: "Selection" }));
+    fireEvent.click(screen.getByRole("button", { name: "View options" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: /Zoom to selection/ }));
     expect(onZoomSelection).toHaveBeenCalledTimes(1);
   });
 });

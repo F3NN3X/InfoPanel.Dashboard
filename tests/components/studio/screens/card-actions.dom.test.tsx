@@ -12,6 +12,7 @@ describe("a screen card's menus", () => {
     const onClick = vi.fn();
     const actions = screenActions({
       onOpen: vi.fn(),
+      onSettings: vi.fn(),
       canDelete: false,
       canMoveEarlier: false,
       canMoveLater: true,
@@ -21,7 +22,6 @@ describe("a screen card's menus", () => {
       onMove: vi.fn(),
       onCopyLink: vi.fn(),
       onExport: vi.fn(),
-      onConvert: vi.fn(),
       onDelete: vi.fn(),
     });
     render(

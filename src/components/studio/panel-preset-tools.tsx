@@ -16,7 +16,7 @@ export function PanelMenu({ onSavePreset }: { onSavePreset: () => void }) {
             <Menu.Item
               className={ITEM}
               onClick={onSavePreset}
-              title="Keep this panel (widgets, layout and look) in Library › Panels"
+              title="Keep this panel (widgets, layout and style) in Library › Panels"
             >
               Save as Panel
             </Menu.Item>

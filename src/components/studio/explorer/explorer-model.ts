@@ -9,12 +9,15 @@ import {
   type Health,
   type PointType,
 } from "@/lib/data-points";
+import type { AlertsConfig } from "@/lib/alerts";
+import type { Change } from "@/lib/data-history";
 import type { Usage, UsageIndex } from "@/lib/data-usage";
 import { sourcePrefKey, type SourcePref } from "@/lib/layout";
+import { spanText } from "../sidebar/data-api-model";
 
 /** Pure filtering, grouping and windowing behind the Data Explorer. */
 
-export type TypeFilter = "all" | "number" | "text" | "list" | "url";
+export type TypeFilter = "all" | "number" | "text" | "image" | "list" | "url";
 
 /** What the tree selected: everything, one source, or one container. */
 export type Scope =
@@ -30,8 +33,15 @@ export interface PointFilter {
   type: TypeFilter;
   hideEmpty: boolean;
   inUse: boolean;
-  usage: UsageIndex;
+  /** The keys something uses (a screen or an alert rule): what the "Only in use" switch keeps. */
+  used: ReadonlySet<string>;
 }
+
+/** A link to an image, whole or from the server's root: a file name with an image extension, a plugin's image route or a media cover. */
+const IMAGE_URL = /^(?:https?:\/\/|\/)\S*(?:\.(?:png|jpe?g|gif|webp|svg|avif|bmp)(?:[?#]\S*)?$|\/api\/images\/|\/cover(?:[?#/]|$))/i;
+
+/** Whether a point is a link to an image (the table draws a thumbnail, the detail pane the picture). */
+export const isImagePoint = (point: DataPoint): boolean => (point.type === "url" || point.type === "text") && IMAGE_URL.test(point.raw.trim());
 
 /** Whether a point's type belongs to the table's type control. */
 export function matchesType(point: DataPoint, type: TypeFilter): boolean {
@@ -41,11 +51,13 @@ export function matchesType(point: DataPoint, type: TypeFilter): boolean {
     case "number":
       return point.type === "number";
     case "text":
-      return point.type === "text" || point.type === "bool";
+      return (point.type === "text" && !isImagePoint(point)) || point.type === "bool";
+    case "image":
+      return isImagePoint(point);
     case "list":
       return point.type === "list";
     case "url":
-      return point.type === "url";
+      return point.type === "url" && !isImagePoint(point);
   }
 }
 
@@ -62,7 +74,7 @@ export function filterPoints(points: readonly DataPoint[], f: PointFilter): Data
     (p) =>
       matchesType(p, f.type) &&
       (!f.hideEmpty || p.type !== "empty") &&
-      (!f.inUse || (f.usage.byKey.get(p.key)?.length ?? 0) > 0)
+      (!f.inUse || f.used.has(p.key))
   );
 }
 
@@ -86,15 +98,26 @@ export function filterSources(
 }
 
 /** Row heights of the virtual table (px). */
-export const POINT_ROW_H = 46;
-export const GROUP_ROW_H = 34;
+export const POINT_ROW_H = 52;
+export const GROUP_ROW_H = 40;
 
-export type TableRow =
-  | { kind: "group"; id: string; title: string; sourceId: string; sourceName: string; count: number }
-  | { kind: "point"; point: DataPoint };
+export type GroupRow = {
+  kind: "group";
+  id: string;
+  /** The source's name. */
+  title: string;
+  /** The container when the source has several, else "built in" for the built-in sources. */
+  sub: string;
+  /** Pushed through the API: the row carries a "Pushed" tag. */
+  pushed: boolean;
+  count: number;
+  collapsed: boolean;
+};
 
-/** Points in order, each run of one container preceded by a group header row. */
-export function flattenRows(points: readonly DataPoint[]): TableRow[] {
+export type TableRow = GroupRow | { kind: "point"; point: DataPoint };
+
+/** Points in order, each run of one container preceded by a group header row; a collapsed container keeps only its header. */
+export function flattenRows(points: readonly DataPoint[], sources: readonly DataSource[], collapsed: ReadonlySet<string>): TableRow[] {
   const counts = new Map<string, number>();
   for (const p of points) counts.set(p.containerId, (counts.get(p.containerId) ?? 0) + 1);
   const rows: TableRow[] = [];
@@ -102,16 +125,20 @@ export function flattenRows(points: readonly DataPoint[]): TableRow[] {
   for (const point of points) {
     if (point.containerId !== current) {
       current = point.containerId;
+      const source = sources.find((s) => s.id === point.sourceId);
+      const container = point.containerTitle.trim();
+      const several = (source?.containers.length ?? 1) > 1;
       rows.push({
         kind: "group",
         id: current,
-        title: point.containerTitle.trim() || point.sourceName,
-        sourceId: point.sourceId,
-        sourceName: point.sourceName,
+        title: point.sourceName,
+        sub: several && container && container !== point.sourceName ? container : source?.category === "Built-in" ? "built in" : "",
+        pushed: source?.category === "Pushed via API",
         count: counts.get(current) ?? 0,
+        collapsed: collapsed.has(current),
       });
     }
-    rows.push({ kind: "point", point });
+    if (!collapsed.has(current)) rows.push({ kind: "point", point });
   }
   return rows;
 }
@@ -213,8 +240,15 @@ export const streamPath = (key: string): string => `/events?prefix=${encodeURICo
 
 export type ValueTone = "number" | "text" | "empty";
 
+/** A reading split into its number and unit ("26.2 °C"), or null for anything else. */
+export function splitNumber(text: string): { num: string; unit: string } | null {
+  const m = /^(-?[\d.,]+)\s+(\S.*)$/.exec(text);
+  return m ? { num: m[1], unit: m[2] } : null;
+}
+
 /** The table's live-value cell: the first line (with " …" when more follow), and how to colour it. */
 export function valueCell(point: DataPoint, values: SensorMap): { text: string; tone: ValueTone } {
+  if (isImagePoint(point)) return { text: "image", tone: "text" };
   const full = displayValue(point, values);
   const lines = full.split("\n");
   const first = lines[0].trim();
@@ -272,34 +306,6 @@ export function isBoundTo(usedBy: readonly Usage[], target: BindOption | null): 
     target !== null &&
     usedBy.some((u) => u.zoneId === target.zoneId && (target.widgetId === undefined || u.panelWidgetId === target.widgetId))
   );
-}
-
-/** The scope of a container: its source when that has just the one container (the tree has no row for it). */
-export function containerScope(sources: readonly DataSource[], sourceId: string, containerId: string): Scope {
-  const source = sources.find((s) => s.id === sourceId);
-  return source && source.containers.length <= 1
-    ? { kind: "source", id: sourceId }
-    : { kind: "container", id: containerId, sourceId };
-}
-
-export interface Crumb {
-  label: string;
-  /** Where clicking goes; null for the current, unclickable container crumb. */
-  scope: Scope | null;
-}
-
-/** "All sources › Source › Container" for the table's breadcrumb. */
-export function crumbs(scope: Scope, sources: readonly DataSource[]): Crumb[] {
-  const trail: Crumb[] = [{ label: "All sources", scope: ALL_SCOPE }];
-  if (scope.kind === "all") return trail;
-  const source = sources.find((s) => s.id === (scope.kind === "source" ? scope.id : scope.sourceId));
-  if (!source) return trail;
-  trail.push({ label: source.name, scope: { kind: "source", id: source.id } });
-  if (scope.kind === "container" && source.containers.length > 1) {
-    const container = source.containers.find((c) => c.id === scope.id);
-    if (container) trail.push({ label: container.title, scope: null });
-  }
-  return trail;
 }
 
 /** The group summary's title and subtitle for a scope. */
@@ -372,8 +378,37 @@ export function pointDisplayName(
   return { key, value: prefs?.[key]?.displayName ?? "", name };
 }
 
-/** The table's "Used in" cell: the screens' names, a count past two, a dash for none. */
-export function usedInCell(screens: readonly string[] | undefined): { text: string; used: boolean } {
-  if (!screens || screens.length === 0) return { text: "—", used: false };
-  return { text: screens.length <= 2 ? screens.join(", ") : `${screens.length} screens`, used: true };
+/** What a row's "Used in" cell shows: up to two chips (the alert first), then how many more, and the full list for its tooltip. */
+export function usedInChips(screens: readonly string[] | undefined, alerts: readonly { name: string }[] | undefined): { chips: string[]; more: number; title: string } {
+  const all = [...(alerts?.length ? ["Alert"] : []), ...(screens ?? [])];
+  const title = [...(alerts ?? []).map((a) => `Alert: ${a.name}`), ...(screens ?? [])].join(", ");
+  return { chips: all.slice(0, 2), more: Math.max(0, all.length - 2), title };
+}
+
+/** The alert rules that watch each key (a sensor rule's conditions), by key. Notification rules watch no key. */
+export function alertsByKey(alerts: AlertsConfig | undefined): Map<string, { id: string; name: string }[]> {
+  const byKey = new Map<string, { id: string; name: string }[]>();
+  for (const rule of alerts?.rules ?? []) {
+    if (rule.source.kind !== "sensor") continue;
+    for (const key of new Set(rule.source.conditions.map((c) => c.key))) {
+      byKey.set(key, [...(byKey.get(key) ?? []), { id: rule.id, name: rule.name }]);
+    }
+  }
+  return byKey;
+}
+
+/** The keys any screen or alert rule uses. */
+export function usedKeys(screens: ReadonlyMap<string, unknown>, alerts: ReadonlyMap<string, unknown>): Set<string> {
+  return new Set([...screens.keys(), ...alerts.keys()]);
+}
+
+/** How long ago, as the rows read it: "now" under 5 s, else "12 s ago". */
+export const agoText = (at: number, now: number): string => (now - at < 5000 ? "now" : `${spanText(now - at)} ago`);
+
+/**
+ * A text, link or image point's "Last 60 s" cell: when its value last changed, or "unchanged" while this page has seen
+ * no change (the Data API keeps no history, so only what the page watched is known).
+ */
+export function changedText(changes: readonly Change[], now: number): string {
+  return changes.length >= 2 ? `changed ${agoText(changes[changes.length - 1].at, now)}` : "unchanged";
 }

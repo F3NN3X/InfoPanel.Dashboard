@@ -252,6 +252,7 @@ export const SHORTCUT_GROUPS: { title: string; items: { keys: string; label: str
       { keys: "Ctrl+] / Ctrl+[", label: "Bring forward / send backward" },
       { keys: "Ctrl+Shift+] / Ctrl+Shift+[", label: "Bring to front / send to back" },
       { keys: "Ctrl+G / Ctrl+Shift+G", label: "Group / ungroup" },
+      { keys: "Ctrl+Shift+O", label: "Move out of its group" },
       { keys: "Ctrl+L", label: "Lock" },
       { keys: "Ctrl+H", label: "Hide" },
       { keys: "F2", label: "Rename in Layers" },

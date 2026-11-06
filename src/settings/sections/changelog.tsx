@@ -131,9 +131,9 @@ export function ChangelogSection() {
                   className="flex w-full cursor-pointer flex-wrap items-baseline gap-x-2.5 gap-y-1 border-0 bg-transparent p-0 text-left text-s-t1"
                 >
                   <ChevronRight className={cn("h-4 w-4 shrink-0 self-center text-s-dim transition-transform", open && "rotate-90")} />
-                  <span className="font-mono text-xl font-semibold tracking-[-0.01em]">{r.version}</span>
+                  <span className="font-mono text-display font-medium">{r.version}</span>
                   {r.date && <span className="text-caption text-s-dim">{shortDate(r.date)}</span>}
-                  {r.version === status.appVersion && <span className="rounded-[10px] bg-s-green/14 px-2 py-0.5 text-micro font-medium text-s-ok-text">Installed</span>}
+                  {r.version === status.appVersion && <span className="rounded-ui-lg bg-s-green/14 px-2 py-0.5 text-micro font-medium text-s-ok-text">Installed</span>}
                   {count > 0 && <span className="text-caption text-s-dim">{count === 1 ? "1 change" : `${count} changes`}</span>}
                 </button>
                 {/* biome-ignore lint/security/noDangerouslySetInnerHtml: renderMarkdown escapes raw HTML and keeps only safe links. */}
@@ -146,7 +146,7 @@ export function ChangelogSection() {
                     return (
                       <div key={s.title} className="flex flex-col gap-1.5">
                         <div>
-                          <span className={cn("rounded-[5px] px-2 py-0.5 text-micro font-semibold tracking-[0.02em]", TONE_CLASS[sectionTone(s.title)])}>{s.title}</span>
+                          <span className={cn("rounded-ui-sm px-2 py-0.5 text-micro font-medium", TONE_CLASS[sectionTone(s.title)])}>{s.title}</span>
                         </div>
                         {expanded ? (
                           // biome-ignore lint/security/noDangerouslySetInnerHtml: renderMarkdown escapes raw HTML and keeps only safe links.

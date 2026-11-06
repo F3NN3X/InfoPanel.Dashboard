@@ -106,9 +106,6 @@ the **Unreleased** entries in `CHANGELOG.md` under `## [X.Y.Z] - YYYY-MM-DD`. Op
 A pull request that changes only those version fields (and the CHANGELOG) does not run the full suite or e2e: `verify` and the
 CI `plan` job route the manifests to the `release-version` feature, which runs `cargo-server` only.
 
-If the release changes the `.infopanel` writer or the InfoPanel schema, also run `import-check` first on a PC with the
-InfoPanel source (CI can't; see [TESTING.md](TESTING.md#the-infopanel-export-check)) and make sure it passes.
-
 ## Dev server vs the standalone server
 
 **Standalone server (`ips-server`, `src-tauri/crates/ips-server`).** Serves the built `dist/`, stores the

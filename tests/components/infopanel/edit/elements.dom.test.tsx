@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ToastProvider } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { HostedEditor } from "@tests/components/infopanel/edit/hosted-editor";
 import { ProfileView } from "@/components/infopanel/ProfileView";
 import { withCanvas } from "@/components/studio/import-actions";
@@ -31,7 +31,6 @@ const items = oneOfEach();
 const canvas = storeItems(newStored({ name: "Cards", width: 800, height: 480 }), profile, items);
 const zone = { id: "z", module: CANVAS_ID, colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 1, visible: true, canvas } as Placement & { canvas: StoredCanvas };
 const config = { profiles: [{ id: "p1", name: "Main", pages: [{ id: "pg", name: "Page 1", placements: [zone] }] }] } as unknown as DashboardConfig;
-const history = { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() };
 const font = () => ({ fontFamily: "sans-serif" });
 
 describe("studio elements", () => {
@@ -51,23 +50,22 @@ describe("studio elements", () => {
     expect(container.innerHTML).not.toMatch(/backdrop-filter/i);
   });
 
-  it.each(["Ring", "LED bar", "Card", "Glow", "Divider", "Icon", "Cores", "Sparkline"])("shows %s's settings and badge in the inspector", (name) => {
+  it.each(["Ring", "LED bar", "Card", "Glow", "Divider", "Icon", "Cores", "Sparkline"])("shows %s's settings in the inspector", (name) => {
     const index = ["Ring", "LED bar", "Card", "Glow", "Divider", "Icon", "Cores", "Sparkline"].indexOf(name);
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={vi.fn()} history={history} profileId="p1" initialSelection={[String(index)]} />
+        <HostedEditor zone={zone} setConfig={vi.fn()} profileId="p1" initialSelection={[String(index)]} />
       </ToastProvider>,
     );
     const inspector = screen.getByRole("complementary", { name: "Item" });
     expect(inspector.querySelector("[data-element]")).not.toBeNull();
-    expect(within(inspector).getByLabelText(/^(Native|Baked|Approximated):/)).toBeTruthy();
   });
 
   it("an edit in the Element section commits the spec with its derived fields", () => {
     const setConfig = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={setConfig} history={history} profileId="p1" initialSelection={["2"]} />
+        <HostedEditor zone={zone} setConfig={setConfig} profileId="p1" initialSelection={["2"]} />
       </ToastProvider>,
     );
     fireEvent.click(screen.getByRole("switch", { name: "Drop shadow" }));
@@ -81,7 +79,7 @@ describe("studio elements", () => {
     const setConfig = vi.fn();
     render(
       <ToastProvider>
-        <HostedEditor zone={zone} setConfig={setConfig} history={history} profileId="p1" />
+        <HostedEditor zone={zone} setConfig={setConfig} profileId="p1" />
       </ToastProvider>,
     );
     const field = screen.getByLabelText("Profile color Card");

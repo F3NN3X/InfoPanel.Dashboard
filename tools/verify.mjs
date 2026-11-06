@@ -113,7 +113,10 @@ function main() {
       const now = fs.existsSync(path.join(ROOT, file)) ? fs.readFileSync(path.join(ROOT, file), "utf8") : null;
       return old != null && now != null ? { old, new: now } : null;
     });
-    const { byFeature, unmapped } = resolveChanges(rest, map);
+    const resolved = resolveChanges(rest, map);
+    const { byFeature } = resolved;
+    // A deleted file no feature claims any more (its glob went with it) is not a new file to map.
+    const unmapped = resolved.unmapped.filter((file) => fs.existsSync(path.join(ROOT, file)));
     if (versionOnly.length) byFeature.set(RELEASE_FEATURE, versionOnly);
     if (unmapped.length) {
       for (const file of unmapped) console.error(`unmapped: ${file}, add it to tests/feature-map.json`);

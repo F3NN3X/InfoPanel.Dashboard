@@ -1,8 +1,20 @@
-/** "Keep my background", remembered for the session (owner decision 6): not stored, off when the studio opens. */
-let keepBackgroundPref = false;
+import { parseFlag } from "./use-stored-flag";
 
-export const getKeepBackground = (): boolean => keepBackgroundPref;
+/** "Keep my background", remembered per screen as a local preference (P-10): not config, so not saved with the screen and not exported. */
+const key = (profileId: string): string => `studio.theme.keepBackground.${profileId}`;
 
-export function setKeepBackground(keep: boolean): void {
-  keepBackgroundPref = keep;
+export function getKeepBackground(profileId: string): boolean {
+  try {
+    return parseFlag(localStorage.getItem(key(profileId)), false);
+  } catch {
+    return false;
+  }
+}
+
+export function setKeepBackground(profileId: string, keep: boolean): void {
+  try {
+    localStorage.setItem(key(profileId), keep ? "1" : "0");
+  } catch {
+    // storage is off: the choice is not remembered
+  }
 }

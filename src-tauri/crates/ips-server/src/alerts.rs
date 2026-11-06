@@ -15,7 +15,7 @@ use serde_json::{json, Value};
 use tokio::sync::{watch, Notify};
 use tokio::time::{interval_at, Instant, MissedTickBehavior};
 
-use crate::alerts_engine::{act, evaluate, num, quieten, AlertsState, Env, Event, Readings, HISTORY_MAX};
+use crate::alerts_engine::{act, evaluate, num, quieten, reroute, AlertsState, Env, Event, Readings, HISTORY_MAX};
 use crate::alerts_rules::{get, is_object, keys_of, prefix_of, take_events, truthy};
 use crate::config::now_ms;
 use crate::control_store::Control;
@@ -210,6 +210,7 @@ impl Alerts {
 
     /// The tick and the history writer, until `shutdown`.
     pub fn start(self: &Arc<Self>, shutdown: &watch::Receiver<bool>) {
+        lock(&self.inner).state.live = true;
         let alerts = Arc::clone(self);
         supervisor::spawn("alerts tick", shutdown.clone(), move || {
             let alerts = Arc::clone(&alerts);
@@ -368,6 +369,10 @@ impl Alerts {
         let mut inner = lock(&self.inner);
         inner.config = (self.read_config)().unwrap_or(Value::Null);
         self.subscribe(&mut inner);
+        if inner.state.live {
+            let guard = &mut *inner;
+            reroute(&mut guard.state, get(&guard.config, "alerts"));
+        }
         self.run(&mut inner);
     }
 

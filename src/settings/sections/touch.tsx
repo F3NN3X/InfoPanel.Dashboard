@@ -96,7 +96,7 @@ function Field({ value, onCommit, label, numeric, step, unit, width = "w-28" }: 
         onKeyDown={(e) => e.key === "Enter" && commit()}
         className={cn("h-(--ui-h-field) rounded-lg border border-s-input-line bg-s-input px-2.5 text-body text-s-t1 outline-none", width)}
       />
-      {unit && <span className="text-xs text-s-dim">{unit}</span>}
+      {unit && <span className="text-caption text-s-dim">{unit}</span>}
     </span>
   );
 }
@@ -160,7 +160,7 @@ function PanelCard({ view, entry, index, setKey, steps, onRemove }: PanelCardPro
     <Card>
       <div className="flex flex-wrap items-center gap-3 px-[18px] py-3.5">
         <div className="flex min-w-40 flex-1 flex-col gap-[3px]">
-          <span className="text-sm font-medium">{entry.name}</span>
+          <span className="text-lead font-medium">{entry.name}</span>
           <span className={cn("text-caption", line.className)}>{line.text}</span>
         </div>
         {confirm ? (
@@ -221,14 +221,14 @@ function PanelCard({ view, entry, index, setKey, steps, onRemove }: PanelCardPro
       <Row label="Id" hint="In the kiosk URL. Changing it changes the URL.">
         <Field label="Id" value={entry.id} width="w-44" onCommit={(v) => set("id", v.trim())} />
       </Row>
-      <Row label="Size" hint="The panel's resolution in pixels: what touches map onto, and what the kiosk page must fill.">
+      <Row label="Size" hint="The panel's resolution in pixels: what touches map onto, and what the kiosk page must fill">
         <span className="flex items-center gap-2">
           <Field label="Width" numeric value={entry.panel.width_px} width="w-24" onCommit={(v) => set("panel.width_px", Number(v))} />
           <span className="text-s-dim">×</span>
           <Field label="Height" numeric value={entry.panel.height_px} width="w-24" unit="px" onCommit={(v) => set("panel.height_px", Number(v))} />
         </span>
       </Row>
-      <Row label="Rotation" hint="Clockwise, applied to touches, for a digitizer mounted turned.">
+      <Row label="Rotation" hint="Clockwise, applied to touches, for a digitizer mounted turned">
         <Segmented size="sm" label="Rotation" options={[...ROTATIONS]} value={entry.panel.rotation} onChange={(v) => set("panel.rotation", v)} />
       </Row>
       <SwitchRow label="Mirror horizontally" checked={entry.panel.flip_x} onChange={(v) => set("panel.flip_x", v)} />
@@ -362,7 +362,7 @@ function ScreenRow({ screen }: { screen: Touchscreen }) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-40 flex-1 flex-col gap-[3px]">
           <span className="text-body font-medium">
-            {screen.product ?? "Touchscreen"} <span className="font-mono text-xs text-s-dim">{hex(screen.vid)}:{hex(screen.pid)} · port {shortPort(screen.port)}</span>
+            {screen.product ?? "Touchscreen"} <span className="font-mono text-caption text-s-dim">{hex(screen.vid)}:{hex(screen.pid)} · port {shortPort(screen.port)}</span>
           </span>
           <span className={cn("text-caption", screen.ready ? "text-s-green" : "text-s-amber")}>
             {screen.ready ? "WinUSB · ready: Studio reads it, Windows doesn't" : `${screen.driver ?? "No driver"} · Windows owns it: it needs the WinUSB driver`}
@@ -370,7 +370,7 @@ function ScreenRow({ screen }: { screen: Touchscreen }) {
         </div>
         {screen.ready &&
           (busy ? (
-            <span className="text-xs text-s-muted">Waiting for the Windows admin prompt…</span>
+            <span className="text-caption text-s-muted">Waiting for the Windows admin prompt…</span>
           ) : confirm ? (
             <>
               <Button onClick={() => setConfirm(false)}>Keep</Button>
@@ -432,9 +432,9 @@ function KioskGroup({ view, setKey }: { view: TouchView; setKey: SetKey }) {
     <Group title="Gestures and the kiosk">
       <div ref={found.ref} className={cn("rounded-xl", found.className)}>
         <Card>
-          <SwitchRow label="Touch dots" hint="Rings under every finger on the kiosk, for demos and recordings." checked={e.touch_dots} onChange={(v) => void setKey("touch_dots", v)} />
+          <SwitchRow label="Touch dots" hint="Rings under every finger on the kiosk, for demos and recordings" checked={e.touch_dots} onChange={(v) => void setKey("touch_dots", v)} />
           <SwitchRow label="Debug strip" hint="The touch status, the last gesture and the delay from Studio, along the kiosk's bottom edge. A three-finger tap toggles it." checked={e.debug} onChange={(v) => void setKey("debug", v)} />
-          <Row label="Prediction" hint="How far ahead touch dots draw a moving finger, to hide display delay.">
+          <Row label="Prediction" hint="How far ahead touch dots draw a moving finger, to hide display delay">
             <Field label="Prediction" numeric value={e.prediction_ms} width="w-20" unit="ms" onCommit={(v) => void setKey("prediction_ms", Number(v))} />
           </Row>
           {THRESHOLDS.map((t) => (
@@ -539,9 +539,9 @@ export function TouchSection() {
             <Hand className="h-5 w-5" />
           </div>
           <div className="flex flex-1 flex-col gap-[3px]">
-            <span className="flex items-center gap-2 text-sm font-medium">
+            <span className="flex items-center gap-2 text-lead font-medium">
               Touch panels
-              <span className="rounded-[10px] bg-s-amber/14 px-2 py-0.5 text-micro font-normal text-s-amber">Experimental</span>
+              <span className="rounded-ui-lg bg-s-amber/14 px-2 py-0.5 text-micro font-normal text-s-amber">Experimental</span>
             </span>
             <span className="text-caption leading-[1.45] text-s-muted">
               Studio reads USB touch displays itself, so touching one never moves the mouse or takes focus from what you're doing; the kiosk on that display gets the touches.

@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDisplayItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DisplayItem xsi:type="BarDisplayItem">
+    <Name>Bar.Name &amp; &lt;é&gt;</Name>
+    <Hidden>true</Hidden>
+    <X>107</X>
+    <Y>107</Y>
+    <IsLocked>true</IsLocked>
+    <Rotation>7</Rotation>
+    <_valueType>MIN</_valueType>
+    <SensorName>Bar.SensorName &amp; &lt;é&gt;</SensorName>
+    <SensorType>Libre</SensorType>
+    <HwInfoRemoteIndex>6</HwInfoRemoteIndex>
+    <Id>4026535920</Id>
+    <Instance>4026535920</Instance>
+    <EntryId>4026535920</EntryId>
+    <LibreSensorId>/intelcpu/0/load/0</LibreSensorId>
+    <PluginSensorId>/InfoPanel.Extras/procs/table</PluginSensorId>
+    <ValueType>MIN</ValueType>
+    <MinValue>7</MinValue>
+    <MaxValue>107</MaxValue>
+    <AutoValue>true</AutoValue>
+    <Width>407</Width>
+    <Height>57</Height>
+    <FlipX>true</FlipX>
+    <Frame>false</Frame>
+    <FrameColor>#FF2468AC</FrameColor>
+    <Background>false</Background>
+    <BackgroundColor>#FF2468AC</BackgroundColor>
+    <Color>#FF2468AC</Color>
+    <Gradient>false</Gradient>
+    <GradientColor>#FF2468AC</GradientColor>
+    <CornerRadius>7</CornerRadius>
+    <FutureBar>7 &amp; Bar</FutureBar>
+  </DisplayItem>
+</ArrayOfDisplayItem>

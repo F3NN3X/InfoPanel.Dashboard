@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { ToastProvider, useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/toast";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { useControl } from "@/lib/control";
 import { valueText, type InheritPath, type InheritScope } from "@/lib/inheritance";
 import { defaultConfig, type DashboardConfig } from "@/lib/layout";
@@ -20,7 +21,7 @@ import { useStatusBar } from "./use-status-bar";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3 border-b border-ui-subtle py-5">
-      <h2 className="text-body font-semibold text-ui-1">{title}</h2>
+      <h2 className="text-body font-medium text-ui-1">{title}</h2>
       {children}
     </section>
   );
@@ -119,7 +120,7 @@ const STATIC_BARS: { title: string; data: StatusBarData }[] = [
   {
     title: "Browser: unreachable, no kiosks, offline",
     data: {
-      dataApi: { state: "unreachable", latencyMs: null, base: "http://192.168.1.12:3921" },
+      dataApi: { state: "offline", latencyMs: null, base: "http://192.168.1.12:3921" },
       server: { kind: "browser", host: "192.168.1.12" },
       kiosks: 0,
       restartNeeded: false,
@@ -138,8 +139,8 @@ function Gallery() {
   return (
     <div className="min-h-screen bg-ui-panel p-6 font-ui text-body text-ui-2">
       <div className="mx-auto max-w-[860px]">
-        <h1 className="text-lead font-semibold text-ui-1">Settings IA · shared pieces</h1>
-        <p className="text-micro text-ui-4">Inheritance chips, LinkRow and the status bar (IMPLEMENTATION_PLAN phase 1).</p>
+        <h1 className="text-lead font-medium text-ui-1">Settings IA · shared pieces</h1>
+        <p className="text-micro text-ui-4">Inheritance chips, LinkRow and the status bar (IMPLEMENTATION_PLAN phase 1)</p>
 
         <Section title="InheritChip: every state">
           <div className="flex flex-wrap items-center gap-2">

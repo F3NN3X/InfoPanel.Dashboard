@@ -21,16 +21,16 @@ export function FramesInspector({ tools, recolour, onRecolour }: FramesInspector
     <InspectorChromeProvider value={{ mode: "docked" }}>
       <aside aria-label="Image sequence settings" className="flex w-[300px] shrink-0 flex-col border-l border-ui-subtle bg-ui-panel font-ui max-[899px]:w-full max-[899px]:border-l-0 max-[899px]:border-t">
         <header className="flex h-11 shrink-0 items-center border-b border-ui-subtle px-4">
-          <h2 className="truncate text-body font-semibold text-ui-1">Image sequence</h2>
+          <h2 className="truncate text-body font-medium text-ui-1">Image sequence</h2>
         </header>
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
           <section className="space-y-3">
-            <h3 className="text-micro font-medium uppercase tracking-[0.06em] text-ui-4">Playback</h3>
+            <h3 className="text-caption font-medium text-ui-3">Playback</h3>
             <NumRow label="Frames per second" value={tools.animationSpeed} min={0} max={120} onChange={tools.setSpeed} />
             <p className="text-caption leading-snug text-ui-4">How fast the shown frame moves toward the value. 0 jumps straight to it.</p>
           </section>
           <section className="space-y-3">
-            <h3 className="text-micro font-medium uppercase tracking-[0.06em] text-ui-4">Recolor</h3>
+            <h3 className="text-caption font-medium text-ui-3">Recolor</h3>
             <NumRow label="Hue" value={recolour.hue} min={-180} max={180} unit="°" onChange={(hue) => onRecolour({ ...recolour, hue })} />
             <NumRow label="Saturation" value={recolour.saturation} min={0} max={300} unit="%" onChange={(saturation) => onRecolour({ ...recolour, saturation })} />
             <NumRow label="Brightness" value={recolour.brightness} min={0} max={300} unit="%" onChange={(brightness) => onRecolour({ ...recolour, brightness })} />
@@ -45,7 +45,7 @@ export function FramesInspector({ tools, recolour, onRecolour }: FramesInspector
             <p className="text-caption leading-snug text-ui-4">Previewed here first. Apply makes recolored copies of the frames in one step.</p>
           </section>
           <section className="space-y-3">
-            <h3 className="text-micro font-medium uppercase tracking-[0.06em] text-ui-4">Vector</h3>
+            <h3 className="text-caption font-medium text-ui-3">Vector</h3>
             <button type="button" disabled={off} onClick={() => void tools.convert()} className={BUTTON}>
               Convert to vector
             </button>

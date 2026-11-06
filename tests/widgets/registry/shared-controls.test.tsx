@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { followInfo, resetKeysOfSection, sectionsFor, widgetContext, widgetLookValues } from "@/components/studio/inspector-model";
-import { parsePins, togglePin } from "@/components/studio/inspector/inspector-prefs";
+import { parsePins } from "@/components/studio/inspector/inspector-prefs";
 import { filterSettings } from "@/components/studio/settings-model";
 import { resolveWith } from "@/lib/style-resolve";
 import { modules } from "@/modules";
@@ -103,8 +103,7 @@ describe("dotted keys (warn.load, crit.load) through search, pins and reset", ()
     expect(filterSettings(defs, "threshold").map((d) => d.key)).toContain("warn.load");
   });
 
-  it("pins keep a dotted key whole, and read the old renamed keys as the new ones", () => {
-    expect(togglePin([], "warn.load")).toEqual(["warn.load"]);
+  it("stored pins read the old renamed keys as the new ones", () => {
     expect(parsePins(JSON.stringify({ CpuMonitor: ["warn.load", "layout", "alignX", "alignY"] }))).toEqual({ CpuMonitor: ["warn.load", "sizeTier", "align"] });
   });
 

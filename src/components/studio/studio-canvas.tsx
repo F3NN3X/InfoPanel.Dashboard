@@ -1,7 +1,6 @@
+import { overToolbar } from "@/components/ui/toast-provider";
 import { NO_PAN, type PanOffset } from "./use-hand-pan";
 import {
-  lazy,
-  Suspense,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -25,7 +24,7 @@ import type { ActiveAlert } from "@/lib/alerts";
 import type { PageBackground as Background } from "@/lib/appearance";
 import type { Appearance } from "@/lib/style-resolve";
 import { cardMode } from "@/lib/theme";
-import { BLANK_MODULE, SCROLL_ROW_H, type MonitorProfile, type ProfilePage, type ProfileView, type Placement } from "@/lib/layout";
+import { BLANK_MODULE, SCROLL_ROW_H, type ProfilePage, type ProfileView, type Placement } from "@/lib/layout";
 import { withItemLayers } from "@/lib/page-model/items-layer";
 import type { PageOp } from "@/lib/page-model/model";
 import { AltHint } from "./alt-hint";
@@ -60,15 +59,12 @@ import { pageSize } from "./use-studio-layout";
 import { zonesInRect } from "./zone-arrange";
 import { enforceMinSize, fitZoneRect, moveZoneSet, type ZoneRect } from "./zone-geometry";
 
-// The InfoPanel view's converter and renderer load only when the view is on.
-const InfoPanelViewLayer = lazy(() => import("./infopanel-view-layer"));
-
 /** The canvas' dot grid, at a fixed pitch on the scroll area (not scaled by the zoom). */
 const DOTS = "radial-gradient(#1f1f25 1px, transparent 1px)";
 const DOT_PITCH = "18px 18px";
-/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the chip, ruler labels and zoom bar, plus `inset`. */
+/** The scroll area's padding around the page (see `CANVAS_PAD_X/Y`): room for the label, ruler labels and bottom toolbar, plus `inset`. */
 const scrollPad = (inset: CanvasInset) =>
-  `${64 + (inset.top ?? 0)}px ${40 + (inset.right ?? 0)}px ${96 + (inset.bottom ?? 0)}px 40px`;
+  `${64 + (inset.top ?? 0)}px ${34 + (inset.right ?? 0)}px ${96 + (inset.bottom ?? 0)}px 34px`;
 /** The optional grid: a line at the left / top edge of every cell, drawn over the tiles. */
 const GRID_LINES =
   "linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px)";
@@ -165,6 +161,8 @@ interface StudioCanvasProps {
   flash?: { zoneId: string; seq: number } | null;
   /** Top centre of the canvas (the Add panel's toast). */
   toast?: ReactNode;
+  /** The bottom toolbar's lift above the canvas bottom (a phone's sheet), which the toasts follow. */
+  barBottom?: number;
   /** Right-click (viewport px) on a zone, or on empty canvas (null). */
   onContextMenu: (id: string | null, x: number, y: number) => void;
   /** Open the Add drawer (the empty canvas card). */
@@ -179,19 +177,12 @@ interface StudioCanvasProps {
   selectionChip?: ReactNode;
   /** Alerts the profile's island shows (test alerts: the canvas is not a kiosk). */
   islandAlerts?: readonly ActiveAlert[];
-  /** A zone's Export check badge, on a screen made for InfoPanel (Edit v3 SPEC §7.1). */
-  badgeOf?: (zone: Placement) => ReactNode;
-  /** The InfoPanel view (decision Q10): the zones the export leaves out aren't drawn; they keep their cells. */
-  leftOut?: ReadonlySet<string>;
-  /** The InfoPanel view's drawing (sign-off round 2): the page as the export makes it, over the zones (lazy). */
-  infoPanelView?: { screen: MonitorProfile; page: ProfilePage };
   /** The page's InfoPanel items and elements (item placements): their selection, and their edits as page model ops. */
   items?: {
     selectedIds: readonly string[];
     onSelect: (id: string, toggle: boolean) => void;
     onOps: (ops: PageOp[], key: string) => void;
     onContextMenu?: (id: string, x: number, y: number) => void;
-    badgeOf?: (p: Placement) => ReactNode;
     /** The selected page groups: their boxes, and their moves. */
     groups?: GroupMoves;
   };
@@ -238,6 +229,7 @@ export function StudioCanvas({
   onClearTarget,
   flash,
   toast,
+  barBottom,
   onContextMenu,
   onOpenAdd,
   onImport,
@@ -245,9 +237,6 @@ export function StudioCanvas({
   onUseSample,
   selectionChip,
   islandAlerts = NO_ALERTS,
-  badgeOf,
-  leftOut,
-  infoPanelView,
   items,
 }: StudioCanvasProps) {
   /** The mode of the scoped screen theme: `lite:` styling on its theme cards follows it, as the kiosk page's `data-mode` does. */
@@ -570,8 +559,8 @@ export function StudioCanvas({
 
   return (
     <PageIslandProvider value={pageIsland}>
-    {/* The app's toasts sit at its top centre (data-toast-anchor). */}
-    <div data-toast-anchor="" className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
+    {/* The app's toasts sit at its bottom centre, over the bottom toolbar (data-toast-anchor). */}
+    <div data-toast-anchor="" data-toast-bar={barBottom} className="relative flex min-h-0 flex-1 flex-col bg-ui-app">
       <p role="status" className="sr-only">
         {selected ? `Chosen part: ${selected.module}, ${sizeText(selected.colSpan, selected.rowSpan)}. Layers lists every part.` : "No part chosen"}
       </p>
@@ -590,7 +579,7 @@ export function StudioCanvas({
           aria-label="Canvas"
           // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrolling region takes focus so the keyboard can scroll it
           tabIndex={0}
-          className="h-full w-full overflow-auto outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent"
+          className="h-full w-full overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent"
           style={{ backgroundImage: DOTS, backgroundSize: DOT_PITCH }}
           onContextMenu={(e) => {
             e.preventDefault();
@@ -649,7 +638,19 @@ export function StudioCanvas({
                 if (e.target === e.currentTarget) onSelect(null);
               }}
             >
-              {showRulers && <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />}
+              {showRulers ? (
+                <RulerLabels width={canvas.w} height={canvas.h} scale={zoom} />
+              ) : (
+                // The page's name and size over its top edge; the rulers take that room when they are on.
+                page && (
+                  <div data-shot-skip aria-hidden className="pointer-events-none absolute inset-x-0 flex justify-between font-ui text-ui-3" style={{ bottom: "100%", marginBottom: 12 / zoom, fontSize: 12 / zoom }}>
+                    <span>{page.name}</span>
+                    <span className="font-ui-mono">
+                      {profile.width} × {profile.height}
+                    </span>
+                  </div>
+                )
+              )}
               {profile.island?.enabled && (
                 <DynamicIsland config={withPackEdge(profile.island, packEdge)} alerts={islandAlerts} placement="absolute" page={islandPage} skin={pageSkinOf(appearance)} />
               )}
@@ -705,7 +706,7 @@ export function StudioCanvas({
                           className="pointer-events-none absolute z-30 rounded-ui-md border-2 border-dashed border-ui-accent bg-ui-accent/10"
                           style={style}
                         >
-                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-nano font-semibold tabular-nums text-ui-accent-text">
+                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-nano font-medium tabular-nums text-ui-accent-text">
                             C{r.col} · R{r.row} · {r.cols}×{r.rows}
                           </span>
                         </div>
@@ -754,7 +755,7 @@ export function StudioCanvas({
                     );
                   })}
 
-                  {profile.placements.filter((p) => !leftOut?.has(p.id)).map((p) => (
+                  {profile.placements.map((p) => (
                     <LivePlacement
                       key={p.id}
                       placement={p}
@@ -788,7 +789,6 @@ export function StudioCanvas({
                           onPressGrouped={p.groupId && !selectedIds.includes(p.id) ? (e) => pressGrouped.current?.(e, p.id) ?? false : undefined}
                           onPickWidget={() => onPickWidget(p.id)}
                           onContextMenu={(x, y) => onContextMenu(p.id, x, y)}
-                          badge={badgeOf?.(p)}
                         >
                           {content}
                         </PlacementFrame>
@@ -806,18 +806,6 @@ export function StudioCanvas({
                     </LivePlacement>
                   ))}
 
-                  {infoPanelView && pageEl && gridEl && (
-                    <Suspense fallback={null}>
-                      <InfoPanelViewLayer
-                        page={pageEl}
-                        grid={gridEl}
-                        zoom={zoom}
-                        screen={infoPanelView.screen}
-                        storedPage={infoPanelView.page}
-                        placements={profile.placements.filter((p) => !leftOut?.has(p.id))}
-                      />
-                    </Suspense>
-                  )}
                 </div>
                 {page && items && (
                   <ItemParts
@@ -832,7 +820,6 @@ export function StudioCanvas({
                     onDragCancel={onDragCancel}
                     onGesture={setGesture}
                     onContextMenu={items.onContextMenu}
-                    badgeOf={items.badgeOf}
                     groups={items.groups}
                     pressRef={pressGrouped}
                   />
@@ -878,8 +865,12 @@ export function StudioCanvas({
         <AltHint widget={zoneDrag !== null} className="absolute left-1/2 top-3 z-40 -translate-x-1/2" />
       )}
 
-      {/* Top centre of the canvas (Edit v3 SPEC §9.6). */}
-      {toast && <div className="pointer-events-none absolute inset-x-0 top-3.5 z-40 flex justify-center">{toast}</div>}
+      {/* Bottom centre, over the bottom toolbar (rules §4). */}
+      {toast && (
+        <div style={{ bottom: overToolbar(barBottom) }} className="pointer-events-none absolute inset-x-0 z-40 flex justify-center">
+          {toast}
+        </div>
+      )}
 
       {/* Zone-drag ghost: follows the pointer (outside the zoomed canvas)
           so the zone being moved/resized is always visibly tracked. */}

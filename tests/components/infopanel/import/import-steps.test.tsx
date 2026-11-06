@@ -13,7 +13,7 @@ const report: ImportReport = {
   sensors: { groups: 3, items: 5, byStatus: { exact: 1, name: 1, unresolved: 1 }, attention: 2 },
   assets: { files: 4, bytes: 2_500_000, unused: 1, duplicates: 1, missing: ["gone.png"], urls: 0, absolute: [] },
   fonts: { requests: 3, missing: ["Rajdhani"], supplied: 0 },
-  gauges: { total: 2, vector: 1, withoutFrames: 1 },
+  gauges: { total: 2, vector: 1 },
   issues: { "unknown-field": 2 },
   dataApi: null,
 };

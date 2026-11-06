@@ -87,7 +87,7 @@ export function WidgetPickerDialog({ placement, onClose, ...body }: WidgetPicker
             <>
               <div className="flex items-start gap-2 border-b border-ui-subtle px-3 py-2.5">
                 <div className="min-w-0 flex-1">
-                  <Dialog.Title className="text-sm font-semibold text-ui-1">Pick a widget</Dialog.Title>
+                  <Dialog.Title className="text-sm font-medium text-ui-1">Pick a widget</Dialog.Title>
                   <Dialog.Description className="truncate text-xs text-ui-4">
                     Zone {placement.colSpan}×{placement.rowSpan} · now {placementTitle(placement)}
                   </Dialog.Description>

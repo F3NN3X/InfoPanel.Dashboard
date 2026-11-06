@@ -18,12 +18,12 @@ export function EmptyLayoutCard({ onBrowse, onImport, onUseSample }: EmptyLayout
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
       <div className="flex max-w-[340px] flex-col items-center gap-2.5 rounded-xl border border-ui-default bg-ui-panel px-7 py-6 text-center font-ui">
         <LayoutDashboard className="h-7 w-7 text-ui-hint" strokeWidth={1.5} />
-        <div className="text-lead font-semibold text-ui-1">Drop widgets or InfoPanel items here</div>
+        <div className="text-lead font-medium text-ui-1">Drop widgets or InfoPanel items here</div>
         <div className="pointer-events-auto mt-1.5 flex gap-2">
           <button
             type="button"
             onClick={onBrowse}
-            className="h-[30px] rounded-[7px] bg-ui-inverse px-3 text-caption font-semibold text-ui-inverse-fg transition-opacity hover:opacity-90"
+            className="h-[30px] rounded-[7px] bg-ui-inverse px-3 text-caption font-medium text-ui-inverse-fg transition-opacity hover:opacity-90"
           >
             Add
           </button>
@@ -64,7 +64,7 @@ export function QuickTipsCard() {
   return (
     <div className="mx-3.5 my-3 flex flex-col gap-2 rounded-[10px] border border-ui-strong bg-ui-raised px-3.5 py-3 font-ui">
       <div className="flex items-center justify-between">
-        <span className="text-body font-semibold text-ui-1">Quick tips</span>
+        <span className="text-body font-medium text-ui-1">Quick tips</span>
         <button
           type="button"
           title="Dismiss"

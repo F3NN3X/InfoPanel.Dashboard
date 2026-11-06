@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { applyElement, approximations, badgeOf, elementOf, recolour, syncElements } from "@/lib/infopanel/elements/apply.ts";
-import { isElementStale } from "@/lib/infopanel/elements/bake.ts";
+import { applyElement, elementOf, recolour, syncElements } from "@/lib/infopanel/elements/apply.ts";
 import { newComposite, newElement } from "@/lib/infopanel/elements/create.ts";
 import type { CardSpec, DividerSpec, ElementSpec } from "@/lib/infopanel/elements/spec.ts";
-import { bakeSignature, isStale } from "@/lib/infopanel/gauges/frames.ts";
 import { newItem } from "@/lib/infopanel/editor/create.ts";
 import { moveBy } from "@/lib/infopanel/editor/ops.ts";
 import type { DisplayItem, GroupItem } from "@/lib/infopanel/schema.ts";
@@ -13,17 +11,17 @@ const withSpec = (item: DisplayItem, patch: Partial<ElementSpec>) => applyElemen
 const lab = (item: DisplayItem) => item as DisplayItem & { vector?: { width: number; height: number; segments: number; dot?: unknown; fill: { mode: string } } };
 
 describe("each element as InfoPanel items", () => {
-  it("maps to its kind and badge", () => {
-    const got = oneOfEach().map((item) => [elementOf(item)!.type, item.kind, badgeOf(item)!.kind]);
+  it("maps to its kind", () => {
+    const got = oneOfEach().map((item) => [elementOf(item)!.type, item.kind]);
     expect(got).toEqual([
-      ["ring", "Gauge", "baked"],
-      ["ledbar", "Gauge", "baked"],
-      ["card", "Shape", "native"],
-      ["glow", "Image", "baked"],
-      ["divider", "Shape", "native"],
-      ["icon", "Image", "baked"],
-      ["cores", "Group", "native"],
-      ["sparkline", "Graph", "approximated"],
+      ["ring", "Gauge"],
+      ["ledbar", "Gauge"],
+      ["card", "Shape"],
+      ["glow", "Image"],
+      ["divider", "Shape"],
+      ["icon", "Image"],
+      ["cores", "Group"],
+      ["sparkline", "Graph"],
     ]);
   });
 
@@ -48,7 +46,6 @@ describe("Card's native and baked switch", () => {
     expect(stroked).toMatchObject({
       kind: "Shape", Type: "Rectangle", CornerRadius: 20, ShowFrame: true, FrameThickness: 1, FrameColor: "#FF333333", ShowGradient: false, FillColor: palette.card,
     });
-    expect(badgeOf(stroked)!.kind).toBe("native");
   });
 
   it("becomes one Image grown by the shadow's margin, and back to the same Shape", () => {
@@ -56,8 +53,6 @@ describe("Card's native and baked switch", () => {
     const pad = (elementOf(shadowed) as CardSpec).pad;
     expect(pad).toBe(19);
     expect(shadowed).toMatchObject({ kind: "Image", X: 100 - pad, Y: 50 - pad, Width: 220 + 2 * pad, Height: 140 + 2 * pad, RelativePath: true, Type: "FILE" });
-    expect(badgeOf(shadowed)).toMatchObject({ kind: "baked", reason: expect.stringContaining("shadow") });
-    expect(isElementStale(shadowed)).toBe(true);
     const back = withSpec(shadowed, { shadow: null } as Partial<CardSpec>);
     expect(back).toMatchObject({ kind: "Shape", X: 100, Y: 50, Width: 220, Height: 140 });
     expect(back).not.toHaveProperty("elementBaked");
@@ -66,7 +61,6 @@ describe("Card's native and baked switch", () => {
   it("is baked with a gradient fill", () => {
     const g = withSpec(card, { fill: [...spec.fill, { color: "#FF000000" }] } as Partial<CardSpec>);
     expect(g.kind).toBe("Image");
-    expect(badgeOf(g)!.reason).toContain("gradient");
   });
 });
 
@@ -82,7 +76,6 @@ describe("Divider's native and baked switch", () => {
   it("is one Image when it has a gradient", () => {
     const g = withSpec(divider, { fill: [{ color: "#FFFFFFFF" }, { color: "#00FFFFFF" }] } as Partial<DividerSpec>);
     expect(g).toMatchObject({ kind: "Image", Width: 200, Height: 1 });
-    expect(badgeOf(g)!.kind).toBe("baked");
   });
 });
 
@@ -104,25 +97,18 @@ describe("Cores", () => {
 });
 
 describe("Sparkline", () => {
-  it("is InfoPanel's Graph, and lists what the export loses", () => {
+  it("is InfoPanel's Graph", () => {
     const s = newElement("sparkline", profile, palette);
     expect(s).toMatchObject({ kind: "Graph", Type: "LINE", Fill: true });
-    expect(badgeOf(s)!.lost).toEqual(["the end dot", "the gradient fill (InfoPanel fills one color)"]);
-    expect(approximations([s])).toEqual([{ path: "0", name: "Sparkline", lost: badgeOf(s)!.lost }]);
-    expect(badgeOf(withSpec(s, { dot: false, gradient: false } as never))!.kind).toBe("native");
   });
 });
 
 describe("recolour (a palette slot changed)", () => {
   const next = { ...palette, accent1: "#FFFF0000", card: "#FF222222" };
 
-  it("recolours every element and styled field following the slot, and marks the baked ones stale", () => {
+  it("recolours every element and styled field following the slot, ", () => {
     const items = oneOfEach();
-    // The ring as the export left it: frames recorded as of the old palette.
-    const ring = { ...items[0], vectorBaked: bakeSignature(lab(items[0]).vector as never, 0) } as unknown as DisplayItem;
-    expect(isStale(ring)).toBe(false);
-    const [r, , card, glow, , , cores] = recolour([ring, ...items.slice(1)], next);
-    expect(isStale(r)).toBe(true);
+    const [, , card, glow, , , cores] = recolour(items, next);
     expect(card).toMatchObject({ FillColor: "#FF222222" });
     expect(elementOf(glow)).toMatchObject({ color: { color: "#FFFF0000", slot: "accent1" } });
     expect((cores as GroupItem).DisplayItems[0]).toMatchObject({ Color: "#FFFF0000" });
@@ -144,13 +130,11 @@ describe("recolour (a palette slot changed)", () => {
 describe("a ring's face", () => {
   const face = { pattern: "hex", color: "#FFFFFF", opacity: 0.08, size: 14, fill: "#06090D" } as const;
 
-  it("goes into the vector spec the export bakes, and a changed face makes the frames stale", () => {
+  it("goes into the vector spec", () => {
     const plain = newElement("ring", profile, palette);
     const faced = withSpec(plain, { face } as Partial<ElementSpec>);
     expect(lab(faced).vector).toMatchObject({ face });
     expect(lab(plain).vector).not.toHaveProperty("face");
-    expect(bakeSignature(lab(faced).vector as never, 101)).not.toBe(bakeSignature(lab(plain).vector as never, 101));
-    expect(badgeOf(faced)).toMatchObject({ kind: "baked" });
   });
 
   it("is on a Double ring's inner ring only", () => {

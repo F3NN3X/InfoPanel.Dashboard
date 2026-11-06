@@ -89,7 +89,7 @@ export function MultiInspector({
     const sections = chipSections(s);
     return sections.length === 0
       ? undefined
-      : sectionInherit({ sections, title: s.title, scope: scopeOf(primary), alsoScopes: zones.filter((z) => z !== primary).map(scopeOf), ctx: inherit });
+      : sectionInherit({ dot: true, sections, title: s.title, scope: scopeOf(primary), alsoScopes: zones.filter((z) => z !== primary).map(scopeOf), ctx: inherit });
   };
 
   return (

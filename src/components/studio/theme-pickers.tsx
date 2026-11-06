@@ -5,11 +5,10 @@ import { variantName, type TemplateThemeRow } from "@/lib/screen-templates/templ
 import { cn } from "@/lib/utils";
 import { LookThumb } from "./look-thumb";
 import ScreensList from "./theme-screens-list";
-import { getKeepBackground, setKeepBackground } from "./theme-keep-background";
 import { ThemeNameInput } from "./theme-name-input";
 import { filteredThemes, rowTag, templatesHeading, type ThemeFilter } from "./theme-view-model";
 
-const HEADING = "px-4 pb-1.5 pt-3 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint";
+const HEADING = "px-4 pb-1.5 pt-3 font-ui text-caption font-medium text-ui-3";
 const ACTION = "rounded-sm text-caption text-ui-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
 /** A picker's frame (SPEC §4.3.3): ‹ Back and the title, the help text, the list, and a footer. */
@@ -25,7 +24,7 @@ export function PickerShell({ title, help, onBack, footer, children }: { title: 
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           Back
         </button>
-        <h2 className="truncate text-lead font-semibold text-ui-1">{title}</h2>
+        <h2 className="truncate text-lead font-medium text-ui-1">{title}</h2>
       </div>
       <p className="px-4 py-2 text-caption leading-snug text-ui-soft">{help}</p>
       <div className="flex-1">{children}</div>
@@ -67,6 +66,10 @@ interface SwitchThemeProps {
   /** + Save current look. */
   onSaveCurrent: (name: string) => void;
   onBack: () => void;
+  /** The screen whose "Keep my background" choice the footer holds. */
+  /** Keep my background: the editor owns it, so the picker, Browse and the preview agree. */
+  keep: boolean;
+  onKeep: (on: boolean) => void;
   /** The other screens the current theme can be applied to; none (a page, or no theme here) hides the action. */
   otherScreens?: readonly { id: string; name: string; size: string }[];
   /** Apply the current theme to the ticked screens (and this one). */
@@ -87,7 +90,7 @@ const FILTERS: { id: ThemeFilter; label: string }[] = [
  */
 export function SwitchThemePicker(p: SwitchThemeProps) {
   const [filter, setFilter] = useState<ThemeFilter>("all");
-  const [keep, setKeep] = useState(getKeepBackground);
+  const { keep } = p;
   const [toScreens, setToScreens] = useState(false);
   const [menuFor, setMenuFor] = useState<string>();
   const [renaming, setRenaming] = useState<string>();
@@ -98,8 +101,8 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
   const apply = (preset: AppearancePreset) => p.onApply(preset, keep);
   return (
     <PickerShell
-      title="Saved and template looks"
-      help="A look sets the colors, the Look, corners and background. The first one on a screen or page replaces its look; after that, picking one keeps your fine-tune changes."
+      title="Saved and template themes"
+      help="A theme sets the colors, the look of the widgets, corners and background. The first one on a screen or page replaces its theme; after that, picking one keeps your fine-tune changes."
       onBack={p.onBack}
       footer={
         <>
@@ -108,8 +111,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
               type="checkbox"
               checked={keep}
               onChange={(e) => {
-                setKeepBackground(e.target.checked);
-                setKeep(e.target.checked);
+                p.onKeep(e.target.checked);
               }}
               className="peer sr-only"
             />
@@ -138,7 +140,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
             {saving ? (
               <ThemeNameInput
                 initial=""
-                label="Look name"
+                label="Theme name"
                 onDone={(name) => {
                   setSaving(false);
                   if (name) p.onSaveCurrent(name);
@@ -153,7 +155,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
         </>
       }
     >
-      <div role="group" aria-label="Filter looks" className="flex gap-1.5 px-4 pb-1">
+      <div role="group" aria-label="Filter themes" className="flex gap-1.5 px-4 pb-1">
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -171,8 +173,8 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
       </div>
       {shown.saved && (
         <>
-          <h3 className={HEADING}>Saved looks · {shown.saved.length}</h3>
-          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Looks you save appear here.</p>}
+          <h3 className={HEADING}>Saved themes · {shown.saved.length}</h3>
+          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Themes you save appear here</p>}
           {shown.saved.map((t) => (
             <div key={t.id}>
               <div className="flex items-center gap-3 px-4 py-2 hover:bg-ui-hover">
@@ -180,7 +182,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
                 {renaming === t.id ? (
                   <ThemeNameInput
                     initial={t.name}
-                    label="Look name"
+                    label="Theme name"
                     onDone={(name) => {
                       setRenaming(undefined);
                       if (name) p.onRename(t.id, name);

@@ -41,6 +41,8 @@ export interface AddItem {
   dir?: "row" | "column";
   /** A saved panel (My panels): it can be renamed and deleted. */
   saved?: boolean;
+  /** A widget's further views (D-5): one row each, its presets, added with that view set. */
+  styles?: AddItem[];
   /** What the add path places. */
   drop: LibraryItem;
 }
@@ -76,8 +78,8 @@ function defaultSize(def: [number, number] | undefined, mw: number, mh: number):
   return [Math.max(w, mw), Math.max(h, mh)];
 }
 
-/** A widget's row, then one per further view (`Name · View`, added with that view set); the first view is the widget's own row. */
-function moduleItems(m: ModuleMeta): AddItem[] {
+/** A widget's one row (D-5): its further views are its `styles`, found by search through the row's tags. */
+function moduleItem(m: ModuleMeta): AddItem {
   const [w, h] = defaultSize(m.defaultSize, m.minCols, m.minRows);
   const description = m.description ?? (m.id === CARDS_ID ? "Every sensor no other widget shows, as cards." : "");
   const item: AddItem = {
@@ -96,11 +98,12 @@ function moduleItems(m: ModuleMeta): AddItem[] {
     drop: { kind: "module", id: m.id },
   };
   const views = m.views ?? [];
-  if (views.length < 2) return [item];
+  if (views.length < 2) return item;
   const key = m.viewKey ?? "view";
-  return [
-    item,
-    ...views.slice(1).map((v): AddItem => {
+  return {
+    ...item,
+    tags: [item.tags, ...views.flatMap((v) => [v.name.toLowerCase(), v.tags ?? ""])].filter(Boolean).join(" "),
+    styles: views.slice(1).map((v): AddItem => {
       const [mw, mh] = v.minSize ?? [m.minCols, m.minRows];
       const [vw, vh] = defaultSize(v.defaultSize ?? m.defaultSize, mw, mh);
       return {
@@ -116,12 +119,15 @@ function moduleItems(m: ModuleMeta): AddItem[] {
         drop: { kind: "module", id: m.id, settings: { [key]: v.id, ...v.applies } },
       };
     }),
-  ];
+  };
 }
 
 function widgetItems(): AddItem[] {
-  return ALL_MODULES.flatMap(moduleItems);
+  return ALL_MODULES.map(moduleItem);
 }
+
+/** The widgets with each one's views as rows: what a drop that carries a view resolves against. */
+export const widgetRows = (items: readonly AddItem[]): AddItem[] => items.flatMap((i) => [i, ...(i.styles ?? [])]);
 
 /** Whether two library items add the same thing (a widget's views differ by their settings). */
 export const sameDrop = (a: LibraryItem, b: LibraryItem): boolean =>

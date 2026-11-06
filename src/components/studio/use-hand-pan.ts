@@ -15,9 +15,10 @@ export const panBy = (from: PanOffset, dx: number, dy: number): PanOffset => ({ 
  * The hand tool: drag the canvas around at any zoom, with the middle button, or with the left
  * button while Space is held (with the canvas or nothing focused). The container shows a grab cursor while Space
  * is down and a grabbing one while dragging (`data-hand`, styled in index.css); the browser's
- * middle-click autoscroll is cancelled. Returns the offset to translate the page by.
+ * middle-click autoscroll is cancelled. `latched` is the toolbar's Pan: the left button pans as if Space were held.
+ * Returns the offset to translate the page by.
  */
-export function useHandPan(el: HTMLElement | null): { pan: PanOffset; resetPan: () => void } {
+export function useHandPan(el: HTMLElement | null, latched = false): { pan: PanOffset; resetPan: () => void } {
   const [pan, setPan] = useState<PanOffset>(NO_PAN);
   // The listeners read the offset here, so a reset from outside is where the next drag starts.
   const offset = useRef<PanOffset>(NO_PAN);
@@ -25,6 +26,10 @@ export function useHandPan(el: HTMLElement | null): { pan: PanOffset; resetPan: 
     offset.current = NO_PAN;
     setPan(NO_PAN);
   }, []);
+  const latch = useRef(latched);
+  latch.current = latched;
+  const refresh = useRef<() => void>(undefined);
+  useEffect(() => refresh.current?.(), [latched]);
 
   useEffect(() => {
     if (!el) return;
@@ -32,9 +37,11 @@ export function useHandPan(el: HTMLElement | null): { pan: PanOffset; resetPan: 
     let drag: { x: number; y: number; from: PanOffset; id: number; moved: boolean } | null = null;
     const show = () => {
       if (drag) el.dataset.hand = "grabbing";
-      else if (space) el.dataset.hand = "grab";
+      else if (space || latch.current) el.dataset.hand = "grab";
       else delete el.dataset.hand;
     };
+    refresh.current = show;
+    show();
     const end = () => {
       if (!drag) return;
       if (el.hasPointerCapture?.(drag.id)) el.releasePointerCapture(drag.id);
@@ -44,7 +51,7 @@ export function useHandPan(el: HTMLElement | null): { pan: PanOffset; resetPan: 
       show();
     };
     const onDown = (e: PointerEvent) => {
-      if (e.button !== 1 && !(e.button === 0 && space)) return;
+      if (e.button !== 1 && !(e.button === 0 && (space || latch.current))) return;
       // Capture phase: a zone under the pointer doesn't start its own move or draw.
       e.preventDefault();
       e.stopPropagation();

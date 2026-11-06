@@ -79,7 +79,7 @@ test("Holo's connectors are drawn in the studio canvas too, and follow a zone th
   fs.writeFileSync(file, JSON.stringify(stored));
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`${scratch.base}/?studio=1&profile=${heavy}`);
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: /^Edit / }).click();
   const circles = page.locator("[data-studio-page] [data-pack-connectors] circle");
   await expect.poll(() => circles.count()).toBeGreaterThan(0);
   const ends = () => page.evaluate(() => [...document.querySelectorAll("[data-studio-page] [data-pack-connectors] circle")].map((c) => `${c.getAttribute("cx")},${c.getAttribute("cy")}`));

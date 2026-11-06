@@ -107,7 +107,7 @@ export function ContextMenu({ x, y, entries, onClose, width = MENU_WIDTH, testId
   const rows = (list: ContextMenuEntry[], level: number) =>
     list.map((e, i) =>
       e === "separator" ? (
-        <div key={i} role="separator" className="mx-0.5 my-1 h-px bg-ui-default" />
+        <div key={i} role="separator" className="mx-0.5 my-1 h-px bg-ui-subtle" />
       ) : (
         <div key={e.id} className="relative" title={e.title} onMouseEnter={() => level === 0 && setOpenSub(e.submenu && !e.disabled ? e.id : null)}>
           <button
@@ -130,15 +130,15 @@ export function ContextMenu({ x, y, entries, onClose, width = MENU_WIDTH, testId
               e.onSelect?.();
             }}
             className={cn(
-              "flex h-[29px] w-full items-center gap-2 rounded-md px-2 text-left text-[12.5px] outline-none focus-visible:bg-ui-active focus-visible:shadow-[inset_2px_0_0_var(--ui-accent)] disabled:text-ui-disabled",
+              "group flex h-8 w-full items-center gap-2 rounded-ui-md px-2 text-left text-body outline-none focus-visible:bg-ui-active focus-visible:shadow-[inset_2px_0_0_var(--ui-accent)] disabled:text-ui-disabled",
               e.danger ? "text-ui-danger hover:bg-ui-danger/15" : "text-ui-1 hover:bg-ui-active disabled:hover:bg-transparent"
             )}
           >
-            <span className="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-[13px] [&>svg]:w-[13px]">
+            <span className="flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-ui-hint group-hover:[&>svg]:text-ui-2 group-focus-visible:[&>svg]:text-ui-2">
               {e.icon}
             </span>
             <span className="min-w-0 flex-1 truncate">{e.label}</span>
-            {e.hint && <span className="font-ui-mono text-micro text-ui-hint">{e.hint}</span>}
+            {e.hint && <span className="font-ui-mono text-micro text-ui-hint group-hover:text-ui-2 group-focus-visible:text-ui-2">{e.hint}</span>}
             {e.submenu && <ChevronRight className="h-3 w-3 shrink-0 text-ui-4" />}
           </button>
           {e.submenu && openSub === e.id && (

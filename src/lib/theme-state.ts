@@ -55,7 +55,8 @@ export function themeState(config: DashboardConfig, target: ThemeTarget, templat
   const tokens = p?.theme;
   const radius = p?.radius;
   const background = p?.background;
-  const own = SECTION_IDS.filter((sec) => sec !== "skin" && differs(values, sec));
+  // The screen's corners are one control over two stores (L48): the widget knob counts with `corners` below, not as a section of its own.
+  const own = SECTION_IDS.filter((sec) => sec !== "skin" && SECTION_KEYS[sec].some((key) => key !== "radius" && values?.[key] !== written[key]));
   if (!applied) return { applied, theme, deleted, changed: [], own };
   const changed: ThemePart[] = [];
   if (!sameValues(tokens, applied.tokens)) changed.push("palette");

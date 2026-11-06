@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfDisplayItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DisplayItem xsi:type="TextDisplayItem">
+    <Name>Text.Name &amp; &lt;é&gt;</Name>
+    <Hidden>true</Hidden>
+    <X>107</X>
+    <Y>107</Y>
+    <IsLocked>true</IsLocked>
+    <Rotation>7</Rotation>
+    <Font>Fira Sans</Font>
+    <FontSize>27</FontSize>
+    <Bold>true</Bold>
+    <Italic>true</Italic>
+    <Underline>true</Underline>
+    <Strikeout>true</Strikeout>
+    <Color>#FF2468AC</Color>
+    <Uppercase>true</Uppercase>
+    <GlowRadius>15</GlowRadius>
+    <FontStyle>Bold Italic</FontStyle>
+    <RightAlign>true</RightAlign>
+    <CenterAlign>true</CenterAlign>
+    <Wrap>false</Wrap>
+    <Ellipsis>false</Ellipsis>
+    <Width>7</Width>
+    <Height>7</Height>
+    <Marquee>true</Marquee>
+    <MarqueeSpeed>57</MarqueeSpeed>
+    <MarqueeSpacing>47</MarqueeSpacing>
+    <GlowEnabled>true</GlowEnabled>
+    <GlowColor>#FF2468AC</GlowColor>
+    <GlowBlendMode>Screen</GlowBlendMode>
+    <FutureText>7 &amp; Text</FutureText>
+  </DisplayItem>
+</ArrayOfDisplayItem>

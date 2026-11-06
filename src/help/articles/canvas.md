@@ -6,9 +6,9 @@ related: [infopanel-editor, import, remap, gauges]
 verified: 1.3.0-beta.36
 ---
 
-A free-form editor over the imported profile. Every edit stays valid for export back to InfoPanel.
+A free-form editor over the imported profile. Every edit stays valid on the imported canvas.
 
-The editor is **Edit** on the rail, the same view that edits a grid screen. An imported InfoPanel profile opens in it from its card in Screens. See [InfoPanel profiles in Edit](infopanel-editor) for adding items, choosing sensors and the page's settings.
+The editor is **Edit** in the sidebar, the same view that edits a grid screen. An imported InfoPanel profile opens in it from its card in Screens. See [InfoPanel profiles in Edit](infopanel-editor) for adding items, choosing sensors and the page's settings.
 
 An InfoPanel item or element added from **Add** to a grid page goes on the page itself, among the widgets, and doesn't make an area of its own (see [Add](studio#add)).
 
@@ -25,9 +25,7 @@ The item tree, the top item first, as on a screen's page (see [Layers](studio#la
 
 ## Preview, sensors and Compare
 
-There is no strip above the canvas. Click an empty part of the canvas: the page's settings have a **Preview** section with **Show modes** (its legend shows under the switch), **Sensors**, **Compare** and **Save to Library**. **Remap sensors** is in the same settings, above it. Undo and Redo are in the title bar. Duplicate, Group, Ungroup, the draw order and Delete are in Layers, its right-click menu, the inspector's **LAYER** buttons and the keys.
-
-To see the whole page as InfoPanel draws it, use the zoom bar: on a screen made for InfoPanel too it has **Studio | InfoPanel**. **InfoPanel** draws the page as it exports: every item as InfoPanel draws it, letter spacing off, and the parts the export leaves out hidden. It's a view only. **Studio** goes back.
+There is no strip above the canvas. Click an empty part of the canvas: the page's settings have a **Preview** section with **Show modes** (its legend shows under the switch), **Sensors**, **Compare** and **Save to Library**. **Remap sensors** is in the same settings, above it. Undo and Redo are in the title bar. Duplicate, Group, Ungroup, the draw order and Delete are in Layers, its right-click menu and the keys.
 
 ## InfoPanel or native, per item
 

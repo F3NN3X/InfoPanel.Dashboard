@@ -33,6 +33,21 @@ describe("A widget's layer menu", () => {
     expect(own.at(-1)).toBe("delete");
   });
 
+  it("lists Move out of group in Move to group, enabled only when something sits in a group", () => {
+    const available = Object.fromEntries(["front", "forward", "backward", "back", "group", "ungroup", "snap", "lock", "hide", "duplicate", "delete"].map((a) => [a, true])) as Record<LayerAction, boolean>;
+    const out = vi.fn();
+    const submenuOf = (enabled: boolean) => {
+      const entries = layerMenuEntries({ available, groups: [{ id: "g", name: "G" }], run: vi.fn(), moveToGroup: vi.fn(), moveOut: { enabled, run: out } });
+      const move = entries.find((e): e is Exclude<ContextMenuEntry, "separator"> => e !== "separator" && e.id === "move-to-group");
+      return move?.submenu?.find((e): e is Exclude<ContextMenuEntry, "separator"> => e !== "separator" && e.id === "move-out");
+    };
+    expect(submenuOf(false)?.disabled).toBe(true);
+    const row = submenuOf(true);
+    expect(row?.disabled).toBe(false);
+    row?.onSelect?.();
+    expect(out).toHaveBeenCalledOnce();
+  });
+
   it("is empty with no widget selected", () => {
     expect(zoneMenuExtras({ ...deps, sel: { selected: null, selection: [] } as unknown as StudioSelection })).toEqual([]);
   });

@@ -18,7 +18,6 @@ import type { SlotRef } from "../elements/apply.ts";
 import { defaultPalette, isSlot, normalizePalette, type Palette } from "../elements/palette.ts";
 import { ELEMENT_KINDS, normalizeElement, type ElementSpec } from "../elements/spec.ts";
 import { normalizeGauge, type VectorGauge } from "../gauges/vector.ts";
-import type { NativeChoice } from "../native/tiers.ts";
 import type { Issue } from "../parse.ts";
 import { groupId, type Overrides, type Status } from "../remap/remap.ts";
 import { ALIASES, PROFILE, SCHEMAS, type DisplayItem, type ItemKind, type Profile } from "../schema.ts";
@@ -98,6 +97,9 @@ export interface AreaRecord {
   made?: string;
 }
 
+/** What InfoPanel export once did with a widget: a saved rule. */
+export type NativeChoice = "recreate" | "snapshot" | "leave";
+
 /**
  * A Studio widget stored in a canvas: what a grid zone holds for it, without the cells. An older build drops
  * the record and sees an empty Image. Types are the config's (`Placement`), kept loose here so Node scripts
@@ -113,7 +115,7 @@ export interface WidgetItem {
   follow?: Record<string, boolean>;
   /** A panel's definition (`PanelDef`), normalised where it is drawn. */
   panel?: Record<string, unknown>;
-  /** What an InfoPanel export makes of it; unset = the first of `choicesFor(tierOf(module))`. */
+  /** The rule InfoPanel export once read (no longer set or read here): a saved field, kept as it is. */
   onInfoPanel?: NativeChoice;
   /** The cells it sits on (Edit v3 SPEC §3.6); the Image's X / Y / Width / Height are their box, kept in step. */
   cell?: CellBox;
@@ -121,7 +123,7 @@ export interface WidgetItem {
   name?: string;
 }
 
-// Here rather than in native/widget-item.ts, so the kiosk draws widget items without loading the export tiers.
+// Here rather than in native/widget-item.ts, so the kiosk draws widget items without loading its helpers.
 
 /** The widget an item hosts, or null for any other item. */
 export const widgetOf = (item: DisplayItem | undefined): WidgetItem | null =>

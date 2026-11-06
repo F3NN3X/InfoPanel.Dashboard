@@ -53,7 +53,7 @@ function IconButton({ icon: Icon, label, onClick, disabled }: { icon: LucideIcon
   );
 }
 
-const Heading = ({ children }: { children: ReactNode }) => <div className="mb-1.5 text-micro font-medium uppercase tracking-wide text-ui-4">{children}</div>;
+const Heading = ({ children }: { children: ReactNode }) => <div className="mb-1.5 text-caption font-medium text-ui-3">{children}</div>;
 
 /** The shared fields: present on every item; position only when no group is selected (a group's X and Y move nothing). */
 export function sharedFields(items: readonly DisplayItem[]): string[] {
@@ -134,7 +134,7 @@ export function MultiInspector({ editor }: { editor: CanvasEditor }) {
   return (
     <div className="space-y-4 px-4 py-5 font-ui">
       <div>
-        <div className="text-body font-semibold text-ui-1">{paths.length} items selected</div>
+        <div className="text-body font-medium text-ui-1">{paths.length} items selected</div>
         <p className="mt-1 text-caption leading-snug text-ui-4">Drag, nudge, duplicate or delete them together. Locked items stay where they are.</p>
       </div>
       <div>

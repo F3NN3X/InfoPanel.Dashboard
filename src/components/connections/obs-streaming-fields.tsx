@@ -31,7 +31,7 @@ export function ObsStreamingFields({ mic, inputs, scenes, looks, onMic, onLook }
         </select>
       </StackRow>
       {scenes.length > 0 && (
-        <StackRow label="Scenes" hint="The line under each scene's name, and its Material Symbols icon name.">
+        <StackRow label="Scenes" hint="The line under each scene's name, and its Material Symbols icon name">
           <div className="space-y-1.5">
             {scenes.map((s) => {
               const look = looks[s.id] ?? { sub: "", icon: "" };

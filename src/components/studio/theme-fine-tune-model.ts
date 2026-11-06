@@ -91,7 +91,7 @@ export function fineTuneSummary(id: ThemeCardId, v: ModuleSettings, ctx: Summary
     case "spacing":
       return `${v.scale ?? 100}% size · ${px(v.padding, "padding")}`;
     case "surface": {
-      const surface = v.surface === "auto" ? "Skin's card" : optionLabel("surface", v.surface ?? "glass");
+      const surface = v.surface === "auto" ? "Theme's card" : optionLabel("surface", v.surface ?? "glass");
       const blur = v.blur === "auto" || v.blur === undefined ? "auto blur" : `blur ${v.blur} px`;
       const opacity = typeof v.surfaceOpacity === "number" && v.surfaceOpacity < 100 ? ` · ${v.surfaceOpacity}% opacity` : "";
       return `${surface} · ${blur}${opacity}`;

@@ -196,7 +196,7 @@ test("the studio canvas holds a page of sixteen Liquid Glass zones to the same l
   await sixteenZones(scratch, PACK_STYLES["liquid-glass"]);
   await page.setViewportSize({ width: 1600, height: 900 });
   await page.goto(`${scratch.base}/?studio=1&profile=${heavy}`);
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: /^Edit / }).click();
   await expect(page.locator("[data-studio-page] [data-wp-tier][data-look=\"liquid-glass\"]").first()).toBeAttached({ timeout: 15_000 });
   await expect.poll(() => page.locator("[data-studio-page] [data-zone-id]").count()).toBeGreaterThan(CARD_ZONES + 2);
   const { cards } = await readBackdrops(page, "[data-studio-page] [data-zone-id]");

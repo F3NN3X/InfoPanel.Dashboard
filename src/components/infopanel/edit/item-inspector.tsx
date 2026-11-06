@@ -19,14 +19,11 @@ import type { InspectorContext, InspectorSection } from "@/components/studio/ins
 import { InspectorView, type SectionParts } from "@/components/studio/inspector/inspector-view";
 import { BINDING_IDS, ipDefault, ipGroups, ipOwn, ipShown, ipValue } from "@/components/studio/inspector/infopanel-defs";
 import type { FieldsApi } from "@/components/studio/settings-panel";
-import { badgeOf, elementOf } from "@/lib/infopanel/elements/apply";
-import { itemLooksOf, studioOnlyOf, type CheckRow } from "@/lib/infopanel/export-check";
+import { elementOf } from "@/lib/infopanel/elements/apply";
 import { MAX_LETTER_SPACING, TEXT_KINDS } from "@/lib/infopanel/import/stored";
-import { OnInfoPanelSection } from "@/components/studio/inspector/on-infopanel-section";
-import { useExportCheck } from "../export-check-panel";
 import { ELEMENTS, gradientBar } from "@/lib/infopanel/elements/create";
 import { describeNative } from "@/lib/infopanel/native/describe";
-import { BadgeChip, ELEMENT_ICONS } from "./element-ui";
+import { ELEMENT_ICONS } from "./element-ui";
 import { ElementPanel, NumberField } from "./element-panel";
 import { valueText } from "../remap-panel";
 import { Segmented } from "./canvas-toolbar";
@@ -48,8 +45,6 @@ interface ItemInspectorProps {
   onEditGauge?: (path: Path) => void;
   /** The Place row (Edit v3 SPEC §10.2): where the part is, on cells or in px; the position grid keeps rotation and flip. */
   place?: ReactNode;
-  /** After the sections: the part's LAYER section (its On InfoPanel line comes last, under it). */
-  after?: ReactNode;
   /** The header's Hide, Duplicate and Delete. */
   actions?: { onToggleHidden: () => void; onDuplicate: () => void; onDelete: () => void };
 }
@@ -61,13 +56,13 @@ const Message = ({ children }: { children: ReactNode }) => <p className="mt-1.5 
 function Placeholder({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="px-5 py-6 font-ui">
-      <div className="text-body font-semibold text-ui-1">{title}</div>
+      <div className="text-body font-medium text-ui-1">{title}</div>
       <p className="mt-1.5 text-caption leading-snug text-ui-4">{children}</p>
     </div>
   );
 }
 
-export function ItemInspector({ editor, live, onRemap, onBindSensor, sensors, onEditGauge, place, after, actions }: ItemInspectorProps) {
+export function ItemInspector({ editor, live, onRemap, onBindSensor, sensors, onEditGauge, place, actions }: ItemInspectorProps) {
   const { selection } = editor;
   if (selection.length === 0) {
     return (
@@ -81,19 +76,16 @@ export function ItemInspector({ editor, live, onRemap, onBindSensor, sensors, on
   const item = itemAt(editor.committed, path);
   // Keyed by path: a draft or an error never carries over to another item.
   return item ? (
-    <ItemFields key={path} editor={editor} path={path} item={item} live={live} onRemap={onRemap} onBindSensor={onBindSensor} sensors={sensors} onEditGauge={onEditGauge} place={place} after={after} actions={actions} />
+    <ItemFields key={path} editor={editor} path={path} item={item} live={live} onRemap={onRemap} onBindSensor={onBindSensor} sensors={sensors} onEditGauge={onEditGauge} place={place} actions={actions} />
   ) : null;
 }
 
-function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, onEditGauge, place, after, actions }: ItemInspectorProps & { path: Path; item: DisplayItem }) {
+function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, onEditGauge, place, actions }: ItemInspectorProps & { path: Path; item: DisplayItem }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
   const kind = item.kind as ItemKind;
   const groups = ipGroups(kind, place !== undefined);
   const element = elementOf(item);
-  const badge = badgeOf(item);
-  const check = useExportCheck();
-  const row = check.on ? check.byPath.get(path) : undefined;
   const context: InspectorContext = {
     kind: "infopanel",
     groups,
@@ -151,7 +143,6 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
               <NumberField
                 label="Letter spacing"
                 value={spacing}
-                approx={check.on && spacing !== 0}
                 onCommit={(n) => {
                   const v = Math.max(-MAX_LETTER_SPACING, Math.min(MAX_LETTER_SPACING, n));
                   if (v !== spacing) editor.setField(path, "letterSpacing", v === 0 ? undefined : v, editKey("letterSpacing"));
@@ -165,17 +156,7 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
     switch (s.special) {
       case "ipElement":
         return {
-          body: element ? (
-            <>
-              {badge && (
-                <p className="px-4 pb-2 text-[11.5px] leading-snug text-ui-4">
-                  {badge.reason}
-                  {badge.lost.length > 0 && <span className="text-ui-warn"> Lost: {badge.lost.join(", ")}.</span>}
-                </p>
-              )}
-              <ElementPanel editor={editor} path={path} item={item} spec={element} sensors={sensors ?? {}} />
-            </>
-          ) : null,
+          body: element ? <ElementPanel editor={editor} path={path} item={item} spec={element} sensors={sensors ?? {}} /> : null,
         };
       case "ipMode":
         return { body: <DrawAs editor={editor} path={path} /> };
@@ -188,7 +169,7 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
               <SensorCard editor={editor} item={item} live={live} onRemap={onRemap} onBindSensor={onBindSensor} sensors={sensors} />
               {item.kind === "Gauge" && onEditGauge && !element && (
                 <>
-                  {item.Images.length === 0 && !("vector" in item) && <p className="px-4 pb-1.5 text-[11.5px] leading-snug text-ui-4">No frames yet: InfoPanel draws a gauge from its images. Edit gauge to build them.</p>}
+                  {item.Images.length === 0 && !("vector" in item) && <p className="px-4 pb-1.5 text-[11.5px] leading-snug text-ui-4">No frames and no vector spec, so this gauge draws nothing. Edit gauge adds frames.</p>}
                   <EditGaugeButton onClick={() => onEditGauge(path)} />
                 </>
               )}
@@ -238,13 +219,12 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
             <Icon />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-body font-semibold text-ui-1">{name}</div>
+            <div className="truncate text-body font-medium text-ui-1">{name}</div>
             <div data-testid="inspector-kind" title={mode} className="truncate text-micro text-ui-3">
               {kindWord}
             </div>
           </div>
           {item.IsLocked && <Lock className="h-3.5 w-3.5 shrink-0 text-ui-4" aria-label="Locked" />}
-          {badge && <BadgeChip badge={badge} />}
           {actions && (
             <>
               <button type="button" aria-label={item.Hidden ? "Show" : "Hide"} title={item.Hidden ? "Show (Ctrl+H)" : "Hide (Ctrl+H)"} className={ACTION} onClick={actions.onToggleHidden}>
@@ -261,18 +241,6 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
         </div>
       }
       place={place}
-      after={
-        (after || row) && (
-          <>
-            {after}
-            {row && (
-              <div className="border-t border-ui-subtle px-3.5 py-3">
-                <OnInfoPanel row={row} item={item} />
-              </div>
-            )}
-          </>
-        )
-      }
       underline
       tabLabels={IP_TABS}
       fields={fields}
@@ -284,34 +252,8 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
   );
 }
 
-/** An item's tabs (Edit v3 SPEC §10.2): Item, Sensor, Look. */
-const IP_TABS = { show: "Item", data: "Sensor", style: "Look" } as const;
-
-/** On InfoPanel (one-editor SPEC §5.5): the part's Export check status, and per studio-only look what InfoPanel shows instead. */
-function OnInfoPanel({ row, item }: { row: CheckRow; item: DisplayItem }) {
-  const looks = studioOnlyOf(item);
-  const own = itemLooksOf(item);
-  return (
-    <OnInfoPanelSection row={row}>
-      <ul className="space-y-0.5">
-        {looks.length + own.length > 0 ? (
-          <>
-            {looks.map(({ field }) => (
-              <li key={field.key}>
-                {field.label} shows on Studio panels; on InfoPanel it {field.fate ?? "is dropped"}.
-              </li>
-            ))}
-            {own.map(({ field }) => (
-              <li key={field.key}>{field.label} stays on Studio panels; InfoPanel shows the text without it.</li>
-            ))}
-          </>
-        ) : (
-          <li>{row.why.replace(/\.?$/, ".")}</li>
-        )}
-      </ul>
-    </OnInfoPanelSection>
-  );
-}
+/** An item's tabs (Edit v3 SPEC §10.2): Item, Sensor, Theme. */
+const IP_TABS = { show: "Item", data: "Sensor", style: "Theme" } as const;
 
 /** What InfoPanel reads, as stored: the ids the Sensor dropdown wrote, for reference and never typed. */
 function BindingReadout({ item }: { item: DisplayItem }) {
@@ -358,7 +300,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           </div>
           {c.native.lost.length > 0 && (
             <div>
-              <div className="mb-1 text-micro font-medium uppercase tracking-wide text-ui-4">Lost while native</div>
+              <div className="mb-1 text-caption font-medium text-ui-3">Lost while native</div>
               <ul className="space-y-0.5 text-caption text-ui-warn">
                 {c.native.lost.map((l) => (
                   <li key={l}>· {l}</li>
@@ -368,7 +310,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           )}
           {c.native.needs.length > 0 && (
             <div>
-              <div className="mb-1 text-micro font-medium uppercase tracking-wide text-ui-4">Uses app feature</div>
+              <div className="mb-1 text-caption font-medium text-ui-3">Uses app feature</div>
               <div className="flex flex-wrap gap-1">
                 {c.native.needs.map((n) => (
                   <span key={n} className="rounded-full border border-ui-default px-2 py-0.5 text-micro text-ui-3">
@@ -380,7 +322,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           )}
         </div>
       ) : (
-        <p className="text-caption leading-snug text-ui-4">Drawn as InfoPanel draws it; the dashboard theme doesn’t apply.</p>
+        <p className="text-caption leading-snug text-ui-4">Drawn as InfoPanel draws it; the dashboard theme doesn’t apply</p>
       )}
     </div>
   );

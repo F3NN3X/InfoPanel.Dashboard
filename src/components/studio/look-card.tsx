@@ -1,34 +1,72 @@
-import { Check } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { type GalleryLook } from "./look-gallery-model";
+import { FOCUS_RING } from "@/components/ui/button";
+import type { AppearancePreset } from "@/lib/appearance-presets";
 import { LookThumb } from "./look-thumb";
 
-export const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
-/** The card thumbnail's width in the 360 px column (two cards a row). */
-const THUMB = 150;
+export const FOCUS = FOCUS_RING;
+/** A card's thumbnail width: four a row in Browse's column. */
+export const CARD_W = 220;
 
-/** One card: the real-render thumbnail, the name and its tags; picking applies it. */
-export function Card({ look, selected, onPick }: { look: Pick<GalleryLook, "id" | "name" | "tags" | "preset">; selected: boolean; onPick: () => void }) {
+interface CardProps {
+  id: string;
+  name: string;
+  description: string;
+  preset: AppearancePreset;
+  /** Whether it is a theme pack (the "Pack" badge). */
+  pack: boolean;
+  /** The theme the level wears (the "Applied" badge). */
+  applied: boolean;
+  /** The one the detail pane shows. */
+  selected: boolean;
+  /** Validation warnings of an imported pack. */
+  warnings?: number;
+  /** The roving tab stop. */
+  tabStop: boolean;
+  onSelect: () => void;
+  onApply: () => void;
+}
+
+/** One theme card: the real-render thumbnail with its badges, the name and one line; a click shows its detail, a double click or Enter on the detail applies it. */
+export function ThemeCard({ id, name, description, preset, pack, applied, selected, warnings = 0, tabStop, onSelect, onApply }: CardProps) {
   return (
     <button
       type="button"
-      onClick={onPick}
+      onClick={onSelect}
+      onDoubleClick={onApply}
       aria-pressed={selected}
-      aria-label={`${look.name}${look.tags.length > 0 ? `, ${look.tags.join(", ")}` : ""}`}
-      data-look-card={look.id}
+      aria-label={`${name}${pack ? ", theme pack" : ""}${applied ? ", applied" : ""}${warnings > 0 ? `, ${warnings} ${warnings === 1 ? "warning" : "warnings"}` : ""}`}
+      tabIndex={tabStop ? 0 : -1}
+      data-look-card={id}
       className={cn(
-        "flex min-h-11 flex-col overflow-hidden rounded-lg border bg-ui-panel text-left hover:border-ui-menu",
-        FOCUS,
-        selected ? "border-ui-accent ring-2 ring-ui-accent/40" : "border-ui-strong"
+        "flex flex-col overflow-hidden rounded-ui-lg border bg-ui-panel text-left transition-colors duration-(--ui-dur-fast) ease-ui hover:border-ui-hover-edge",
+        FOCUS_RING,
+        selected ? "border-ui-accent" : "border-ui-subtle"
       )}
+      style={{ width: CARD_W }}
     >
-      <LookThumb preset={look.preset} width={THUMB} className="w-full" />
-      <span className="flex flex-col gap-0.5 px-2.5 pb-2 pt-1.5">
-        <span className="flex items-center justify-between gap-1 text-caption font-semibold text-ui-1">
-          <span className="truncate">{look.name}</span>
-          {selected && <Check className="h-3.5 w-3.5 shrink-0 text-ui-accent-text" aria-hidden />}
+      <span className="relative block">
+        <LookThumb preset={preset} width={CARD_W - 2} className="w-full" />
+        <span className="absolute inset-x-2 top-2 flex items-start justify-between gap-1">
+          {pack ? <span className="rounded-ui-sm bg-ui-app/80 px-1.5 py-0.5 text-caption text-ui-1">Pack</span> : <span />}
+          {applied ? (
+            <span className="flex items-center gap-1 rounded-ui-sm bg-ui-app/80 px-1.5 py-0.5 text-caption text-ui-1">
+              <Check className="h-3 w-3" aria-hidden />
+              Applied
+            </span>
+          ) : (
+            warnings > 0 && (
+              <span className="flex items-center gap-1 rounded-ui-sm bg-ui-app/80 px-1.5 py-0.5 text-caption text-ui-warn">
+                <TriangleAlert className="h-3 w-3" aria-hidden />
+                {warnings} {warnings === 1 ? "warning" : "warnings"}
+              </span>
+            )
+          )}
         </span>
-        {look.tags.length > 0 && <span className="truncate text-micro text-ui-soft">{look.tags.join(" · ")}</span>}
+      </span>
+      <span className="flex flex-col gap-0.5 px-3 pb-3 pt-2.5">
+        <span className="truncate text-body font-medium text-ui-1">{name}</span>
+        <span className="truncate text-caption text-ui-3">{description}</span>
       </span>
     </button>
   );

@@ -31,9 +31,9 @@ interface SharedSection {
 export const SHARED_SECTIONS: readonly SharedSection[] = [
   { id: "header", tab: "show", place: "lead", title: "Header", hint: "Title and icon" },
   { id: "fit", tab: "show", place: "trail", title: "Fit", hint: "Small sizes (summary card, dense view) and density" },
-  { id: "skin", tab: "style", place: "lead", title: "Look", hint: "Look, ring and bar thickness, graph and meter style" },
+  { id: "skin", tab: "style", place: "lead", title: "Theme", hint: "Theme, ring and bar thickness, graph and meter style" },
   { id: "colors", tab: "style", place: "lead", title: "Colors", hint: "Accent and text colors" },
-  { id: "palette", tab: "style", place: "lead", title: "Widget colors", hint: "The widget's own colors and look toggles" },
+  { id: "palette", tab: "style", place: "lead", title: "Widget colors", hint: "The widget's own colors and style toggles" },
   { id: "type", tab: "style", place: "lead", title: "Typography", hint: "Font, value weight and label case" },
   { id: "spacing", tab: "style", place: "lead", title: "Shape & spacing", hint: "Size, alignment, padding, gaps and corners" },
   { id: "surface", tab: "style", place: "lead", title: "Surface & effects", hint: "Material, opacity, blur and background image" },

@@ -49,10 +49,10 @@ export const vizColorRows = (color1Key: string): Readonly<Record<string, Partial
 export const vizShapeSettings = (modeKey: string): ModuleSetting[] => {
   const bars = (v: ModuleSettings) => BAR_STYLES.includes(String(v[modeKey]));
   return [
-    enumSetting("vizShape", "Bar shape", "auto", [{ value: "auto", label: "Skin" }, { value: "round", label: "Round" }, { value: "square", label: "Square" }, { value: "segments", label: "Segments" }, { value: "pill", label: "Pill" }], { group: VIZ_SHAPE_GROUP, visibleIf: bars }),
+    enumSetting("vizShape", "Bar shape", "auto", [{ value: "auto", label: "Widget style" }, { value: "round", label: "Round" }, { value: "square", label: "Square" }, { value: "segments", label: "Segments" }, { value: "pill", label: "Pill" }], { group: VIZ_SHAPE_GROUP, visibleIf: bars }),
     numberSetting("vizGap", "Bar gap (% of the slot)", 30, { min: 0, max: 80, step: 5, group: VIZ_SHAPE_GROUP, visibleIf: bars }),
     numberSetting("vizOpacity", "Opacity (%)", 100, { min: 10, max: 100, step: 5, group: VIZ_SHAPE_GROUP }),
-    enumSetting("vizGlow", "Glow", "auto", [{ value: "auto", label: "Skin" }, { value: "on", label: "On" }, { value: "off", label: "Off" }], { group: VIZ_SHAPE_GROUP }),
+    enumSetting("vizGlow", "Glow", "auto", [{ value: "auto", label: "Widget style" }, { value: "on", label: "On" }, { value: "off", label: "Off" }], { group: VIZ_SHAPE_GROUP }),
   ];
 };
 

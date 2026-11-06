@@ -11,13 +11,13 @@ import { withoutItems } from "@/lib/page-model/stored-items";
 import type { Fixture, FixtureName } from "./types";
 
 /*
- * The eight states of the Edit v3 reference (scratchpad handoff "Unified Editor v3", SPEC §18), as today's model holds
+ * The states of the Edit v3 reference (scratchpad handoff "Unified Editor v3", SPEC §18), as today's model holds
  * them. Two screens: "Desk panel" (1024 x 600, 4 x 3, widgets) and "Neon Rig" (800 x 480, 8 x 5, an imported InfoPanel
  * profile on a Free page). The gauges and items read sensors of the repo's HWiNFO capture
  * (`tests/lib/infopanel/__fixtures__/hwinfo-capture.json`), so behind a Data API serving it they show live-looking values;
  * without one they read as placeholders. What today's model can't hold yet, for the phases that add it:
  *  - nested groups (the schema keeps a group out of a group): not needed by these states;
- *  - the per-state UI: Add's segment, hover card, Recently used and toast are read by Edit (phase 5); the Alt drag and
+ *  - the per-state UI: Add's segment, hover card and Recently used are read by Edit (phase 5); the Alt drag and
  *    layer menu are carried on the Fixture for later phases.
  */
 
@@ -118,7 +118,7 @@ function neonParts(): { profile: ReturnType<typeof readStored>["profile"]; base:
   const make = (kind: Parameters<typeof newItem>[0]) => newItem(kind, profile, palette);
   const text = (name: string, s: Spot, color: string) => ({ ...at(make("Text"), name, s), Color: color, FontSize: 30, Bold: true }) as DisplayItem;
   const parts: Parts = {
-    // Letter spacing is studio-only (v15 `$.letterSpacing`): the Export check reads it as approximated.
+    // Letter spacing is studio-only (v15 `$.letterSpacing`).
     title: { ...text("NEON RIG", box(4, 5, 44, 11), PINK), letterSpacing: 5 } as unknown as DisplayItem,
     clock: at({ ...make("Clock"), Format: "HH:mm" } as DisplayItem, "Clock", box(68, 5, 28, 11)),
     cpuv: at(bound(make("Sensor"), SENSOR.cpuTemp), "CPU temp", box(4, 20, 28, 20)),
@@ -179,9 +179,8 @@ const RECENT = ["Weather", "CustomGauge"];
 const BUILD: Record<FixtureName, () => Fixture> = {
   screen: () => deskFixture("studio", ["weather"], "layers"),
   profile: () => neonFixture(profileItems, "CPU temp", "layers"),
-  addw: () => neonFixture((p) => [...profileItems(p), p.weather], "Weather", "add", { addSegment: "all", toast: "addw", added: "Weather", recent: RECENT }),
+  addw: () => neonFixture((p) => [...profileItems(p), p.weather], "Weather", "add", { addSegment: "widgets", added: "Weather", recent: RECENT }),
   alt: () => deskFixture("studio", ["title"], "layers", { altDrag: { part: "Title text" } }, "title"),
-  export: () => deskFixture("infopanel", [], "layers"),
   layersF: () =>
     neonFixture(
       (p) => [p.card, temps(p), p.graph, group("Right column", [p.gauge, p.weather]), group("Header", [p.clock, p.title])],

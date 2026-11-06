@@ -16,10 +16,10 @@ const packsOf = async (base: string) => (await (await fetch(`${base}/api/packs`)
 
 async function openPacks(page: import("@playwright/test").Page, base: string) {
   await page.goto(`${base}/?studio=1&profile=${light}`);
-  await page.getByRole("button", { name: "Look", exact: true }).click();
-  await page.getByRole("group", { name: "Look level" }).getByRole("button", { name: /Perf light/ }).click();
-  const section = page.getByRole("region", { name: "Your packs" });
-  await expect(section).toBeVisible();
+  await page.getByRole("button", { name: "Theme", exact: true }).click();
+  await page.getByRole("tab", { name: /Browse themes/ }).click();
+  const section = page.getByRole("region", { name: "Import a pack" });
+  await expect(section).toBeAttached();
   return section;
 }
 
@@ -49,6 +49,7 @@ test.describe("a pack with its own stylesheet", () => {
     expect(fs.statSync(path.join(scratch.dataDir, "pack-signing.key")).size).toBe(32);
 
     await page.locator('[data-look-card="mine"]').click();
+    await page.getByRole("complementary", { name: "Theme detail" }).getByRole("button", { name: /^Apply to/ }).click();
     await expect.poll(async () => {
       const config = await (await fetch(`${scratch.base}/api/config`)).json();
       return config.profiles.find((p: { id: string }) => p.id === light)?.widgetTheme?.values?.lookId;

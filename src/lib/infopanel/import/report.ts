@@ -5,7 +5,7 @@
 import { analyse, scanRefs, type Doc } from "../assets/assets.ts";
 import type { FontRow } from "../font-supply.ts";
 import { itemAt } from "../editor/ops.ts";
-import { gaugePaths, isStale, vectorOf } from "../gauges/frames.ts";
+import { gaugePaths, vectorOf } from "../gauges/frames.ts";
 import { convert, type ConvertContext } from "../native/convert.ts";
 import { walkItems, type Issue } from "../parse.ts";
 import { needsAttention, statusOf, type Group, type Overrides, type Status } from "../remap/remap.ts";
@@ -23,7 +23,7 @@ export interface ImportReport {
   sensors: { groups: number; items: number; byStatus: Partial<Record<Status, number>>; attention: number };
   assets: { files: number; bytes: number; unused: number; duplicates: number; missing: string[]; urls: number; absolute: string[] };
   fonts: { requests: number; missing: string[]; supplied: number };
-  gauges: { total: number; vector: number; withoutFrames: number };
+  gauges: { total: number; vector: number };
   issues: Partial<Record<Issue["code"], number>>;
   dataApi: DataApiInfo | null;
 }
@@ -92,7 +92,7 @@ export function buildReport(input: ReportInput): ImportReport {
       missing: [...new Set(input.fontRows.filter((r) => r.missing && r.use !== "supplied").map((r) => r.request.font))],
       supplied: input.fontRows.filter((r) => r.use === "supplied").length,
     },
-    gauges: { total: gauges.length, vector: vector.length, withoutFrames: vector.filter((g) => isStale(g)).length },
+    gauges: { total: gauges.length, vector: vector.length },
     issues: tally(input.issues.map((i) => i.code)),
     dataApi: input.dataApi,
   };

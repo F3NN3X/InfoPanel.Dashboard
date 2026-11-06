@@ -73,13 +73,15 @@ interface SectionInheritInput {
   ctx: InheritanceContext;
   /** "Make this the theme for… ▸" (widget zones). */
   onMakeTheme?: (sections: readonly SectionId[], target: MakeThemeTarget) => void;
+  /** The chip as a dot (the editor's inspector); the page inspector's Reset chips keep their words (P-7). */
+  dot?: boolean;
 }
 
 /**
  * A section card's inheritance chip, action line, kept-override note and ⌫ reset (SPEC §4.3, §5), over
  * `lib/inheritance.ts`. Plain data, no hooks: the inspector calls it per section while rendering.
  */
-export function sectionInherit({ sections, title, scope, alsoScopes = [], ctx, onMakeTheme }: SectionInheritInput): SectionInherit {
+export function sectionInherit({ sections, title, scope, alsoScopes = [], ctx, onMakeTheme, dot }: SectionInheritInput): SectionInherit {
   const states = sections.map((sec) => resolveInheritance(ctx.config, sec, scope));
   const main = lead(states);
   const mainPath = sections[states.indexOf(main)];
@@ -105,6 +107,7 @@ export function sectionInherit({ sections, title, scope, alsoScopes = [], ctx, o
         onJump={jump}
         onCustomise={customise}
         onMakeTheme={onMakeTheme && ((target) => onMakeTheme(sections, target))}
+        dot={dot}
         className="mx-0.5"
       />
     ),
@@ -139,6 +142,7 @@ export function itemSectionInherit({ mode, panelName, onCustomise, onUseTheme }:
         onReset={onUseTheme}
         onCustomise={onCustomise}
         onJump={mode === "locked" ? onEditLock : undefined}
+        dot
         className="mx-0.5"
       />
     ),

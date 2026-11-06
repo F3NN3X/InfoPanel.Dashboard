@@ -1,203 +1,151 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { ChevronRight, MoreHorizontal } from "lucide-react";
-import type { PageBackground } from "@/lib/appearance";
+import { Bookmark, MoreHorizontal } from "lucide-react";
+import { Button, FOCUS_RING } from "@/components/ui/button";
 import type { AppearancePreset } from "@/lib/appearance-presets";
-import type { ThemeTokens } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { LookThumb } from "./look-thumb";
-import { ITEM, SEPARATOR } from "./menu-styles";
+import { HIGHLIGHT, ITEM, POPUP, SEPARATOR } from "./menu-styles";
 import { ThemeNameInput } from "./theme-name-input";
-import { BackgroundSwatch, TokenSwatches } from "./theme-swatches";
-import { radiusPx, pxRadius, remText, type CardKind } from "./theme-view-model";
-
-/** The theme card's ⋯ menu (SPEC §4.3.1): 260 px, #131316 on #3f3f46. */
-const MENU = "w-[260px] rounded-[10px] border border-ui-popup bg-ui-panel p-1 font-ui text-body text-ui-2 shadow-[0_12px_32px_rgba(0,0,0,.6)] outline-none";
-const LINK = "rounded-sm text-caption text-ui-accent-text hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
-const PRIMARY = "h-7 rounded-md bg-ui-blue px-2.5 text-caption font-medium text-white hover:bg-ui-blue-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
+import type { CardKind } from "./theme-view-model";
 
 interface ThemeLookCardProps {
-  /** The level's look as a theme, for the thumbnail. */
+  /** The level's theme as a preset, for the thumbnail. */
   preview: AppearancePreset;
   name: string;
-  kind: CardKind;
+  /** "Theme pack · 1 change". */
   kindLine: string;
-  /** Reset to ‹name› and its sub-text; none without a theme to go back to. */
-  reset?: { text: string; onReset: () => void };
-  /** Saved themes only. */
-  onRename?: (name: string) => void;
-  onDuplicate?: () => void;
-  onDelete?: () => void;
-  tokens: ThemeTokens;
-  paletteName: string;
-  radius: number;
-  background: PageBackground | undefined;
-  backgroundLabel: string;
-  /** A page: the palette, corners and background are its screen's (read-only, with this note). */
-  partsNote?: string;
-  onPalette: () => void;
-  onRadius: (rem: number) => void;
-  onBackground: () => void;
+  /** Change opens Browse themes. */
+  onChange: () => void;
+  /** A page: what it follows ("Main follows it"), in place of Change's neighbour. */
+  note?: string;
 }
 
-/** One MADE OF row: the 78 px label, then its value; a button with › when it opens a picker. */
-function PartRow({ label, onOpen, children }: { label: string; onOpen?: () => void; children: ReactNode }) {
-  const body = (
-    <>
-      <span className="w-[78px] shrink-0 text-caption text-ui-soft">{label}</span>
-      <span className="flex min-w-0 flex-1 items-center gap-2 text-caption text-ui-1">{children}</span>
-      {onOpen && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ui-hint" aria-hidden />}
-    </>
-  );
-  const row = "flex w-full items-center gap-2 border-t border-ui-raised px-3 py-[9px] text-left first:border-t-0";
-  return onOpen ? (
-    <button type="button" onClick={onOpen} className={cn(row, "hover:bg-ui-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent")}>
-      {body}
-    </button>
-  ) : (
-    <div className={row}>{body}</div>
+/** The theme card (inspector top): the real-render thumbnail, the name, what it is and how much changed, and Change. */
+export function ThemeLookCard({ preview, name, kindLine, onChange, note }: ThemeLookCardProps) {
+  return (
+    <section data-nav-section="theme" className="flex flex-col gap-3 px-5 pb-3 pt-5">
+      <div className="flex items-center gap-3">
+        <LookThumb preset={preview} width={64} className="rounded-ui-sm border border-ui-subtle" />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <h2 className="truncate text-head font-medium text-ui-1">{name}</h2>
+          <p className="truncate text-caption text-ui-3" title={note ?? kindLine}>
+            {note ?? kindLine}
+          </p>
+        </div>
+        <Button onClick={onChange}>Change</Button>
+      </div>
+    </section>
   );
 }
 
-export interface ThemeUpdateBarProps {
+export interface ThemeSaveProps {
   name: string;
   kind: CardKind;
-  /** The Update bar: its text, and Update ‹name› for a saved theme. */
+  /** What changed since the theme was applied, and Update ‹name› for a saved theme. */
   update?: { text: string; onUpdate?: () => void };
-  /** Save the look as a new theme (Save as theme, Save as new), named as typed; `saveName` is the name it offers. */
+  /** Save as a new theme named as typed; `saveName` is the name it offers. */
   onSave: (name: string) => void;
   saveName: string;
 }
 
 /**
- * The Update bar, in the preview's header beside the zoom: once a part of a theme changed, what Update changes, with
- * Update ‹name› (a saved theme) and Save as new; any other look (custom, deleted, a Look or a template's) offers Save
- * look. Nothing otherwise.
+ * Save as my theme, in the header: a name field in place of the button, Enter saves. A saved theme with changes also
+ * offers Update ‹name›; a saved theme that did not change offers nothing.
  */
-export function ThemeUpdateBar(p: ThemeUpdateBarProps) {
+export function ThemeSave({ name, kind, update, onSave, saveName }: ThemeSaveProps) {
   const [saving, setSaving] = useState(false);
-  const saved = p.kind === "saved";
-  // A built-in Look or template look can always be kept as a saved look, with what was changed on top of it.
-  if (!(saving || p.update !== undefined || p.kind !== "saved")) return null;
-  return (
-    <div
-      className={cn(
-        "flex min-w-0 items-center gap-3 rounded-lg px-2.5 py-1 text-caption",
-        p.update ? "border border-ui-blue-line bg-ui-blue-bg text-ui-blue-text" : ""
-      )}
-    >
-      {p.update && (
-        <p className="min-w-0 truncate leading-snug" title={p.update.text}>
-          {p.update.text}
-        </p>
-      )}
-      {saving ? (
+  if (!(saving || update !== undefined || kind !== "saved")) return null;
+  if (saving)
+    return (
+      <div className="flex w-56 items-center">
         <ThemeNameInput
-          initial={p.saveName}
-          label="Look name"
-          onDone={(name) => {
+          initial={saveName}
+          label="Theme name"
+          onDone={(n) => {
             setSaving(false);
-            if (name) p.onSave(name);
+            if (n) onSave(n);
           }}
         />
-      ) : (
-        <div className="flex shrink-0 items-center gap-3">
-          {p.update?.onUpdate && (
-            <button type="button" onClick={p.update.onUpdate} className={cn(PRIMARY, "max-w-[200px] truncate")}>
-              Update {p.name}
-            </button>
-          )}
-          <button type="button" onClick={() => setSaving(true)} className={saved ? LINK : PRIMARY}>
-            {saved ? "Save as new" : "Save look"}
-          </button>
-        </div>
+      </div>
+    );
+  return (
+    <div className="flex items-center gap-2">
+      {update?.onUpdate && (
+        <Button className="max-w-[200px] truncate" onClick={update.onUpdate} title={update.text}>
+          Update {name}
+        </Button>
       )}
+      <Button title="Save as my theme" icon={<Bookmark aria-hidden />} onClick={() => setSaving(true)}>
+        <span className="max-[1279px]:sr-only">Save as my theme</span>
+      </Button>
     </div>
   );
 }
 
-/**
- * The theme card (handoff SPEC §4.3.1): the thumbnail, name, kind line and ⋯ (Reset to ‹name›, Rename, Duplicate,
- * Delete), the four parts it's MADE OF and Switch theme. The Update bar is the preview's (`ThemeUpdateBar`).
- */
-export function ThemeLookCard(p: ThemeLookCardProps) {
+interface ThemeActionsProps {
+  /** Reset to ‹name› and its sub-text; none without a theme to go back to. */
+  reset?: { name: string; text: string; onReset: () => void };
+  /** Saved themes only. */
+  onRename?: (name: string) => void;
+  onDuplicate?: () => void;
+  onDelete?: () => void;
+  /** Lock all / Unlock all at Screen level. */
+  lock?: { on: boolean; screen: string; onToggle: () => void };
+}
+
+/** The header's ⋯ menu: Reset to the theme, Rename, Duplicate, Delete, and Lock all. */
+export function ThemeActions({ reset, onRename, onDuplicate, onDelete, lock }: ThemeActionsProps) {
   const [renaming, setRenaming] = useState(false);
-  const nameField = (initial: string, label: string, done: (name: string) => void) => (
-    <ThemeNameInput
-      initial={initial}
-      label={label}
-      onDone={(name) => {
-        setRenaming(false);
-        if (name) done(name);
-      }}
-    />
-  );
+  if (renaming && onRename)
+    return (
+      <div className="flex w-56 items-center">
+        <ThemeNameInput
+          initial=""
+          label="Theme name"
+          onDone={(n) => {
+            setRenaming(false);
+            if (n) onRename(n);
+          }}
+        />
+      </div>
+    );
   return (
-    <section data-nav-section="theme" className="flex flex-col gap-3.5 p-4">
-      <div className="flex items-center gap-3">
-        <LookThumb preset={p.preview} width={96} className="rounded-md" />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          {renaming ? nameField(p.name, "Theme name", (name) => p.onRename?.(name)) : <h2 className="truncate text-head font-semibold text-ui-1">{p.name}</h2>}
-          <p className="truncate text-caption text-ui-soft">{p.kindLine}</p>
-        </div>
-        <Menu.Root>
-          <Menu.Trigger
-            aria-label="Look actions"
-            title="Look actions"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-ui-strong text-ui-3 hover:bg-ui-hover hover:text-ui-1 data-popup-open:bg-ui-hover"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Menu.Trigger>
-          <Menu.Portal>
-            <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
-              <Menu.Popup className={MENU}>
-                <Menu.Item className={cn(ITEM, "h-auto flex-col items-start gap-0.5 py-1.5")} disabled={!p.reset} onClick={p.reset?.onReset}>
-                  <span>Reset to {p.reset ? p.name : "a Look"}</span>
-                  <span className="text-micro leading-snug text-ui-hint">{p.reset?.text ?? "This look wasn't applied from a Look. Save it first."}</span>
-                </Menu.Item>
+    <Menu.Root>
+      <Menu.Trigger aria-label="Theme actions" title="Theme actions" className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-ui-md text-ui-3 hover:bg-ui-raised hover:text-ui-1 data-popup-open:bg-ui-raised data-popup-open:text-ui-1", FOCUS_RING)}>
+        <MoreHorizontal className="h-4 w-4" strokeWidth={1.5} />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner className="z-[80]" sideOffset={4} align="end">
+          <Menu.Popup className={cn(POPUP, "w-[280px]")}>
+            <Menu.Item className={cn(ITEM, HIGHLIGHT, "h-auto flex-col items-start gap-0.5 py-1.5")} disabled={!reset} onClick={reset?.onReset}>
+              <span>Reset to {reset ? reset.name : "a theme"}</span>
+              <span className="text-caption leading-snug text-ui-3">{reset?.text ?? "This was not applied from a theme. Save it first."}</span>
+            </Menu.Item>
+            <Menu.Separator className={SEPARATOR} />
+            <Menu.Item className={ITEM} disabled={!onRename} onClick={() => setRenaming(true)}>
+              Rename
+            </Menu.Item>
+            <Menu.Item className={ITEM} disabled={!onDuplicate} onClick={onDuplicate}>
+              Duplicate
+            </Menu.Item>
+            {lock && (
+              <Menu.Item className={ITEM} onClick={lock.onToggle}>
+                {lock.on ? "Unlock all" : "Lock all"}
+                <span className="text-caption text-ui-3">{lock.on ? `Unlock every section of ${lock.screen}` : `Force every section on ${lock.screen}`}</span>
+              </Menu.Item>
+            )}
+            {onDelete && (
+              <>
                 <Menu.Separator className={SEPARATOR} />
-                <Menu.Item className={ITEM} disabled={!p.onRename} onClick={() => setRenaming(true)}>
-                  Rename
+                <Menu.Item className={cn(ITEM, "text-ui-danger")} onClick={onDelete}>
+                  Delete
                 </Menu.Item>
-                <Menu.Item className={ITEM} disabled={!p.onDuplicate} onClick={p.onDuplicate}>
-                  Duplicate
-                </Menu.Item>
-                {p.onDelete && (
-                  <Menu.Item className={cn(ITEM, "text-ui-danger-text")} onClick={p.onDelete}>
-                    Delete
-                  </Menu.Item>
-                )}
-              </Menu.Popup>
-            </Menu.Positioner>
-          </Menu.Portal>
-        </Menu.Root>
-      </div>
-      <div className="overflow-hidden rounded-ui-menu border border-ui-strong">
-        <h3 className="border-b border-ui-raised px-3 py-1.5 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint">Made of</h3>
-        <PartRow label="Colors" onOpen={p.partsNote ? undefined : p.onPalette}>
-          <TokenSwatches tokens={p.tokens} />
-          <span className="truncate">{p.paletteName}</span>
-        </PartRow>
-        <PartRow label="Base corners">
-          <input
-            type="range"
-            min={0}
-            max={24}
-            step={1}
-            value={radiusPx(p.radius)}
-            disabled={p.partsNote !== undefined}
-            onChange={(e) => p.onRadius(pxRadius(Number(e.target.value)))}
-            aria-label="Base corners"
-            className="min-w-0 flex-1 accent-ui-blue disabled:opacity-50"
-          />
-          <span className="w-16 shrink-0 whitespace-nowrap text-right font-ui-mono text-micro text-ui-soft">{remText(p.radius)}</span>
-        </PartRow>
-        <PartRow label="Background" onOpen={p.partsNote ? undefined : p.onBackground}>
-          <BackgroundSwatch bg={p.background} tokens={p.tokens} />
-          <span className="truncate">{p.backgroundLabel}</span>
-        </PartRow>
-        {p.partsNote && <p className="border-t border-ui-raised px-3 py-2 text-micro leading-snug text-ui-hint">{p.partsNote}</p>}
-      </div>
-    </section>
+              </>
+            )}
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 }

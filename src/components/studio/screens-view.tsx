@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PanelsTopLeft, Pencil } from "lucide-react";
+import { Dialog } from "@base-ui/react/dialog";
+import { Maximize, PanelsTopLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StatusChip } from "@/components/ui/status-chip";
 import { useToast } from "@/components/ui/toast";
+import type { ControlState } from "@/lib/control";
 import { deleteLines, deletePlan } from "@/lib/screens/delete-plan";
 import { FILTERS, filterEntries, KIND_LABEL, savedEntries, screenEntries, screenKind, sortEntries, type ListFilter, type ListSort } from "@/lib/screens/list";
 import { moveProfile } from "@/lib/screens/order";
@@ -9,18 +13,25 @@ import type { LibraryItem } from "@/lib/library";
 import { openExportSheet, openImportDoor } from "./file-doors";
 import { RenameInput } from "./rename-input";
 import { ScreenDetail } from "./screen-detail";
+import { AddDisplayCard } from "./screens/add-display-card";
 import { DeleteDialog } from "./screens/delete-dialog";
+import { displaysText, distinctDisplays, liveDisplays, screensCountLine, screenSummary } from "./screens/display-model";
 import { DisplaysList } from "./screens/displays-list";
-import { CARD_GRID, LIST_COLUMN, ListEmpty, ListSection, ListTitle } from "./screens/list-frame";
-import { aspectOf, Badge, CARD_BUTTON, ProfileCard } from "./screens/profile-card";
+import { CARD_GRID, ListEmpty, ListSection } from "./screens/list-frame";
+import { LiveDisplayCard } from "./screens/live-display-card";
+import { NewScreenCard } from "./screens/new-screen-card";
+import { aspectOf, Badge, ProfileCard } from "./screens/profile-card";
 import { SavedCard } from "./screens/saved-card";
+import { ScreenRow } from "./screens/screen-row";
 import { screenActions } from "./screens/screen-menu";
 import { PageStrip } from "./screens/page-strip";
 import { ScreenThumb } from "./screens/screen-thumb";
-import { ScreensToolbar } from "./screens/screens-toolbar";
+import { ScreensBar, ScreensHeader } from "./screens/screens-toolbar";
 import { useCopyKioskLink } from "./screens/shown-on";
 import { useSavedProfiles } from "./screens/use-saved-profiles";
-import { launchTag, screenMeta, withLaunch } from "./screens-model";
+import { launchTag, withLaunch } from "./screens-model";
+import { useStoredFlag } from "./use-stored-flag";
+import { hasOverlay } from "./use-studio-shortcuts";
 
 type DetailProps = Parameters<typeof ScreenDetail>[0];
 
@@ -43,14 +54,10 @@ interface ScreensViewProps
     | "displays"
     | "autoProfileId"
   > {
-  /** Open a screen, then its Convert to InfoPanel dialog once the screen is the edited one. */
-  onConvertScreen: (id: string) => void;
   /** Open the screen in Design, or in the InfoPanel editor when it is one InfoPanel profile. */
   onOpenScreen: (id: string) => void;
   /** Open a screen in Edit on one of its pages (a page strip's mini-map). */
   onOpenScreenPage: (id: string, pageId: string) => void;
-  /** Select a screen for editing (never changes what the app opens on). */
-  onSelectProfile: (id: string) => void;
   onDuplicateProfile: (id: string) => void;
   /** Delete a screen (after the confirm dialog); one undo step. */
   onRemoveProfile: (id: string) => void;
@@ -62,6 +69,14 @@ interface ScreensViewProps
   onNew: () => void;
   /** A link to Screens that names a filter (the old InfoPanel view lands on InfoPanel); `seq` makes a repeat count. */
   filterRequest?: { filter: ListFilter; seq: number };
+  /** The runtime state the Live column reads (null while the server is unreachable). */
+  control: ControlState | null;
+  /** Show the kiosk in this window. */
+  onOpenKioskView: () => void;
+  /** A link that names a screen (the breadcrumb's Screen settings…, an inheritance chip's jump) opens its settings. */
+  settingsRequest?: { id: string; seq: number };
+  /** The request has opened the settings: clear it, so coming back to Screens later does not open them again. */
+  onSettingsHandled: () => void;
 }
 
 const TAGS = {
@@ -69,14 +84,16 @@ const TAGS = {
   launch: { text: "Default", title: "The app opens on this screen whatever the window size" },
 } as const;
 
-const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+/** Whether a key press is for a field: `/` is then a character, not a shortcut. */
+const typing = (t: EventTarget | null) => t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 /**
- * Screens (SPEC §8): the manager for every screen and InfoPanel profile, placed or saved in the Library. Cards with
- * thumbnails you can search, filter (All, Studio, InfoPanel) and sort; import an .infopanel; create (blank, sample layout, InfoPanel template), rename, duplicate, reorder, export and
- * delete with a confirm that names what goes, then an Undo. The default screen is chosen in Settings › Dashboard; the kiosks'
- * current screens are the active ones. A click selects a card for editing (the detail panel, the canvas, the page tabs); it
- * never changes what the app opens on.
+ * Screens (SPEC §8): the manager for every screen and InfoPanel profile, placed or saved in the Library. "Live on
+ * displays" has a card for each kiosk connected now; "Your screens" is a grid or a list you can search, filter (Show),
+ * sort and reorder, with a card to start a new one. A card opens its screen in Edit; its menu has Screen settings…
+ * (a drawer with size and fit, rotation, performance and the pages), Rename, Duplicate, Always open this one,
+ * Move earlier and later, Copy kiosk link, Export, Convert and Delete (a confirm that names what goes, then an Undo).
+ * The default screen is chosen in Settings › Dashboard.
  */
 export function ScreensView({
   config,
@@ -85,7 +102,10 @@ export function ScreensView({
   autoProfileId,
   kiosks,
   displays,
-  onSelectProfile,
+  control,
+  onOpenKioskView,
+  settingsRequest,
+  onSettingsHandled,
   onOpenScreen,
   onOpenScreenPage,
   onDuplicateProfile,
@@ -113,8 +133,65 @@ export function ScreensView({
     if (filterRequest) setFilter(filterRequest.filter);
   }, [filterRequest?.seq]);
   const [sort, setSort] = useState<ListSort>("edited");
-  const { setConfig, onConvertScreen } = detail;
+  const [list, setList] = useStoredFlag("screens.list", false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const { setConfig, navigateTo } = detail;
   const stored = config.profiles.find((p) => p.id === profile.id) ?? config.profiles[0];
+
+  // The settings drawer: a modal dialog opened by a card's menu or a link, closed by its X, Esc or a click outside; the
+  // page behind it is inert while it is open and focus goes back to what opened it.
+  const [settingsId, setSettingsId] = useState<string | null>(null);
+  // The view itself: the drawer is drawn inside it, over the view and not the whole window.
+  const [viewEl, setViewEl] = useState<HTMLDivElement | null>(null);
+  // The menu button that was last used: the menu has closed by the time the request arrives, and focus goes back to it.
+  const lastMenu = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const remember = (e: FocusEvent) => {
+      if (e.target instanceof HTMLElement && e.target.matches('[aria-haspopup="menu"]')) lastMenu.current = e.target;
+    };
+    document.addEventListener("focusin", remember);
+    return () => document.removeEventListener("focusin", remember);
+  }, []);
+  const opener = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!settingsRequest) return;
+    // The last menu button used, when it is on the card of this screen (a right-click or a link leaves an older one);
+    // else the screen's own card, else nothing and the dialog puts focus back where it was.
+    const name = config.profiles.find((p) => p.id === settingsRequest.id)?.name;
+    const card = [...document.querySelectorAll<HTMLElement>("button")].find((b) => b.getAttribute("aria-label") === `Open ${name}`);
+    const menu = lastMenu.current;
+    opener.current = menu?.isConnected && card && menu.closest("li")?.contains(card) ? menu : (card ?? null);
+    setSettingsId(settingsRequest.id);
+    onSettingsHandled();
+  }, [settingsRequest?.seq]);
+  const closeSettings = () => setSettingsId(null);
+  // The drawer shows the screen being edited, which the request has selected by the time the view re-renders.
+  const settingsOpen = settingsId !== null && settingsId === stored.id;
+  // Another screen becoming the edited one (the palette) takes the drawer away; coming back must not reopen it.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (settingsOpen) wasOpen.current = true;
+    else if (wasOpen.current) {
+      wasOpen.current = false;
+      setSettingsId(null);
+    }
+  }, [settingsOpen]);
+  const openSettings = (id: string, section?: string) => navigateTo({ view: "screens", profileId: id, section });
+
+  // `/` and Ctrl+F go to the search (Ctrl+K stays the command palette everywhere); not while a dialog or menu is open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || hasOverlay()) return;
+      const find = (e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "f";
+      const slash = e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && !typing(e.target);
+      if (!find && !slash) return;
+      e.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const screens = useMemo(
     () => sortEntries(filterEntries(screenEntries(config.profiles), query, filter), sort).flatMap((e) => config.profiles.find((p) => p.id === e.id) ?? []),
@@ -124,6 +201,8 @@ export function ScreensView({
     () => sortEntries(filterEntries(savedEntries(savedApi.saved), query, filter), sort).flatMap((e) => savedApi.saved.find((i) => i.id === e.id) ?? []),
     [savedApi.saved, query, filter, sort],
   );
+  const live = useMemo(() => liveDisplays(kiosks, displays, config.profiles), [kiosks, displays, config.profiles]);
+  const hasInfoPanel = config.profiles.some((p) => screenKind(p) !== "dashboard") || savedApi.saved.length > 0;
 
   const rename = (id: string, name: string | null) => {
     setRenamingId(null);
@@ -139,126 +218,160 @@ export function ScreensView({
     toast(`Deleted ${name}`, { action: { label: "Undo", onClick: onUndo }, ms: 8000 });
   };
   const empty = screens.length === 0 && saved.length === 0;
+  const now = Date.now();
+
+  /** One screen's card (grid) or row (list): the same name, size, chip and actions. */
+  const screenItem = (p: (typeof screens)[number]) => {
+    const tag = launchTag(config, p.id, autoProfileId);
+    const showing = distinctDisplays(kiosks.filter((k) => k.profile === p.id));
+    const kind = screenKind(p);
+    const index = config.profiles.findIndex((x) => x.id === p.id);
+    const common = {
+      name: p.name,
+      nameField: renamingId === p.id ? <RenameInput initial={p.name} onDone={(name) => rename(p.id, name)} /> : undefined,
+      badges: (
+        <>
+          {kind === "infopanel" ? (
+            <Badge title="An InfoPanel profile: it opens in Edit">
+              <PanelsTopLeft className="mr-1 h-3 w-3" />
+              InfoPanel
+            </Badge>
+          ) : (
+            <Badge>{KIND_LABEL[kind]}</Badge>
+          )}
+          {tag && (
+            <Badge tone="accent" title={TAGS[tag].title}>
+              {TAGS[tag].text}
+            </Badge>
+          )}
+        </>
+      ),
+      meta: screenSummary(p),
+      aspect: aspectOf(p.width, p.height),
+      thumb: <ScreenThumb profile={p} />,
+      chip:
+        showing > 0 ? (
+          <StatusChip tone="ok" className="h-5 bg-ui-panel/80 text-micro">
+            On {displaysText(showing)}
+          </StatusChip>
+        ) : undefined,
+      onClick: () => onOpenScreen(p.id),
+      label: `Open ${p.name}`,
+      actions: screenActions({
+        onOpen: () => onOpenScreen(p.id),
+        onSettings: () => openSettings(p.id),
+        canDelete: config.profiles.length > 1,
+        canMoveEarlier: index > 0,
+        canMoveLater: index < config.profiles.length - 1,
+        onRename: () => setRenamingId(p.id),
+        onDuplicate: () => {
+          onDuplicateProfile(p.id);
+          toast(`Duplicated ${p.name}`);
+        },
+        onAlwaysOpen: () => {
+          setConfig((c) => withLaunch(c, p.id));
+          toast(`The app now always opens ${p.name}`);
+        },
+        onMove: (by) => setConfig((c) => moveProfile(c, p.id, by)),
+        onCopyLink: () => copyLink(p.id),
+        onExport: () => openExportSheet({ row: "screen", screenId: p.id }),
+        onDelete: () => setDeletingId(p.id),
+      }),
+    };
+    return list ? <ScreenRow key={p.id} {...common} pages={<PageStrip profile={p} onOpen={openPage} inline />} /> : <ProfileCard key={p.id} {...common} strip={<PageStrip profile={p} onOpen={openPage} />} actionsLabel="Screen actions" />;
+  };
 
   return (
-    // On a phone the cards and the detail panel stack, and the view scrolls.
-    <div className="flex min-h-0 flex-1 bg-ui-app/40 font-ui max-[899px]:flex-col max-[899px]:overflow-y-auto">
-      <div className={LIST_COLUMN}>
-        <ListTitle title="Screens" count={plural(config.profiles.length, "screen")} />
+    <div className="flex min-h-0 flex-1 flex-col font-ui">
+      <ScreensHeader
+        count={screensCountLine(config.profiles.length, distinctDisplays(kiosks))}
+        query={query}
+        onQuery={setQuery}
+        searchRef={searchRef}
+        onImport={() => openImportDoor()}
+        onExportAll={() => openExportSheet()}
+        onNew={onNew}
+      />
 
-        <ScreensToolbar
-          query={query}
-          onQuery={setQuery}
-          filter={filter}
-          onFilter={setFilter}
-          filters={FILTERS}
-          sort={sort}
-          onSort={setSort}
-          onImport={() => openImportDoor()}
-          onImportInfoPanel={() => openImportDoor({ prefer: "canvas-zone" })}
-          onNew={onNew}
-        />
-
-        <DisplaysList displays={displays} profiles={config.profiles} />
-
-        {empty && <ListEmpty>{query ? `Nothing matches “${query}”.` : "No screens yet. Use New to start one."}</ListEmpty>}
-
-        {screens.length > 0 && (
-          <ul aria-label="Your screens" className={CARD_GRID}>
-            {screens.map((p) => {
-              const tag = launchTag(config, p.id, autoProfileId);
-              const live = kiosks.filter((k) => k.profile === p.id).length;
-              const kind = screenKind(p);
-              const index = config.profiles.findIndex((x) => x.id === p.id);
-              return (
-                <ProfileCard
-                  key={p.id}
-                  name={p.name}
-                  nameField={renamingId === p.id ? <RenameInput initial={p.name} onDone={(name) => rename(p.id, name)} /> : undefined}
-                  badges={
-                    <>
-                      {kind === "infopanel" ? (
-                        <Badge title="An InfoPanel profile: it opens in Edit and exports to .infopanel">
-                          <PanelsTopLeft className="mr-1 h-3 w-3" />
-                          InfoPanel
-                        </Badge>
-                      ) : (
-                        <Badge>{KIND_LABEL[kind]}</Badge>
-                      )}
-                      {tag && (
-                        <Badge tone="accent" title={TAGS[tag].title}>
-                          {TAGS[tag].text}
-                        </Badge>
-                      )}
-                      {live > 0 && (
-                        <Badge tone="live" title="Kiosks showing this screen now">
-                          Live on {plural(live, "kiosk")}
-                        </Badge>
-                      )}
-                    </>
-                  }
-                  meta={screenMeta(p)}
-                  aspect={aspectOf(p.width, p.height)}
-                  thumb={<ScreenThumb profile={p} />}
-                  strip={<PageStrip profile={p} onOpen={openPage} />}
-                  selected={p.id === stored.id}
-                  onClick={() => onSelectProfile(p.id)}
-                  label={`Select ${p.name}`}
-                  actionsLabel="Screen actions"
-                  actions={screenActions({
-                    onOpen: () => onOpenScreen(p.id),
-                    canDelete: config.profiles.length > 1,
-                    canMoveEarlier: index > 0,
-                    canMoveLater: index < config.profiles.length - 1,
-                    onRename: () => setRenamingId(p.id),
-                    onDuplicate: () => {
-                      onDuplicateProfile(p.id);
-                      toast(`Duplicated ${p.name}`);
-                    },
-                    onAlwaysOpen: () => {
-                      setConfig((c) => withLaunch(c, p.id));
-                      toast(`The app now always opens ${p.name}`);
-                    },
-                    onMove: (by) => setConfig((c) => moveProfile(c, p.id, by)),
-                    onCopyLink: () => copyLink(p.id),
-                    onExport: () => openExportSheet({ row: "screen", screenId: p.id }),
-                    // The conversion reads the zones where they are drawn, so the screen opens on the canvas first.
-                    onConvert: () => onConvertScreen(p.id),
-                    onDelete: () => setDeletingId(p.id),
-                  })}
-                >
-                  <button type="button" onClick={() => onOpenScreen(p.id)} className={CARD_BUTTON}>
-                    <Pencil className="h-3.5 w-3.5" />
-                    Open
-                  </button>
-                </ProfileCard>
-              );
-            })}
-          </ul>
-        )}
-
-        {saved.length > 0 && (
-          <>
-            <ListSection title="Saved in your Library" />
-            <ul aria-label="Saved InfoPanel profiles" className={CARD_GRID}>
-              {saved.map((item) => (
-                <SavedCard key={item.id} item={item} api={savedApi} action="Place" detail="Becomes a new screen" renamable onOpen={() => onOpenSaved(item)} />
+      <div ref={setViewEl} className="relative flex min-h-0 flex-1 flex-col bg-ui-app/40">
+      {/* On a phone the two columns stack, and the view scrolls. */}
+      <div className="flex min-h-0 flex-1 items-start gap-6 overflow-y-auto px-6 py-5 max-[899px]:flex-col max-[899px]:px-3">
+        <section aria-label="Live on displays" className="flex w-[400px] shrink-0 flex-col gap-3 max-[1199px]:w-[340px] max-[899px]:w-full">
+          <div className="flex min-h-8 items-center gap-2">
+            <h2 className="m-0 text-body font-medium text-ui-1">Live on displays</h2>
+            <span className="text-caption text-ui-3">{live.length}</span>
+            <Button small variant="ghost" className="ml-auto" icon={<Maximize strokeWidth={1.5} />} title="Show the kiosk in this window" onClick={onOpenKioskView}>
+              Open kiosk view
+            </Button>
+          </div>
+          {live.length === 0 && <ListEmpty>No display is connected.</ListEmpty>}
+          {live.length > 0 && (
+            <ul className="flex flex-col gap-3">
+              {live.map((d) => (
+                <LiveDisplayCard key={d.kiosk.id} live={d} profiles={config.profiles} control={control} now={now} onRotationSettings={(id) => openSettings(id, "rotation")} />
               ))}
             </ul>
-          </>
-        )}
+          )}
+          <DisplaysList displays={displays} profiles={config.profiles} offlineOnly />
+          <AddDisplayCard />
+        </section>
+
+        <section aria-label="Your screens" className="flex min-w-0 flex-1 flex-col gap-3 max-[899px]:w-full">
+          <div className="flex min-h-8 flex-wrap items-center gap-2">
+            <h2 className="m-0 text-body font-medium text-ui-1">Your screens</h2>
+            <span className="text-caption text-ui-3">{config.profiles.length}</span>
+            <div className="ml-auto">
+              <ScreensBar layout={list ? "list" : "grid"} onLayout={(l) => setList(l === "list")} sort={sort} onSort={setSort} showFilter={hasInfoPanel || filter !== "all"} filter={filter} onFilter={setFilter} filters={FILTERS} />
+            </div>
+          </div>
+
+          {empty && <ListEmpty>{query ? `Nothing matches “${query}”.` : "No screens yet. Use New screen to start one."}</ListEmpty>}
+
+          {list ? (
+            <ul aria-label="Your screens" className="flex flex-col gap-2">
+              {screens.map(screenItem)}
+            </ul>
+          ) : (
+            <ul aria-label="Your screens" className={CARD_GRID}>
+              {screens.map(screenItem)}
+              <NewScreenCard onNew={onNew} onImportInfoPanel={() => openImportDoor({ prefer: "canvas-zone" })} />
+            </ul>
+          )}
+          {list && (
+            <div className="flex items-center gap-2 self-start">
+              <Button onClick={onNew}>New screen</Button>
+              <Button variant="ghost" title="Import an InfoPanel profile (.infopanel); it opens in Edit" onClick={() => openImportDoor({ prefer: "canvas-zone" })}>
+                Import .infopanel
+              </Button>
+            </div>
+          )}
+
+          {saved.length > 0 && (
+            <>
+              <ListSection title="Saved in your Library" />
+              <ul aria-label="Saved InfoPanel profiles" className={CARD_GRID}>
+                {saved.map((item) => (
+                  <SavedCard key={item.id} item={item} api={savedApi} action="Place" detail="Becomes a new screen" renamable onOpen={() => onOpenSaved(item)} />
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
       </div>
 
-      <ScreenDetail
-        config={config}
-        profile={profile}
-        stored={stored}
-        windowSize={windowSize}
-        kiosks={kiosks}
-        displays={displays}
-        autoProfileId={autoProfileId}
-        {...detail}
-      />
+      <Dialog.Root open={settingsOpen} onOpenChange={(open) => !open && closeSettings()}>
+        <Dialog.Portal container={viewEl}>
+          <Dialog.Backdrop className="absolute inset-0 z-20 bg-black/40" />
+          <Dialog.Popup
+            aria-label="Screen settings"
+            finalFocus={() => (opener.current?.isConnected ? opener.current : true)}
+            className="absolute inset-y-0 right-0 z-30 flex w-[400px] max-w-full flex-col border-l border-ui-subtle shadow-ui-drawer outline-none"
+          >
+            <ScreenDetail config={config} profile={profile} stored={stored} windowSize={windowSize} kiosks={kiosks} displays={displays} autoProfileId={autoProfileId} onClose={closeSettings} {...detail} />
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
+      </div>
 
       <DeleteDialog name={plan?.name ?? null} lines={plan ? deleteLines(plan) : []} onConfirm={() => deletingId && remove(deletingId, plan?.name ?? "")} onClose={() => setDeletingId(null)} />
     </div>
