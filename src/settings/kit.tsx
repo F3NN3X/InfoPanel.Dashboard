@@ -12,8 +12,8 @@ type ButtonKind = "neutral" | "accent" | "green" | "quiet" | "danger";
 
 const BUTTON_KINDS: Record<ButtonKind, string> = {
   neutral: "border border-s-input-line bg-s-input text-s-t1 hover:bg-s-divider",
-  accent: "border-0 bg-s-accent font-semibold text-s-on-accent hover:brightness-110",
-  green: "border-0 bg-s-green font-semibold text-s-on-green hover:brightness-110",
+  accent: "border-0 bg-s-accent font-medium text-s-on-accent hover:brightness-110",
+  green: "border-0 bg-s-green font-medium text-s-on-green hover:brightness-110",
   quiet: "border-0 bg-transparent text-s-t2 hover:bg-s-nav-hover",
   danger: "border border-s-input-line bg-s-input text-s-red hover:bg-s-divider",
 };
@@ -139,7 +139,7 @@ export function Segmented<T extends string | number>({ options, value, onChange,
             }}
             className={cn(
               "cursor-pointer rounded-md border-0 text-caption font-medium transition-colors",
-              size === "lg" ? "h-[30px] px-3.5" : "h-[26px] px-2.5 text-xs",
+              size === "lg" ? "h-[30px] px-3.5" : "h-[26px] px-2.5 text-caption",
               stretch && "flex-1 px-0",
               mono && "font-mono",
               on ? "bg-s-seg-on text-s-t1 forced-colors:forced-color-adjust-none forced-colors:bg-[color:Highlight] forced-colors:text-[color:HighlightText]" : "bg-transparent text-s-muted hover:text-s-t1"
@@ -157,7 +157,7 @@ export function Segmented<T extends string | number>({ options, value, onChange,
 export function Group({ title, navSection, children }: { title: string; navSection?: string; children: ReactNode }) {
   return (
     <section data-nav-section={navSection} className="flex flex-col gap-2.5">
-      <h2 className="m-0 pl-0.5 text-xs font-medium text-s-muted">{title}</h2>
+      <h2 className="m-0 pl-0.5 text-caption font-medium text-s-muted">{title}</h2>
       {children}
     </section>
   );
@@ -270,7 +270,7 @@ export function PageColumn({ title, subtitle, wide, children }: PageColumnProps)
   return (
     <div className="mx-auto flex w-full min-w-0 max-w-[1040px] flex-col gap-7 px-8 pb-20 pt-8 max-sm:px-4">
       <div className="flex max-w-[780px] flex-col gap-1.5">
-        <h1 className="m-0 text-2xl font-semibold tracking-[-0.015em]">{title}</h1>
+        <h1 className="m-0 text-display font-medium">{title}</h1>
         <p className="m-0 text-pretty text-body leading-normal text-s-muted">{subtitle}</p>
       </div>
       <div className={cn("flex min-w-0 flex-col gap-7", !wide && "max-w-[780px]")}>{children}</div>

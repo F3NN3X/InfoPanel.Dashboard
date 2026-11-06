@@ -67,7 +67,7 @@ export function AboutSection() {
           <StudioLogo className="h-full w-full" />
         </div>
         <div className="flex min-w-[140px] flex-1 flex-col gap-1">
-          <span className="text-xl font-semibold tracking-[-0.01em]">InfoPanel Studio</span>
+          <span className="text-display font-medium">InfoPanel Studio</span>
           <span className="text-body text-s-muted">
             Version {info.version} · {capitalize(info.channel)} · built {shortDate(info.buildDate)}
           </span>
@@ -95,9 +95,9 @@ export function AboutSection() {
             <div key={label} className="flex flex-wrap items-center gap-3.5 px-[18px] py-3">
               <div className="flex min-w-[140px] flex-1 flex-col gap-[3px]">
                 <span className="text-body font-medium">{label}</span>
-                <span className="break-all font-mono text-xs text-s-muted">{path}</span>
+                <span className="break-all font-mono text-caption text-s-muted">{path}</span>
               </div>
-              <Button className="h-[30px] text-xs" aria-label={`Show ${label}`} onClick={() => void ipc.revealPath(path).catch(fail)}>
+              <Button className="h-[30px] text-caption" aria-label={`Show ${label}`} onClick={() => void ipc.revealPath(path).catch(fail)}>
                 <FolderOpen className="h-[15px] w-[15px]" />
                 Show
               </Button>

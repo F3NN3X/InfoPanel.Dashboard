@@ -98,7 +98,7 @@ function StatusCard() {
           <Icon className={cn("h-6 w-6", card.icon === "restarting" && "animate-spin")} />
         </StateTile>
         <div className="flex min-w-[140px] flex-1 flex-col gap-[3px]">
-          <span className="text-base font-semibold">{card.title}</span>
+          <span className="text-head font-medium">{card.title}</span>
           <span className="text-caption text-s-muted">{detail}</span>
         </div>
         <div className="flex gap-2">
@@ -132,11 +132,11 @@ function StatusCard() {
           )}
         </div>
       )}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-px overflow-hidden rounded-[10px] border border-s-divider bg-s-divider">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-px overflow-hidden rounded-ui-lg border border-s-divider bg-s-divider">
         {cells.map((c) => (
           <div key={c.k} className="flex flex-col gap-1 bg-s-side px-3.5 py-3">
-            <span className="text-[11.5px] text-s-dim">{c.k}</span>
-            <span className="truncate font-mono text-[15px] font-medium">{c.v}</span>
+            <span className="text-caption text-s-dim">{c.k}</span>
+            <span className="truncate font-mono text-title font-medium">{c.v}</span>
           </div>
         ))}
       </div>
@@ -150,7 +150,7 @@ function CalloutButton({ children, onClick, disabled }: { children: string; onCl
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="h-7 cursor-pointer whitespace-nowrap rounded-[7px] border border-s-red/40 bg-transparent px-2.5 text-xs text-s-red-text-strong hover:bg-s-red/10 disabled:cursor-default disabled:opacity-50"
+      className="h-7 cursor-pointer whitespace-nowrap rounded-ui-md border border-s-red/40 bg-transparent px-2.5 text-caption text-s-red-text-strong hover:bg-s-red/10 disabled:cursor-default disabled:opacity-50"
     >
       {children}
     </button>
@@ -169,7 +169,7 @@ function ListenRow() {
     <div ref={found.ref} className={cn("flex flex-col gap-2.5 px-[18px] py-3.5", found.className)}>
       <div className="flex flex-col gap-[3px]">
         <span className="text-body font-medium">Who can connect</span>
-        <span className="text-caption text-s-muted">Where the kiosk and studio are allowed to load from.</span>
+        <span className="text-caption text-s-muted">Where the kiosk and studio are allowed to load from</span>
       </div>
       <div role="radiogroup" aria-label="Who can connect" className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2">
         {LISTEN_OPTIONS.map((o) => {
@@ -183,14 +183,14 @@ function ListenRow() {
               onClick={() => void save("listen", o.value)}
               {...radioProps(LISTEN_OPTIONS.map((x) => x.value), settings.listen, o.value, (v) => void save("listen", v))}
               className={cn(
-                "flex cursor-pointer items-start gap-2.5 rounded-[10px] border px-3.5 py-3 text-left text-s-t1",
+                "flex cursor-pointer items-start gap-2.5 rounded-ui-lg border px-3.5 py-3 text-left text-s-t1",
                 on ? "border-s-accent bg-s-accent/10" : "border-s-input-line bg-s-input hover:bg-s-divider"
               )}
             >
               <o.icon className={cn("mt-px h-5 w-5 shrink-0", on ? "text-s-accent-text" : "text-s-muted")} />
               <span className="flex flex-col gap-[3px]">
                 <span className="text-body font-medium">{o.label}</span>
-                <span className="font-mono text-xs text-s-muted">{o.value === "local" ? "127.0.0.1" : `0.0.0.0${lanIp ? ` · ${lanIp}` : ""}`}</span>
+                <span className="font-mono text-caption text-s-muted">{o.value === "local" ? "127.0.0.1" : `0.0.0.0${lanIp ? ` · ${lanIp}` : ""}`}</span>
               </span>
             </button>
           );
@@ -354,7 +354,7 @@ export function ServerSection() {
           <SwitchRow
             id="auto-restart"
             label="Restart automatically if it crashes"
-            hint="Up to 3 tries a minute, then it stays stopped and logs why."
+            hint="Up to 3 tries a minute, then it stays stopped and logs why"
             checked={settings.autoRestart}
             onChange={(v) => void save("autoRestart", v)}
           />

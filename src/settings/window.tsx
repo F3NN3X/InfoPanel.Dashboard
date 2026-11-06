@@ -58,7 +58,7 @@ function BrowserSettings() {
             />
           ))}
         </nav>
-        <p className="m-0 mt-auto px-2.5 text-[11.5px] leading-normal text-s-dim">
+        <p className="m-0 mt-auto px-2.5 text-caption leading-normal text-s-dim">
           Startup, server, updates, coding agents and logs are set in the InfoPanel Studio desktop app.
         </p>
       </aside>
