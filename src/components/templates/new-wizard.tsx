@@ -220,7 +220,7 @@ export function WaysIn({ items }: { items: readonly WayIn[] }) {
               }
             }}
             className={cn(
-              "flex h-11 min-w-0 items-center gap-2.5 rounded-ui-md border px-2.5 text-left outline-none focus-visible:border-ui-accent disabled:opacity-50",
+              "flex h-11 min-w-0 items-center gap-2.5 rounded-ui-md border px-2.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:opacity-50",
               checked ? "border-ui-accent bg-ui-accent/10" : "border-ui-default bg-ui-raised enabled:hover:bg-ui-hover",
             )}
           >

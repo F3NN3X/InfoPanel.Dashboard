@@ -74,7 +74,7 @@ export function SensorSelect({ label, current, fallbackName, placeholder = "Choo
         aria-haspopup="listbox"
         aria-expanded={open}
         className={cn(
-          "flex h-9 w-full items-center gap-2 rounded-lg border border-ui-default bg-ui-raised px-2.5 text-left hover:border-ui-strong focus-visible:border-ui-accent focus-visible:outline-none",
+          "flex h-9 w-full items-center gap-2 rounded-lg border border-ui-default bg-ui-raised px-2.5 text-left hover:border-ui-strong focus-visible:border-ui-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
           className,
         )}
       >

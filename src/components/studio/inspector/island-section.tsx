@@ -47,7 +47,7 @@ const SIZE_OPTIONS: Options = [
 ];
 const PLACEMENT_OPTIONS: Options = [
   { value: "overlay", label: "Overlay", title: "A pill of its own over the dashboard" },
-  { value: "skin", label: "Part of the theme", title: "Drawn with the screen's widget surface, edge and accent, like a widget" },
+  { value: "skin", label: "Part of the widget style", title: "Drawn with the screen's widget surface, edge and accent, like a widget" },
 ];
 const TINT_OPTIONS: Options = [
   { value: "skin", label: "Match widgets", title: "The screen's card color over the page, with its edge" },
@@ -324,7 +324,7 @@ export function IslandSection({ island, onChange, onLook, onOpenExplorer, links,
           </div>
           <SegmentedRow
             label="Placement"
-            hint="Overlay: a pill of its own over the dashboard. Part of the theme: drawn with the screen's widget surface, edge and accent, so Color and Opacity come from the theme."
+            hint="Overlay: a pill of its own over the dashboard. Part of the widget style: drawn with the screen's widget surface, edge and accent, so Color and Opacity come from the widget style."
             options={PLACEMENT_OPTIONS}
             value={v.placement}
             onChange={(placement) => onChange({ placement: placement as IslandConfig["placement"] })}

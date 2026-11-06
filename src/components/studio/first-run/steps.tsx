@@ -397,7 +397,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
                   aria-label={t.name}
                   tabIndex={on || (start !== "template" && i === 0) ? 0 : -1}
                   onClick={() => onPick(t.id)}
-                  className={cn("flex min-w-0 flex-col overflow-hidden rounded-ui-lg border text-left outline-none focus-visible:border-ui-accent", on ? "border-ui-accent bg-ui-accent/10" : "border-ui-default hover:bg-ui-hover")}
+                  className={cn("flex min-w-0 flex-col overflow-hidden rounded-ui-lg border text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent", on ? "border-ui-accent bg-ui-accent/10" : "border-ui-default hover:bg-ui-hover")}
                 >
                   <div className="relative w-full" style={{ aspectRatio: aspectOf(size.width, size.height) }}>
                     <SCREEN_KIT.Thumb entry={t} palette={t.palettes[0]?.id ?? ""} width={size.width} height={size.height} selected={on} />
@@ -419,7 +419,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
               <button
                 type="button"
                 onClick={() => setAll(true)}
-                className="flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-ui-lg border border-dashed border-ui-strong p-3 text-center outline-none hover:bg-ui-hover focus-visible:border-ui-accent"
+                className="flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-ui-lg border border-dashed border-ui-strong p-3 text-center hover:bg-ui-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
               >
                 <LayoutGrid className="h-4 w-4 text-ui-3" />
                 <span className="text-body font-medium text-ui-1">Browse all {SCREEN_KIT.entries.length} templates</span>

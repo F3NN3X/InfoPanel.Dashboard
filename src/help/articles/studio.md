@@ -93,7 +93,7 @@ A page can hold InfoPanel items and elements on top of its widgets. Add puts the
 - Widgets always sit on the cells and never on another widget. With `Alt` held, a widget's drag says **Widgets always sit on the grid**.
 - On Linux, use `Ctrl+Alt` if the window manager takes `Alt`+drag. On a Mac, `Alt` is `Option`.
 
-On a page with InfoPanel items the bar under the canvas says how parts snap. A drag is one undo step.
+On a grid page the bar under the canvas says how parts snap. A drag is one undo step.
 
 With one item selected, the inspector shows its name, **InfoPanel item** or **Element**, and Hide, Duplicate and Delete. Under them is where it sits. Its **C**, **R**, **W** and **H** boxes give its column, row, width and height in cells. **POSITION AND SIZE (PX)** with **Placed freely** gives X, Y, W and H in pixels, and **Snap to grid** moves it to the nearest cells. Type into a box and press Enter. Then come the tabs **Item**, **Sensor** and **Theme**. Order, group, lock and hide are in the Layers right-click menu and on keys; **Move to group › Move out of group** (`Ctrl+Shift+O`) takes it out of its group. A new Image or Sensor image asks for its picture first, and a Sensor image then asks for its sensor.
 
