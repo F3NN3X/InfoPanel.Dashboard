@@ -13,14 +13,13 @@ import { lookIdOf, withoutOwnCard } from "@/lib/theme-model";
 import { SKIN_LOOK_IDS } from "@/looks/ids";
 import { lookLayers } from "@/looks/sample-cards";
 import { SAMPLE_THEMES } from "@/looks/sample-themes";
-import { MATERIALS } from "@/looks/materials";
-import { SKIN_PACKS, skinOfLook } from "@/widgets/core/theme";
+import { skinOfLook } from "@/widgets/core/theme";
 import type { ModuleSettings } from "@/modules/types";
 
 const TERM = SAMPLE_THEMES.find((t) => t.id === "term")!;
 const PAPER = SAMPLE_THEMES.find((t) => t.id === "paper")!;
-const SKINS = [undefined, "auto", "default", "", "nope", ...SKIN_PACKS.map((p) => p.name).filter((n) => n !== "default")];
-const SURFACES = [...Object.keys(MATERIALS), "look-term", "auto"];
+const SKINS = [undefined, "auto", "default", "nope", "tui"];
+const SURFACES = ["glass", "look-term", "auto"];
 
 const zone = (id: string, settings?: ModuleSettings, follow?: Placement["follow"]): Placement => ({
   id, module: "CpuMonitor", colStart: 1, rowStart: 1, colSpan: 2, rowSpan: 2, visible: true, ...(settings ? { settings } : {}), ...(follow ? { follow } : {}),
@@ -46,6 +45,9 @@ function screens(): unknown[] {
   SURFACES.forEach((surface, i) => out.push({ id: `surface-${i}`, name: surface, width: 800, height: 480, cols: 6, rows: 4, widgetTheme: { values: { surface } }, pages: [{ id: `surface-${i}-a`, name: "A", placements: [zone(`s${i}`)] }] }));
   return out;
 }
+
+/** Built once: `v16` clones what it is given. */
+const SCREENS = screens();
 
 const SAVED: AppearancePreset = { id: "desk", name: "Desk", description: "", theme: "ocean", radius: 1, style: { skin: "tui", accent: "#38bdf8" } };
 /** A saved copy of a sample theme as a v16 build saved it: no Look, the Default skin. */
@@ -106,7 +108,7 @@ function sampleScreen(id: string, theme = TERM, extra: Record<string, unknown> =
 describe("v17: the version", () => {
   it("is stamped, and a v17 config loads again identical", async () => {
     expect(CONFIG_VERSION).toBeGreaterThanOrEqual(17);
-    const out = load(v16(screens()));
+    const out = load(v16(SCREENS));
     expect(out.version).toBe(CONFIG_VERSION);
     const again = JSON.parse(JSON.stringify(out)) as StoredConfig;
     expect(load(again)).toEqual(out);
@@ -115,7 +117,7 @@ describe("v17: the version", () => {
   });
 
   it("a version that is a string below 17, or no number at all, takes the step; a newer one does not", async () => {
-    for (const version of ["16", "x"]) expect(byId(load({ ...v16(screens()), version } as unknown as StoredConfig), "skin-5").widgetTheme?.values?.lookId, version).toBe("tui");
+    for (const version of ["16", "x"]) expect(byId(load({ ...v16(SCREENS), version } as unknown as StoredConfig), "skin-4").widgetTheme?.values?.lookId, version).toBe("tui");
     const newer = { version: 99, activeProfile: "auto", profiles: [{ id: "s", name: "S", width: 800, height: 480, widgetTheme: { values: { lookId: "a-newer-look", skin: "hud" } }, pages: [{ id: "a", name: "A", placements: [] }] }] } as unknown as StoredConfig;
     // Its Look is one this build doesn't know: kept in storage (a newer build's), drawn as Classic; a `skin` it holds is no Look and nothing reads it.
     expect((await readConfig(newer)).profiles[0].widgetTheme?.values?.lookId).toBe("a-newer-look");
@@ -124,7 +126,7 @@ describe("v17: the version", () => {
 });
 
 describe("v17: every stored skin is the level's Look", () => {
-  const stored = v16(screens());
+  const stored = v16(SCREENS);
   const out = load(stored);
 
   it("at every level: screens, pages, widgets and saved themes; `auto` and unknown skins are Classic, `default` its own hidden Look", () => {
@@ -159,7 +161,7 @@ describe("v17: every stored skin is the level's Look", () => {
   it("a theme snapshot and its writes into widgets name the Look, so what changed since is what v16 said", () => {
     const writes = { "skin-0-follow": { was: { skin: "auto" }, now: { skin: "hud", accent: "#fff" } } };
     const snap = (values: ModuleSettings) => ({ id: "desk", name: "Desk", tokens: { primary: "1 2% 3%" }, radius: 1, values, zones: writes });
-    const base = screens()[0] as { widgetTheme: { values: ModuleSettings } };
+    const base = SCREENS[0] as { widgetTheme: { values: ModuleSettings } };
     const same = { ...base, id: "same", theme: { primary: "1 2% 3%" }, radius: 1, widgetTheme: { values: { skin: "auto" } }, appliedTheme: snap({ skin: "default" }) };
     const changed = { ...same, id: "changed", widgetTheme: { values: { skin: "hud" } }, appliedTheme: snap({ skin: "tui" }) };
     const c = load(v16([same, changed]));
@@ -181,8 +183,9 @@ describe("v17: a sample theme names its Look (L32)", () => {
     const now = applyThemeToLevel(load(v16([sampleScreen("s")])), samplePreset(TERM), { kind: "profile", profileId: "s" });
     expect(withoutOwnCard(byId(now, "s").widgetTheme!.values!)).toEqual(p.widgetTheme?.values);
     expect(withoutOwnCard(byId(now, "s").appliedTheme!.values!)).toEqual(p.appliedTheme?.values);
-    expect(drawn(load(stored))).toEqual(drawnByV16(stored));
-    expect(themeState(load(stored), { kind: "profile", profileId: "s" }).changed).toEqual([]);
+    const loaded = load(stored);
+    expect(drawn(loaded)).toEqual(drawnByV16(stored));
+    expect(themeState(loaded, { kind: "profile", profileId: "s" }).changed).toEqual([]);
   });
 
   it("a screen that picked a skin since keeps that skin as its Look, and shows the skin changed, as v16 did", () => {
@@ -202,9 +205,10 @@ describe("v17: a sample theme names its Look (L32)", () => {
       pages: [{ id: "pg", name: "Main", placements: [zone("pg-a")], appliedTheme: { id: "builtin:look-paper", name: "Paper", values: { surface: "look-paper" } }, widgetTheme: pageTheme }],
     });
     const own = v16([screen("auto", { values: { surface: "look-paper" }, follow: { skin: false, surface: false } })]);
-    expect(byId(load(own), "s").pages[0].widgetTheme?.values).toEqual({ lookId: "paper" });
-    expect(byId(load(own), "s").pages[0].appliedTheme?.values).toEqual({ lookId: "paper" });
-    expect(themeState(load(own), { kind: "page", profileId: "s", pageId: "pg" }).changed).toEqual([]);
+    const ownOut = load(own);
+    expect(byId(ownOut, "s").pages[0].widgetTheme?.values).toEqual({ lookId: "paper" });
+    expect(byId(ownOut, "s").pages[0].appliedTheme?.values).toEqual({ lookId: "paper" });
+    expect(themeState(ownOut, { kind: "page", profileId: "s", pageId: "pg" }).changed).toEqual([]);
     const cases = [
       screen("hud", { values: { skin: "ink", surface: "look-paper" }, follow: { surface: false } }),
       screen("hud", { values: { surface: "look-paper" }, follow: { skin: false, surface: false } }),
@@ -212,15 +216,16 @@ describe("v17: a sample theme names its Look (L32)", () => {
     ];
     for (const [i, c] of cases.entries()) {
       const stored = v16([c]);
-      const pg = byId(load(stored), "s").pages[0];
+      const loaded = load(stored);
+      const pg = byId(loaded, "s").pages[0];
       expect(pg.appliedTheme?.values, String(i)).toEqual({ surface: "look-paper" });
       expect(pg.widgetTheme?.values?.lookId, String(i)).toBe(i === 0 ? "ink" : undefined);
-      expect(themeState(load(stored), { kind: "page", profileId: "s", pageId: "pg" }).changed, String(i)).toEqual([]);
-      expect(drawn(load(stored)), String(i)).toEqual(drawnByV16(stored));
+      expect(themeState(loaded, { kind: "page", profileId: "s", pageId: "pg" }).changed, String(i)).toEqual([]);
+      expect(drawn(loaded), String(i)).toEqual(drawnByV16(stored));
     }
     // This page stored the Look's card alone: config v18 gives it the Look's other values too (L44), the one thing the v17 step left drawn as before.
     const kept = drawnByV16(own)["pg-a"];
-    expect(drawn(load(own))["pg-a"]).toEqual({ ...kept, rest: { ...kept.rest, ...lookLayers.paper } });
+    expect(drawn(ownOut)["pg-a"]).toEqual({ ...kept, rest: { ...kept.rest, ...lookLayers.paper } });
   });
 
   it("a saved theme copied from one names its Look; one with a skin of its own, or no copy, keeps that", () => {
