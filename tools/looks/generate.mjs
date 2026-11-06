@@ -89,8 +89,7 @@ export async function generate() {
     [
       "/* @generated:begin ui-tokens",
       `   ${header(`${STUDIO}${page === "studio" ? "" : " and tools/looks/ui-usage.json"}`)} */`,
-      "/* The one status set (Studio and Settings): ok, warn, danger, info. The Export check's statuses (Edit v3 SPEC §11.2):",
-      "   exports as is, approximated, becomes a picture; left out is danger. Info sits away from the accent hue (255). */",
+      "/* The one status set (Studio and Settings): ok, warn, danger. */",
       ":root {",
       ...tokensOf.map((t) => `  --ui-${t.name}: ${t.value};`),
       "}",

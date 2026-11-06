@@ -61,7 +61,6 @@
   "ok": "#3fcf8e",
   "warn": "#f2b23a",
   "danger": "#f07070",
-  "info": "oklch(0.78 0.09 205)",
   "border-row": "#18181c",
   "ease": "cubic-bezier(0.22, 1, 0.36, 1)",
   "dur-fast": "150ms",

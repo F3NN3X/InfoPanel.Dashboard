@@ -260,9 +260,6 @@
       },
       "danger": {
         "value": "{crit}"
-      },
-      "info": {
-        "value": "{info}"
       }
     },
     "chrome": {
