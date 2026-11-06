@@ -67,13 +67,13 @@ describe("fitZoomFor", () => {
     expect(1920 * z + CANVAS_PAD_X).toBeLessThanOrEqual(1000);
   });
 
-  // B6: a 1920×1080 page at 1600×900, with the sidebar, the docked inspector and the left panel open (its narrowest) or at its strip.
-  it("fits a 1080p page at 45% and a 1600×900 one at 55% with the left panel, and at 68% with its strip", () => {
-    const [sidebar, topBar, statusBar] = [60, 56, 28];
+  // B6: a 1920×1080 page at 1600×900, with the sidebar open (Edit no longer collapses it), the docked inspector and the left panel open (its narrowest) or at its strip.
+  it("fits a 1080p page at 36% and a 1600×900 one at 44% with the left panel, and at 57% with its strip", () => {
+    const [sidebar, topBar, statusBar] = [232, 56, 28];
     const canvas = (left: number) => ({ width: 1600 - sidebar - left - SIDE, height: 900 - topBar - statusBar });
-    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1920, height: 1080 })).toBeGreaterThanOrEqual(0.45);
-    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.55);
-    expect(fitZoomFor(canvas(LEFT_STRIP_PX), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.68);
+    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1920, height: 1080 })).toBeGreaterThanOrEqual(0.36);
+    expect(fitZoomFor(canvas(LEFT_PANEL_PX.narrow), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.44);
+    expect(fitZoomFor(canvas(LEFT_STRIP_PX), { width: 1600, height: 900 })).toBeGreaterThanOrEqual(0.57);
   });
 
   it("clamps to the zoom range", () => {

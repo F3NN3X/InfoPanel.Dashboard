@@ -17,6 +17,7 @@ import { AlertRules, NewRuleMenu } from "./alerts-rules";
 import { saveFilePayload } from "./config-file";
 import { IslandTab } from "./island-tab";
 import { isMuted, liveActions } from "./live-model";
+import { BarFill, BarTitle, PageBar } from "./page-bar";
 import type { NavRequest, NavTarget } from "./studio-nav";
 import { blankSensorRule } from "@/lib/alert-presets";
 
@@ -59,8 +60,8 @@ function MuteToggle({ control }: { control: ControlState | null }) {
   const muted = isMuted(control, Date.now());
   const until = muted && control?.mutedUntil ? new Date(control.mutedUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
   return (
-    <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2">
-      {until ? `Muted until ${until}` : "Mute for 1 h"}
+    <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2" title="Mute alerts for 1 h">
+      <span className={until ? undefined : "max-[1279px]:sr-only"}>{until ? `Muted until ${until}` : "Mute for 1 h"}</span>
       <Toggle checked={muted} disabled={control === null} label="Mute alerts for 1 h" onChange={(next) => void liveActions.mute(next)} />
     </label>
   );
@@ -121,26 +122,28 @@ export function AlertsView({ tab, onTab, config, setConfig, active, control, poi
   const exportCsv = () => void saveFilePayload({ name: "alert-history.csv", text: historyCsv(filterHistory(history, filter), config.profiles) });
   return (
     <section aria-label="Alerts & Island" className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
-      <div className="flex min-h-[60px] shrink-0 flex-wrap items-center gap-x-7 border-b border-ui-subtle px-7 max-sm:gap-x-3 max-sm:px-3">
-        <h1 className="whitespace-nowrap text-head font-medium text-ui-1">Alerts &amp; Island</h1>
-        <Tabs label="Alerts & Island" tabs={tabs} value={tab === "defaults" ? "rules" : tab} onChange={onTab} className="gap-6 self-stretch border-b-0 max-sm:order-last max-sm:w-full [&>button]:h-auto" />
-        <span className="flex-1" />
+      <PageBar>
+        <BarTitle title="Alerts & Island" />
+        <Tabs label="Alerts & Island" tabs={tabs} value={tab === "defaults" ? "rules" : tab} onChange={onTab} className="shrink-0 gap-5 self-stretch border-b-0 max-[599px]:order-last max-[599px]:w-full [&>button]:h-auto" />
+        <BarFill />
         <MuteToggle control={control} />
         {tab === "rules" && (
-          <div className="flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2">
-              Alerts on
+          <div className="flex items-center gap-3 max-[599px]:flex-wrap">
+            <label className="flex items-center gap-2 whitespace-nowrap text-body text-ui-2" title="Alerts on">
+              <span className="max-[1279px]:sr-only">Alerts on</span>
               <Toggle checked={alerts.enabled} label="Alerts on" onChange={(on) => setConfig((c) => setAlertsEnabled(c, on), alertsKey("enabled"))} />
             </label>
             <span aria-hidden className="h-5 w-px bg-ui-subtle" />
-            <Button variant="ghost" icon={<SlidersHorizontal aria-hidden />} onClick={() => setDefaultsOpen(true)}>Defaults</Button>
+            <Button variant="ghost" title="Defaults" icon={<SlidersHorizontal aria-hidden />} onClick={() => setDefaultsOpen(true)}>
+              <span className="max-[1279px]:sr-only">Defaults</span>
+            </Button>
             <NewRuleMenu onAdd={add} points={points} />
           </div>
         )}
         {tab === "history" && (
           <Button variant="ghost" icon={<Download aria-hidden />} onClick={exportCsv}>Export CSV</Button>
         )}
-      </div>
+      </PageBar>
       {(tab === "rules" || tab === "defaults") && (
         <AlertRules
           config={config}

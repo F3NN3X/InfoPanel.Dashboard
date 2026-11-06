@@ -26,7 +26,6 @@ describe("the sidebar", () => {
         screenName="Desk"
         alerts={0}
         windowWidth={1600}
-        editing={false}
         status={sidebarStatus()}
         config={config}
         onAddress={vi.fn()}

@@ -1,5 +1,5 @@
 /**
- * The editor's header (spec §5): back and the "Gauges ›" breadcrumb, the name (renamed in place), what saving it
+ * The editor's bar (spec §5, the page's title bar): back and the "Gauges ›" breadcrumb, the name (renamed in place), what saving it
  * means (a "Draft · saved" chip), one undo and redo, Export and Save to library. Import, Save as new and Discard
  * draft are in the menu. An image sequence has no spec to import or export.
  */
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusChip, type StatusTone } from "@/components/ui/status-chip";
 import { ITEM, POPUP, SEPARATOR } from "@/components/studio/menu-styles";
+import { BarFill, PageBar } from "@/components/studio/page-bar";
 import { KIND_LABEL, kindOf } from "@/lib/gauge-studio/model";
 import type { VectorGauge } from "@/lib/infopanel/gauges/vector";
 import type { GaugeEdit } from "./use-gauge-edit";
@@ -65,15 +66,15 @@ export function EditorHeader({ edit, gauge, saving, history, onBack, onImport, o
   const chip = savedState(edit);
   const hasMenu = !!(onImport || onSaveAsNew || onDiscardDraft);
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 font-ui">
+    <PageBar>
       <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1">
         <IconButton label="Back to Gauges" size={32} onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </IconButton>
-        <button type="button" onClick={onBack} className="h-8 rounded-ui-sm px-1.5 text-body text-ui-3 hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
+        <button type="button" onClick={onBack} className="h-8 rounded-ui-sm px-1.5 text-body text-ui-3 hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent max-[1279px]:hidden">
           Gauges
         </button>
-        <ChevronRight className="h-4 w-4 shrink-0 text-ui-hint" aria-hidden />
+        <ChevronRight className="h-4 w-4 shrink-0 text-ui-hint max-[1279px]:hidden" aria-hidden />
         <label className="relative flex min-w-0 items-center">
           <input
             aria-label="Gauge name"
@@ -84,7 +85,7 @@ export function EditorHeader({ edit, gauge, saving, history, onBack, onImport, o
               setDraft(e.target.value);
               edit.rename(e.target.value);
             }}
-            className="h-8 w-[220px] min-w-0 rounded-ui-sm border border-transparent bg-transparent pl-1.5 pr-7 text-title font-medium text-ui-1 outline-none hover:border-ui-strong focus:border-ui-accent"
+            className="h-8 w-[220px] min-w-0 shrink rounded-ui-sm border border-transparent bg-transparent pl-1.5 pr-7 text-title font-medium text-ui-1 outline-none hover:border-ui-strong focus:border-ui-accent"
           />
           <Pencil className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ui-hint" aria-hidden />
         </label>
@@ -98,7 +99,7 @@ export function EditorHeader({ edit, gauge, saving, history, onBack, onImport, o
         {KIND_LABEL[kindOf(gauge)]}
         {where(edit)}
       </span>
-      <span className="flex-1" />
+      <BarFill />
       {history && (
         <>
           <IconButton label="Undo (Ctrl+Z)" size={32} disabled={!history.canUndo} onClick={history.undo}>
@@ -111,8 +112,8 @@ export function EditorHeader({ edit, gauge, saving, history, onBack, onImport, o
         </>
       )}
       <span title={onExport ? undefined : "An image sequence has no spec to export"}>
-        <Button onClick={onExport} disabled={!onExport} icon={<Upload strokeWidth={1.5} />}>
-          Export
+        <Button onClick={onExport} disabled={!onExport} title={onExport ? "Export" : undefined} icon={<Upload strokeWidth={1.5} />}>
+          <span className="max-[1279px]:sr-only">Export</span>
         </Button>
       </span>
       <Button variant="primary" onClick={onSave} disabled={saving} icon={<Save strokeWidth={1.5} />}>
@@ -151,6 +152,6 @@ export function EditorHeader({ edit, gauge, saving, history, onBack, onImport, o
           </Menu.Portal>
         </Menu.Root>
       )}
-    </header>
+    </PageBar>
   );
 }

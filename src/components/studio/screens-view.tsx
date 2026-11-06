@@ -282,7 +282,7 @@ export function ScreensView({
   };
 
   return (
-    <div ref={setViewEl} className="relative flex min-h-0 flex-1 flex-col bg-ui-app/40 font-ui">
+    <div className="flex min-h-0 flex-1 flex-col font-ui">
       <ScreensHeader
         count={screensCountLine(config.profiles.length, distinctDisplays(kiosks))}
         query={query}
@@ -293,6 +293,7 @@ export function ScreensView({
         onNew={onNew}
       />
 
+      <div ref={setViewEl} className="relative flex min-h-0 flex-1 flex-col bg-ui-app/40">
       {/* On a phone the two columns stack, and the view scrolls. */}
       <div className="flex min-h-0 flex-1 items-start gap-6 overflow-y-auto px-6 py-5 max-[899px]:flex-col max-[899px]:px-3">
         <section aria-label="Live on displays" className="flex w-[400px] shrink-0 flex-col gap-3 max-[1199px]:w-[340px] max-[899px]:w-full">
@@ -370,6 +371,7 @@ export function ScreensView({
           </Dialog.Popup>
         </Dialog.Portal>
       </Dialog.Root>
+      </div>
 
       <DeleteDialog name={plan?.name ?? null} lines={plan ? deleteLines(plan) : []} onConfirm={() => deletingId && remove(deletingId, plan?.name ?? "")} onClose={() => setDeletingId(null)} />
     </div>

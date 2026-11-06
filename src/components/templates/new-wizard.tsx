@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ArrowDown, ArrowLeftRight, ArrowUpRight, Check, LayoutGrid, Maximize2, PenTool, X, type LucideIcon } from "lucide-react";
+import { PageBar } from "@/components/studio/page-bar";
 import { cn } from "@/lib/utils";
 import type { WizardKind } from "./recent-templates";
 
@@ -135,15 +136,15 @@ export function NewWizard(p: NewWizardProps) {
         }
       }}
     >
-      <div className="flex h-[52px] shrink-0 items-center gap-3.5 border-b border-ui-subtle pl-5 pr-4">
-        <h1 className="m-0 shrink-0 text-title font-medium">{title}</h1>
+      <PageBar>
+        <h1 data-tauri-drag-region className="m-0 shrink-0 text-title font-medium">{title}</h1>
         <KindSwitch kind={kind} onKind={p.onKind} />
-        <span className="min-w-0 flex-1 truncate text-caption text-ui-4">{narrow ? "" : KIND_SENTENCES[kind]}</span>
+        <span data-tauri-drag-region className="min-w-0 flex-1 truncate text-caption text-ui-4">{narrow ? "" : KIND_SENTENCES[kind]}</span>
         {narrow && <Stepper step={step} onStep={p.onStep} />}
         <button type="button" aria-label="Close" title="Close (Esc)" onClick={p.onCancel} className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
           <X className="h-4 w-4" />
         </button>
-      </div>
+      </PageBar>
       <div className="flex min-h-0 flex-1">
         {(!narrow || step === 0) && <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">{p.gallery}</div>}
         {(!narrow || step === 1) && (

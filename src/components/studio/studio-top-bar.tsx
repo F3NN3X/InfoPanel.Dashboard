@@ -138,7 +138,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
     >
       <Breadcrumb {...props} />
       {tabs}
-      <div data-tauri-drag-region className="flex min-w-0 flex-1 justify-center">
+      <div data-tauri-drag-region className="flex min-w-8 flex-1 justify-center">
         <button
           type="button"
           onClick={onPalette}

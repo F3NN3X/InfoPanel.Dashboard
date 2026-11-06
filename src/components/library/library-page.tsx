@@ -86,6 +86,7 @@ import { deletePanelPreset, renamePanelPreset } from "@/components/studio/panel-
 import { LIBRARY_MIME, setActiveLibraryDrag } from "@/lib/my-library/drag";
 import { addComponentZone } from "./library-drop";
 import { useViewportBelow } from "@/hooks/use-viewport-below";
+import { BarFill, BarTitle, PageBar } from "@/components/studio/page-bar";
 import { PaneSheet } from "@/components/studio/pane-sheet";
 import { NARROW_PAGE_WIDTH } from "@/components/studio/studio-layout";
 import { useHoldZoneShortcuts } from "./use-hold-zone-shortcuts";
@@ -512,10 +513,9 @@ export default function LibraryPage(p: LibraryPageProps) {
         setActiveLibraryDrag(null);
       }}
     >
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 max-sm:h-auto max-sm:flex-wrap max-sm:gap-2 max-sm:px-3 max-sm:py-2">
-        <h1 className="text-head font-medium text-ui-1">Library</h1>
-        <span className="hidden min-w-0 truncate text-caption text-ui-4 xl:block">Everything you’ve saved, beside the built-ins</span>
-        <label className="flex h-(--ui-h-field) min-w-[200px] max-w-[520px] flex-1 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
+      <PageBar>
+        <BarTitle title="Library" note="Everything you’ve saved, beside the built-ins" />
+        <label className="flex h-(--ui-h-field) min-w-[100px] max-w-[520px] flex-1 grow-[4] items-center gap-2 rounded-ui-md border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
           <Search className="h-4 w-4 shrink-0 text-ui-4" />
           <input
             type="search"
@@ -547,6 +547,7 @@ export default function LibraryPage(p: LibraryPageProps) {
                 key={id}
                 type="button"
                 role="radio"
+                title={label}
                 aria-checked={view === id}
                 tabIndex={view === id ? 0 : -1}
                 onClick={() => {
@@ -556,7 +557,7 @@ export default function LibraryPage(p: LibraryPageProps) {
                 className={cn("flex h-full items-center gap-1.5 rounded-ui-md px-2.5 text-body text-ui-3 hover:text-ui-1", view === id && "bg-ui-active text-ui-1")}
               >
                 <Icon className="h-3.5 w-3.5" />
-                {label}
+                <span className="max-[1279px]:sr-only">{label}</span>
               </button>
             ))}
           </div>
@@ -568,7 +569,7 @@ export default function LibraryPage(p: LibraryPageProps) {
             setUsedBy(e.target.value);
             setShowFiles(false);
           }}
-          className="h-(--ui-h-field) min-w-0 max-w-[200px] shrink rounded-ui-md border border-ui-default bg-ui-panel px-2.5 text-body text-ui-2"
+          className="h-(--ui-h-field) min-w-[104px] max-w-[200px] shrink truncate whitespace-nowrap rounded-ui-md border border-ui-default bg-ui-panel px-2.5 text-body text-ui-2"
         >
           <option value="">Used by any screen</option>
           {p.bridge.config.profiles.map((s) => (
@@ -585,11 +586,11 @@ export default function LibraryPage(p: LibraryPageProps) {
           className={cn("flex h-(--ui-h-field) min-w-[88px] max-w-[220px] shrink items-center gap-1.5 rounded-ui-md border border-ui-default px-3 text-body text-ui-1 hover:bg-ui-hover", showFiles && "bg-ui-active")}
         >
           <FolderInput className="h-4 w-4 shrink-0" />
-          <span className="truncate">Canvas files · {p.profileName}</span>
+          <span className="truncate">Canvas files<span className="max-[1279px]:hidden"> · {p.profileName}</span></span>
         </button>
-        <span className="flex-1" />
+        <BarFill />
         <AddFilesButton />
-      </header>
+      </PageBar>
       <div className="relative flex min-h-0 flex-1 max-sm:flex-col">
         {showFiles ? (
           <ProfileAssets

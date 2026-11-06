@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
-// The sidebar's behaviour: collapse per area in local flags (Q18), the rail under 960 px (Q6), Help and shortcuts (Q5),
+// The sidebar's behaviour: the user's collapse choice in a local flag, the same on every page (Q18), the rail under 960 px (Q6), Help and shortcuts (Q5),
 // the attention rows (Q3), and the Data API card: its three states, and the address written through the one setter (G1).
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState, type ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LiveControl } from "@/components/studio/live-popover";
-import StudioSidebar, { SIDEBAR_EDITOR_KEY, SIDEBAR_WORKSPACE_KEY } from "@/components/studio/sidebar/studio-sidebar";
+import StudioSidebar, { SIDEBAR_KEY } from "@/components/studio/sidebar/studio-sidebar";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import * as desktop from "@/lib/desktop";
 import type { DashboardConfig } from "@/lib/layout";
@@ -25,7 +25,6 @@ function renderSidebar(props: Partial<ComponentProps<typeof StudioSidebar>> = {}
     screenName: "Desk",
     alerts: 0,
     windowWidth: 1600,
-    editing: false,
     status: sidebarStatus(),
     config,
     onAddress: vi.fn(),
@@ -46,24 +45,22 @@ beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 
 describe("collapse", () => {
-  it("opens expanded on workspace pages and on the rail in the editor, the first time", () => {
-    const { unmount } = renderSidebar();
+  it("opens expanded, and Edit's old rail flag from earlier builds neither collapses it nor is removed", () => {
+    localStorage.setItem("studio.sidebar.editor", "1");
+    renderSidebar();
     expect(width()).toContain("w-[232px]");
-    unmount();
-    renderSidebar({ editing: true });
-    expect(width()).toContain("w-[60px]");
+    expect(localStorage.getItem("studio.sidebar.editor")).toBe("1");
   });
 
-  it("remembers the choice per area, in local flags", () => {
+  it("remembers the user's choice in one local flag, for every page", () => {
     const { unmount } = renderSidebar();
     fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
-    expect(localStorage.getItem(SIDEBAR_WORKSPACE_KEY)).toBe("1");
-    expect(localStorage.getItem(SIDEBAR_EDITOR_KEY)).toBeNull();
+    expect(localStorage.getItem(SIDEBAR_KEY)).toBe("1");
     unmount();
-    renderSidebar({ editing: true });
+    renderSidebar({ active: "design" });
+    expect(width()).toContain("w-[60px]");
     fireEvent.click(screen.getByRole("button", { name: "Expand sidebar" }));
-    expect(localStorage.getItem(SIDEBAR_EDITOR_KEY)).toBe("0");
-    expect(localStorage.getItem(SIDEBAR_WORKSPACE_KEY)).toBe("1");
+    expect(localStorage.getItem(SIDEBAR_KEY)).toBe("0");
   });
 
   it("keeps keyboard focus when the sidebar flips between expanded and the rail", () => {
@@ -78,11 +75,11 @@ describe("collapse", () => {
   });
 
   it("stays a rail below 960 px, with no toggle and without touching the flag", () => {
-    localStorage.setItem(SIDEBAR_WORKSPACE_KEY, "0");
+    localStorage.setItem(SIDEBAR_KEY, "0");
     renderSidebar({ windowWidth: 900 });
     expect(width()).toContain("w-[60px]");
     expect(screen.queryByRole("button", { name: /sidebar/ })).toBeNull();
-    expect(localStorage.getItem(SIDEBAR_WORKSPACE_KEY)).toBe("0");
+    expect(localStorage.getItem(SIDEBAR_KEY)).toBe("0");
   });
 });
 
@@ -97,10 +94,7 @@ describe("the frame", () => {
   it("drags the window by its header under Tauri on every page, and nowhere else", () => {
     const tauri = vi.spyOn(desktop, "isTauri").mockReturnValue(true);
     const header = () => document.querySelector("[data-tauri-drag-region]");
-    const { unmount } = renderSidebar({ editing: true });
-    expect(header()).not.toBeNull();
-    unmount();
-    renderSidebar({ editing: false });
+    renderSidebar();
     expect(header()).not.toBeNull();
     tauri.mockReturnValue(false);
   });

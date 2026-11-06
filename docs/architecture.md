@@ -1567,11 +1567,11 @@ and value box (left panels keep the stacked slider).
 `inspector-scroll.ts` finds the scrolling element for scroll-to-top and the
 widget-editor reveal.
 
-**Studio sidebar and views** (`sidebar/studio-sidebar.tsx`). A 232 px sidebar, a 60 px rail when collapsed (stored per
-area in local flags, always a rail under 960 px, a bottom bar on a phone), opens one full view at a time: **Screens**,
+**Studio sidebar and views** (`sidebar/studio-sidebar.tsx`). A 232 px sidebar, a 60 px rail when collapsed (the user's choice, one local
+flag for every page, open by default, always a rail under 960 px, a bottom bar on a phone), opens one full view at a time: **Screens**,
 **Edit** (Design), **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data sources**, with Settings,
 Help and shortcuts, the attention rows and the Data API card at the foot. The card reads `use-status-bar.ts`, whose
-10 s grace (`use-data-api-grace.ts`) is studio-only; `window-strip.tsx` is the desktop title bar on a page with no top bar. Design's left panel
+10 s grace (`use-data-api-grace.ts`) is studio-only; `page-bar.tsx` is the 56 px bar of every other page (title, controls, and the desktop caption buttons). Design's left panel
 (`design-left-panel.tsx`) is **Layers** (`layers-tree.tsx`, the page's parts and groups top first, see the page
 model above) | **Add** (`add-panel.tsx` over `use-add-panel.ts` and `add-catalog.ts`: search, category chips
 and, on the Widgets tab, a tile grid of widgets, InfoPanel items and elements (`add-tiles.ts`: sections, Recently used,
@@ -1583,7 +1583,7 @@ message `add-toast.tsx`), panel and layout rows on the other tabs. Tiles and row
 `InsertList` for the widget picker and the palette. Screens are the cards of `screens-view.tsx`: the
 a card per screen (the launch rule, `resolveProfile`'s Auto, is Settings › Dashboard › Startup screen).
 
-**Studio top bar** (Edit only; the other views have a page header and the desktop `window-strip.tsx`). `studio-top-bar.tsx`
+**Studio top bar** (Edit only; the other views have a `PageBar` from `page-bar.tsx` of the same height, in the page itself). `studio-top-bar.tsx`
 holds the breadcrumb (Screens › the screen, with its rename pencil › the page: `screen-switcher.tsx`), the page tabs
 (from 960 px), the search field that opens the command palette, named Undo / Redo, the saved chip (`editor/save-chip.ts`:
 "Saved · live on N displays", unsaved, offline, refused and read-only), Preview (the kiosk view) and the File menu
@@ -1797,7 +1797,7 @@ with the app.
 - **Navigation guard** (`nav.rs`). Only the server origin (not `/api/*`) and the
   local pages load in the window; everything else, including `target="_blank"`,
   opens in the system browser.
-- **Window.** No native frame: the editor's top bar, or `window-strip.tsx` on the other views, is the title bar (see above), and
+- **Window.** No native frame: the editor's top bar, or the `PageBar` of the other views, is the title bar (see above), and
   closing hides to the tray while the server keeps serving the kiosk.
 - **Studio bridge** `src/lib/desktop.ts`. `isTauri()` gates everything and
   `@tauri-apps/api` is imported lazily, so the browser and kiosk bundles carry no

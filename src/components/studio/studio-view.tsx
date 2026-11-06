@@ -27,7 +27,7 @@ import { StudioCanvas } from "./studio-canvas";
 import { StudioTopBar, type StudioMode } from "./studio-top-bar";
 import { LiveControl } from "./live-popover";
 import type { RailItem } from "./studio-nav";
-import { WindowStrip } from "./window-strip";
+import { PageLoading } from "./page-bar";
 import { PhoneTabBar } from "./phone-tab-bar";
 import { applyFirstRun } from "./first-run-model";
 import type { SetupOutcome } from "./first-run/first-run-page";
@@ -726,7 +726,7 @@ function StudioViewBody({
   );
 
   const alertsEl = showAlerts && (
-    <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
+    <Suspense fallback={<PageLoading title="Alerts & Island" />}>
     <AlertsView
       tab={ui.alertsTab}
       onTab={ui.setAlertsTab}
@@ -775,7 +775,7 @@ function StudioViewBody({
   }, [ui.editRequest?.seq]);
 
   const screensEl = showScreens && (
-    <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
+    <Suspense fallback={<PageLoading title="Screens" />}>
     <ScreensView
       config={config}
       profile={profile}
@@ -815,7 +815,7 @@ function StudioViewBody({
 
   const canvasEl = showSources ? (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background/40">
-      <Suspense fallback={null}>
+      <Suspense fallback={<PageLoading title="Data sources" />}>
       <SourcesPanel
         config={config}
         setConfig={setSourcesConfig}
@@ -1082,7 +1082,7 @@ function StudioViewBody({
     void recordCopy(item, { profileId: r.profileId, zoneId: r.zoneId, label: item.name });
   };
   const libraryEl = showLibrary && (
-    <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
+    <Suspense fallback={<PageLoading title="Library" />}>
       <LibraryPage
         key={libraryEpoch}
         bridge={libraryBridge}
@@ -1126,7 +1126,7 @@ function StudioViewBody({
 
   // The New page, over Screens, for a screen or an InfoPanel profile.
   const newPageEl = newPage && showScreens && (
-    <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
+    <Suspense fallback={<PageLoading title={newPage.kind === "ip" ? "New InfoPanel profile" : "New screen"} />}>
       <NewPage
         kind={newPage.kind}
         onKind={switchNewKind}
@@ -1154,7 +1154,7 @@ function StudioViewBody({
   );
 
   const gaugesEl = showGauges && (
-    <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
+    <Suspense fallback={<PageLoading title="Gauges" />}>
       <GaugesPage
         bridge={libraryBridge}
         theme={resolveTheme(profile).tokens}
@@ -1180,7 +1180,7 @@ function StudioViewBody({
       ? (profile.pageId ?? storedProfile.pages[0].id)
       : themeProfile.pages[0].id;
   const themeEl = showTheme && (
-    <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
+    <Suspense fallback={<PageLoading title="Theme" />}>
       <ThemeEditor
       config={config}
       scope={ui.themeScope}
@@ -1245,7 +1245,6 @@ function StudioViewBody({
             screenName={storedProfile.name}
             alerts={(control?.alerts ?? []).filter((a) => !a.acknowledged && !a.quiet && !a.test).length}
             windowWidth={windowWidth}
-            editing={!fullPage}
             status={statusBar}
             config={config}
             onAddress={(dataApiUrl) => setConfig((c) => ({ ...c, dataApiUrl }), "data-api-url")}
@@ -1272,7 +1271,6 @@ function StudioViewBody({
         </Suspense>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
-      {fullPage && !phone && <WindowStrip />}
       {(!fullPage || phone) && <StudioTopBar
         profiles={config.profiles}
         profile={storedProfile}

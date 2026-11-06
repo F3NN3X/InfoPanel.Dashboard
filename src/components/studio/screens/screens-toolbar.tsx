@@ -6,6 +6,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { Segmented } from "@/components/ui/segmented";
 import { SORTS, type ListFilter, type ListSort } from "@/lib/screens/list";
 import { cn } from "@/lib/utils";
+import { BarFill, BarTitle, PageBar } from "../page-bar";
 
 interface ScreensHeaderProps {
   /** "4 screens · 2 displays live". */
@@ -21,16 +22,14 @@ interface ScreensHeaderProps {
   onNew: () => void;
 }
 
-/** The page header: Screens and its count line, the search, Import, Export & back up and New screen. */
+/** The page's bar: Screens and its count line, the search, Import, Export & back up and New screen. */
 export function ScreensHeader({ count, query, onQuery, searchRef, onImport, onExportAll, onNew }: ScreensHeaderProps) {
   return (
-    <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ui-subtle px-6 py-3.5 max-[899px]:px-3">
-      <div className="flex min-w-0 items-baseline gap-3">
-        <h1 className="m-0 text-title font-medium text-ui-1">Screens</h1>
-        <span className="text-caption text-ui-3">{count}</span>
-      </div>
-      <div className="ml-auto flex flex-wrap items-center gap-2">
-        <label className="relative w-[240px] max-sm:w-full">
+    <PageBar>
+      <BarTitle title="Screens" note={count} />
+      <BarFill />
+      <div className="flex min-w-0 items-center gap-2 max-[599px]:w-full">
+        <label className="relative w-[240px] min-w-[120px] shrink max-[599px]:w-full">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-hint" strokeWidth={1.5} aria-hidden />
           <input
             ref={searchRef}
@@ -55,16 +54,16 @@ export function ScreensHeader({ count, query, onQuery, searchRef, onImport, onEx
           )}
         </label>
         <Button title="Import a screen or an InfoPanel profile from a file" icon={<Upload strokeWidth={1.5} />} onClick={onImport}>
-          Import
+          <span className="max-[1279px]:sr-only">Import</span>
         </Button>
         <Button title="Export or back up the whole dashboard" aria-label="Export & back up…" icon={<Download strokeWidth={1.5} />} onClick={onExportAll}>
-          <span className="max-lg:sr-only">Export &amp; back up</span>
+          <span className="max-[1279px]:sr-only">Export &amp; back up</span>
         </Button>
         <Button variant="primary" icon={<Plus strokeWidth={1.75} />} onClick={onNew}>
           New screen
         </Button>
       </div>
-    </header>
+    </PageBar>
   );
 }
 

@@ -59,6 +59,7 @@ import { THEME_EDITOR_SETTINGS } from "./theme-editor-settings";
 import { differencesOf, followAll, widgetsKeeping, widgetsKeepingAfter } from "./theme-differences";
 import { exceptionsOf, widgetOverrides } from "./theme-exceptions";
 import { FineTuneHeader, FineTuneRow, RowsLabel } from "./theme-fine-tune";
+import { BarFill, BarTitle, PageBar } from "./page-bar";
 import { fineTuneChip, fineTuneSummary, resetFineTune } from "./theme-fine-tune-model";
 import { lookUses, withoutLookId } from "@/looks/user-pack-config";
 import { GALLERY_IDS, lookName as lookNameOf, lookPreset, lookPresetId } from "./look-gallery-model";
@@ -721,8 +722,8 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui">
-      <div className="flex min-h-[60px] shrink-0 flex-wrap items-center gap-x-5 gap-y-2 border-b border-ui-subtle px-7 py-2 max-sm:px-3">
-        <h1 className="text-head font-medium text-ui-1">Theme</h1>
+      <PageBar>
+        <BarTitle title="Theme" />
         <ThemeScopeBar config={config} at={at} profile={profile} page={page} onPick={pick} />
         <Tabs
           label="Theme"
@@ -739,9 +740,9 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
           ]}
           value={tab}
           onChange={setTab}
-          className="gap-6 self-stretch border-b-0 [&>button]:h-auto"
+          className="shrink-0 gap-5 self-stretch border-b-0 max-[599px]:order-last max-[599px]:w-full [&>button]:h-auto"
         />
-        <span className="flex-1" />
+        <BarFill />
         {tab === "browse" ? (
           importMenu
         ) : (
@@ -762,7 +763,7 @@ export function ThemeEditor({ config, scope: requested, profileId, pageId, onPic
             />
           </div>
         )}
-      </div>
+      </PageBar>
       {toast && (
         <div className="shrink-0 px-7 pt-3 max-sm:px-3">
           <ThemeToastRow toast={toast} onUndo={onUndo} onDismiss={dismiss} />

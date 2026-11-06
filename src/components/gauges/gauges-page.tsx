@@ -28,6 +28,7 @@ import { gaugeActions, gaugeMenuEntries, libraryMenuHandlers } from "./gauge-act
 import { GaugeDetail, EmptyDetail } from "./gauge-detail";
 import { GaugeEditor, type EditorHandle } from "./gauge-editor";
 import { openImportDoor } from "@/components/studio/file-doors";
+import { BarFill, BarTitle, PageBar } from "@/components/studio/page-bar";
 import { downloadFrames, downloadSpec } from "./gauge-files";
 import { GaugesBrowse, type GaugeSection } from "./gauges-browse";
 import { OnScreens, opensOnCanvas } from "./on-screens";
@@ -225,14 +226,10 @@ export default function GaugesPage({ bridge: studio, theme, initial, onOpened, o
       }}
     >
       {!editor && (
-        <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ui-subtle px-6 py-3.5 max-[899px]:px-3">
-          <div className="flex min-w-0 items-baseline gap-3">
-            <h1 className="m-0 text-title font-medium text-ui-1">Gauges</h1>
-            <span className="text-caption text-ui-3">
-              {presets.length} presets · {onScreens.length + rings.length} on your screens · {library.entries.length} saved
-            </span>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
+        <PageBar>
+          <BarTitle title="Gauges" note={`${presets.length} presets · ${onScreens.length + rings.length} on your screens · ${library.entries.length} saved`} />
+          <BarFill />
+          <div className="flex items-center gap-2">
             <Button icon={<Upload strokeWidth={1.5} />} onClick={() => openImportDoor()}>
               Import
             </Button>
@@ -240,7 +237,7 @@ export default function GaugesPage({ bridge: studio, theme, initial, onOpened, o
               New gauge
             </Button>
           </div>
-        </header>
+        </PageBar>
       )}
       {editor ? (
         <GaugeEditor key={editor.id} ref={editorRef} bridge={bridge} open={editor.open} editorId={editor.id} theme={theme} onBack={closeEditor} onSaved={lib.refresh} onOpenRule={onOpenRule} onOpenSources={onOpenSources} />

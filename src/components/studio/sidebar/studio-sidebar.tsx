@@ -21,9 +21,12 @@ import { attentionItems, cardLine, LINK_CHIP } from "./data-api-model";
 /** The Data API popover's content comes with the first open. */
 const DataApiPanel = lazy(() => import("./data-api-panel"));
 
-/** Whether the sidebar is collapsed to the rail, per area (Q18): local flags, no config key. */
-export const SIDEBAR_WORKSPACE_KEY = "studio.sidebar.workspace";
-export const SIDEBAR_EDITOR_KEY = "studio.sidebar.editor";
+/**
+ * Whether the user collapsed the sidebar to the rail, the same on every page: a local flag, no config key. Only a
+ * choice made with the toggle is stored. The name is from when Edit had a flag of its own (`studio.sidebar.editor`,
+ * which opened on the rail); that one is no longer read, nor removed.
+ */
+export const SIDEBAR_KEY = "studio.sidebar.workspace";
 /** Below this window width the sidebar stays a rail (Q6). */
 const RAIL_MAX = 960;
 
@@ -44,8 +47,6 @@ interface StudioSidebarProps {
   /** Alerts firing now (the red badge). */
   alerts: number;
   windowWidth: number;
-  /** The editor is open: the editor's flag applies, not the workspace's. */
-  editing: boolean;
   status: StudioStatus;
   config: DashboardConfig;
   /** Write the Data API address (`config.dataApiUrl`, one undo step). */
@@ -212,18 +213,16 @@ function DataApiCard({ rail, status, config, onAddress, onNavigate, open, setOpe
 
 /**
  * The app sidebar on every page but a phone's (232 px, a 60 px rail when collapsed): the Frame mark, the views, then
- * Settings, Help and shortcuts, what needs attention and the Data API card. Collapse is remembered per area: the
- * editor opens on the rail the first time. Below 960 px it stays a rail. A lazy chunk, so the studio's entry does not carry it.
+ * Settings, Help and shortcuts, what needs attention and the Data API card. Collapse is the user's choice, kept
+ * across every page and open by default. Below 960 px it stays a rail. A lazy chunk, so the studio's entry does not carry it.
  */
 export default function StudioSidebar(props: StudioSidebarProps) {
-  const { active, onSelect, screenName, alerts, windowWidth, editing, status, onHelp, onShortcuts, onPalette, onNavigate, live } = props;
-  const [workspace, setWorkspace] = useStoredFlag(SIDEBAR_WORKSPACE_KEY, false);
-  const [editor, setEditor] = useStoredFlag(SIDEBAR_EDITOR_KEY, true);
+  const { active, onSelect, screenName, alerts, windowWidth, status, onHelp, onShortcuts, onPalette, onNavigate, live } = props;
+  const [collapsed, setCollapsed] = useStoredFlag(SIDEBAR_KEY, false);
   const narrow = windowWidth < RAIL_MAX;
-  const collapsed = editing ? editor : workspace;
   const rail = narrow || collapsed;
   const drag = isTauri();
-  const toggle = () => (editing ? setEditor : setWorkspace)(!collapsed);
+  const toggle = () => setCollapsed(!collapsed);
   const collapseButton = !narrow && (
     <IconButton label={rail ? "Expand sidebar" : "Collapse sidebar"} size={30} aria-expanded={!rail} onClick={toggle} className={rail ? "self-center" : undefined}>
       <PanelLeft className="h-4 w-4" strokeWidth={1.5} />

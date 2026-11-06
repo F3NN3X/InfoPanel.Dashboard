@@ -17,6 +17,7 @@ import { previewScope, themeNameOf } from "@/lib/gauge-studio/preview";
 import type { StoredCanvas } from "@/lib/infopanel/import/stored";
 import type { LibraryItem } from "@/lib/library";
 import type { ThemeTokens } from "@/lib/theme";
+import { BarTitle, PageBar } from "@/components/studio/page-bar";
 import { EditorHeader, type EditorHistory } from "./editor-header";
 import { useEditorShell, type EditorHandle, type WriteOptions } from "./editor-shell";
 import { EditorStage } from "./editor-stage";
@@ -67,11 +68,16 @@ export function GaugeEditor(props: GaugeEditorProps) {
 function Gone({ ref, onBack }: { ref?: Ref<EditorHandle>; onBack: () => void }) {
   useImperativeHandle(ref, () => ({ requestBack: (then) => (then ?? onBack)() }), [onBack]);
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-ui-app font-ui text-center">
-      <p className="text-[12.5px] text-ui-3">This gauge is no longer on the page.</p>
-      <button type="button" onClick={onBack} className="h-(--ui-h-field) rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover">
-        Back to Gauges
-      </button>
+    <div className="flex min-h-0 flex-1 flex-col bg-ui-app font-ui">
+      <PageBar>
+        <BarTitle title="Gauge editor" />
+      </PageBar>
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
+        <p className="text-[12.5px] text-ui-3">This gauge is no longer on the page.</p>
+        <button type="button" onClick={onBack} className="h-(--ui-h-field) rounded-ui-md border border-ui-default px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover">
+          Back to Gauges
+        </button>
+      </div>
     </div>
   );
 }

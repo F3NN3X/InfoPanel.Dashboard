@@ -76,8 +76,8 @@ export function ThemeSave({ name, kind, update, onSave, saveName }: ThemeSavePro
           Update {name}
         </Button>
       )}
-      <Button icon={<Bookmark aria-hidden />} onClick={() => setSaving(true)}>
-        Save as my theme
+      <Button title="Save as my theme" icon={<Bookmark aria-hidden />} onClick={() => setSaving(true)}>
+        <span className="max-[1279px]:sr-only">Save as my theme</span>
       </Button>
     </div>
   );

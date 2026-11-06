@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/toast";
 import { refreshCatalog } from "@/lib/catalog";
 import type { DashboardConfig } from "@/lib/layout";
 import { cn } from "@/lib/utils";
+import { BarFill, BarTitle, PageBar } from "../page-bar";
 import { useEndpoints } from "./explorer-endpoints";
 import { buildReport, saveReport } from "./report";
 import { useCopy } from "./use-copy";
@@ -38,7 +39,7 @@ const MENU_ITEM = cn(
   "[&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-ui-hint"
 );
 
-/** The Data sources page header: the title and count line, search, Endpoints, Report and Add source (the one primary). */
+/** The Data sources page's bar: the title and count line, search, Endpoints, Report and Add source (the one primary). */
 export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount, query, onQuery, apiBase, config }: ExplorerHeaderProps) {
   const copy = useCopy();
   const toast = useToast();
@@ -64,16 +65,15 @@ export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount
   const saveIt = () => report((text) => saveReport(text).then((saved) => saved && toast("Report saved")));
 
   return (
-    <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ui-subtle px-6 py-3.5 font-ui max-[899px]:px-3">
-      <div className="flex min-w-0 items-baseline gap-3">
-        <h1 className="m-0 text-title font-medium text-ui-1">Data sources</h1>
-        <span className="whitespace-nowrap text-caption text-ui-3">
-          {shownCount === null ? pointCount : `${shownCount} of ${pointCount}`} points · {sourceCount} {sourceCount === 1 ? "source" : "sources"} · {inUseCount} in use
-        </span>
-      </div>
+    <PageBar>
+      <BarTitle
+        title="Data sources"
+        note={`${shownCount === null ? pointCount : `${shownCount} of ${pointCount}`} points · ${sourceCount} ${sourceCount === 1 ? "source" : "sources"} · ${inUseCount} in use`}
+      />
+      <BarFill />
 
-      <div ref={actionsRef} className="ml-auto flex flex-wrap items-center gap-2">
-        <label className="relative w-[300px] max-sm:w-full">
+      <div ref={actionsRef} className="flex min-w-0 items-center gap-2 max-[599px]:w-full">
+        <label className="relative w-[300px] min-w-[120px] shrink max-[599px]:w-full">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ui-hint" strokeWidth={1.5} aria-hidden />
           <input
             type="search"
@@ -103,7 +103,7 @@ export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount
           trigger={
             <>
               <Waypoints strokeWidth={1.5} />
-              Endpoints
+              <span className="max-[1279px]:sr-only">Endpoints</span>
             </>
           }
         >
@@ -133,7 +133,7 @@ export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount
           trigger={
             <>
               <FileText strokeWidth={1.5} />
-              Report
+              <span className="max-[1279px]:sr-only">Report</span>
             </>
           }
         >
@@ -176,6 +176,6 @@ export function ExplorerHeader({ pointCount, sourceCount, inUseCount, shownCount
           </a>
         </Popover>
       </div>
-    </header>
+    </PageBar>
   );
 }
