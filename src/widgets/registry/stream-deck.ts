@@ -35,7 +35,7 @@ export const STREAM_DECK_SETTINGS: ModuleSetting[] = [
     "keyStyle",
     "Key style",
     "auto",
-    [{ value: "auto", label: "Skin's card" }, { value: "widget", label: "Same as widget" }, { value: "plain", label: "Plain" }, ...SURFACE_OPTIONS],
+    [{ value: "auto", label: "Theme's card" }, { value: "widget", label: "Same as widget" }, { value: "plain", label: "Plain" }, ...SURFACE_OPTIONS],
     { group: "Key look", tab: "show", hint: "The keys' surface; it shows as a frame round each icon" }
   ),
   enumSetting(
@@ -54,7 +54,7 @@ export const STREAM_DECK_SETTINGS: ModuleSetting[] = [
     "Icon overlay",
     "skin",
     [
-      { value: "skin", label: "Skin's edge" },
+      { value: "skin", label: "Theme's edge" },
       { value: "sheen", label: "Sheen" },
       { value: "glow", label: "Glow" },
       { value: "none", label: "None" },
@@ -67,7 +67,7 @@ export const STREAM_DECK_SETTINGS: ModuleSetting[] = [
     "Pressed effect",
     "skin",
     [
-      { value: "skin", label: "Skin" },
+      { value: "skin", label: "Widget style" },
       { value: "dip", label: "Dip" },
       { value: "glow", label: "Glow" },
       { value: "none", label: "None" },
