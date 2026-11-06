@@ -187,3 +187,15 @@ Gauges
 5. The per-theme export compatibility line (T21) is dropped.
 6. The Help wording for Browse Apply is fixed in Phase 8.
 7. The feature ledger's code column is refreshed in Phase 8.
+
+## Removing InfoPanel export
+
+1. Saved `.canvas.zip` export stays, as "Export a page" in Export & back up.
+2. "New InfoPanel screen" stays.
+3. The fonts-to-install note goes with export.
+4. `tools/verify.mjs` no longer counts a deleted file as unmapped.
+5. Adding a widget on an imported canvas raises no toast; undo is Ctrl+Z.
+6. Help's "What InfoPanel can't do" section is removed.
+7. The unused `--ui-status-*` tokens and the lab README's "baked" wording are cleaned up in Phase 8.
+8. The kiosk entry, 118 B over budget, is trimmed in Phase 8 if it can be; raising the budget is considered only after that.
+9. The studio budget is lowered at merge.
