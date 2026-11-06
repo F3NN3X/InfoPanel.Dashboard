@@ -89,7 +89,7 @@ function TemplateRows({ gauge: g, onCommit }: { gauge: VectorGauge; onCommit(g: 
         <small>
           Reads <code>var(--value)</code> (0–1) and <code>var(--percent)</code> (0–100, whole), set on the root element; default
           them in the file (<code>svg {"{ --value: 0.5 }"}</code>). Its CSS and SMIL animations keep running in the studio. Scripts,
-          foreign content and links outside the file are removed. Baked frames for InfoPanel are still images at each value.
+          foreign content and links outside the file are removed.
         </small>
       </Row>
     </>
