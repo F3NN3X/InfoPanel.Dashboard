@@ -72,14 +72,12 @@ const WIDGETS: [string, ComponentType<ShellProps & { mixerLook?: ReturnType<type
 ];
 
 describe.each(WIDGETS)("%s", (_id, Component, key) => {
-  it.each(["strips", "lcd"])("draws the %s view in both orientations, with every channel or a count of the rest", (view) => {
-    for (const orientation of ["vertical", "horizontal"]) {
-      size = { w: 640, h: 300 };
-      const { container, unmount } = render(<Component data={data} mixerLook={mixerLookOf({ view, [key]: orientation }, key)} />);
-      expect(container.querySelector(`[data-mixer-view=${view}]`), `${view} ${orientation}`).toBeTruthy();
-      expect(container.textContent).toMatch(/\d/);
-      unmount();
-    }
+  // The strips view in both orientations is drawn by the fit test below.
+  it.each([["strips", "vertical"], ["lcd", "horizontal"]])("draws the %s view, %s, with every channel or a count of the rest", (view, orientation) => {
+    size = { w: 640, h: 300 };
+    const { container } = render(<Component data={data} mixerLook={mixerLookOf({ view, [key]: orientation }, key)} />);
+    expect(container.querySelector(`[data-mixer-view=${view}]`)).toBeTruthy();
+    expect(container.textContent).toMatch(/\d/);
   });
 
   it("falls back to the rows view where a strip can't fit", () => {

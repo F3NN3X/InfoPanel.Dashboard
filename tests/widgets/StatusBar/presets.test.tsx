@@ -94,13 +94,10 @@ describe("drawn item readings", () => {
 
 describe("the status bar presets", () => {
   const views = ["meters", "orbit", "ticker"];
-  it.each(views)("%s is a view that adds its own items", (id) => {
+  it.each(views)("%s is a view that adds its own items, and renders live and idle without NaN, and with no hardware at all", (id) => {
     const v = bar.views!.find((x) => x.id === id)!;
     expect(v.applies).toBeDefined();
     expect(v.defaultSize).toEqual([12, 1]);
-  });
-  it.each(views)("%s renders live and idle without NaN, and with no hardware at all", (id) => {
-    const v = bar.views!.find((x) => x.id === id)!;
     const saved = { view: id, ...v.applies };
     for (const sensors of [live, idle, {}]) {
       const html = renderToString(bar.render(sensors, saved) as never);

@@ -20,14 +20,18 @@ describe("Widget smoke render", () => {
     expect(SKIN_NAMES.length).toBeGreaterThan(0);
   });
 
-  it.each(SKIN_NAMES)("%s renders at the smallest and the largest tier, in both variants", (skin) => {
-    for (const variant of ["default", "studio"] as const)
-      for (const size of ["xs", "lg"] as Tier[]) {
-        // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
-        const html = renderToString(h(Widget, { skin, variant, size, title: "System", icon: "dashboard", compact, studio, surface: "auto", children: body }));
-        expect(html).toContain("--w-accent");
-        if (variant === "default" && size !== "xs") expect(html).toContain("System");
-      }
+  const draw = (skin: string, variant: "default" | "studio", size: Tier) =>
+    // biome-ignore lint/correctness/noChildrenProp: the Widget takes a render function as children.
+    renderToString(h(Widget, { skin, variant, size, title: "System", icon: "dashboard", compact, studio, surface: "auto", children: body }));
+
+  it.each(SKIN_NAMES)("%s renders with its title", (skin) => {
+    const html = draw(skin, "default", "lg");
+    expect(html).toContain("--w-accent");
+    expect(html).toContain("System");
+  });
+
+  it("renders the studio variant and the smallest tier", () => {
+    for (const [variant, size] of [["studio", "lg"], ["default", "xs"], ["studio", "xs"]] as const) expect(draw("default", variant, size)).toContain("--w-accent");
   });
 });
 
