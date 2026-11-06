@@ -56,7 +56,7 @@ export function useLibraryFont(item: Pick<LibraryItem, "id" | "kind" | "files">)
 }
 
 const PLAY: Record<ThumbSize, string> = { sm: "h-[22px] w-[22px]", md: "h-(--ui-h-field) w-[34px]", lg: "h-[52px] w-[52px]" };
-const AA: Record<ThumbSize, string> = { sm: "text-[18px]", md: "text-[38px]", lg: "text-[72px]" };
+const AA: Record<ThumbSize, string> = { sm: "text-display", md: "text-[38px]", lg: "text-[72px]" };
 
 const GAUGE_PX: Record<ThumbSize, number> = { sm: 36, md: 96, lg: 180 };
 const GAUGE_SCOPE = previewScope(DEFAULT_THEME);
@@ -195,7 +195,7 @@ export function AssetThumb({ item, size = "md", live = false, className }: { ite
             </span>
           )}
           {m.duration !== undefined && size !== "sm" && (
-            <span className="absolute bottom-1.5 right-1.5 rounded bg-black/60 px-1 font-ui-mono text-[10px] text-white">{clock(m.duration)}</span>
+            <span className="absolute bottom-1.5 right-1.5 rounded bg-black/60 px-1 font-ui-mono text-nano text-white">{clock(m.duration)}</span>
           )}
         </div>
       );

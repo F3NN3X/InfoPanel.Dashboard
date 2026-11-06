@@ -17,7 +17,7 @@ import type { ProfileFile, Results } from "./checks";
 import { sensorsLine, tally } from "./checks";
 
 export const Heading = ({ children, headRef, large }: { children: ReactNode; headRef: Ref<HTMLHeadingElement>; large?: boolean }) => (
-  <h1 ref={headRef} tabIndex={-1} className={cn("m-0 font-semibold text-ui-1 outline-none", large ? "text-display" : "text-title")}>
+  <h1 ref={headRef} tabIndex={-1} className={cn("m-0 font-medium text-ui-1 outline-none", large ? "text-display" : "text-title")}>
     {children}
   </h1>
 );
@@ -105,7 +105,7 @@ export function WelcomeStep({ headRef, rerun, narrow, results, onSeeChecks }: We
           <span className="text-body font-medium text-ui-1">{strip.title}</span>
           <span className="text-micro text-ui-3">{strip.note}</span>
         </span>
-        <button type="button" onClick={onSeeChecks} className="h-7 shrink-0 rounded-[7px] border border-ui-strong bg-ui-raised px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
+        <button type="button" onClick={onSeeChecks} className="h-7 shrink-0 rounded-ui-md border border-ui-strong bg-ui-raised px-2.5 text-caption text-ui-1 hover:bg-ui-hover">
           See the checks
         </button>
       </div>
@@ -359,7 +359,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
               start === c.value ? "border-ui-accent bg-ui-accent/10" : "border-ui-default bg-ui-raised hover:bg-ui-hover",
             )}
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[7px] border border-ui-default bg-ui-app">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-ui-md border border-ui-default bg-ui-app">
               <c.icon className="h-4 w-4 text-ui-2" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
@@ -397,7 +397,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
                   aria-label={t.name}
                   tabIndex={on || (start !== "template" && i === 0) ? 0 : -1}
                   onClick={() => onPick(t.id)}
-                  className={cn("flex min-w-0 flex-col overflow-hidden rounded-[10px] border text-left outline-none focus-visible:border-ui-accent", on ? "border-ui-accent bg-ui-accent/10" : "border-ui-default hover:bg-ui-hover")}
+                  className={cn("flex min-w-0 flex-col overflow-hidden rounded-ui-lg border text-left outline-none focus-visible:border-ui-accent", on ? "border-ui-accent bg-ui-accent/10" : "border-ui-default hover:bg-ui-hover")}
                 >
                   <div className="relative w-full" style={{ aspectRatio: aspectOf(size.width, size.height) }}>
                     <SCREEN_KIT.Thumb entry={t} palette={t.palettes[0]?.id ?? ""} width={size.width} height={size.height} selected={on} />
@@ -419,7 +419,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
               <button
                 type="button"
                 onClick={() => setAll(true)}
-                className="flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-ui-strong p-3 text-center outline-none hover:bg-ui-hover focus-visible:border-ui-accent"
+                className="flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-ui-lg border border-dashed border-ui-strong p-3 text-center outline-none hover:bg-ui-hover focus-visible:border-ui-accent"
               >
                 <LayoutGrid className="h-4 w-4 text-ui-3" />
                 <span className="text-body font-medium text-ui-1">Browse all {SCREEN_KIT.entries.length} templates</span>
@@ -539,7 +539,7 @@ export function FinishStep({ headRef, rerun, rows, onChange, options }: FinishSt
         <h2 className="m-0 text-caption font-medium text-ui-1">Options</h2>
         <div className="divide-y divide-s-divider overflow-hidden rounded-ui-menu border border-ui-subtle bg-ui-panel">{options}</div>
       </section>
-      <p className="m-0 text-micro text-ui-4">Run setup again any time from Settings → General → Run setup.</p>
+      <p className="m-0 text-micro text-ui-4">Run setup again any time from Settings → General → Run setup</p>
     </div>
   );
 }

@@ -20,7 +20,7 @@ import type { ImportState } from "./use-import";
 
 export type Dest = "new" | "zone";
 
-const CARD = "flex rounded-[10px] border text-left transition-colors";
+const CARD = "flex rounded-ui-lg border text-left transition-colors";
 const cardTone = (on: boolean) => (on ? "border-ui-accent bg-ui-accent-soft" : "border-ui-default bg-ui-tile hover:bg-ui-hover");
 
 export function Radio({ on }: { on: boolean }) {
@@ -66,11 +66,11 @@ export function ModeStep({ state }: { state: ImportState }) {
             <Radio on={state.mode === m.value} />
           </span>
           <span className="flex flex-1 flex-col gap-1">
-            <span className="flex items-center gap-2 text-[13.5px] font-semibold text-ui-1">
+            <span className="flex items-center gap-2 text-body font-medium text-ui-1">
               {m.title}
               {m.recommended && <span className="rounded bg-ui-accent-soft px-1.5 py-px text-micro font-medium text-ui-accent-text">Recommended</span>}
             </span>
-            <span className="text-[12.5px] text-ui-3">{m.text}</span>
+            <span className="text-body text-ui-3">{m.text}</span>
           </span>
           <span className="whitespace-nowrap font-ui-mono text-micro text-ui-4">{meta[m.value]}</span>
         </button>
@@ -204,12 +204,12 @@ export function ReviewStep({ state }: { state: ImportState }) {
               {t.label}
               {t.tone && <span className={cn("h-1.5 w-1.5 rounded-full", TONE_DOT[t.tone])} />}
             </span>
-            <span className="font-ui-mono text-[18px] font-semibold text-ui-1">{t.value}</span>
+            <span className="font-ui-mono text-display font-medium text-ui-1">{t.value}</span>
             <span className={cn("truncate text-micro", t.tone ? TONE_TEXT[t.tone] : "text-ui-4")}>{t.detail}</span>
           </div>
         ))}
       </div>
-      <div className="flex flex-col overflow-hidden rounded-[10px] border border-ui-default">
+      <div className="flex flex-col overflow-hidden rounded-ui-lg border border-ui-default">
         {rows.map((row) => {
           const isOpen = open === row.id;
           const Icon = row.icon;
@@ -222,17 +222,17 @@ export function ReviewStep({ state }: { state: ImportState }) {
                 className="flex h-[42px] w-full items-center gap-2.5 px-3.5 text-left hover:bg-ui-tile"
               >
                 <Icon className="h-4 w-4 shrink-0 text-ui-4" />
-                <span className="flex-1 truncate text-[12.5px] font-medium text-ui-1">{row.title}</span>
-                <span className="truncate text-[11.5px] text-ui-4">{row.summary}</span>
+                <span className="flex-1 truncate text-body font-medium text-ui-1">{row.title}</span>
+                <span className="truncate text-caption text-ui-4">{row.summary}</span>
                 {isOpen ? <ChevronUp className="h-4 w-4 text-ui-4" /> : <ChevronDown className="h-4 w-4 text-ui-4" />}
               </button>
               {isOpen && (
                 <div className="flex flex-col gap-[5px] pb-3 pl-[41px] pr-3.5">
-                  {row.rows.length === 0 && <span className="text-caption text-ui-4">Nothing here.</span>}
+                  {row.rows.length === 0 && <span className="text-caption text-ui-4">Nothing here</span>}
                   {row.rows.map(([a, b, c], i) => (
                     <div key={i} className="flex gap-3 text-caption">
                       <span className="flex-1 text-ui-2">{a}</span>
-                      <span className="font-ui-mono text-[11.5px] text-ui-1">{b}</span>
+                      <span className="font-ui-mono text-caption text-ui-1">{b}</span>
                       <span className="w-[190px] truncate text-ui-4" title={c}>
                         {c}
                       </span>
@@ -325,7 +325,7 @@ export function SaveStep({
           ))}
         </div>
       )}
-      <label className="flex cursor-pointer items-center gap-2.5 text-[12.5px] text-ui-2">
+      <label className="flex cursor-pointer items-center gap-2.5 text-body text-ui-2">
         <input
           type="checkbox"
           checked={choices.toLibrary}
@@ -334,7 +334,7 @@ export function SaveStep({
         />
         Also save the stored form (.canvas.zip) to the Library
       </label>
-      <label className="flex cursor-pointer items-center gap-2.5 text-[12.5px] text-ui-2">
+      <label className="flex cursor-pointer items-center gap-2.5 text-body text-ui-2">
         <input
           type="checkbox"
           checked={choices.keepShot}
@@ -349,7 +349,7 @@ export function SaveStep({
             type="button"
             disabled={shotState.busy}
             onClick={() => shotInput.current?.click()}
-            className="h-7 rounded-[7px] border border-ui-default px-2.5 text-caption text-ui-2 hover:bg-ui-hover disabled:opacity-50"
+            className="h-7 rounded-ui-md border border-ui-default px-2.5 text-caption text-ui-2 hover:bg-ui-hover disabled:opacity-50"
           >
             {choices.shot ? "Change screenshot…" : "Choose screenshot…"}
           </button>

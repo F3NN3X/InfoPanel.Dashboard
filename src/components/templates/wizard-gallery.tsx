@@ -65,7 +65,7 @@ export function WizardGallery(p: WizardGalleryProps) {
       {Host && <Host />}
       <div className="flex shrink-0 flex-col gap-3 border-b border-ui-subtle px-5 pb-3 pt-3.5">
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex h-7 w-[250px] items-center gap-2 rounded-[7px] border border-ui-default bg-ui-raised px-2.5 text-ui-4 focus-within:border-ui-accent">
+          <label className="flex h-7 w-[250px] items-center gap-2 rounded-ui-md border border-ui-default bg-ui-raised px-2.5 text-ui-4 focus-within:border-ui-accent">
             <Search aria-hidden className="h-3.5 w-3.5 shrink-0" />
             <input
               type="search"
@@ -89,7 +89,7 @@ export function WizardGallery(p: WizardGalleryProps) {
           </label>
           <ShapeChips filter={p.filter} onFilter={p.onFilter} counts={p.counts} className="" />
           <span className="flex-1" />
-          <div role="radiogroup" aria-label="Sort" className="flex rounded-[7px] border border-ui-default p-0.5">
+          <div role="radiogroup" aria-label="Sort" className="flex rounded-ui-md border border-ui-default p-0.5">
             {SORTS.map(([k, label]) => (
               <button
                 key={k}
@@ -97,7 +97,7 @@ export function WizardGallery(p: WizardGalleryProps) {
                 role="radio"
                 aria-checked={p.sort === k}
                 onClick={() => p.onSort(k)}
-                className={cn("h-[22px] rounded-[5px] px-2 text-[11.5px]", p.sort === k ? "bg-ui-active text-ui-1" : "text-ui-3 hover:text-ui-1")}
+                className={cn("h-[22px] rounded-ui-sm px-2 text-caption", p.sort === k ? "bg-ui-active text-ui-1" : "text-ui-3 hover:text-ui-1")}
               >
                 {label}
               </button>
@@ -209,7 +209,7 @@ function Card({ card, p, selected, tabbable }: { card: GalleryCard; p: WizardGal
             ))}
           </div>
           {tag && (
-            <span className={cn("shrink-0 whitespace-nowrap rounded-[4px] px-[5px] py-px text-[10px]", card.library ? "bg-ui-accent/15 text-ui-accent-text" : "bg-ui-warn/15 text-ui-warn")}>{tag}</span>
+            <span className={cn("shrink-0 whitespace-nowrap rounded-[4px] px-[5px] py-px text-nano", card.library ? "bg-ui-accent/15 text-ui-accent-text" : "bg-ui-warn/15 text-ui-warn")}>{tag}</span>
           )}
           {p.badge(card)}
         </div>
@@ -244,15 +244,15 @@ function NoResults({ query, onStartBlank, onClear }: { query: string; onStartBla
   return (
     <div className="mx-auto mt-12 flex max-w-[360px] flex-col items-center gap-2 text-center">
       <SearchX aria-hidden className="h-7 w-7 text-ui-4" strokeWidth={1.5} />
-      <p className="m-0 text-[12.5px] font-semibold text-ui-1">No template matches “{query.trim()}”</p>
+      <p className="m-0 text-body font-medium text-ui-1">No template matches “{query.trim()}”</p>
       <p className="m-0 text-caption leading-normal text-ui-3">
         Search covers names, the widgets a template uses and the sensors it reads. Start blank and add widgets yourself, or clear the search.
       </p>
       <div className="mt-1 flex gap-2">
-        <button type="button" onClick={onStartBlank} className="h-7 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-[12.5px] text-ui-1 hover:bg-ui-hover">
+        <button type="button" onClick={onStartBlank} className="h-7 rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 hover:bg-ui-hover">
           Start blank
         </button>
-        <button type="button" onClick={onClear} className="h-7 rounded-[7px] px-3 text-[12.5px] text-ui-2 hover:text-ui-1">
+        <button type="button" onClick={onClear} className="h-7 rounded-ui-md px-3 text-body text-ui-2 hover:text-ui-1">
           Clear search
         </button>
       </div>

@@ -212,7 +212,7 @@ export function LibraryCard({ item, index, selected, checked, selectMode, onSele
           <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">{item.name}</span>
           <span
             className={cn(
-              "shrink-0 rounded-[4px] border border-ui-default px-1.5 py-px text-[10px]",
+              "shrink-0 rounded-[4px] border border-ui-default px-1.5 py-px text-nano",
               tag.builtin ? "text-ui-4" : "text-ui-accent-text",
             )}
           >
@@ -316,7 +316,7 @@ export function GridView(p: GridViewProps) {
             aria-pressed={p.tag === t}
             onClick={() => p.onTag(p.tag === t ? null : t)}
             className={cn(
-              "h-[26px] rounded-full border border-ui-default px-2.5 text-[11.5px] text-ui-2 hover:border-ui-strong",
+              "h-[26px] rounded-full border border-ui-default px-2.5 text-caption text-ui-2 hover:border-ui-strong",
               p.tag === t && "border-ui-accent bg-ui-accent/15 text-ui-1",
             )}
           >
@@ -326,7 +326,7 @@ export function GridView(p: GridViewProps) {
         <span className="flex-1" />
         {p.picked.length > 0 && (
           <>
-            <span className="font-ui-mono text-[11.5px] text-ui-2">{p.picked.length} selected</span>
+            <span className="font-ui-mono text-caption text-ui-2">{p.picked.length} selected</span>
             <button type="button" onClick={p.onPickAll} className="h-(--ui-h-control) rounded-ui-md px-2 text-caption text-ui-3 hover:text-ui-1">
               Select all
             </button>
@@ -365,7 +365,7 @@ export function GridView(p: GridViewProps) {
             {p.action.label}
           </button>
         )}
-        <label className="flex items-center gap-1.5 text-[11.5px] text-ui-4">
+        <label className="flex items-center gap-1.5 text-caption text-ui-4">
           <span className="sr-only">Sort</span>
           <select
             value={p.sort}
@@ -381,9 +381,9 @@ export function GridView(p: GridViewProps) {
         </label>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-        {p.hint && <p className="mb-3 text-[11.5px] text-ui-4">{p.hint}</p>}
+        {p.hint && <p className="mb-3 text-caption text-ui-4">{p.hint}</p>}
         {cleanup && (
-          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[10px] border border-ui-subtle bg-ui-panel px-4 py-2.5 text-body text-ui-2">
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-ui-lg border border-ui-subtle bg-ui-panel px-4 py-2.5 text-body text-ui-2">
             <SprayCan className="h-4 w-4 text-ui-warn" />
             <span className="flex-1">
               {[
@@ -460,7 +460,7 @@ export function ShelvesView(p: ShelvesViewProps) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-body font-medium text-ui-1">{a.title}</div>
-                <div className="text-[11.5px] leading-snug text-ui-4">{a.text}</div>
+                <div className="text-caption leading-snug text-ui-4">{a.text}</div>
               </div>
               <BannerButton onClick={a.onAction}>{a.action}</BannerButton>
             </div>

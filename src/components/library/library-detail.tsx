@@ -130,7 +130,7 @@ export function LibraryDetail(p: DetailProps) {
         )}
       </div>
       {group && (
-        <div className="rounded-[10px] border border-ui-warn/40 bg-ui-warn/10 p-3 text-caption leading-snug text-ui-2">
+        <div className="rounded-ui-lg border border-ui-warn/40 bg-ui-warn/10 p-3 text-caption leading-snug text-ui-2">
           <div className="mb-2 flex items-center gap-2 font-medium text-ui-warn">
             <Copy className="h-3.5 w-3.5" /> Duplicate
           </div>
@@ -142,7 +142,7 @@ export function LibraryDetail(p: DetailProps) {
         </div>
       )}
       {p.onUpdateFormat && (
-        <div className="rounded-[10px] border border-ui-warn/40 bg-ui-warn/10 p-3 text-caption leading-snug text-ui-2">
+        <div className="rounded-ui-lg border border-ui-warn/40 bg-ui-warn/10 p-3 text-caption leading-snug text-ui-2">
           <div className="mb-2 flex items-center gap-2 font-medium text-ui-warn">
             <RefreshCw className="h-3.5 w-3.5" /> Older version
           </div>
@@ -221,7 +221,7 @@ export function LibraryDetail(p: DetailProps) {
           <div className="mb-1.5 text-micro text-ui-4">Tags · auto</div>
           <div className="flex flex-wrap gap-1">
             {tags.map((t) => (
-              <span key={t} className="rounded-full border border-ui-default px-2 py-0.5 text-[11.5px] text-ui-2">
+              <span key={t} className="rounded-full border border-ui-default px-2 py-0.5 text-caption text-ui-2">
                 {t}
               </span>
             ))}
@@ -230,7 +230,7 @@ export function LibraryDetail(p: DetailProps) {
       )}
       {!config && (
         <div>
-          <div className="mb-1.5 text-[11.5px] text-ui-4">{copiesLine(copies.length)}</div>
+          <div className="mb-1.5 text-caption text-ui-4">{copiesLine(copies.length)}</div>
           <div className="flex flex-col gap-1">
             {copies.map((c, i) => (
               <button

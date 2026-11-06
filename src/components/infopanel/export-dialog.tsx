@@ -64,8 +64,8 @@ function ExportBody({ canvas, onClose, onDone }: { canvas: StoredCanvas; onClose
 
   const name = canvas.source.name || "profile";
   const fileName = `${fileStem(name)}.canvas.zip`;
-  if (!opened) return <p className="p-5 text-[12.5px] text-ui-3">Reading the canvas’s files…</p>;
-  if (opened instanceof Error) return <p role="alert" className="p-5 text-[12.5px] text-ui-danger">{opened.message}</p>;
+  if (!opened) return <p className="p-5 text-body text-ui-3">Reading the canvas’s files…</p>;
+  if (opened instanceof Error) return <p role="alert" className="p-5 text-body text-ui-danger">{opened.message}</p>;
 
   const fontFiles = opened.restore?.fontFiles ?? new Map<string, Uint8Array>();
   const keptFonts = licences.filter((r) => choices.get(r.hash) !== "leave");
@@ -100,7 +100,7 @@ function ExportBody({ canvas, onClose, onDone }: { canvas: StoredCanvas; onClose
   return (
     <>
       <div className="flex items-center border-b border-ui-subtle px-5 py-4">
-        <Dialog.Title className="flex-1 text-[15px] font-semibold text-ui-1">Export {name}</Dialog.Title>
+        <Dialog.Title className="flex-1 text-title font-medium text-ui-1">Export {name}</Dialog.Title>
         <Dialog.Close title="Close" aria-label="Close" className="grid h-8 w-8 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
           <X className="h-5 w-5" />
         </Dialog.Close>
@@ -113,10 +113,10 @@ function ExportBody({ canvas, onClose, onDone }: { canvas: StoredCanvas; onClose
           </p>
         )}
         <FontLicenceReview rows={licences} choices={choices} targets={targets} onChoose={(hash, c) => setChoices(new Map(choices).set(hash, c))} />
-        <div className="flex flex-col gap-[5px] rounded-[10px] border border-ui-subtle bg-ui-chrome px-3.5 py-3">
+        <div className="flex flex-col gap-[5px] rounded-ui-lg border border-ui-subtle bg-ui-chrome px-3.5 py-3">
           {contents.map(([a, b]) => (
             <div key={a} className="flex gap-3 text-caption">
-              <span className="w-[140px] font-ui-mono text-[11.5px] text-ui-2">{a}</span>
+              <span className="w-[140px] font-ui-mono text-caption text-ui-2">{a}</span>
               <span className="text-ui-3">{b}</span>
             </div>
           ))}
@@ -124,16 +124,16 @@ function ExportBody({ canvas, onClose, onDone }: { canvas: StoredCanvas; onClose
       </div>
       <div className="flex items-center gap-2.5 border-t border-ui-subtle px-5 py-3">
         <span className="font-ui-mono text-caption text-ui-2">{fileName}</span>
-        <span className={cn("text-[11.5px]", error ? "text-ui-danger" : "text-ui-4")}>{error ?? busy ?? `≈ ${formatBytes(assetBytes + fontBytes)}`}</span>
+        <span className={cn("text-caption", error ? "text-ui-danger" : "text-ui-4")}>{error ?? busy ?? `≈ ${formatBytes(assetBytes + fontBytes)}`}</span>
         <span className="flex-1" />
-        <button type="button" onClick={onClose} className="h-8 px-3 text-[12.5px] text-ui-3 hover:text-ui-1">
+        <button type="button" onClick={onClose} className="h-8 px-3 text-body text-ui-3 hover:text-ui-1">
           Cancel
         </button>
         <button
           type="button"
           disabled={!!busy}
           onClick={() => void run()}
-          className="h-8 rounded-[7px] bg-ui-inverse px-4 text-[12.5px] font-semibold text-ui-inverse-fg disabled:opacity-60"
+          className="h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg disabled:opacity-60"
         >
           Export
         </button>
@@ -152,7 +152,7 @@ export function ExportDialog({ open, onOpenChange, zone, onDone }: ExportDialogP
           {open && zone && canvas ? (
             <ExportBody key={zone.id} canvas={canvas} onClose={() => onOpenChange(false)} onDone={onDone} />
           ) : (
-            <p className="p-5 text-[12.5px] text-ui-3">This screen has no InfoPanel page to export. Import an InfoPanel profile first.</p>
+            <p className="p-5 text-body text-ui-3">This screen has no InfoPanel page to export. Import an InfoPanel profile first.</p>
           )}
         </Dialog.Popup>
       </Dialog.Portal>

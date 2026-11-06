@@ -71,7 +71,7 @@ export function RequestedTable({ zone, answers, fonts, declared, onSelectItems, 
         <span role="columnheader">License</span>
         <span role="columnheader" />
       </div>
-      {zone.entries.length === 0 && <div className="px-3.5 py-3 text-caption text-ui-4">This canvas has no text.</div>}
+      {zone.entries.length === 0 && <div className="px-3.5 py-3 text-caption text-ui-4">This canvas has no text</div>}
       {zone.entries.map((entry) => {
         const r = answers.resolved.get(entry.key);
         const missing = isMissing(answers.loader, entry.request, r);
@@ -96,7 +96,7 @@ export function RequestedTable({ zone, answers, fonts, declared, onSelectItems, 
                 type="button"
                 onClick={() => onSelectItems(zone.zoneId, entry.paths)}
                 title="Select these text items on the canvas"
-                className="min-w-[26px] rounded-[5px] bg-ui-active px-1.5 py-0.5 font-ui-mono text-micro text-ui-1 hover:bg-ui-strong"
+                className="min-w-[26px] rounded-ui-sm bg-ui-active px-1.5 py-0.5 font-ui-mono text-micro text-ui-1 hover:bg-ui-strong"
               >
                 {entry.paths.length}
               </button>

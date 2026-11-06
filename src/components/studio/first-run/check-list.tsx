@@ -74,8 +74,8 @@ const CHIPS_SHOWN = 6;
 const CHIP_ICON: Record<Chip["icon"], LucideIcon> = { hwinfo: Thermometer, system: Cpu, network: Network, media: Music, plugin: Puzzle };
 const ACTION_ICON: Partial<Record<CheckAction["kind"], LucideIcon>> = { start: Play, show: ExternalLink, restart: RotateCcw };
 
-const BUTTON = "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-[7px] border px-2.5 text-caption outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60";
-export const PRIMARY_BUTTON = cn(BUTTON, "border-ui-accent bg-ui-accent font-semibold text-ui-inverse-fg hover:opacity-90");
+const BUTTON = "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-ui-md border px-2.5 text-caption outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60";
+export const PRIMARY_BUTTON = cn(BUTTON, "border-ui-accent bg-ui-accent font-medium text-ui-inverse-fg hover:opacity-90");
 export const OUTLINE_BUTTON = cn(BUTTON, "border-ui-strong bg-ui-raised text-ui-1 hover:bg-ui-hover");
 
 function ActionButton({ action, primary, onClick, small }: { action: CheckAction; primary: boolean; onClick: () => void; small?: boolean }) {
@@ -301,7 +301,7 @@ export function AddressBar({ mode, address, invalid, onMode, onAddress, onDefaul
         <label htmlFor="first-run-address" className="w-[118px] shrink-0 text-caption text-ui-2">
           Data API address
         </label>
-        <div className={cn("flex h-[30px] min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-[7px] border bg-ui-app px-2.5", invalid ? "border-ui-error-edge" : "border-ui-default focus-within:border-ui-accent")}>
+        <div className={cn("flex h-[30px] min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-ui-md border bg-ui-app px-2.5", invalid ? "border-ui-error-edge" : "border-ui-default focus-within:border-ui-accent")}>
           <Network className="h-3.5 w-3.5 shrink-0 text-ui-4" />
           <input
             id="first-run-address"
@@ -343,7 +343,7 @@ export function KioskCard({ url, local, onCopy, onOpen }: KioskCardProps) {
           Point the panel’s browser, a tablet or a phone on the same network at this address, or scan the code. Panels plugged into this PC can use the local address.
         </span>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="flex h-7 min-w-0 max-w-full items-center truncate rounded-[7px] border border-ui-default bg-ui-app px-2.5 font-ui-mono text-micro text-ui-1">{url}</span>
+          <span className="flex h-7 min-w-0 max-w-full items-center truncate rounded-ui-md border border-ui-default bg-ui-app px-2.5 font-ui-mono text-micro text-ui-1">{url}</span>
           <button type="button" onClick={onCopy} className={OUTLINE_BUTTON}>
             <Copy className="h-3.5 w-3.5" />
             Copy

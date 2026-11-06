@@ -149,7 +149,7 @@ function ZoneAssets({ zoneId, stored, picker, setConfig, onSelectUses, onSaveToL
       <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
         <div className="flex flex-wrap items-center gap-3 px-6 py-3">
           {picker}
-          <span className="font-ui-mono text-[11.5px] text-ui-4">
+          <span className="font-ui-mono text-caption text-ui-4">
             {doc.assets.size} files · {formatBytes(total)} · {external} external
           </span>
           <div className="flex flex-wrap gap-1.5" role="group" aria-label="Findings">

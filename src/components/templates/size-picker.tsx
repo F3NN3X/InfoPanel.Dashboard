@@ -20,7 +20,7 @@ export function sideOf(raw: string): number | null {
   return raw.trim() !== "" && Number.isInteger(n) && n >= 1 && n <= MAX_SIDE ? n : null;
 }
 
-export const INPUT = "h-[30px] w-full min-w-0 rounded-[7px] border border-ui-default bg-ui-raised px-2.5 text-[12.5px] text-ui-1 outline-none focus:border-ui-accent";
+export const INPUT = "h-[30px] w-full min-w-0 rounded-ui-md border border-ui-default bg-ui-raised px-2.5 text-body text-ui-1 outline-none focus:border-ui-accent";
 
 const same = (a: Size, b: Size | undefined) => !!b && a.width === b.width && a.height === b.height;
 
@@ -97,7 +97,7 @@ export function SizePicker({ sized, own, owner, onUseOwn }: SizePickerProps) {
             onFocus={(e) => e.target.select()}
             className="h-full w-[46px] bg-transparent text-center font-ui-mono text-micro text-ui-1 outline-none focus-visible:shadow-none"
           />
-          <span aria-hidden className="text-[10px] text-ui-4">×</span>
+          <span aria-hidden className="text-nano text-ui-4">×</span>
           <input
             inputMode="numeric"
             aria-label="Height"

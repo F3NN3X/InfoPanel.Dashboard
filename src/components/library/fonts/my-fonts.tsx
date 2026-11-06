@@ -30,7 +30,7 @@ function FontCard({ item, selected, onSelect }: { item: LibraryItem; selected: b
       </span>
       <span className="flex min-w-0 items-baseline justify-between gap-2">
         <span className="truncate text-body font-medium text-ui-1">{m.family ?? item.name}</span>
-        {m.licence && <span className={cn("shrink-0 text-[11.5px]", VERDICT_TONE[m.licence])}>{LICENCE_LABEL[m.licence]}</span>}
+        {m.licence && <span className={cn("shrink-0 text-caption", VERDICT_TONE[m.licence])}>{LICENCE_LABEL[m.licence]}</span>}
       </span>
       <span className="truncate font-ui-mono text-micro text-ui-4">{metaLine(item)}</span>
     </button>

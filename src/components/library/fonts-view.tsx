@@ -98,7 +98,7 @@ export function FontsView({ fonts, library, zones, setConfig, onSelectItems }: F
       <div className="min-w-0 flex-1 overflow-y-auto p-6 font-ui">
         <div className="mb-4 flex items-center gap-3">
           <h2 className="text-lead font-medium text-ui-1">Fonts</h2>
-          {unsuppliedCount > 0 && <span className="rounded-[5px] bg-ui-danger/15 px-1.5 py-0.5 text-micro text-ui-danger">{unsuppliedCount} missing</span>}
+          {unsuppliedCount > 0 && <span className="rounded-ui-sm bg-ui-danger/15 px-1.5 py-0.5 text-micro text-ui-danger">{unsuppliedCount} missing</span>}
           <span className="flex-1" />
           <button
             type="button"

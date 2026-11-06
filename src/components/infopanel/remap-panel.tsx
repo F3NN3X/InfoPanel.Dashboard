@@ -71,7 +71,7 @@ const FILTERS: { value: RemapFilter; label: string }[] = [
 const itemsText = (n: number) => `${n} ${n === 1 ? "item" : "items"}`;
 
 const GHOST =
-  "inline-flex h-[30px] items-center justify-center gap-1.5 rounded-[7px] border border-ui-strong bg-ui-raised px-3 text-caption text-ui-1 transition-colors hover:bg-ui-hover disabled:opacity-50";
+  "inline-flex h-[30px] items-center justify-center gap-1.5 rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-caption text-ui-1 transition-colors hover:bg-ui-hover disabled:opacity-50";
 
 function KeyPicker({
   row,
@@ -94,13 +94,13 @@ function KeyPicker({
   const at = Math.min(cursor, cands.length - 1);
   const how = overrides.get(group.id) === "" ? "no sensor" : match ? HOW[match.via] : "no match found";
   return (
-    <div className="flex min-h-0 flex-col gap-2.5 rounded-[10px] border border-ui-default bg-ui-chrome p-3.5">
+    <div className="flex min-h-0 flex-col gap-2.5 rounded-ui-lg border border-ui-default bg-ui-chrome p-3.5">
       <div className="flex flex-col gap-0.5">
-        <span className="truncate text-body font-semibold text-ui-1">{group.sensorName || "(no name)"}</span>
-        <span className="truncate text-[11.5px] text-ui-4">
+        <span className="truncate text-body font-medium text-ui-1">{group.sensorName || "(no name)"}</span>
+        <span className="truncate text-caption text-ui-4">
           {`${group.type} · ${group.ref ?? "no id"} · ${itemsText(group.paths.length)}`}
         </span>
-        <span className={cn("text-[11.5px]", STATE[state].text)}>
+        <span className={cn("text-caption", STATE[state].text)}>
           {STATE[state].label} · {how}
         </span>
       </div>
@@ -121,7 +121,7 @@ function KeyPicker({
             else return;
             e.preventDefault();
           }}
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-ui-1 outline-none placeholder:text-ui-hint"
+          className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-hint"
         />
         <span className="text-micro text-ui-hint">↑↓ Enter</span>
       </label>
@@ -135,11 +135,11 @@ function KeyPicker({
               key={c.key}
               type="button"
               onClick={() => onChoose(c.key)}
-              className={cn("flex items-center gap-2.5 rounded-[7px] p-2 text-left hover:bg-ui-hover", i === at && "bg-ui-active")}
+              className={cn("flex items-center gap-2.5 rounded-ui-md p-2 text-left hover:bg-ui-hover", i === at && "bg-ui-active")}
             >
               <span className="w-4 shrink-0 text-ui-accent">{on && <Check className="h-4 w-4" />}</span>
               <span className="flex min-w-0 flex-1 flex-col gap-px">
-                <span className="truncate text-[12.5px] text-ui-1">
+                <span className="truncate text-body text-ui-1">
                   {v?.name ?? c.key} {v?.source && <span className="text-ui-4">· {v.source}</span>}
                 </span>
                 <span className="truncate font-ui-mono text-micro text-ui-hint">{c.key}</span>
@@ -190,12 +190,12 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
   const bindings = groups.reduce((n, g) => n + g.paths.length, 0);
 
   if (rows.length === 0) {
-    return <p className="text-[12.5px] text-ui-3">No item reads a sensor: nothing to remap.</p>;
+    return <p className="text-body text-ui-3">No item reads a sensor: nothing to remap.</p>;
   }
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2.5">
-        <div role="radiogroup" aria-label="Filter" className="flex gap-0.5 rounded-[7px] border border-ui-default bg-ui-raised p-0.5">
+        <div role="radiogroup" aria-label="Filter" className="flex gap-0.5 rounded-ui-md border border-ui-default bg-ui-raised p-0.5">
           {FILTERS.map((f) => (
             <button
               key={f.value}
@@ -204,7 +204,7 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
               aria-checked={filter === f.value}
               onClick={() => setFilter(f.value)}
               className={cn(
-                "flex items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-caption font-medium",
+                "flex items-center gap-1.5 rounded-ui-sm px-2.5 py-1 text-caption font-medium",
                 filter === f.value ? "bg-ui-active text-ui-1" : "text-ui-3 hover:text-ui-1",
               )}
             >
@@ -213,7 +213,7 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
             </button>
           ))}
         </div>
-        <span className="text-[11.5px] text-ui-4">
+        <span className="text-caption text-ui-4">
           {`${bindings} bindings in ${rows.length} groups · ${counts.done} done · ${counts.check} to check · ${counts.unresolved} unresolved`}
         </span>
         <span className="flex-1" />
@@ -229,7 +229,7 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
         )}
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.25fr)_minmax(280px,1fr)] gap-3.5 max-md:grid-cols-1">
-        <div className="min-h-0 overflow-y-auto rounded-[10px] border border-ui-default">
+        <div className="min-h-0 overflow-y-auto rounded-ui-lg border border-ui-default">
           {shown.map((r) => {
             const v = r.match ? index.catalog.sensors[r.match.key] : undefined;
             const selected = sel?.group.id === r.group.id;
@@ -253,18 +253,18 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
               >
                 <span className={cn("h-2 w-2 shrink-0 rounded-full", STATE[r.state].dot)} />
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-[12.5px] font-medium text-ui-1">
+                  <span className="truncate text-body font-medium text-ui-1">
                     {r.group.sensorName || "(no name)"}
                     <span className="font-normal text-ui-4"> · {r.group.type}</span>
                   </span>
-                  <span className={cn("flex items-center gap-1.5 truncate text-[11.5px]", r.match ? "text-ui-2" : "text-ui-hint")}>
+                  <span className={cn("flex items-center gap-1.5 truncate text-caption", r.match ? "text-ui-2" : "text-ui-hint")}>
                     <CornerDownRight className="h-3.5 w-3.5 shrink-0 text-ui-hint" />
                     {r.match ? (v?.name ?? r.match.key) : r.state === "unbound" ? "no sensor" : "no match"}
                     {v?.source && <span className="text-ui-4">{v.source}</span>}
                   </span>
                 </div>
                 {v && (
-                  <span className="max-w-[96px] shrink-0 truncate font-ui-mono text-[11.5px] text-ui-2" title={valueText(v)}>
+                  <span className="max-w-[96px] shrink-0 truncate font-ui-mono text-caption text-ui-2" title={valueText(v)}>
                     {valueText(v)}
                   </span>
                 )}
@@ -277,7 +277,7 @@ export function RemapPanel({ groups, resolved, index, overrides, onOverrides, on
                     e.stopPropagation();
                     onSelectItems?.(r.group.paths);
                   }}
-                  className="shrink-0 whitespace-nowrap rounded-[5px] bg-ui-hover px-[7px] py-0.5 font-ui-mono text-micro text-ui-2 enabled:hover:bg-ui-active"
+                  className="shrink-0 whitespace-nowrap rounded-ui-sm bg-ui-hover px-[7px] py-0.5 font-ui-mono text-micro text-ui-2 enabled:hover:bg-ui-active"
                 >
                   {itemsText(r.group.paths.length)}
                 </button>

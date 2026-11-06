@@ -25,8 +25,8 @@ export const KIND_SENTENCES: Record<WizardKind, string> = {
   ip: "A profile is free-placed elements on a canvas, edited in Edit and exportable to the InfoPanel app.",
 };
 
-const PRIMARY = "h-8 rounded-ui-md bg-ui-accent px-4 text-[12.5px] font-semibold text-ui-inverse-fg hover:opacity-90 disabled:opacity-40";
-const OUTLINE = "h-8 rounded-ui-md border border-ui-strong px-3 text-[12.5px] text-ui-2 hover:bg-ui-hover hover:text-ui-1";
+const PRIMARY = "h-8 rounded-ui-md bg-ui-accent px-4 text-body font-medium text-ui-inverse-fg hover:opacity-90 disabled:opacity-40";
+const OUTLINE = "h-8 rounded-ui-md border border-ui-strong px-3 text-body text-ui-2 hover:bg-ui-hover hover:text-ui-1";
 
 /** Whether the element is narrower than the wizard's two columns need. */
 export function useNarrow<T extends HTMLElement>(): [RefObject<T | null>, boolean] {
@@ -80,7 +80,7 @@ function Stepper({ step, onStep }: { step: WizardStep; onStep: (s: WizardStep) =
             >
               {i < step ? <Check className="h-3 w-3" /> : i + 1}
             </span>
-            <span className={cn("text-[12.5px]", i === step ? "text-ui-1" : "text-ui-3")}>{label}</span>
+            <span className={cn("text-body", i === step ? "text-ui-1" : "text-ui-3")}>{label}</span>
           </button>
         </li>
       ))}
@@ -122,7 +122,7 @@ export function NewWizard(p: NewWizardProps) {
       ref={p.formRef}
       aria-label={title}
       data-help-article={p.helpArticle}
-      className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui text-[12.5px] text-ui-1"
+      className="flex min-h-0 min-w-0 flex-1 flex-col bg-ui-app font-ui text-body text-ui-1"
       onSubmit={(e) => {
         e.preventDefault();
         if (p.canCreate) p.onCreate();
@@ -136,9 +136,9 @@ export function NewWizard(p: NewWizardProps) {
       }}
     >
       <div className="flex h-[52px] shrink-0 items-center gap-3.5 border-b border-ui-subtle pl-5 pr-4">
-        <h1 className="m-0 shrink-0 text-[15px] font-semibold">{title}</h1>
+        <h1 className="m-0 shrink-0 text-title font-medium">{title}</h1>
         <KindSwitch kind={kind} onKind={p.onKind} />
-        <span className="min-w-0 flex-1 truncate text-[11.5px] text-ui-4">{narrow ? "" : KIND_SENTENCES[kind]}</span>
+        <span className="min-w-0 flex-1 truncate text-caption text-ui-4">{narrow ? "" : KIND_SENTENCES[kind]}</span>
         {narrow && <Stepper step={step} onStep={p.onStep} />}
         <button type="button" aria-label="Close" title="Close (Esc)" onClick={p.onCancel} className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
           <X className="h-4 w-4" />
@@ -165,7 +165,7 @@ export function NewWizard(p: NewWizardProps) {
             Double-click a card to create it as shown
           </p>
         )}
-        <button type="button" onClick={p.onCancel} className="h-8 rounded-ui-md px-3 text-[12.5px] text-ui-2 hover:text-ui-1">
+        <button type="button" onClick={p.onCancel} className="h-8 rounded-ui-md px-3 text-body text-ui-2 hover:text-ui-1">
           Cancel
         </button>
         {narrow && (
@@ -294,7 +294,7 @@ export function WizardPreview({ width, height, max, hint, onExpand, noData, chil
         {hint && <span className="min-w-0 flex-1 truncate text-ui-3">{hint}</span>}
         {!hint && <span className="flex-1" />}
         {onExpand && (
-          <button type="button" aria-label="Expand the preview" title="Expand" onClick={onExpand} className="grid h-[22px] w-6 shrink-0 place-items-center rounded-[5px] text-ui-4 hover:bg-ui-hover hover:text-ui-1">
+          <button type="button" aria-label="Expand the preview" title="Expand" onClick={onExpand} className="grid h-[22px] w-6 shrink-0 place-items-center rounded-ui-sm text-ui-4 hover:bg-ui-hover hover:text-ui-1">
             <Maximize2 className="h-3.5 w-3.5" />
           </button>
         )}

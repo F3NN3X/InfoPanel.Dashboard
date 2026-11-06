@@ -153,7 +153,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
           className="min-w-0 flex-1 bg-transparent text-body text-ui-1 outline-none placeholder:text-ui-hint"
         />
       </label>
-      {catalogs && catalogs.unavailable.length > 0 && <p className="text-[11.5px] leading-snug text-ui-warn">Some sources are unavailable: {catalogs.unavailable.join("; ")}</p>}
+      {catalogs && catalogs.unavailable.length > 0 && <p className="text-caption leading-snug text-ui-warn">Some sources are unavailable: {catalogs.unavailable.join("; ")}</p>}
       {!catalogs && <p className="text-caption text-ui-4">Reading the font catalogues…</p>}
       {catalogs && !candidate && (
         <p className="text-caption leading-snug text-ui-4">
@@ -169,7 +169,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
               role="option"
               aria-selected={c === candidate}
               onClick={() => setPick(`${c.source}:${c.id}`)}
-              className={cn("rounded-full border border-ui-default px-2 py-0.5 text-[11.5px] text-ui-2 hover:bg-ui-hover", c === candidate && "border-ui-accent text-ui-1")}
+              className={cn("rounded-full border border-ui-default px-2 py-0.5 text-caption text-ui-2 hover:bg-ui-hover", c === candidate && "border-ui-accent text-ui-1")}
             >
               {c.family}
             </button>
@@ -179,7 +179,7 @@ export function GetFont({ initialFamily, needed, onAdd, onClose }: GetFontProps)
       {candidate && review && (
         <>
           <PreviewBox family={preview} />
-          <div className="rounded-[10px] border border-ui-subtle p-3 text-caption leading-snug">
+          <div className="rounded-ui-lg border border-ui-subtle p-3 text-caption leading-snug">
             <div className="flex items-center justify-between gap-2">
               <span className="text-body font-medium text-ui-1">{candidate.family}</span>
               <a href={candidate.page} target="_blank" rel="noreferrer" aria-label={`${candidate.family} on its source`} className="text-ui-4 hover:text-ui-1">

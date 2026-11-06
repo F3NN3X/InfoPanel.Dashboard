@@ -96,7 +96,7 @@ export function PresetDetail(p: PresetDetailProps) {
         {p.secondary.length > 0 && <div className="grid grid-cols-2 gap-2 [&>*:last-child:nth-child(odd)]:col-span-2">{p.secondary.map((a) => button(a))}</div>}
       </div>
       <Section title="Settings">
-        {rows.length > 0 ? <Rows rows={rows} /> : <span className="text-caption text-ui-4">No settings: it clears the widget’s own style.</span>}
+        {rows.length > 0 ? <Rows rows={rows} /> : <span className="text-caption text-ui-4">No settings: it clears the widget’s own style</span>}
       </Section>
       <Section title="Kept in">
         <span className="text-caption text-ui-2">{user ? "this dashboard’s config" : "the Studio (built in)"}</span>

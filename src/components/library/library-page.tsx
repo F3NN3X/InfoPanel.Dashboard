@@ -514,7 +514,7 @@ export default function LibraryPage(p: LibraryPageProps) {
     >
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-ui-subtle bg-ui-chrome px-4 max-sm:h-auto max-sm:flex-wrap max-sm:gap-2 max-sm:px-3 max-sm:py-2">
         <h1 className="text-head font-medium text-ui-1">Library</h1>
-        <span className="hidden min-w-0 truncate text-caption text-ui-4 xl:block">Everything you’ve saved, beside the built-ins.</span>
+        <span className="hidden min-w-0 truncate text-caption text-ui-4 xl:block">Everything you’ve saved, beside the built-ins</span>
         <label className="flex h-(--ui-h-field) min-w-[200px] max-w-[520px] flex-1 items-center gap-2 rounded-ui-md border border-ui-default bg-ui-panel px-3 focus-within:border-ui-accent">
           <Search className="h-4 w-4 shrink-0 text-ui-4" />
           <input

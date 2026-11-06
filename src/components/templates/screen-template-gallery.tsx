@@ -103,7 +103,7 @@ interface ScreenTemplateGalleryProps {
   blank?: boolean;
 }
 
-const CARD = "flex min-w-0 flex-col overflow-hidden rounded-[10px] border text-left outline-none focus-visible:border-ui-accent";
+const CARD = "flex min-w-0 flex-col overflow-hidden rounded-ui-lg border text-left outline-none focus-visible:border-ui-accent";
 
 export function ScreenTemplateGallery({ choice, onChoice, width, height, variant, onVariant, blank = true }: ScreenTemplateGalleryProps) {
   const chosen = choice ? screenTemplateById(choice) : undefined;
