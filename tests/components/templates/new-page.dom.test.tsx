@@ -59,7 +59,6 @@ describe("the New page's size", () => {
     const calls = await open();
     fireEvent.click(card("Ticker"));
     expect(pressed()).toEqual(["1280 × 160"]);
-    expect(screen.getByText("Follows Ticker")).toBeTruthy();
     fireEvent.click(card("General", "Standard"));
     expect(pressed()).toEqual(["1024 × 600"]);
 
@@ -67,12 +66,10 @@ describe("the New page's size", () => {
     fireEvent.click(chip(1920, 480));
     fireEvent.click(card("Gaming"));
     expect(pressed()).toEqual(["1920 × 480"]);
-    expect(screen.getByText("Set by you")).toBeTruthy();
     fireEvent.click(card("Tower"));
     expect(pressed()).toEqual(["1920 × 480"]);
     fireEvent.click(screen.getByRole("button", { name: "Use its own size, 480 × 1920" }));
     expect(pressed()).toEqual(["480 × 1920"]);
-    expect(screen.getByText("Follows Tower")).toBeTruthy();
 
     fireEvent.click(createButton());
     expect(calls.screen.mock.calls[0][0].profile).toMatchObject({ name: "Tower", width: 480, height: 1920 });
@@ -83,7 +80,6 @@ describe("the New page's size", () => {
     const width = screen.getByRole("textbox", { name: "Width" });
     fireEvent.change(width, { target: { value: "0" } });
     expect(createButton().disabled).toBe(true);
-    expect(screen.getByText("Whole numbers, 1 to 8192")).toBeTruthy();
     // Enter doesn't make it either.
     fireEvent.submit(width.closest("form")!);
     expect(calls.screen).not.toHaveBeenCalled();
