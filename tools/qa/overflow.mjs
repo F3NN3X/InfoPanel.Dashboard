@@ -48,7 +48,7 @@ function collect() {
     for (const el of copy.querySelectorAll("span[style*='box-shadow: color-mix(']")) el.setAttribute("style", el.getAttribute("style").replace(/box-shadow: color-mix\([^;]*;/, "box-shadow: ~;"));
     for (const el of copy.querySelectorAll("[style='']")) el.removeAttribute("style");
     // An inline style's and an element's order is the order React first wrote them, which moves with when a measure or a pack's part lands: the same properties and attributes are the same markup.
-    for (const el of copy.querySelectorAll("[style]")) el.setAttribute("style", el.getAttribute("style").split(/;s*/).filter(Boolean).sort().join("; "));
+    for (const el of copy.querySelectorAll("[style]")) el.setAttribute("style", el.getAttribute("style").split(";").map((p) => p.trim()).filter(Boolean).sort().join("; "));
     for (const el of copy.querySelectorAll("*")) for (const attr of [...el.attributes].sort((x, y) => (x.name < y.name ? -1 : 1))) el.setAttributeNode(el.removeAttributeNode(attr));
     const text = copy.innerHTML.replace(/:r[0-9a-z]+:|_r_[0-9a-z]+_|«r[0-9a-z]+»/g, ":r:");
     let h = 0x811c9dc5;
