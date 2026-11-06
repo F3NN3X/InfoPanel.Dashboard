@@ -7,15 +7,13 @@ import { STATE } from "../../../src/widgets/core/theme.ts";
 
 // STATUS (src/looks/status.ts) is the one source of the status colours and STATE is built from it. The widgets that
 // used to keep a hex copy (OsdStrip, KpiTiles, CoreHeatmap, the theme-tone mixes, the instrument palette) read it now;
-// the copies below are generated (mixer-views.css, the gauge THEME) or in another format (the profile palette), and
+// the copies below are generated (mixer-views.css; the gauge THEME is generated from STATUS and held to it by tests/looks/generated.test.ts) or in another format (the profile palette), and
 // each row checks one still equals STATE.
 const copies: [file: string, role: "ok" | "warn" | "crit", pattern: RegExp][] = [
   ["src/widgets/core/mixer-views.css", "warn", /--meter-warn: var\(--w-warn, (#[0-9a-f]{6})\)/i],
   ["src/widgets/core/mixer-views.css", "crit", /--meter-clip: var\(--w-crit, (#[0-9a-f]{6})\)/i],
   ["src/widgets/core/mixer-views.css", "crit", /--destructive: from var\(--w-crit, (#[0-9a-f]{6})\)/i],
   ["src/widgets/core/mixer-views.css", "crit", /--channel-mute: var\(--wl-mute, var\(--w-crit, (#[0-9a-f]{6})\)\)/i],
-  ["src/looks/generated/gauge-theme.ts", "warn", /warn: \{[^}]*hex: "(#[0-9A-F]{6})"/i],
-  ["src/looks/generated/gauge-theme.ts", "crit", /crit: \{[^}]*hex: "(#[0-9A-F]{6})"/i],
   // The profile palette is #AARRGGBB (opaque), so the alpha byte comes off.
   ["src/lib/infopanel/elements/palette.ts", "warn", /warn: "#FF([0-9A-F]{6})"/i],
   ["src/lib/infopanel/elements/palette.ts", "crit", /crit: "#FF([0-9A-F]{6})"/i],
