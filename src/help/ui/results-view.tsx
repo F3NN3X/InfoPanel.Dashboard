@@ -13,7 +13,7 @@ interface ResultsViewProps {
 
 /** The first hit is what Enter in the search box opens: marked with an outline and a hint. */
 const FIRST = "outline outline-1 -outline-offset-1 outline-s-accent";
-const CARD = "flex cursor-pointer gap-3 whitespace-normal rounded-[11px] border border-s-card-line bg-s-card px-4 py-3.5 text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile";
+const CARD = "flex cursor-pointer gap-3 whitespace-normal rounded-ui-lg border border-s-card-line bg-s-card px-4 py-3.5 text-left text-s-t1 hover:border-s-card-hover hover:bg-s-tile";
 
 /** The search results: help sections (with the matching words lit) and, in the desktop app, Settings rows. */
 export function ResultsView({ query, hits, onHit, onHome }: ResultsViewProps) {
@@ -30,7 +30,7 @@ export function ResultsView({ query, hits, onHit, onHome }: ResultsViewProps) {
               <button key={`s-${i}`} type="button" onClick={() => onHit(hit)} className={cn(CARD, i === 0 && FIRST)}>
                 <Settings className="mt-px h-[18px] w-[18px] shrink-0 text-s-dim" />
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                  <span className="text-sm font-medium">
+                  <span className="text-lead font-medium">
                     {hit.label}
                     <span className="font-normal text-s-dim">{`  ›  Settings › ${SECTION_NAMES[hit.section]}`}</span>
                   </span>
@@ -45,11 +45,11 @@ export function ResultsView({ query, hits, onHit, onHome }: ResultsViewProps) {
               <Icon className="mt-px h-[18px] w-[18px] shrink-0 text-s-dim" />
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="text-micro text-s-dim">{hit.group}</span>
-                <span className="text-sm font-medium">
+                <span className="text-lead font-medium">
                   {hit.title}
                   {hit.heading && <span className="font-normal text-s-dim">{`  ›  ${hit.heading}`}</span>}
                 </span>
-                <span className="text-[12.5px] leading-normal text-s-t3">
+                <span className="text-body leading-normal text-s-t3">
                   {hit.pre}
                   {hit.hit && <mark className="rounded-[3px] bg-s-accent/25 px-px text-s-t1">{hit.hit}</mark>}
                   {hit.post}

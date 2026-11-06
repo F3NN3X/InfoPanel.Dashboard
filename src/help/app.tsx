@@ -222,10 +222,10 @@ export function HelpApp({ content = HELP }: HelpAppProps) {
         </main>
       </div>
       <div role="status" className="pointer-events-none fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
-        {note && <span className="rounded-lg border border-s-card-line bg-s-card px-3.5 py-2 font-mono text-[12.5px] text-s-t1 shadow-lg">{note}</span>}
+        {note && <span className="rounded-lg border border-s-card-line bg-s-card px-3.5 py-2 font-mono text-body text-s-t1 shadow-lg">{note}</span>}
       </div>
       {failure && (
-        <div role="alert" className="fixed bottom-4 left-1/2 z-50 max-w-[min(480px,calc(100vw-32px))] -translate-x-1/2 rounded-lg border border-s-card-line bg-s-card px-3.5 py-2.5 text-[12.5px] text-s-red shadow-lg">
+        <div role="alert" className="fixed bottom-4 left-1/2 z-50 max-w-[min(480px,calc(100vw-32px))] -translate-x-1/2 rounded-lg border border-s-card-line bg-s-card px-3.5 py-2.5 text-body text-s-red shadow-lg">
           {failure}
         </div>
       )}

@@ -73,7 +73,7 @@ export function Sidebar({ content, inputRef, current, query, version, onQuery, o
             requestSetup();
             setAsked(true);
           }}
-          title="Run setup again" className="flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left text-[12.5px] text-s-t2 hover:text-s-t1"
+          title="Run setup again" className="flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left text-body text-s-t2 hover:text-s-t1"
         >
           <Rocket className="h-[17px] w-[17px] text-s-dim" />
           <span className="rail:sr-only">Run setup again</span>
@@ -81,7 +81,7 @@ export function Sidebar({ content, inputRef, current, query, version, onQuery, o
         {asked && <span role="status" className="text-micro text-s-dim rail:sr-only">The setup opens in Studio.</span>}
         {env.desktop && (
           <div className="flex items-center gap-2.5">
-            <button type="button" onClick={() => env.openSettings("general")} title={version ? `Open Settings (v${version})` : "Open Settings"} className="flex flex-1 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left text-[12.5px] text-s-t2 hover:text-s-t1">
+            <button type="button" onClick={() => env.openSettings("general")} title={version ? `Open Settings (v${version})` : "Open Settings"} className="flex flex-1 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left text-body text-s-t2 hover:text-s-t1">
               <Settings className="h-[17px] w-[17px] text-s-dim" />
               <span className="rail:sr-only">Open Settings</span>
             </button>

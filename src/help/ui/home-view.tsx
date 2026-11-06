@@ -29,21 +29,21 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
       <div className="flex flex-col gap-3.5">
         {!searching && (
           <>
-            {missing && <p role="status" className="m-0 text-sm text-s-muted">That article isn’t here. Browse the topics.</p>}
-            <h1 className="m-0 text-[30px] font-medium tracking-[-0.02em]">How can we help?</h1>
-            <p className="m-0 max-w-[600px] text-pretty text-sm leading-[1.55] text-s-muted">Every feature of InfoPanel Studio, explained. Search, or start with the basics below.</p>
+            {missing && <p role="status" className="m-0 text-lead text-s-muted">That article isn’t here. Browse the topics.</p>}
+            <h1 className="m-0 text-[30px] font-medium">How can we help?</h1>
+            <p className="m-0 max-w-[600px] text-pretty text-lead leading-[1.55] text-s-muted">Every feature of InfoPanel Studio, explained. Search, or start with the basics below.</p>
           </>
         )}
         {/* Typed on Home the field stays (it keeps focus and the caret) and the sidebar's is the one in view; the results are what shows. */}
         <div className={cn(searching && "sr-only focus-within:not-sr-only focus-within:pt-9")}>
-          <div role="search" className="flex h-[46px] max-w-[600px] items-center gap-2.5 rounded-[11px] border border-s-input-line bg-s-tile px-3.5 focus-within:border-s-accent focus-within:ring-1 focus-within:ring-s-accent forced-colors:focus-within:outline forced-colors:focus-within:outline-2">
+          <div role="search" className="flex h-[46px] max-w-[600px] items-center gap-2.5 rounded-ui-lg border border-s-input-line bg-s-tile px-3.5 focus-within:border-s-accent focus-within:ring-1 focus-within:ring-s-accent forced-colors:focus-within:outline forced-colors:focus-within:outline-2">
             <Search className="h-5 w-5 shrink-0 text-s-dim" />
             <input
               value={query}
               onChange={(e) => onQuery(e.target.value)}
               aria-label="Search help"
               placeholder={"Try “kiosk port”, “thresholds” or “import”"}
-              className="min-w-0 flex-1 border-0 bg-transparent text-[14.5px] text-s-t1 outline-none! placeholder:text-s-dim"
+              className="min-w-0 flex-1 border-0 bg-transparent text-lead text-s-t1 outline-none! placeholder:text-s-dim"
             />
           </div>
         </div>
@@ -51,7 +51,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
 
       {!searching && start.length > 0 && (
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-xs font-medium text-s-muted">{START_GROUP}</h2>
+          <h2 className="m-0 text-caption font-medium text-s-muted">{START_GROUP}</h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
             {start.map((a) => {
               const Icon = iconFor(a.icon);
@@ -65,8 +65,8 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                   <div className="grid h-8 w-8 place-items-center rounded-ui-menu bg-s-accent/14 text-s-accent-text">
                     <Icon className="h-[19px] w-[19px]" strokeWidth={1.75} />
                   </div>
-                  <span className="text-sm font-medium">{a.title}</span>
-                  <span className="text-pretty text-[12.5px] leading-normal text-s-muted">{stripInline(a.lede)}</span>
+                  <span className="text-lead font-medium">{a.title}</span>
+                  <span className="text-pretty text-body leading-normal text-s-muted">{stripInline(a.lede)}</span>
                 </button>
               );
             })}
@@ -76,7 +76,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
 
       {!searching && (
         <section className="flex flex-col gap-3">
-          <h2 className="m-0 text-xs font-medium text-s-muted">Common tasks</h2>
+          <h2 className="m-0 text-caption font-medium text-s-muted">Common tasks</h2>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3">
             {HELP_TASKS.flatMap((t) => {
               const article = content.articles[t.article];
@@ -93,7 +93,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                     <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-sm font-medium">{t.title}</span>
+                    <span className="text-lead font-medium">{t.title}</span>
                     <span className="text-pretty text-caption text-s-muted">{article.title}</span>
                   </span>
                   <ArrowRight className="h-4 w-4 shrink-0 text-s-faint group-hover:text-s-t2" />
@@ -129,7 +129,7 @@ export function HomeView({ content, query, onQuery, onOpen, searching = false, m
                           key={a.id}
                           type="button"
                           onClick={() => onOpen(a.id)}
-                          className="flex cursor-pointer items-center gap-[9px] whitespace-normal rounded-[7px] border-0 bg-transparent px-2.5 py-1.5 text-left text-body text-s-body hover:bg-s-nav-hover hover:text-s-t1"
+                          className="flex cursor-pointer items-center gap-[9px] whitespace-normal rounded-ui-md border-0 bg-transparent px-2.5 py-1.5 text-left text-body text-s-body hover:bg-s-nav-hover hover:text-s-t1"
                         >
                           <Icon className="h-4 w-4 shrink-0 text-s-dim" />
                           <span className="flex-1">{a.title}</span>

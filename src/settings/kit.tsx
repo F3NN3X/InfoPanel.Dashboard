@@ -12,7 +12,7 @@ type ButtonKind = "neutral" | "accent" | "green" | "quiet" | "danger";
 
 const BUTTON_KINDS: Record<ButtonKind, string> = {
   neutral: "border border-s-input-line bg-s-input text-s-t1 hover:bg-s-divider",
-  accent: "border-0 bg-s-accent font-medium text-s-on-accent hover:brightness-110",
+  accent: "border-0 bg-s-strong font-medium text-s-on-accent hover:bg-white",
   green: "border-0 bg-s-green font-medium text-s-on-green hover:brightness-110",
   quiet: "border-0 bg-transparent text-s-t2 hover:bg-s-nav-hover",
   danger: "border border-s-input-line bg-s-input text-s-red hover:bg-s-divider",
@@ -69,14 +69,14 @@ export function Switch({ checked, onChange, label, disabled }: SwitchProps) {
       className={cn(
         "relative h-[22px] w-[38px] shrink-0 cursor-pointer rounded-full border-0 p-0 transition-colors duration-150 disabled:cursor-default disabled:opacity-50",
         "forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas] disabled:forced-colors:border-[color:GrayText]",
-        checked ? "bg-s-accent forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-s-track-line"
+        checked ? "bg-s-strong forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-s-track-line"
       )}
     >
       <span
         className={cn(
-          "absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-white transition-transform duration-150",
+          "absolute left-[3px] top-[3px] h-4 w-4 rounded-full bg-s-t1 transition-transform duration-150",
           "forced-colors:bg-[color:ButtonText]",
-          checked && "translate-x-4 forced-colors:bg-[color:HighlightText]"
+          checked && "translate-x-4 bg-s-on-accent forced-colors:bg-[color:HighlightText]"
         )}
       />
     </button>
