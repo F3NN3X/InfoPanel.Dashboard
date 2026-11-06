@@ -132,7 +132,7 @@ export function StyleToolbar({ saved, hasStyle, canMakeTheme, onApply, onSave, m
               <div>
                 <p className="px-0.5 pb-1 text-micro text-ui-4">Saved</p>
                 {saved.length === 0 ? (
-                  <p className="px-0.5 pb-0.5 text-micro text-ui-4">Styles you save appear here and in Library.</p>
+                  <p className="px-0.5 pb-0.5 text-micro text-ui-4">Styles you save appear here and in Library</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-1.5">
                     {saved.map((s) => (

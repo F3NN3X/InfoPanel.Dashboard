@@ -95,7 +95,7 @@ export function ShownOn({ screenId, isDefault, isBestFit, kiosks, onChangeDefaul
         onChange={(e) => setDisplay(e.target.value)}
         className="h-7 rounded-md border border-ui-strong bg-ui-hover px-2 text-caption text-ui-1 outline-none focus:border-ui-accent"
       />
-      {display !== "" && !named && <span className="text-micro text-ui-4">Use letters, digits, - and _ only.</span>}
+      {display !== "" && !named && <span className="text-micro text-ui-4">Use letters, digits, - and _ only</span>}
       <button
         type="button"
         disabled={display !== "" && !named}

@@ -80,7 +80,7 @@ export function SettingsDashboard({ config, onPatch, onExport, onReset, onOpenSc
             onChange={(v) => set("kioskRefresh", v === "daily" ? undefined : v)}
           />
           {screenId && (
-            <Row label="Frame rate, animations and rendering" hint="Each screen sets its own.">
+            <Row label="Frame rate, animations and rendering" hint="Each screen sets its own">
               <Button onClick={() => onOpenScreen(screenId)}>
                 Screens
                 <ArrowUpRight className="h-4 w-4" />
@@ -103,7 +103,7 @@ export function SettingsDashboard({ config, onPatch, onExport, onReset, onOpenSc
           <SwitchRow label="Show seconds" checked={g.showSeconds} onChange={(v) => set("showSeconds", v ? undefined : false)} />
           <SelectRow
             label="Date locale"
-            hint="For the Clock widget: the date's order and names follow the locale, and so does the clock when it is set to Locale."
+            hint="For the Clock widget: the date's order and names follow the locale, and so does the clock when it is set to Locale"
             options={localeOptions(g.locale)}
             value={g.locale}
             onChange={(v) => set("locale", v === "" ? undefined : v)}
@@ -115,17 +115,17 @@ export function SettingsDashboard({ config, onPatch, onExport, onReset, onOpenSc
         <Card>
           <SwitchRow
             label="Page dots & swipe"
-            hint="In the kiosk: tap a dot or swipe to switch pages; long-press the dots to pause or resume cycling."
+            hint="In the kiosk: tap a dot or swipe to switch pages; long-press the dots to pause or resume cycling"
             checked={g.kioskPageNav}
             onChange={(on) => set("kioskPageNav", on ? true : undefined)}
           />
-          <SwitchRow label="Hide cursor" hint="Hides the mouse cursor on kiosk pages." checked={g.hideCursor} onChange={(on) => set("hideCursor", on ? true : undefined)} />
+          <SwitchRow label="Hide cursor" hint="Hides the mouse cursor on kiosk pages" checked={g.hideCursor} onChange={(on) => set("hideCursor", on ? true : undefined)} />
         </Card>
       </Group>
 
       <Group navSection="danger" title="Danger zone">
         <Card>
-          <Row label="Reset everything" hint="You'll be offered a backup first.">
+          <Row label="Reset everything" hint="You'll be offered a backup first">
             <Button kind="danger" onClick={() => setConfirmReset(true)}>
               Reset everything…
             </Button>

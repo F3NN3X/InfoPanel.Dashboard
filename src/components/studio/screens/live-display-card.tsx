@@ -139,7 +139,7 @@ export function LiveDisplayCard({ live, profiles, control, now, onRotationSettin
             )}
           </div>
         ) : (
-          <p className="text-caption text-ui-3">This kiosk shows a screen that no longer exists.</p>
+          <p className="text-caption text-ui-3">This kiosk shows a screen that no longer exists</p>
         )}
       </div>
     </li>

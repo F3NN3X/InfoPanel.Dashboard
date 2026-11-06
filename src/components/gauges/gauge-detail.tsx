@@ -101,7 +101,7 @@ export function GaugeDetail({ entry, sheet, copies, scope, actions, onOpenSource
           ))}
         </div>
       </div>
-      {entry.source.kind === "preset" && <p className="text-caption leading-snug text-ui-3">Customizing saves a draft copy in your library as soon as you change something, so leaving the editor never loses work.</p>}
+      {entry.source.kind === "preset" && <p className="text-caption leading-snug text-ui-3">Customizing saves a draft copy in your library as soon as you change something, so leaving the editor never loses work</p>}
     </aside>
   );
 }

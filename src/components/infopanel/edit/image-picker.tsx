@@ -48,7 +48,7 @@ export function ImagePicker({ open, onOpenChange, title, onPick }: ImagePickerPr
         <Dialog.Backdrop className="fixed inset-0 z-50 bg-black/55" />
         <Dialog.Popup className="fixed left-1/2 top-[10vh] z-50 flex max-h-[72vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-ui-strong bg-ui-tile font-ui text-ui-1 shadow-ui-modal outline-none">
           <div className="flex shrink-0 items-center justify-between border-b border-ui-subtle px-4 py-3">
-            <Dialog.Title className="text-[14px] font-semibold">{title}</Dialog.Title>
+            <Dialog.Title className="text-[14px] font-medium">{title}</Dialog.Title>
             <Dialog.Close aria-label="Close" className="text-ui-3 hover:text-ui-1">
               <X className="h-[18px] w-[18px]" />
             </Dialog.Close>
@@ -78,7 +78,7 @@ export function ImagePicker({ open, onOpenChange, title, onPick }: ImagePickerPr
             {items === null ? (
               <p className="py-6 text-center text-caption text-ui-4">Loading My library…</p>
             ) : usable.length === 0 ? (
-              <p className="py-6 text-center text-caption text-ui-4">No images in My library yet.</p>
+              <p className="py-6 text-center text-caption text-ui-4">No images in My library yet</p>
             ) : (
               <ul className="grid grid-cols-4 gap-2">
                 {usable.map((i) => (

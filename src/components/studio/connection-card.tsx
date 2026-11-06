@@ -45,7 +45,7 @@ export function ConnectionCard({ value, onChange, dataApi }: ConnectionCardProps
   return (
     <section data-nav-section="connection" aria-label="Connection" className="flex shrink-0 flex-col gap-2 border-b border-ui-subtle p-3.5 font-ui">
       <div className="flex items-center gap-2">
-        <span className="flex-1 text-body font-semibold text-ui-1">Connection</span>
+        <span className="flex-1 text-body font-medium text-ui-1">Connection</span>
         <span className={cn("flex items-center gap-[5px] text-micro", PILL[pill.tone].tone)}>
           <Icon className="h-3.5 w-3.5" aria-hidden />
           {pill.text}

@@ -56,7 +56,7 @@ const Message = ({ children }: { children: ReactNode }) => <p className="mt-1.5 
 function Placeholder({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="px-5 py-6 font-ui">
-      <div className="text-body font-semibold text-ui-1">{title}</div>
+      <div className="text-body font-medium text-ui-1">{title}</div>
       <p className="mt-1.5 text-caption leading-snug text-ui-4">{children}</p>
     </div>
   );
@@ -219,7 +219,7 @@ function ItemFields({ editor, path, item, live, onRemap, onBindSensor, sensors, 
             <Icon />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-body font-semibold text-ui-1">{name}</div>
+            <div className="truncate text-body font-medium text-ui-1">{name}</div>
             <div data-testid="inspector-kind" title={mode} className="truncate text-micro text-ui-3">
               {kindWord}
             </div>
@@ -300,7 +300,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           </div>
           {c.native.lost.length > 0 && (
             <div>
-              <div className="mb-1 text-micro font-medium uppercase tracking-wide text-ui-4">Lost while native</div>
+              <div className="mb-1 text-caption font-medium text-ui-3">Lost while native</div>
               <ul className="space-y-0.5 text-caption text-ui-warn">
                 {c.native.lost.map((l) => (
                   <li key={l}>· {l}</li>
@@ -310,7 +310,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           )}
           {c.native.needs.length > 0 && (
             <div>
-              <div className="mb-1 text-micro font-medium uppercase tracking-wide text-ui-4">Uses app feature</div>
+              <div className="mb-1 text-caption font-medium text-ui-3">Uses app feature</div>
               <div className="flex flex-wrap gap-1">
                 {c.native.needs.map((n) => (
                   <span key={n} className="rounded-full border border-ui-default px-2 py-0.5 text-micro text-ui-3">
@@ -322,7 +322,7 @@ function DrawAs({ editor, path }: { editor: CanvasEditor; path: Path }) {
           )}
         </div>
       ) : (
-        <p className="text-caption leading-snug text-ui-4">Drawn as InfoPanel draws it; the dashboard theme doesn’t apply.</p>
+        <p className="text-caption leading-snug text-ui-4">Drawn as InfoPanel draws it; the dashboard theme doesn’t apply</p>
       )}
     </div>
   );

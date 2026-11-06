@@ -8,7 +8,7 @@ import ScreensList from "./theme-screens-list";
 import { ThemeNameInput } from "./theme-name-input";
 import { filteredThemes, rowTag, templatesHeading, type ThemeFilter } from "./theme-view-model";
 
-const HEADING = "px-4 pb-1.5 pt-3 font-ui-mono text-nano uppercase tracking-[0.08em] text-ui-hint";
+const HEADING = "px-4 pb-1.5 pt-3 font-ui text-caption font-medium text-ui-3";
 const ACTION = "rounded-sm text-caption text-ui-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
 /** A picker's frame (SPEC §4.3.3): ‹ Back and the title, the help text, the list, and a footer. */
@@ -24,7 +24,7 @@ export function PickerShell({ title, help, onBack, footer, children }: { title: 
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           Back
         </button>
-        <h2 className="truncate text-lead font-semibold text-ui-1">{title}</h2>
+        <h2 className="truncate text-lead font-medium text-ui-1">{title}</h2>
       </div>
       <p className="px-4 py-2 text-caption leading-snug text-ui-soft">{help}</p>
       <div className="flex-1">{children}</div>
@@ -174,7 +174,7 @@ export function SwitchThemePicker(p: SwitchThemeProps) {
       {shown.saved && (
         <>
           <h3 className={HEADING}>Saved themes · {shown.saved.length}</h3>
-          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Themes you save appear here.</p>}
+          {shown.saved.length === 0 && <p className="px-4 pb-2 text-caption text-ui-hint">Themes you save appear here</p>}
           {shown.saved.map((t) => (
             <div key={t.id}>
               <div className="flex items-center gap-3 px-4 py-2 hover:bg-ui-hover">

@@ -130,7 +130,7 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
       <>
         {inh && (
           <div className="flex min-h-11 items-center gap-2 pl-4 pr-2.5" onKeyDown={inh.onKeyDown}>
-            <span className="min-w-0 flex-1 truncate text-body font-semibold text-ui-1">{active.title}</span>
+            <span className="min-w-0 flex-1 truncate text-body font-medium text-ui-1">{active.title}</span>
             {inh.chip}
           </div>
         )}
@@ -158,7 +158,7 @@ export function SheetView({ sheet, identity, sections, parts, inherit, changedOf
           {identity.icon}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-lead font-semibold leading-4 text-ui-1">{identity.name}</div>
+          <div className="truncate text-lead font-medium leading-4 text-ui-1">{identity.name}</div>
           <div className="truncate text-micro text-ui-hint">{identity.meta(changed)}</div>
         </div>
         {identity.onToggleVisible && (

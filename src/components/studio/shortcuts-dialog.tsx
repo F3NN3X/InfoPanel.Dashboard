@@ -21,7 +21,7 @@ export function ShortcutsDialog({ open, onOpenChange }: ShortcutsDialogProps) {
           className="fixed left-1/2 top-1/2 z-50 flex max-h-[80vh] w-[min(880px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border border-ui-strong bg-ui-tile px-5 py-[18px] font-ui text-ui-1 shadow-ui-modal outline-none"
         >
           <div className="mb-2 flex shrink-0 items-center">
-            <Dialog.Title className="flex-1 text-sm font-semibold">Keyboard shortcuts</Dialog.Title>
+            <Dialog.Title className="flex-1 text-sm font-medium">Keyboard shortcuts</Dialog.Title>
             <Dialog.Close title="Close (Esc)" aria-label="Close" className="grid h-8 w-8 place-items-center rounded-md text-ui-3 transition-colors hover:text-ui-1">
               <X className="h-4 w-4" />
             </Dialog.Close>
@@ -29,7 +29,7 @@ export function ShortcutsDialog({ open, onOpenChange }: ShortcutsDialogProps) {
           <div className="min-h-0 flex-1 overflow-y-auto sm:columns-2 sm:gap-10">
             {SHORTCUT_GROUPS.map((group) => (
               <section key={group.title} className="break-inside-avoid">
-                <div className="pb-1 pt-3 text-micro font-medium uppercase tracking-wider text-ui-hint">{group.title}</div>
+                <div className="pb-1 pt-3 text-caption font-medium text-ui-3">{group.title}</div>
                 <dl>
                   {group.items.map((item) => (
                     <div key={item.label} className="flex items-center gap-3 border-b border-ui-subtle py-[7px] text-body">

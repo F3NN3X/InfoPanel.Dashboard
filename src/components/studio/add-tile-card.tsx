@@ -75,7 +75,7 @@ export function TileCard({ tile, left, top, appearance, pageStyle }: TileCardPro
       </div>
       <div className="flex flex-col gap-2 px-3.5 py-3">
         <span className="flex items-baseline gap-2">
-          <span className="truncate text-lead font-semibold text-ui-1">{tile.name}</span>
+          <span className="truncate text-lead font-medium text-ui-1">{tile.name}</span>
           <span className="shrink-0 text-micro text-ui-4">{cardCategory(tile)}</span>
         </span>
         <p className="text-pretty text-caption leading-[1.5] text-ui-2">{cardDescription(tile)}</p>

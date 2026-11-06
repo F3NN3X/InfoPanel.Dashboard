@@ -259,7 +259,7 @@ export function PanelMainFields({
           className={FULL}
         />
         {panel.fit === "hug" && (
-          <p className="mt-1 text-micro leading-snug text-ui-4">A hugging panel sits where Size &amp; alignment puts it.</p>
+          <p className="mt-1 text-micro leading-snug text-ui-4">A hugging panel sits where Size &amp; alignment puts it</p>
         )}
       </Field>
       <InlineField label="Gap">

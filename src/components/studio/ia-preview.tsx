@@ -21,7 +21,7 @@ import { useStatusBar } from "./use-status-bar";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3 border-b border-ui-subtle py-5">
-      <h2 className="text-body font-semibold text-ui-1">{title}</h2>
+      <h2 className="text-body font-medium text-ui-1">{title}</h2>
       {children}
     </section>
   );
@@ -139,8 +139,8 @@ function Gallery() {
   return (
     <div className="min-h-screen bg-ui-panel p-6 font-ui text-body text-ui-2">
       <div className="mx-auto max-w-[860px]">
-        <h1 className="text-lead font-semibold text-ui-1">Settings IA · shared pieces</h1>
-        <p className="text-micro text-ui-4">Inheritance chips, LinkRow and the status bar (IMPLEMENTATION_PLAN phase 1).</p>
+        <h1 className="text-lead font-medium text-ui-1">Settings IA · shared pieces</h1>
+        <p className="text-micro text-ui-4">Inheritance chips, LinkRow and the status bar (IMPLEMENTATION_PLAN phase 1)</p>
 
         <Section title="InheritChip: every state">
           <div className="flex flex-wrap items-center gap-2">

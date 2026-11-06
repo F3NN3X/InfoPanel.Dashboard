@@ -67,7 +67,7 @@ export function PartInspector({ part, g, set, view, onView, onOpenSources, zones
     <InspectorChromeProvider value={{ mode: "docked" }}>
       <aside aria-label={`${partLabel(part)} settings`} className="flex w-[300px] shrink-0 flex-col border-l border-ui-subtle bg-ui-panel font-ui max-[899px]:w-full max-[899px]:border-l-0 max-[899px]:border-t">
         <header className="flex h-11 shrink-0 items-center gap-2 border-b border-ui-subtle px-4">
-          <h2 className="flex-1 truncate text-body font-semibold text-ui-1">{partLabel(part)}</h2>
+          <h2 className="flex-1 truncate text-body font-medium text-ui-1">{partLabel(part)}</h2>
           {!ALWAYS_ON.includes(part) && (
             <button
               type="button"

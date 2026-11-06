@@ -96,7 +96,7 @@ export function StreamDeckBlock({ state, link = "open", onEnable, act }: StreamD
       </div>
       <ToggleRow
         label="Connect to the Stream Deck app"
-        hint="The dashboard server adds virtual decks to the Stream Deck app, one per Elgato Stream Deck widget."
+        hint="The dashboard server adds virtual decks to the Stream Deck app, one per Elgato Stream Deck widget"
         value={state.enabled}
         onChange={(on) => void onEnable(on).then((ok) => setError(ok ? "" : "Couldn't save the change"))}
       />

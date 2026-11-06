@@ -19,7 +19,7 @@ export function PageHeader({ name }: { name: string }) {
         <Monitor className="h-[17px] w-[17px]" strokeWidth={1.75} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-px">
-        <span className="truncate text-body font-semibold text-ui-1">Page · {name}</span>
+        <span className="truncate text-body font-medium text-ui-1">Page · {name}</span>
         <span className="truncate text-micro text-ui-4">Nothing selected</span>
       </span>
       <CloseButton />

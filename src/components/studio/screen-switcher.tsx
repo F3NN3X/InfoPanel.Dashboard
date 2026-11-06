@@ -61,7 +61,7 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
               <div key={p.id}>
                 <button type="button" className={cn(ROW, "h-8")} onClick={() => choose(p.id, p.id === profile.id ? page.id : p.pages[0].id)}>
                   <Monitor className="h-4 w-4 shrink-0 text-ui-3" strokeWidth={1.75} />
-                  <span className={cn("min-w-0 flex-1 truncate", p.id === profile.id ? "font-semibold text-ui-1" : "text-ui-2")}>{p.name}</span>
+                  <span className={cn("min-w-0 flex-1 truncate", p.id === profile.id ? "font-medium text-ui-1" : "text-ui-2")}>{p.name}</span>
                   <span className="font-ui-mono text-micro text-ui-4">
                     {p.width}×{p.height}
                   </span>

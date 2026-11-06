@@ -297,7 +297,7 @@ export function ScreensView({
       <div className="flex min-h-0 flex-1 items-start gap-6 overflow-y-auto px-6 py-5 max-[899px]:flex-col max-[899px]:px-3">
         <section aria-label="Live on displays" className="flex w-[400px] shrink-0 flex-col gap-3 max-[1199px]:w-[340px] max-[899px]:w-full">
           <div className="flex min-h-8 items-center gap-2">
-            <h2 className="m-0 text-body font-semibold text-ui-1">Live on displays</h2>
+            <h2 className="m-0 text-body font-medium text-ui-1">Live on displays</h2>
             <span className="text-caption text-ui-3">{live.length}</span>
             <Button small variant="ghost" className="ml-auto" icon={<Maximize strokeWidth={1.5} />} title="Show the kiosk in this window" onClick={onOpenKioskView}>
               Open kiosk view
@@ -317,7 +317,7 @@ export function ScreensView({
 
         <section aria-label="Your screens" className="flex min-w-0 flex-1 flex-col gap-3 max-[899px]:w-full">
           <div className="flex min-h-8 flex-wrap items-center gap-2">
-            <h2 className="m-0 text-body font-semibold text-ui-1">Your screens</h2>
+            <h2 className="m-0 text-body font-medium text-ui-1">Your screens</h2>
             <span className="text-caption text-ui-3">{config.profiles.length}</span>
             <div className="ml-auto">
               <ScreensBar layout={list ? "list" : "grid"} onLayout={(l) => setList(l === "list")} sort={sort} onSort={setSort} showFilter={hasInfoPanel || filter !== "all"} filter={filter} onFilter={setFilter} filters={FILTERS} />

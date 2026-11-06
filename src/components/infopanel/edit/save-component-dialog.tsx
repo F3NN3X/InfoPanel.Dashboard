@@ -39,7 +39,7 @@ export function SaveComponentDialog({ open, onOpenChange, count, initialName, on
             }}
           >
             <div className="flex items-center gap-3 border-b border-ui-subtle px-5 py-3.5">
-              <Dialog.Title className="flex-1 text-[15px] font-semibold">Save as component</Dialog.Title>
+              <Dialog.Title className="flex-1 text-[15px] font-medium">Save as component</Dialog.Title>
               <Dialog.Close aria-label="Close" className="grid h-7 w-7 place-items-center rounded-md text-ui-4 hover:bg-ui-hover hover:text-ui-1">
                 <X className="h-4 w-4" />
               </Dialog.Close>

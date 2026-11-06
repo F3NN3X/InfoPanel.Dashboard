@@ -81,7 +81,7 @@ export function PanelLayers({
 
   if (widgets.length === 0) {
     return (
-      <span className="block py-1 text-caption text-ui-hint">No widgets in this panel yet.</span>
+      <span className="block py-1 text-caption text-ui-hint">No widgets in this panel yet</span>
     );
   }
 

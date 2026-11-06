@@ -142,7 +142,7 @@ export function ScreenDetail({
   return (
     <aside aria-label="Screen details" className="flex h-full w-full flex-col overflow-y-auto bg-ui-panel">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-ui-subtle bg-ui-panel px-3.5 py-2.5">
-        <h2 className="m-0 flex-1 text-body font-semibold text-ui-1">Screen settings</h2>
+        <h2 className="m-0 flex-1 text-body font-medium text-ui-1">Screen settings</h2>
         <IconButton label="Close screen settings" autoFocus onClick={onClose}>
           <X className="h-4 w-4" strokeWidth={1.5} />
         </IconButton>
@@ -152,7 +152,7 @@ export function ScreenDetail({
           <ScreenThumb profile={stored} />
         </div>
         <div className="min-w-0">
-          <div className="truncate text-body font-semibold text-ui-1">{stored.name}</div>
+          <div className="truncate text-body font-medium text-ui-1">{stored.name}</div>
           <div className="truncate font-ui-mono text-micro text-ui-4">{screenMeta(stored)}</div>
         </div>
       </div>

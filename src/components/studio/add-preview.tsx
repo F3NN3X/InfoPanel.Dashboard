@@ -128,7 +128,7 @@ export function AddPreview({ item, left, top, via, target, appearance, pageStyle
       </div>
       <div className="flex flex-col gap-2 px-3.5 pb-3.5 pt-3">
         <div className="flex items-baseline gap-2">
-          <span className="truncate text-lead font-semibold text-ui-1">{item.name}</span>
+          <span className="truncate text-lead font-medium text-ui-1">{item.name}</span>
           <span className="shrink-0 text-micro text-ui-hint">{item.kind === "widget" ? item.category : KIND_NAME[item.kind]}</span>
         </div>
         <p className="text-pretty text-caption leading-[1.5] text-ui-soft">{item.description || item.blurb}</p>

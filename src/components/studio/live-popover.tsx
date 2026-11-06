@@ -119,7 +119,7 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
           <Popover.Popup data-help-article="kiosk" className="w-[340px] rounded-ui-menu border border-ui-menu bg-ui-raised p-3 font-ui text-body text-ui-2 shadow-ui-menu outline-none">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <Popover.Title className="text-body font-semibold text-ui-1">Live control</Popover.Title>
+                <Popover.Title className="text-body font-medium text-ui-1">Live control</Popover.Title>
                 <p className="mt-0.5 text-micro leading-snug text-ui-3">
                   Acts on the kiosks right now. None of it is part of your design, so saving doesn't change it.
                 </p>
@@ -137,7 +137,7 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
               </button>
             </div>
             {kiosks.length === 0 ? (
-              <p className="mt-3 text-caption text-ui-4">No kiosks are connected.</p>
+              <p className="mt-3 text-caption text-ui-4">No kiosks are connected</p>
             ) : (
               <ul className="mt-2 divide-y divide-ui-subtle border-t border-ui-subtle">
                 {kiosks.map((k) => (
@@ -146,7 +146,7 @@ export function LiveControl({ open, onOpenChange, profiles, screen, control, kio
               </ul>
             )}
             <div className="mt-2">
-              {offline && <p className="border-t border-ui-subtle pt-2.5 text-micro text-ui-warn">Not connected to the server: nothing here can reach a kiosk.</p>}
+              {offline && <p className="border-t border-ui-subtle pt-2.5 text-micro text-ui-warn">Not connected to the server: nothing here can reach a kiosk</p>}
               <div className="flex flex-col gap-1.5 border-t border-ui-subtle py-2.5">
                 <span className="text-body text-ui-1">Show on {screen.name} kiosks</span>
                 <Segmented

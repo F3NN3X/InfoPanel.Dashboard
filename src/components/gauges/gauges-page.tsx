@@ -227,7 +227,7 @@ export default function GaugesPage({ bridge: studio, theme, initial, onOpened, o
       {!editor && (
         <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ui-subtle px-6 py-3.5 max-[899px]:px-3">
           <div className="flex min-w-0 items-baseline gap-3">
-            <h1 className="m-0 text-title font-semibold text-ui-1">Gauges</h1>
+            <h1 className="m-0 text-title font-medium text-ui-1">Gauges</h1>
             <span className="text-caption text-ui-3">
               {presets.length} presets · {onScreens.length + rings.length} on your screens · {library.entries.length} saved
             </span>

@@ -126,7 +126,7 @@ export function SettingField({
           ) : undefined
         }
       />
-      {readOnly && <p className="m-0 pb-1 text-micro leading-snug text-ui-4">Set by the theme: customize the section (or edit its lock) to change it.</p>}
+      {readOnly && <p className="m-0 pb-1 text-micro leading-snug text-ui-4">Set by the theme: customize the section (or edit its lock) to change it</p>}
     </fieldset>
   );
 }

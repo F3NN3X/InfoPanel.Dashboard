@@ -90,7 +90,7 @@ export function GroupInspectorView({ name, contents, hidden, locked, place, onTo
           <Folder className="h-4 w-4" />
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-body font-semibold text-ui-1">{name}</span>
+          <span className="truncate text-body font-medium text-ui-1">{name}</span>
           <span data-testid="inspector-kind" className="truncate text-micro text-ui-4">
             Group · {contents}
           </span>

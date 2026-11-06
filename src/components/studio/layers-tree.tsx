@@ -247,7 +247,7 @@ export function LayersTree({ host }: { host: LayersHost }) {
   return (
     <section aria-label="Layers" className="flex min-h-0 flex-1 flex-col font-ui">
       <div className="flex h-[38px] shrink-0 items-center gap-1.5 pl-3.5 pr-2.5">
-        <span className="text-caption font-semibold text-ui-1">Layers</span>
+        <span className="text-caption font-medium text-ui-1">Layers</span>
         <span className="text-micro text-ui-4">top first</span>
         <span className="flex-1" />
         <IconButton label="Group selection (Ctrl+G)" className="h-6 w-6 rounded-ui-sm text-ui-4 hover:bg-ui-hover hover:text-ui-2" disabled={!host.menu.available.group} onClick={() => host.menu.run("group")}>

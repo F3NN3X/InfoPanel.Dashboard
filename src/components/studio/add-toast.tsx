@@ -7,7 +7,7 @@ export interface AddToastState {
   added: boolean;
 }
 
-const LINK = "shrink-0 cursor-pointer font-semibold text-ui-1 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
+const LINK = "shrink-0 cursor-pointer font-medium text-ui-1 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
 
 /** The Add panel's toast: bottom centre of the canvas (rules §4), with Undo after an add. */
 export function AddToast({ toast, onUndo }: { toast: AddToastState; onUndo: () => void }) {

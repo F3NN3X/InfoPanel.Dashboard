@@ -38,7 +38,7 @@ const Foundation = lazy(() => import("./ui-preview-foundation"));
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-2 border-b border-ui-subtle py-4">
-      <h2 className="text-[12.5px] font-semibold text-ui-1">{title}</h2>
+      <h2 className="text-[12.5px] font-medium text-ui-1">{title}</h2>
       {children}
     </section>
   );
@@ -63,7 +63,7 @@ function Gallery() {
       }}
     >
       <div className="mx-auto max-w-[340px]">
-        <h1 className="text-[14px] font-semibold text-ui-1">UI primitives</h1>
+        <h1 className="text-[14px] font-medium text-ui-1">UI primitives</h1>
         <p className="text-micro text-ui-4">Right-click anywhere for the context menu.</p>
         <Suspense fallback={null}>
           <Foundation Section={Section} />

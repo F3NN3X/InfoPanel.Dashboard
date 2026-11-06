@@ -241,18 +241,18 @@ export function ProfileSettings({ editor, page, onRemap, remapCount = 0, drawing
             {remapCount > 0 && <span className="rounded-full bg-ui-warn/20 px-1.5 font-ui-mono text-[10px] text-ui-warn">{remapCount}</span>}
           </button>
         )}
-        <p className="text-micro leading-snug text-ui-4">Resizing keeps every item where it is.</p>
+        <p className="text-micro leading-snug text-ui-4">Resizing keeps every item where it is</p>
       </section>
       {drawing}
       {SECTIONS.map((s) => (
         <section key={s.title} aria-label={s.title} className="border-b border-ui-subtle px-4 py-3">
-          <div className="mb-2 text-caption font-semibold text-ui-1">{s.title}</div>
+          <div className="mb-2 text-caption font-medium text-ui-1">{s.title}</div>
           <div className="flex flex-col gap-2">{s.fields.map(row)}</div>
           {s.note && <p className="mt-2 text-[11.5px] leading-snug text-ui-4">{s.note}</p>}
         </section>
       ))}
       <section aria-label="Profile colors" className="border-b border-ui-subtle px-4 py-3">
-        <div className="mb-2 text-caption font-semibold text-ui-1">Profile colors</div>
+        <div className="mb-2 text-caption font-medium text-ui-1">Profile colors</div>
         <div className="flex flex-col gap-1.5">
           {SLOTS.map((slot) => (
             <PaletteRow key={slot} slot={slot} value={editor.palette[slot]} onSet={(v) => editor.setPalette(slot, v, `canvas-palette:${editor.zone.id}:${slot}`)} />

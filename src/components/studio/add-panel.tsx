@@ -520,7 +520,7 @@ export function AddPanel({
             <div className="truncate text-body font-medium text-ui-1">
               Filling blank space · <span className="font-ui-mono text-micro">{sizeText(target.cols, target.rows)}</span>
             </div>
-            <div className="truncate text-micro text-ui-soft">Click a widget to fill it.</div>
+            <div className="truncate text-micro text-ui-soft">Click a widget to fill it</div>
           </div>
           <button
             type="button"
@@ -560,7 +560,7 @@ export function AddPanel({
               <button
                 type="button"
                 onClick={() => add(sensor)}
-                className={cn("flex h-7 items-center gap-1.5 rounded-md bg-ui-inverse px-2.5 text-caption font-semibold text-ui-inverse-fg", FOCUS)}
+                className={cn("flex h-7 items-center gap-1.5 rounded-md bg-ui-inverse px-2.5 text-caption font-medium text-ui-inverse-fg", FOCUS)}
               >
                 {(() => {
                   const Icon = iconFor("sensors");

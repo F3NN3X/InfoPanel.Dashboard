@@ -50,7 +50,7 @@ export function CloseButton() {
 }
 /** The phone sheet's 44 px touch targets. */
 const TOUCH = "h-11 w-11";
-const TITLE = "truncate text-lead font-semibold leading-4 text-ui-1";
+const TITLE = "truncate text-lead font-medium leading-4 text-ui-1";
 
 /** Hide, Duplicate and "⋯" (02a): Change widget, Help and Delete, last and in red. */
 function ZoneActions({

@@ -73,7 +73,7 @@ export function CanvasViewSection({ editor, showModes, onShowModes, compareOn, o
   ];
   return (
     <section aria-label="Preview" className="flex flex-col gap-2 border-b border-ui-subtle px-4 py-3 font-ui">
-      <div className="text-caption font-semibold text-ui-1">Preview</div>
+      <div className="text-caption font-medium text-ui-1">Preview</div>
       <div className={ROW}>
         Show modes
         <Toggle checked={showModes} onChange={onShowModes} label="Show modes" />
@@ -164,7 +164,7 @@ function CompareControls({ compare, onCompare }: { compare: Compare | null; onCo
           <span className="w-full text-micro text-ui-4">Difference blend</span>
         </>
       ) : (
-        <span className="text-micro leading-snug text-ui-4">A screenshot of the profile in InfoPanel, laid over the render: matching pixels go black.</span>
+        <span className="text-micro leading-snug text-ui-4">A screenshot of the profile in InfoPanel, laid over the render: matching pixels go black</span>
       )}
     </div>
   );

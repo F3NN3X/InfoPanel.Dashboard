@@ -74,17 +74,17 @@ export function SettingsStudio() {
 
       <Group navSection="panels" title="Panels">
         <Card>
-          <Row label="Inspector sections" hint="One open: opening a section closes the others in its tab.">
+          <Row label="Inspector sections" hint="One open: opening a section closes the others in its tab">
             <Segmented label="Inspector sections" options={ACCORDION_MODES} value={accordion} onChange={setAccordion} />
           </Row>
-          <SwitchRow label="Advanced settings" hint="Show every inspector setting, including ones the theme controls." checked={advanced} onChange={setAdvanced} />
-          <Row label="Left panel width" hint="Design's left panel, Layers and Add.">
+          <SwitchRow label="Advanced settings" hint="Show every inspector setting, including ones the theme controls" checked={advanced} onChange={setAdvanced} />
+          <Row label="Left panel width" hint="Design's left panel, Layers and Add">
             <Segmented label="Left panel width" options={LEFT_WIDTHS} value={leftWidth} onChange={setLeftWidth} />
           </Row>
-          <Row label="Widget list" hint="Compact hides the one-line description.">
+          <Row label="Widget list" hint="Compact hides the one-line description">
             <Segmented label="Widget list" options={DENSITIES} value={density} onChange={setDensity} />
           </Row>
-          <SwitchRow label="Preview on hover" hint="The preview always shows while browsing with the arrow keys." checked={previewOnHover} onChange={setPreviewOnHover} />
+          <SwitchRow label="Preview on hover" hint="The preview always shows while browsing with the arrow keys" checked={previewOnHover} onChange={setPreviewOnHover} />
         </Card>
       </Group>
     </>

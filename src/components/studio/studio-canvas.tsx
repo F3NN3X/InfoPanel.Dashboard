@@ -706,7 +706,7 @@ export function StudioCanvas({
                           className="pointer-events-none absolute z-30 rounded-ui-md border-2 border-dashed border-ui-accent bg-ui-accent/10"
                           style={style}
                         >
-                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-nano font-semibold tabular-nums text-ui-accent-text">
+                          <span className="absolute left-1.5 top-0.5 font-ui-mono text-nano font-medium tabular-nums text-ui-accent-text">
                             C{r.col} · R{r.row} · {r.cols}×{r.rows}
                           </span>
                         </div>
