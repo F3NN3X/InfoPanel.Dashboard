@@ -85,8 +85,8 @@ jobs:
           shared-key: tauri
       - run: npm run desktop:build
       - run: npx playwright install chromium
-      # A check that needs something the runner doesn't have (docs/TESTING.md) reports "not run" (exit 3), so incomplete is
-      # not a failure.
+      # A check that needs something the runner doesn't have, or is local only (look-visual: this PC's text rendering,
+      # docs/TESTING.md), reports "not run" (exit 3), so incomplete is not a failure.
       - run: node tools/verify.mjs --full --allow-incomplete
 
   # The perf suites measure and never gate (docs/performance.md). The JSON goes up as an artifact, and the table against

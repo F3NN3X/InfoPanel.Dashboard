@@ -102,6 +102,13 @@ describe("the plan", () => {
     expect(plan(["src/b/x.ts"], { platform: "win32" }).steps.find((s) => s.id === "cargo").status).toBeUndefined();
   });
 
+  it("marks a localOnly check as not run where CI is set, on any platform", () => {
+    const local = { ...map, checks: { ...map.checks, cargo: { ...map.checks.cargo, localOnly: true } } };
+    const run = (ci) => plan(["src/b/x.ts"], { map: local, platform: "win32", ci }).steps.find((s) => s.id === "cargo");
+    expect(run(true)).toMatchObject({ status: "not-run", reason: "local only (CI is set)" });
+    expect(run(false).status).toBeUndefined();
+  });
+
   it("falls back to the whole suite when the file list outgrows a command line", () => {
     const many = Array.from({ length: 400 }, (_, i) => `tests/a/long-name-number-${i}.test.ts`);
     expect(unitCmd(plan(["src/a/x.ts"], { tracked: many }))).toBe("vt all");
