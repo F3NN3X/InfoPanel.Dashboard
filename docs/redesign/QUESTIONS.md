@@ -199,3 +199,12 @@ Gauges
 7. The unused `--ui-status-*` tokens and the lab README's "baked" wording are cleaned up in Phase 8.
 8. The kiosk entry, 118 B over budget, is trimmed in Phase 8 if it can be; raising the budget is considered only after that.
 9. The studio budget is lowered at merge.
+
+## Gate 8
+
+1. The kiosk budget rises by 118 B at merge: this is what the alert fixes cost, and the one budget raise of the redesign.
+2. `src/settings` gets the same sweep, in its own commits.
+3. The remaining "skin" widget labels are renamed, with their schema snapshots, in their own commit.
+4. Library arrow keys follow card order.
+5. The lab's "baked frames" hints are cleaned up.
+6. The Island placement is named "Part of the widget style".
