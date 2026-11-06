@@ -257,7 +257,7 @@ Placement.settings
   `chromeOf` in `src/modules/standard-settings.ts`, `surfaceBox`, `tokenScope`
   and the `--wp-*` helpers in `src/components/widget-style.ts`, and the
   shared materials (`makeSurface`, the theme surface) in
-  `src/components/surfaces.ts`. The keys and their effects
+  `src/looks/materials.ts`. The keys and their effects
   are in [widget-settings.md](widget-settings.md).
 - Every zone type that is a module goes this way: the library templates and the
   "Other sensors" catch-all (`src/modules/other-sensors.tsx`, one `SensorValue`
@@ -356,9 +356,9 @@ would be 102 GB/s; as bytes it is 860 Mb/s, and only bytes match the adapter's
 `auto` or a fixed `RateUnit` (MB/s, Mb/s, KB/s, Kb/s, Mbps; Network Traffic's `rateUnit`), and `toMBps`
 gives the number for widgets that print the unit apart.
 `compact` (Small zones, with `dense` the dense view) is a layout mode
-under Fit, not a style, and no theme sets it. In the studio, Theme › Start from lists
-every skin beside the palettes and the user's saved Themes (`theme-start-from.tsx`), and the Surface & effects
-card holds the surface and skin rows.
+under Fit, not a style, and no theme sets it. In the studio, Theme › Browse themes
+(`theme-browse.tsx`) lists every theme as a card: the skins, the sample themes, the user's saved themes and imported
+packs; the theme card holds the skin row and Fine-tune the surface rows.
 A skin's accent applies only when no accent is set and the surface is not
 light. Skin fonts load lazily (`ensureSkinFonts`). Custom panels use the skin
 through `components/widgets/panel-skin.tsx` when a skin is set; with `auto`
@@ -473,7 +473,7 @@ old or was loaded rather than sent, so undo never points at a swept file.
 
 ### Importing and exporting an InfoPanel profile
 
-Import (top bar Import, the "⋯" menu, or the Add panel's "Canvas zone ·
+Import (Screens' Import, the editor's File menu, or the Add panel's "Canvas zone ·
 Import .infopanel" card) is a five-step dialog,
 `src/components/infopanel/import/`, loaded on first open so neither the
 kiosk nor the studio's first paint carries the parser. Nothing reaches the
@@ -512,7 +512,7 @@ one way.
 
 ### The Library page
 
-The rail's Library opens a full page (`src/components/library/`, lazy-loaded, studio mode
+The sidebar's Library opens a full page (`src/components/library/`, lazy-loaded, studio mode
 `library`) in place of the canvas, drawer and inspector; the studio's zone shortcuts are held back
 while it is open.
 
@@ -550,7 +550,7 @@ while it is open.
 
 ### The Gauges page
 
-The rail's Gauges item opens a full page (`src/components/gauges/`, lazy-loaded, spec §6). The model is
+The sidebar's Gauges item opens a full page (`src/components/gauges/`, lazy-loaded, spec §6). The model is
 `src/lib/gauge-studio/`: a gauge lives in one of four places (`GaugeSource`): a preset (read-only;
 customising makes a copy), a My library item (`kind: "gauge"`, `data` = `{ vector?, frames?, min, max,
 animationSpeed }`, frames by asset id), a Gauge item in an imported canvas zone (its spec in the item's `$.vector`,
@@ -577,17 +577,17 @@ string in its hidden `gauge` setting, bound to any one sensor).
 
 Below 900 px (`NARROW_PAGE_WIDTH`, `useViewportBelow`) the Library and Gauges detail panes open as a bottom sheet
 (`pane-sheet.tsx`, over the shared `BottomSheet`) and the gauge editor stacks parts, stage and inspector. The canvas
-editor's inspector follows the studio inspector's modes (`inspectorMode`): docked from 1100 px, a floating card from
-640 px, a sheet below. A push the server never answered (`isUnreachable` in `dashboard-server.ts`, not a refusal)
-shows "Offline · edits kept locally" in the top bar until the next push lands. A canvas image whose file can't load
+editor's inspector follows the studio inspector's modes (`inspectorMode`): docked from 960 px, a floating card from
+600 px, a sheet below. A push the server never answered (`isUnreachable` in `dashboard-server.ts`, not a refusal)
+shows "Offline · edits kept locally" in the editor's saved chip (`editor/save-chip.ts`) until the next push lands. A canvas image whose file can't load
 draws a hatched tile with a broken-image icon (`MissingImage.tsx`); with the Data API unreachable the canvas editor's
 Live sensor source is disabled. The rest of spec §10 is listed in `docs/redesign/FEATURE_MAP.md` §20.
 
 ### Editing a canvas zone: Edit
 
-There is one editor view, Edit (rail item `design`). On a grid page it shows the grid; on a Free page
+There is one editor view, Edit (the sidebar's Continue editing, view `design`). On a grid page it shows the grid; on a Free page
 (`isFreePage` in `lib/free-pages.ts`: one canvas zone filling the grid, read from the page's shape since v15) it hosts the canvas editor
-(`src/components/infopanel/edit/canvas-editor.tsx`, lazy-loaded) in the same studio shell: the rail, the left panel
+(`src/components/infopanel/edit/canvas-editor.tsx`, lazy-loaded) in the same studio shell: the sidebar, the left panel
 frame (`LeftPanelFrame`, Layers and Add tabs), the page tabs and the inspector column. Since Edit v3 phase 6 there
 is no separate canvas-zone editor: an .infopanel imported onto a screen's page becomes a group of item placements
 (`importIntoProfile` in `studio/import-actions.ts`, through `canvasAsGroup` in `lib/page-model/canvas-group.ts`, kept
@@ -639,7 +639,7 @@ widget). It also takes the layer keys, and a selected group is drawn as one box 
 drags the group, with the Group inspector (`group-inspector.tsx`). `canvas-layers.ts` hosts an imported profile's
 canvas: the canvas editor's items as rows (ids are item paths) and each change through the editor, so its history and
 an untouched item's bytes hold; a group's open state is InfoPanel's `IsExpanded`. The layer menu (`layer-menu.tsx`),
-the inspector's LAYER section (`layer-section.tsx`) and the keys run the same actions. A widget renamed in Layers
+and the keys run the same actions (the inspectors no longer carry layer buttons). A widget renamed in Layers
 keeps its name in `Placement.name` (studio-only, no version bump).
 
 An imported profile has no strip
@@ -1422,17 +1422,11 @@ context in localStorage (`studio.inspectorTabs`)
 and the accordion mode (`studio.accordion`, one open or many open, default
 one). The open section is plain component state; there is no scroll-spy.
 
-*Quick bar* (`quick-bar.tsx`, `quick-sets.ts`). A floating pill centred at the
-top of the canvas, below the page tabs and over the canvas only (docked and floating placements; Settings › Studio ›
-Editor › Quick bar, `studio.quickBar`, default on): identity, the pinned
-settings as compact controls, visibility and, floating, "All settings". Pins
-are set from the pin button on each inspector row, are kept per widget type (all
-panels share one set), at most 6, in `studio.quickPins`. `quick-sets.ts` is
-pure: before any pin a type gets the default set (Layout and Accent when
-present, then its first two own compact settings, max 4), and a multi
-selection shows only the pins every selected type shares and writes to all of
-them. The canvas keeps its top room reserved while the bar is on
-(`QUICK_BAR_INSET`), so selecting never refits the page.
+*Quick settings.* The floating quick bar and the pin buttons on inspector rows are gone (redesign P-11); the
+selection label (`selection-chip.tsx`) keeps the name, Change widget, Hide and the ⋯ menu. What stays is the pure
+`quick-sets.ts` and the stored pins (`studio.quickPins`, per widget type, at most 6; before any pin a type gets the
+default set: Layout and Accent when present, then its first two own compact settings, max 4): the phone sheet's
+Quick tile reads them, and a multi selection shows only the pins every selected type shares and writes to all of them.
 
 *Source dots.* `settings-model.ts`'s `settingStateOf` classifies a row as
 `default`, `dashboard`, `profile`, `here`, `overriding` (set here over a global
@@ -1473,8 +1467,10 @@ page font, background). Pure scope edits: `withScopeValues`, `withLock` / `withL
 `withPageFollow`, `customiseCard`, `resetCard`, and `withToken`, `withThemeRadius`, `withPageFont`,
 `withBackgroundAt`. The rows are `THEME_EDITOR_SETTINGS` (the `theme` inspector context), the preview is
 `ThemePreview` over `previewProfile` (the page at that scope), and `exceptionsOf` finds the widgets and pages
-that do not follow (`makeFollow`, `makeAllFollow`). Saved Themes: `theme-gallery.tsx`,
-`theme-start-from.tsx`, `use-appearance-presets.ts`. The page background is `background-editor.tsx` and
+that do not follow (`makeFollow`, `makeAllFollow`). Saved themes and the theme list:
+`theme-browse.tsx` and `theme-browse-model.ts` (Browse themes: the filters, the cards, the detail with Apply to),
+`theme-pickers.tsx` (the saved and template themes list), `use-appearance-presets.ts`; imported packs come through
+`user-packs.tsx` and `use-imported-packs.ts`. The page background is `background-editor.tsx` and
 `background-video.tsx`; its edits go through `withBackground`, undo-keyed per scope by `backgroundKey`.
 
 *Page inspector* (`page-inspector.tsx`, nothing selected; Edit v3 SPEC §10.1): the header and GRID section
@@ -1525,36 +1521,34 @@ preferences) and `explorer-header.tsx`.
 
 **Studio layout** (`studio-layout.ts`, `use-studio-layout.ts`). The inspector's
 placement is picked from the studio's width (`inspectorMode`), there is no
-setting: **docked** from `DOCKED_MIN_WIDTH` (1100 px), **floating** from
-`FLOATING_MIN_WIDTH` (640 px), else a **sheet**. Docked is a 320 px column
+setting: **docked** from `DOCKED_MIN_WIDTH` (960 px), **floating** from
+`FLOATING_MIN_WIDTH` (600 px), else a **sheet**. Docked is a 320 px column
 (`INSPECTOR_WIDTH`) that Ctrl+\ collapses to a slim strip
 (`dock-toggle.tsx`; `studio.dockCollapsed`). Floating is a 320 px card with
-12 px margins over the right of the canvas, closed by default; "All settings"
-in the quick bar, a double-click on a zone or Ctrl+\ opens it, its X, Ctrl+\ or
+12 px margins over the right of the canvas, closed by default; a double-click on a zone or Ctrl+\ opens it, its X, Ctrl+\ or
 clearing the selection closes it. The sheet (`bottom-sheet.tsx`) has three
 snaps (`sheetHeight`): peek (150 px, 96 with nothing selected), half
 (max(320, 56% of the canvas height)) and full (height - 8); a handle drag
 snaps to the nearest (`nearestSnap`), a tap toggles peek / half. The pure
 `computeLayout({ body, page, rail, drawer, inspector, collapsed, floatOpen,
-quickBar, sheet })` returns `{ mode, canvasWidth, canvasHeight, inset,
+windowWidth, sheet })` returns `{ mode, canvasWidth, canvasHeight, inset,
 fitZoom }`. `body` is the studio below the top bar; `page` the profile's
 design size (`height` 0 for a scroll profile, then `naturalHeight` from its
 grid). The left panel (`drawer`) is a column beside the canvas in every mode
 (`leftPanelFits` lays it over the canvas when it would squeeze the canvas
 below `MIN_CANVAS`). The `inset` is what the page keeps clear of inside the
-canvas box: the open floating card (`FLOAT_INSET`), the quick bar's top room
-(`QUICK_BAR_INSET`, reserved whenever the bar is on) and, in sheet mode, the
+canvas box: the open floating card (`FLOAT_INSET`) and, in sheet mode, the
 sheet up to its half snap plus the zoom bar. `fitZoomFor` is the largest zoom
 (floored to 1%, within 0.25 .. 2) at which the page plus 32 design px of
 padding fit a box minus the inset; a page without a height is fitted to the
 width only. `useStudioLayout` measures the body with a ResizeObserver
 (`bodyRef`) and keeps the collapsed flag in localStorage
 (`studio.dockCollapsed`, in try/catch); `pageSize(profile)` gives the page as
-the canvas draws it. `studio-shell.tsx` renders the mode: a row (rail, left
+the canvas draws it. `studio-shell.tsx` renders the mode: a row (left
 panel, canvas with the zoom bar floating over it, inspector column) when
 docked, the same row with the card over the canvas when floating, and the
 sheet over the canvas bottom on a phone, where the top bar also hides the
-summary and Undo / Redo, Import and Export (they move into the "..." menu).
+summary and Undo / Redo, Import and Export (they move into the "..." menu). The sidebar sits outside the shell.
 
 **Sticky fit** (`use-canvas-zoom.ts`, `zoom-pref.ts`). `useCanvasZoom(page)`
 measures the canvas scroll container with a ResizeObserver; while `fitting`
@@ -1589,13 +1583,15 @@ message `add-toast.tsx`), panel and layout rows on the other tabs. Tiles and row
 `InsertList` for the widget picker and the palette. Screens are the cards of `screens-view.tsx`: the
 a card per screen (the launch rule, `resolveProfile`'s Auto, is Settings › Dashboard › Startup screen).
 
-**Studio top bar.** `studio-top-bar.tsx` holds the screen / page switcher (`screen-switcher.tsx`, with a ⚙ to
-Screens), the search field that opens the command palette, Undo / Redo, Import and Export (`file-doors.ts`:
-the Import door and the Export & back up sheet, `config-file.ts` underneath), the Live popover
-(`live-popover.tsx`: Show on a page, Rotation, Mute alerts, Dynamic Island, Dim screens, Reload all kiosks, Open
-kiosk view), Save (a dot while edits are not pushed yet) and, on a phone, a "..." menu with the same actions.
-Reset everything is in Settings › Dashboard (behind `reset-config-dialog.tsx`), the shortcut list in Help, the
-build id in Settings › App › About. In the desktop app the bar is also the
+**Studio top bar** (Edit only; the other views have a page header and the desktop `window-strip.tsx`). `studio-top-bar.tsx`
+holds the breadcrumb (Screens › the screen, with its rename pencil › the page: `screen-switcher.tsx`), the page tabs
+(from 960 px), the search field that opens the command palette, named Undo / Redo, the saved chip (`editor/save-chip.ts`:
+"Saved · live on N displays", unsaved, offline, refused and read-only), Preview (the kiosk view) and the File menu
+(`editor/file-menu.tsx`: Import, and Export & back up; `file-doors.ts` and `config-file.ts` underneath). On a phone a "..."
+menu holds the same actions and the Live popover (`live-popover.tsx`: Show on a page, Rotation, Mute alerts, Dynamic
+Island, Dim screens, Reload all kiosks, Open kiosk view) sits in the bar; elsewhere it is a row of the sidebar's foot.
+Reset everything is in Settings › Dashboard (behind `reset-config-dialog.tsx`), the shortcut list in the sidebar's Help
+menu, the build id in Settings › App › About. In the desktop app the bar is also the
 window's title bar: its empty space carries `data-tauri-drag-region` and
 `window-controls.tsx` adds minimize, maximize and close at the right end.
 `widget-picker-dialog.tsx` reuses `InsertFilters` and `InsertList` to assign a
@@ -1801,12 +1797,12 @@ with the app.
 - **Navigation guard** (`nav.rs`). Only the server origin (not `/api/*`) and the
   local pages load in the window; everything else, including `target="_blank"`,
   opens in the system browser.
-- **Window.** No native frame: the studio top bar is the title bar (see above), and
+- **Window.** No native frame: the editor's top bar, or `window-strip.tsx` on the other views, is the title bar (see above), and
   closing hides to the tray while the server keeps serving the kiosk.
 - **Studio bridge** `src/lib/desktop.ts`. `isTauri()` gates everything and
   `@tauri-apps/api` is imported lazily, so the browser and kiosk bundles carry no
   Tauri code and every call is a no-op outside the app. `config-file.ts` uses the
-  native Save and Open dialogs there, and the rail's Settings button opens the settings window.
+  native Save and Open dialogs there, and the sidebar's Settings item opens the settings window.
 - **Flush on hide and quit.** Before the window hides or the app quits, Rust emits
   `studio://flush`; `App.tsx` pushes the pending config (the push is otherwise
   debounced 400 ms; the studio gives up after 1200 ms) and calls `flush_done`. Rust

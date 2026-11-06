@@ -20,13 +20,13 @@ The data checks also show your kiosk address, with a QR code for a tablet or pho
 
 ## 1. Check the server is running
 
-The Server item in the status bar at the bottom of the studio should show the port it is serving on. If the server is stopped, open Settings › App › Server and press **Start server**.
+The **Data API** card at the foot of the sidebar opens a list that names the studio server and the port it is serving on. If the server is stopped, open Settings › App › Server and press **Start server**.
 
 :::open settings/server Settings › App › Server
 
 ## 2. Make a screen for your display
 
-A fresh install has one blank screen, **Main display**, at 1920 × 1080. To make one at your display size, open **Screens** (on the rail) and press **New**. The New page opens with the gallery on the left and the settings for your pick on the right.
+A fresh install has one blank screen, **Main display**, at 1920 × 1080. To make one at your display size, open **Screens** (in the sidebar) and press **New**. The New page opens with the gallery on the left and the settings for your pick on the right.
 
 1. Pick **Blank grid** or a template. Search covers template names, the widgets they use and the sensors they read, and the chips narrow the list by shape. Templates sit in sections by shape, with your recently used ones first.
 2. Check the size. A template comes at the size it is made for, marked with a ★ in the size list. Choose another preset or type a width and height.
@@ -50,7 +50,7 @@ Not sure where to start? Open the **Layouts** tab, add a layout starter such as 
 
 ## 4. Choose a look
 
-Open **Theme** on the rail and pick a theme in **Browse themes**, turn a quick change (**Accent**, **Mode**, **Cards**, **Corners**, **Density**) in **Customise**, or open **Saved and template themes** for a saved theme or the theme of a screen template. The level at the top decides where it applies: a screen or a page. See [Themes](themes).
+Open **Theme** in the sidebar and pick a theme in **Browse themes**, turn a quick change (**Accent**, **Mode**, **Cards**, **Corners**, **Density**) in **Customise**, or open **Saved and template themes** for a saved theme or the theme of a screen template. The level at the top decides where it applies: a screen or a page. See [Themes](themes).
 
 ## 5. Put it on the display
 

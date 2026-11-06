@@ -6,34 +6,38 @@ related: [zones, widget-settings, shortcuts]
 verified: 1.3.0-beta.36
 ---
 
-The editor window: a rail of views on the left, the work area in the middle, and an inspector for settings in Edit.
+The editor window: a sidebar of views on the left, the work area in the middle, and an inspector for settings in Edit.
 
-## The rail
+## The sidebar
 
 | View | What it holds |
 |---|---|
 | **Screens** | Your screens: which one opens, sizes, pages, rotation and each screen's own frame rate. **New** opens the New page, where you start from Blank or a template. See [Screens and the grid](profiles). |
-| **Edit** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets** (the widgets, InfoPanel's items and elements, as tiles), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
+| **Continue editing** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets** (the widgets, InfoPanel's items and elements, as tiles), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
 | **Theme** | One editor for the theme at every level: Browse themes, its quick changes, your saved themes and colors. See [Themes](themes). |
 | **Library** | Your Styles, Panels, gauges, media, fonts and canvases. See [Library](library). |
 | **Gauges** | Browse, edit and build gauges. See [Gauges](gauges). |
 | **Alerts & Island** | Alert rules, defaults and history, and the Dynamic Island. See [Dynamic Island and alerts](island-alerts). |
 | **Data sources** | Every data point the Data API publishes, with a chart of the last minute, what uses it, and display names. See [Sensors and the Data API](sensors). |
-| **Help** | Opens this help at the article for where you are (`F1` does the same). |
+| **Help and shortcuts** | A menu: **Help** opens this help at the article for where you are (`F1` does the same), **Keyboard shortcuts** opens the list (`?`), **Search or run a command** is `Ctrl+K`, and **Settings**. |
 | **Settings** | Opens the Settings window (`Ctrl+,`, or Settings in the tray): **App** (General, Server, Coding agents and Updates, in the desktop app), **Dashboard** (every screen and kiosk, including the startup screen, saved the moment you change it), **Studio** (editor preferences, saved with the Studio on this device), then Diagnostics, Logs, About and Changelog. In a browser it opens as a tab with Dashboard and Studio. See [Startup and tray](startup). |
 
-On a phone, Screens and the views after Library are under **More**. Under 960 px the rail is icons only.
+The sidebar is 232 px wide. The button at its top collapses it to a 60 px rail of icons, and the studio remembers the choice separately for Edit and for the other views (Edit opens collapsed the first time). Under 960 px it is always the rail, and on a phone it is a bar at the bottom with Screens and the views after Library under **More**.
 
-## The title bar
+At the foot, above Settings, **Live** shows how many kiosks are connected and opens the controls for them. Under it, when something needs you, a row says so: an update is available, the server needs a restart, the server isn't running, or the server can't be reached (**Offline · edits kept locally**). The **Data API** card shows connected, reconnecting or offline; press it for the address (editable), the latency, the data points, the last drop, the studio server and the sources, with **Test connection** or **Retry now** and a copy of the troubleshooting report. A short drop shows **Reconnecting** with the last values held for 10 s, and only then does it turn red.
 
-- The screen name, its size and the page you're on open a list of your screens, each with its size, and the pages of the current one. Pick one to edit it. **Manage screens…** opens **Screens**, and **Screen settings…** opens **Screens** on the screen you are editing. Which screen your displays open is set in **Settings › Dashboard › Startup screen**. See [Screens and the grid](profiles#which-screen-opens).
+## The editor's top bar
+
+Other views have a page header; the top bar belongs to Edit. In the desktop app every view has the thin window strip with the caption buttons.
+
+- The breadcrumb names the screen (with a pencil to rename it) and its page; the screen name opens a list of your screens, each with its size, and the pages of the current one. Pick one to edit it. **Manage screens…** opens **Screens**, and **Screen settings…** opens **Screens** on the screen you are editing. Which screen your displays open is set in **Settings › Dashboard › Startup screen**. See [Screens and the grid](profiles#which-screen-opens).
 - The top of that list says what the screen is: **Imported from InfoPanel** for a profile brought in from an .infopanel file or the InfoPanel app, otherwise **Screen**.
 - The search box in the middle opens the command palette (`Ctrl+K`). Besides actions it lists every setting and one entry for each view.
 - **Undo** and **Redo**, which say what they change, and the saved state, **Preview** (the kiosk view) and **File**: **Import** and **Export & back up**. See [Importing and exporting](import).
-- **Live** shows how many kiosks are connected and opens the controls for them: show a page now, pause rotation, dim, mute alerts for an hour, switch the Dynamic Island and reload every kiosk. None of it is part of your design, so saving doesn't change it. **Open kiosk view** shows the kiosk in the Studio; in the desktop app it resizes the window to the screen's exact size, and moving the pointer to the top edge brings a strip with **Back to studio**, **Minimize** and **Close**.
-- Under 600 px a **⋯** menu holds Undo, Redo, Save now, Live, Import and Export. From 600 to 960 px the saved state is a dot; hover it for the words.
+- **Live**, in the sidebar's foot (in the bar on a phone), opens the controls for the kiosks: show a page now, pause rotation, dim, mute alerts for an hour, switch the Dynamic Island and reload every kiosk. None of it is part of your design, so saving doesn't change it. **Open kiosk view** shows the kiosk in the Studio; in the desktop app it resizes the window to the screen's exact size, and moving the pointer to the top edge brings a strip with **Back to studio**, **Minimize** and **Close**.
+- Under 600 px a **⋯** menu holds Undo, Redo, Save now, Import and Export. From 600 to 960 px the saved state is a dot; hover it for the words.
 
-The status bar under the work area shows the Data API (connected, slow or unreachable), the server, how many kiosks are connected, updates, and whether your edits are saved. When the server can't be reached it reads **Offline · edits kept locally**.
+Whether your edits are saved shows in the saved state: **Saved · live on N displays**, **Unsaved changes**, or, when the server can't be reached, **Offline · edits kept locally**.
 
 ## Canvas
 
@@ -89,7 +93,7 @@ A page can hold InfoPanel items and elements on top of its widgets. Add puts the
 - Widgets always sit on the cells and never on another widget. With `Alt` held, a widget's drag says **Widgets always sit on the grid**.
 - On Linux, use `Ctrl+Alt` if the window manager takes `Alt`+drag. On a Mac, `Alt` is `Option`.
 
-The status bar says how parts snap. A drag is one undo step.
+On a page with InfoPanel items the bar under the canvas says how parts snap. A drag is one undo step.
 
 With one item selected, the inspector shows its name, **InfoPanel item** or **Element**, and Hide, Duplicate and Delete. Under them is where it sits. Its **C**, **R**, **W** and **H** boxes give its column, row, width and height in cells. **POSITION AND SIZE (PX)** with **Placed freely** gives X, Y, W and H in pixels, and **Snap to grid** moves it to the nearest cells. Type into a box and press Enter. Then come the tabs **Item**, **Sensor** and **Theme**. Order, group, lock and hide are in the Layers right-click menu and on keys; **Move to group › Move out of group** (`Ctrl+Shift+O`) takes it out of its group. A new Image or Sensor image asks for its picture first, and a Sensor image then asks for its sensor.
 

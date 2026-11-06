@@ -35,5 +35,5 @@ New here? The [Quick start](quickstart) gets a working dashboard onto your displ
 ## Opening this help
 
 :::tip
-Open this help from **Help** on the rail, or from **Help** in the tray menu. Press `F1` in the studio or in Settings to open the article for where you are.
+Open this help from **Help and shortcuts** in the sidebar, or from **Help** in the tray menu. Press `F1` in the studio or in Settings to open the article for where you are.
 :::

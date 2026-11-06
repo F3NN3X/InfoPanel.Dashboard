@@ -10,7 +10,7 @@ Browse, edit and build gauges: vector gauges that need no frames, image sequence
 
 ## The Gauges view
 
-Open **Gauges** on the rail (your own gauges are also in Library › Gauges, and opening one there brings you here). The header has two tabs, **Gauges** and **Editor**, and the buttons **Import…** (the Import door, which takes `.gauge.json`, SVG and frames `.zip` files) and **New gauge**.
+Open **Gauges** in the sidebar (your own gauges are also in Library › Gauges, and opening one there brings you here). The header has two tabs, **Gauges** and **Editor**, and the buttons **Import…** (the Import door, which takes `.gauge.json`, SVG and frames `.zip` files) and **New gauge**.
 
 The list is in three sections: **Presets**, **In** the current screen, and **My library**. Select a gauge to see its detail pane:
 
