@@ -300,7 +300,7 @@ function PointRow({ point, cols, values, recorder, usedBy, selected, onSelect, s
           "truncate text-right font-ui-mono text-body tabular-nums",
           cell.tone === "number" && "text-ui-1",
           cell.tone === "text" && "text-ui-2",
-          cell.tone === "empty" && "text-ui-disabled"
+          cell.tone === "empty" && "text-ui-4"
         )}
       >
         {split ? split.num : cell.text}
@@ -318,7 +318,7 @@ function PointRow({ point, cols, values, recorder, usedBy, selected, onSelect, s
       {showUsedIn && (
         <span title={used.title || undefined} className="flex min-w-0 items-center gap-1 overflow-hidden">
           {used.chips.length === 0 ? (
-            <span className="text-caption text-ui-disabled">—</span>
+            <span className="text-caption text-ui-4">—</span>
           ) : (
             used.chips.map((c) => (
               <span key={c} className="truncate rounded-ui-sm border border-ui-strong px-1.5 text-caption text-ui-2">

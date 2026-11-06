@@ -137,9 +137,9 @@ function RuleRow({ rule, summary, style, fired, now, selected, confirming, ...on
         type="button"
         onClick={on.onOpen}
         aria-current={selected || undefined}
-        className={cn("min-w-0 flex-1 rounded-ui-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent", !rule.enabled && "opacity-60")}
+        className={cn("min-w-0 flex-1 rounded-ui-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent")}
       >
-        <span className="block truncate text-body text-ui-1">{rule.name}</span>
+        <span className={cn("block truncate text-body", rule.enabled ? "text-ui-1" : "text-ui-2")}>{rule.name}</span>
         <span className="block truncate font-ui-mono text-micro text-ui-3" title={summary}>
           {summary}
         </span>

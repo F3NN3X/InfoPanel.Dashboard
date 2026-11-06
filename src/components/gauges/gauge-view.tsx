@@ -23,7 +23,12 @@ export function GaugeView({ gauge, frames, p, size, scope }: GaugeViewProps) {
   const id = useId();
   if (gauge) {
     const k = Math.min(size / gauge.width, size / gauge.height);
-    return <VectorGaugeSvg gauge={gauge} p={p} id={id} width={Math.max(1, Math.floor(gauge.width * k))} height={Math.max(1, Math.floor(gauge.height * k))} style={scope} />;
+    // Inert: an SVG template draws in a frame, which would otherwise be a Tab stop with no ring inside the card that holds it.
+    return (
+      <div className="contents" inert>
+        <VectorGaugeSvg gauge={gauge} p={p} id={id} width={Math.max(1, Math.floor(gauge.width * k))} height={Math.max(1, Math.floor(gauge.height * k))} style={scope} />
+      </div>
+    );
   }
   const src = frames?.[frameIndex(frames.length, p)];
   if (src) return <img src={src} alt="" draggable={false} style={{ maxWidth: size, maxHeight: size }} className="object-contain" />;
