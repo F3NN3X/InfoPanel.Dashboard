@@ -186,7 +186,7 @@ export function ScreenStep({ headRef, narrow, size, source, windowSize, custom, 
   const typed = customSize(custom);
   const touched = custom.w !== "" || custom.h !== "";
   const tile = (on: boolean) =>
-    cn("flex min-w-0 items-center gap-2.5 rounded-ui-md border px-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60", on ? "border-ui-accent bg-ui-accent/10" : "border-ui-default bg-ui-raised hover:bg-ui-hover");
+    cn("flex min-w-0 items-center gap-2.5 rounded-ui-md border px-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent", on ? "border-ui-accent bg-ui-accent/10" : "border-ui-default bg-ui-raised hover:bg-ui-hover");
   const options = (
     <div role="radiogroup" aria-label="Screen size" onKeyDown={arrowsMove} className="flex min-w-0 flex-1 flex-col gap-3">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2">
@@ -355,7 +355,7 @@ export function StartStep({ headRef, rerun, size, start, onStart, pick, onPick, 
             tabIndex={start === c.value ? 0 : -1}
             onClick={() => onStart(c.value)}
             className={cn(
-              "flex h-12 min-w-0 items-center gap-2.5 rounded-ui-md border px-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
+              "flex h-12 min-w-0 items-center gap-2.5 rounded-ui-md border px-3 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
               start === c.value ? "border-ui-accent bg-ui-accent/10" : "border-ui-default bg-ui-raised hover:bg-ui-hover",
             )}
           >
@@ -490,11 +490,11 @@ export function Switch({ label, note, checked, onChange }: { label: string; note
       <span
         aria-hidden
         className={cn(
-          "relative h-[18px] w-[30px] shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ui-accent/60 forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas]",
-          checked ? "bg-ui-accent forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-ui-strong",
+          "relative h-[18px] w-[30px] shrink-0 rounded-full transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ui-accent forced-colors:forced-color-adjust-none forced-colors:border forced-colors:border-[color:ButtonText] forced-colors:bg-[color:Canvas]",
+          checked ? "bg-ui-strong-text forced-colors:border-[color:Highlight] forced-colors:bg-[color:Highlight]" : "bg-ui-control",
         )}
       >
-        <span className={cn("absolute top-[3px] h-3 w-3 rounded-full bg-white transition-[left] forced-colors:bg-[color:ButtonText]", checked ? "left-[15px] forced-colors:bg-[color:HighlightText]" : "left-[3px]")} />
+        <span className={cn("absolute top-[3px] h-3 w-3 rounded-full transition-[left] forced-colors:bg-[color:ButtonText]", checked ? "left-[15px] bg-ui-inverse-fg forced-colors:bg-[color:HighlightText]" : "left-[3px] bg-ui-soft")} />
       </span>
     </label>
   );

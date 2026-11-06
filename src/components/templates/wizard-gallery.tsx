@@ -117,7 +117,7 @@ export function WizardGallery(p: WizardGalleryProps) {
               <section key={s.key} id={sectionId(s.key)} aria-labelledby={`${sectionId(s.key)}-title`} className="flex scroll-mt-3.5 flex-col gap-2">
                 <h3 className="m-0 flex items-baseline gap-2 text-caption font-medium text-ui-2">
                   <span id={`${sectionId(s.key)}-title`}>{s.title}</span>
-                  {s.count !== undefined && <span className="font-ui-mono text-micro font-normal text-ui-4">{s.count}</span>}
+                  {s.count !== undefined && <span className="tabular-nums text-micro font-normal text-ui-4">{s.count}</span>}
                   {s.note && <span className="truncate text-micro font-normal text-ui-4">{s.note}</span>}
                 </h3>
                 <div role="radiogroup" aria-label={s.title} className="grid items-start gap-2.5" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${s.min}px, 1fr))` }}>
@@ -163,7 +163,7 @@ function Card({ card, p, selected, tabbable }: { card: GalleryCard; p: WizardGal
         }
       }}
       className={cn(
-        "group flex min-w-0 cursor-pointer select-none flex-col overflow-hidden rounded-ui-menu border outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
+        "group flex min-w-0 cursor-pointer select-none flex-col overflow-hidden rounded-ui-menu border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
         selected ? "border-ui-accent bg-ui-accent/10" : "border-ui-default bg-ui-raised hover:ring-1 hover:ring-ui-strong",
       )}
     >

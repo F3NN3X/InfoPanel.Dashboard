@@ -44,7 +44,7 @@ export function MakeThemeDialog({ pending, screenName, pageName, onConfirm, onCl
             <AlertDialog.Close render={<button type="button" className={DIALOG_BUTTON} />}>Cancel</AlertDialog.Close>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-ui-md bg-ui-accent px-3 text-body font-medium text-ui-inverse-fg transition-opacity hover:opacity-90"
+              className="inline-flex h-8 items-center rounded-ui-md bg-ui-inverse px-3 text-body font-medium text-ui-inverse-fg transition-colors hover:bg-white"
               onClick={() => {
                 if (pending) onConfirm(pending);
                 onClose();

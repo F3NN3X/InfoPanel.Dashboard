@@ -74,8 +74,8 @@ const CHIPS_SHOWN = 6;
 const CHIP_ICON: Record<Chip["icon"], LucideIcon> = { hwinfo: Thermometer, system: Cpu, network: Network, media: Music, plugin: Puzzle };
 const ACTION_ICON: Partial<Record<CheckAction["kind"], LucideIcon>> = { start: Play, show: ExternalLink, restart: RotateCcw };
 
-const BUTTON = "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-ui-md border px-2.5 text-caption outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60";
-export const PRIMARY_BUTTON = cn(BUTTON, "border-ui-accent bg-ui-accent font-medium text-ui-inverse-fg hover:opacity-90");
+const BUTTON = "inline-flex h-7 shrink-0 items-center gap-1.5 rounded-ui-md border px-2.5 text-caption focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent";
+export const PRIMARY_BUTTON = cn(BUTTON, "border-transparent bg-ui-inverse font-medium text-ui-inverse-fg hover:bg-white");
 export const OUTLINE_BUTTON = cn(BUTTON, "border-ui-strong bg-ui-raised text-ui-1 hover:bg-ui-hover");
 
 function ActionButton({ action, primary, onClick, small }: { action: CheckAction; primary: boolean; onClick: () => void; small?: boolean }) {
@@ -151,7 +151,7 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
                   >
                     <Icon className={cn("h-3 w-3", zero ? "text-ui-warn" : "text-ui-3")} />
                     {c.name}
-                    <span className={cn("font-ui-mono text-micro", zero ? "text-ui-warn" : "text-ui-3")}>{c.count}</span>
+                    <span className={cn("tabular-nums text-micro", zero ? "text-ui-warn" : "text-ui-3")}>{c.count}</span>
                   </span>
                 );
               })}
@@ -171,7 +171,7 @@ export function CheckRow({ id, result, address, fixed, elapsed, narrow, first, o
             aria-expanded={open}
             aria-label={`${open ? "Hide" : "Show"} details: ${title}`}
             onClick={() => setToggled(!open)}
-            className="grid h-6 w-6 shrink-0 place-items-center rounded-ui-sm text-ui-3 outline-none hover:bg-ui-hover hover:text-ui-1 focus-visible:ring-2 focus-visible:ring-ui-accent/60"
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-ui-sm text-ui-3 hover:bg-ui-hover hover:text-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
           >
             {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
@@ -286,7 +286,7 @@ export function AddressBar({ mode, address, invalid, onMode, onAddress, onDefaul
               onKeyDown={move}
               onClick={() => onMode(m.value)}
               className={cn(
-                "flex h-[26px] items-center gap-1.5 rounded-ui-sm px-2.5 text-caption outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60",
+                "flex h-[26px] items-center gap-1.5 rounded-ui-sm px-2.5 text-caption focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent",
                 mode === m.value ? "bg-ui-raised font-medium text-ui-1" : "text-ui-3 hover:text-ui-1",
               )}
             >

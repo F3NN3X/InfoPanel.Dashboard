@@ -7,7 +7,7 @@ import type { DashboardConfig } from "@/lib/layout";
 import { logFrontend } from "@/lib/desktop";
 
 const BUTTON = "h-8 rounded-ui-md border px-3.5 text-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent disabled:opacity-60";
-const PRIMARY = cn(BUTTON, "border-ui-accent bg-ui-accent font-medium text-ui-inverse-fg hover:opacity-90");
+const PRIMARY = cn(BUTTON, "border-transparent bg-ui-inverse font-medium text-ui-inverse-fg hover:bg-white");
 const OUTLINE = cn(BUTTON, "border-ui-strong bg-ui-raised text-ui-1 hover:bg-ui-hover");
 
 interface ConfigUpdateDialogProps {

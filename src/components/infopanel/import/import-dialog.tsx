@@ -466,7 +466,7 @@ function ImportBody({ onClose, onCancel, onStep, profileName, profileSize, initi
               <span
                 className={cn(
                   "grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border-[1.5px] font-ui-mono text-micro font-medium",
-                  done ? "border-transparent bg-ui-accent text-ui-inverse-fg" : cur ? "border-transparent bg-ui-inverse text-ui-inverse-fg" : "border-ui-edge text-ui-4",
+                  done ? "border-ui-strong bg-ui-raised text-ui-2" : cur ? "border-transparent bg-ui-inverse text-ui-inverse-fg" : "border-ui-edge text-ui-4",
                 )}
               >
                 {done ? <Check className="h-3.5 w-3.5" /> : i + 1}

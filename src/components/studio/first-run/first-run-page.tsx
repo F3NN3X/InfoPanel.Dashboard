@@ -13,6 +13,7 @@ import { appSettings, isTauri, openHelp } from "@/lib/desktop";
 import type { MonitorProfile } from "@/lib/layout";
 import { SCREEN_TEMPLATES } from "@/lib/screen-templates/catalog";
 import { cn } from "@/lib/utils";
+import { StudioLogo } from "@/components/studio/studio-logo";
 import { useToast } from "@/components/ui/toast";
 import { SCREEN_KIT } from "../../templates/screen-kit";
 import type { Size } from "../../templates/size-presets";
@@ -436,7 +437,7 @@ export default function FirstRunPage({ rerun, dataApiUrl, windowSize, onFinish, 
   return (
     <div data-help-article="quickstart" className="fixed inset-0 z-50 flex flex-col bg-ui-app font-ui text-ui-1">
       <header data-tauri-drag-region className="flex h-10 shrink-0 items-center gap-2.5 border-b border-ui-subtle pl-3">
-        <span aria-hidden className="h-5 w-5 rounded-ui-sm bg-ui-accent" />
+        <StudioLogo className="h-5 w-5 shrink-0" />
         <span data-tauri-drag-region className="text-body font-medium">
           {rerun ? "Run setup again" : "Set up InfoPanel Studio"}
         </span>

@@ -25,7 +25,7 @@ export const KIND_SENTENCES: Record<WizardKind, string> = {
   ip: "A profile is free-placed elements on a canvas, edited in Edit and exportable to the InfoPanel app.",
 };
 
-const PRIMARY = "h-8 rounded-ui-md bg-ui-accent px-4 text-body font-medium text-ui-inverse-fg hover:opacity-90 disabled:opacity-40";
+const PRIMARY = "h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg hover:bg-white disabled:opacity-40";
 const OUTLINE = "h-8 rounded-ui-md border border-ui-strong px-3 text-body text-ui-2 hover:bg-ui-hover hover:text-ui-1";
 
 /** Whether the element is narrower than the wizard's two columns need. */
@@ -71,7 +71,7 @@ function Stepper({ step, onStep }: { step: WizardStep; onStep: (s: WizardStep) =
     <ol aria-label="Steps" className="m-0 flex shrink-0 list-none items-center gap-3 p-0">
       {STEPS.map((label, i) => (
         <li key={label} aria-current={i === step ? "step" : undefined}>
-          <button type="button" onClick={() => onStep(i as WizardStep)} className="flex items-center gap-1.5 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60">
+          <button type="button" onClick={() => onStep(i as WizardStep)} className="flex items-center gap-1.5 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
             <span
               className={cn(
                 "grid h-5 w-5 place-items-center rounded-full border text-micro font-medium",

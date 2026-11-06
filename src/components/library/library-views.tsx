@@ -36,6 +36,7 @@ import { setActiveLibraryDrag, setLibraryDrag } from "@/lib/my-library/drag";
 import { isOlderItem } from "@/lib/my-library/item-format";
 import { COLLECTIONS, SORTS, cardTag, cleanupCounts, flagOf, isDraggable, type CollectionId, type LibraryIndex, type SortId } from "@/lib/my-library/model";
 import { FOCUS } from "@/components/studio/menu-styles";
+import { onRovingKeyDown } from "@/lib/roving";
 import { AssetThumb } from "./asset-thumb";
 import type { ClickMod } from "./multi-delete";
 
@@ -91,7 +92,7 @@ export function LibrarySidebar({ active, counts, onPick, onOpenTheme }: { active
               >
                 <Icon className="h-4 w-4 shrink-0 text-ui-4" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate">{c.label}</span>
-                <span className="font-ui-mono text-micro text-ui-4">{counts[c.id]}</span>
+                <span className="tabular-nums text-micro text-ui-4">{counts[c.id]}</span>
               </button>
             );
           })}
@@ -127,17 +128,22 @@ interface CardProps {
   onRemove?: () => void;
   /** A suggestion's reason line (Shelves). */
   reason?: string;
+  /** The one card of its list the Tab key reaches; the arrow keys move between the others. */
+  tabStop?: boolean;
   className?: string;
 }
 
-export function LibraryCard({ item, index, selected, checked, selectMode, onSelect, onOpen, onMenu, onRemove, reason, className }: CardProps) {
+/** The card the Tab key reaches in a list: the selected one, else the first. */
+const stopId = (items: readonly LibraryItem[], selectedId: string | null | undefined) => (items.some((i) => i.id === selectedId) ? selectedId : items[0]?.id);
+
+export function LibraryCard({ item, index, selected, checked, selectMode, onSelect, onOpen, onMenu, onRemove, reason, tabStop = true, className }: CardProps) {
   const flag = flagOf(item, index);
   const tag = cardTag(item);
   return (
     <div
       role="option"
       aria-selected={selected || checked}
-      tabIndex={0}
+      tabIndex={tabStop ? 0 : -1}
       draggable={isDraggable(item)}
       onDragStart={(e) => {
         setLibraryDrag(e.dataTransfer, { libraryItemId: item.id, kind: item.kind });
@@ -168,7 +174,7 @@ export function LibraryCard({ item, index, selected, checked, selectMode, onSele
         }
       }}
       className={cn(
-        "group flex cursor-pointer flex-col gap-2 rounded-ui-lg border border-ui-subtle bg-ui-panel p-1.5 pb-2.5 outline-none hover:border-ui-default",
+        "group flex cursor-pointer flex-col gap-2 rounded-ui-lg border border-ui-subtle bg-ui-panel p-1.5 pb-2.5 hover:border-ui-default",
         FOCUS,
         (selected || checked) && "border-ui-accent bg-ui-accent/[.06] hover:border-ui-accent",
         className,
@@ -308,7 +314,7 @@ export function GridView(p: GridViewProps) {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="sticky top-0 z-10 flex min-h-[52px] shrink-0 flex-wrap items-center gap-2 border-b border-ui-subtle bg-ui-app/95 px-5 py-2 backdrop-blur">
         <h2 className="text-head font-medium text-ui-1">{p.title}</h2>
-        <span className="mr-2 font-ui-mono text-micro text-ui-4">{p.items.length} items</span>
+        <span className="mr-2 tabular-nums text-micro text-ui-4">{p.items.length} items</span>
         {p.tags.map((t) => (
           <button
             key={t}
@@ -326,7 +332,7 @@ export function GridView(p: GridViewProps) {
         <span className="flex-1" />
         {p.picked.length > 0 && (
           <>
-            <span className="font-ui-mono text-caption text-ui-2">{p.picked.length} selected</span>
+            <span className="tabular-nums text-caption text-ui-2">{p.picked.length} selected</span>
             <button type="button" onClick={p.onPickAll} className="h-(--ui-h-control) rounded-ui-md px-2 text-caption text-ui-3 hover:text-ui-1">
               Select all
             </button>
@@ -402,7 +408,7 @@ export function GridView(p: GridViewProps) {
         {p.searching && p.items.length === 0 ? (
           <p className="py-16 text-center text-body text-ui-4">Nothing matches. Every word must match a name, tag, type or size.</p>
         ) : (
-          <div role="listbox" aria-label={p.title} className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
+          <div role="listbox" aria-label={p.title} onKeyDown={(e) => onRovingKeyDown(e, '[role="option"]', false)} className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
             {!p.searching && p.uploadTile && <UploadTile onFiles={p.onFiles} wide={p.empty} />}
             {p.items.map((item) => (
               <LibraryCard
@@ -411,6 +417,7 @@ export function GridView(p: GridViewProps) {
                 index={p.index}
                 selected={p.selectedId === item.id}
                 checked={p.picked.includes(item.id)}
+                tabStop={item.id === stopId(p.items, p.selectedId)}
                 selectMode={p.selectMode}
                 onSelect={(mod) => p.onSelect(item, mod)}
                 onOpen={() => p.onOpen(item)}
@@ -479,13 +486,14 @@ export function ShelvesView(p: ShelvesViewProps) {
                 See all <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div role="listbox" aria-label={s.title} className="flex gap-3 overflow-x-auto pb-2">
+            <div role="listbox" aria-label={s.title} onKeyDown={(e) => onRovingKeyDown(e, '[role="option"]', false)} className="flex gap-3 overflow-x-auto pb-2">
               {s.items.map((item) => (
                 <LibraryCard
                   key={item.id}
                   item={item}
                   index={p.index}
                   selected={p.selectedId === item.id}
+                  tabStop={item.id === stopId(s.items, p.selectedId)}
                   onSelect={() => p.onSelect(item)}
                   onOpen={() => p.onOpen(item)}
                 onMenu={p.onMenu && ((x, y) => p.onMenu?.(item, x, y))}

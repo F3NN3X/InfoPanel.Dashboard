@@ -22,7 +22,7 @@ export const PageStrip = memo(function PageStrip({ profile, onOpen, inline = fal
             title={`Open ${page.name}`}
             aria-label={`Open ${profile.name}, ${page.name}`}
             onClick={() => onOpen(profile.id, page.id)}
-            className="block w-full overflow-hidden rounded border border-ui-strong outline-none hover:border-ui-1 focus-visible:ring-2 focus-visible:ring-ui-accent/60"
+            className="block w-full overflow-hidden rounded border border-ui-strong hover:border-ui-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
           >
             <div style={{ aspectRatio: aspect }}>
               <PageMap profile={profile} page={page} />

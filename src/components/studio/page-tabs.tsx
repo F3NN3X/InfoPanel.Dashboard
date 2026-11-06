@@ -297,7 +297,7 @@ export function PageTabs({
                       onDoubleClick={() => onRenamingChange(page.id)}
                       title={thumbProfile ? undefined : `${page.name}: double-click to rename, drag to reorder`}
                       aria-description={thumbProfile ? "Double-click to rename, drag to reorder" : undefined}
-                      className="flex h-7 max-w-44 items-center gap-1.5 rounded-[7px] pl-2.5 pr-1 outline-none focus-visible:ring-2 focus-visible:ring-ui-accent/60"
+                      className="flex h-7 max-w-44 items-center gap-1.5 rounded-[7px] pl-2.5 pr-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent"
                     >
                       <Icon className="h-[15px] w-[15px] shrink-0" />
                       <span className="truncate">{page.name}</span>

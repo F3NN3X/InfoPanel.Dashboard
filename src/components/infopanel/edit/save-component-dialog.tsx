@@ -58,7 +58,7 @@ export function SaveComponentDialog({ open, onOpenChange, count, initialName, on
               <Dialog.Close type="button" className="h-8 rounded-ui-md px-3 text-[12.5px] text-ui-3 hover:text-ui-1">
                 Cancel
               </Dialog.Close>
-              <button type="submit" disabled={!ok} className="h-8 rounded-ui-md bg-ui-accent px-4 text-[12.5px] font-medium text-ui-inverse-fg hover:opacity-90 disabled:opacity-40">
+              <button type="submit" disabled={!ok} className="h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg hover:bg-white disabled:opacity-40">
                 Save
               </button>
             </div>

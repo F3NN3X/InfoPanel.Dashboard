@@ -68,7 +68,7 @@ export function RemapDialog({ open, onOpenChange, name, groups, overrides, index
             />
           </div>
           <div className="flex shrink-0 justify-end border-t border-ui-subtle px-5 py-3">
-            <Dialog.Close className="h-8 rounded-ui-md bg-ui-accent px-4 text-body font-medium text-ui-inverse-fg hover:opacity-90">Done</Dialog.Close>
+            <Dialog.Close className="h-8 rounded-ui-md bg-ui-inverse px-4 text-body font-medium text-ui-inverse-fg hover:bg-white">Done</Dialog.Close>
           </div>
         </Dialog.Popup>
       </Dialog.Portal>
