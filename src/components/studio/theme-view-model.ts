@@ -24,7 +24,7 @@ export function levelHelp(level: ThemeLevel, screen: string, page: string): stri
 }
 
 /** What a page can't hold (owner decision 1). */
-export const pageParts = (screen: string): string => `Palette, corners and background come from ${screen}.`;
+export const pageParts = (screen: string): string => `Colors, corners and background come from ${screen}.`;
 
 /** "A", "A and B", "A, B and C". */
 export const listText = (items: readonly string[]): string =>

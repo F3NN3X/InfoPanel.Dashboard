@@ -29,9 +29,9 @@ Starting points you can drop in and adjust: whole pages, single panels, and look
 Panel presets were built against one PC's sensors. Expect to re-pick some sensors.
 :::
 
-## Skins
+## Widget styles
 
-A skin is how every widget is drawn. Pick one on the **Skin** row of the theme card in Theme, for a screen or a page, or per widget in its Style tab. Picking one is a single undo step and keeps the colors, corners, background and fine-tune.
+A widget style is how every widget is drawn (a skin in saved files). Pick one on the **Theme** row of the theme card in Theme, for a screen or a page, or per widget in its Style tab. Picking one is a single undo step and keeps the colors, corners, background and fine-tune.
 
 :::generated presets.appearance
 
