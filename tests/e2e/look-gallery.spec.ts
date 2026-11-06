@@ -55,7 +55,7 @@ test("pick a Look, change its accent, reset it to the Look, and give one widget 
   await expect.poll(async () => (await storedScreen(scratch.base))?.widgetTheme?.values).toEqual({ lookId: "term" });
 
   // One widget differs: its Style tab's Accent knob changes it alone.
-  await page.getByRole("button", { name: /^Continue editing/ }).click();
+  await page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: /^Edit / }).click();
   await page.locator(`[data-zone-id="${first}"]`).click();
   await page.getByRole("tab", { name: /Style/ }).click();
   const widgetKnobs = page.getByRole("region", { name: "Quick changes" });

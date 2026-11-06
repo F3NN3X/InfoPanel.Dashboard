@@ -94,22 +94,22 @@ describe("the frame", () => {
     expect(screen.getByRole("navigation", { name: "Studio views" }).className).toContain("shrink-0");
   });
 
-  it("drags the window by its header in Edit under Tauri, and nowhere else", () => {
+  it("drags the window by its header under Tauri on every page, and nowhere else", () => {
     const tauri = vi.spyOn(desktop, "isTauri").mockReturnValue(true);
     const header = () => document.querySelector("[data-tauri-drag-region]");
     const { unmount } = renderSidebar({ editing: true });
     expect(header()).not.toBeNull();
     unmount();
     renderSidebar({ editing: false });
-    expect(header()).toBeNull();
+    expect(header()).not.toBeNull();
     tauri.mockReturnValue(false);
   });
 });
 
 describe("the views", () => {
-  it("routes Continue editing to the editor", () => {
+  it("routes Edit to the editor", () => {
     const { onSelect } = renderSidebar();
-    fireEvent.click(screen.getByRole("button", { name: "Continue editing Desk" }));
+    fireEvent.click(screen.getByRole("button", { name: "Edit Desk" }));
     expect(onSelect).toHaveBeenCalledWith("design");
   });
 

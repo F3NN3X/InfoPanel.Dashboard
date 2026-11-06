@@ -44,7 +44,7 @@ test("a v15 dashboard look is each screen's own after the studio's first save, a
   expect(fs.readFileSync(backup, "utf8")).toBe(JSON.stringify(v15));
   await done.getByRole("button", { name: "Continue" }).click();
   await expect(done).toHaveCount(0);
-  await page.getByRole("button", { name: /^Continue editing/ }).click();
+  await page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: /^Edit / }).click();
   await expect(page.locator(`[data-zone-id="${manifest.zones.light[0]}"]`)).toBeVisible();
   const saved = JSON.parse(fs.readFileSync(file, "utf8"));
   expect(saved).not.toHaveProperty("theme");

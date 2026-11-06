@@ -2,7 +2,7 @@ import { isTauri } from "@/lib/desktop";
 import { WindowControls } from "./window-controls";
 
 /**
- * The desktop window's title bar on a workspace page (Q2): a 32 px frameless strip with the drag region and the caption
+ * The desktop window's title bar on a workspace page (Q2): a 32 px frameless strip beside the sidebar, like the editor's top bar, with the drag region and the caption
  * buttons; the editor's top bar is its own. A browser has its own window frame, so nothing renders there.
  */
 export function WindowStrip() {

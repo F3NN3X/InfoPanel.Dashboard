@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-// The sidebar after the redesign's Phase 1: Screens and Continue editing (Q1), then the other views under their new
+// The sidebar after the redesign's Phase 1: Screens and Edit (Q1), then the other views under their new
 // names; the old InfoPanel view is a route alias that lands on Screens' InfoPanel filter, or opens a named profile in Edit.
 import { act, render, renderHook, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -18,7 +18,7 @@ const wrapper = ({ children }: { children: ReactNode }) => <ToastProvider>{child
 const useUi = () => useStudioUi(config, profile, async () => true, 1600);
 
 describe("the sidebar", () => {
-  it("lists Screens and Continue editing, then the other views, with no InfoPanel item", () => {
+  it("lists Screens and Edit, then the other views, with no InfoPanel item", () => {
     render(
       <StudioSidebar
         active="design"
@@ -39,7 +39,7 @@ describe("the sidebar", () => {
       />,
     );
     const nav = within(screen.getByRole("navigation", { name: "Studio views" }));
-    expect(nav.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Screens", "Continue editing Desk", "Theme", "Library", "Gauges", "Alerts & Island", "Data sources"]);
+    expect(nav.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Screens", "Edit Desk", "Theme", "Library", "Gauges", "Alerts & Island", "Data sources"]);
   });
 
   it("has Edit on the phone's bar too", () => {

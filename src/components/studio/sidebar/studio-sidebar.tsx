@@ -39,7 +39,7 @@ interface StudioSidebarProps {
   /** The highlighted view. */
   active: RailItem;
   onSelect: (item: RailItem) => void;
-  /** The screen Edit opens on ("Continue editing <screen>", Q1). */
+  /** The screen Edit opens on ("Edit <screen>", Q1). */
   screenName: string;
   /** Alerts firing now (the red badge). */
   alerts: number;
@@ -222,7 +222,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
   const narrow = windowWidth < RAIL_MAX;
   const collapsed = editing ? editor : workspace;
   const rail = narrow || collapsed;
-  const drag = editing && isTauri();
+  const drag = isTauri();
   const toggle = () => (editing ? setEditor : setWorkspace)(!collapsed);
   const collapseButton = !narrow && (
     <IconButton label={rail ? "Expand sidebar" : "Collapse sidebar"} size={30} aria-expanded={!rail} onClick={toggle} className={rail ? "self-center" : undefined}>
@@ -232,7 +232,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
   return (
     <Tooltip.Provider delay={300}>
       <aside aria-label="Studio sidebar" className={cn("flex min-h-0 shrink-0 flex-col gap-1 overflow-x-hidden overflow-y-auto border-r border-ui-subtle bg-ui-chrome p-3 font-ui", rail ? "w-[60px]" : "w-[232px]")}>
-        {/* In Edit there is no window strip, and the top bar starts after the sidebar: its header row drags the window. */}
+        {/* The sidebar runs the full height on every page and the title bar (the top bar, or the window strip) starts after it: its header row drags the window. */}
         <div data-tauri-drag-region={drag ? "" : undefined} className={cn("mb-3 flex h-8 shrink-0 items-center gap-2", rail ? "justify-center" : "pl-1")}>
           {narrow || !rail ? <StudioLogo className="pointer-events-none h-7 w-7 shrink-0" /> : null}
           {!rail && <span className={cn("min-w-0 flex-1 truncate text-body font-medium text-ui-1", drag && "pointer-events-none")}>InfoPanel Studio</span>}
@@ -240,7 +240,7 @@ export default function StudioSidebar(props: StudioSidebarProps) {
         </div>
         <nav aria-label="Studio views" className="flex shrink-0 flex-col gap-0.5">
           <NavRow label="Screens" icon={LayoutGrid} rail={rail} active={active === "screens"} onClick={() => onSelect("screens")} />
-          <NavRow label={`Continue editing ${screenName}`} text="Continue editing" icon={Pencil} rail={rail} active={active === "design"} onClick={() => onSelect("design")} />
+          <NavRow label={`Edit ${screenName}`} text="Edit" icon={Pencil} rail={rail} active={active === "design"} onClick={() => onSelect("design")} />
           {VIEWS.map((v) => (
             <NavRow key={v.id} label={v.label} icon={v.icon} rail={rail} active={active === v.id} badge={v.id === "alerts" ? alerts : 0} onClick={() => onSelect(v.id)} />
           ))}

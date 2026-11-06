@@ -26,7 +26,7 @@ test("the breadcrumb has Screen settings… and no sliders button", async ({ pag
   await entry.click();
   // The drawer is a modal dialog: the page behind it is inert until Esc closes it.
   await expect(page.getByLabel("Screen details")).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Continue editing/ })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: /^Edit / })).toHaveCount(0);
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: /^Continue editing/ })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: /^Edit / })).toBeVisible();
 });

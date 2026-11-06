@@ -585,7 +585,7 @@ Live sensor source is disabled. The rest of spec §10 is listed in `docs/redesig
 
 ### Editing a canvas zone: Edit
 
-There is one editor view, Edit (the sidebar's Continue editing, view `design`). On a grid page it shows the grid; on a Free page
+There is one editor view, Edit (the sidebar's Edit, view `design`). On a grid page it shows the grid; on a Free page
 (`isFreePage` in `lib/free-pages.ts`: one canvas zone filling the grid, read from the page's shape since v15) it hosts the canvas editor
 (`src/components/infopanel/edit/canvas-editor.tsx`, lazy-loaded) in the same studio shell: the sidebar, the left panel
 frame (`LeftPanelFrame`, Layers and Add tabs), the page tabs and the inspector column. Since Edit v3 phase 6 there
@@ -1569,7 +1569,7 @@ widget-editor reveal.
 
 **Studio sidebar and views** (`sidebar/studio-sidebar.tsx`). A 232 px sidebar, a 60 px rail when collapsed (stored per
 area in local flags, always a rail under 960 px, a bottom bar on a phone), opens one full view at a time: **Screens**,
-**Continue editing** (Design), **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data sources**, with Settings,
+**Edit** (Design), **Theme**, **Library**, **Gauges**, **Alerts & Island** and **Data sources**, with Settings,
 Help and shortcuts, the attention rows and the Data API card at the foot. The card reads `use-status-bar.ts`, whose
 10 s grace (`use-data-api-grace.ts`) is studio-only; `window-strip.tsx` is the desktop title bar on a page with no top bar. Design's left panel
 (`design-left-panel.tsx`) is **Layers** (`layers-tree.tsx`, the page's parts and groups top first, see the page

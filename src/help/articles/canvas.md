@@ -8,7 +8,7 @@ verified: 1.3.0-beta.36
 
 A free-form editor over the imported profile. Every edit stays valid on the imported canvas.
 
-The editor is **Continue editing** in the sidebar, the same view that edits a grid screen. An imported InfoPanel profile opens in it from its card in Screens. See [InfoPanel profiles in Edit](infopanel-editor) for adding items, choosing sensors and the page's settings.
+The editor is **Edit** in the sidebar, the same view that edits a grid screen. An imported InfoPanel profile opens in it from its card in Screens. See [InfoPanel profiles in Edit](infopanel-editor) for adding items, choosing sensors and the page's settings.
 
 An InfoPanel item or element added from **Add** to a grid page goes on the page itself, among the widgets, and doesn't make an area of its own (see [Add](studio#add)).
 

@@ -1236,7 +1236,6 @@ function StudioViewBody({
           pushPending={pushPending}
         />
       </PreviewDataProvider>
-      {fullPage && !phone && <WindowStrip />}
       <div className="flex min-h-0 flex-1">
       {!phone && (
         <Suspense fallback={<div className="w-[60px] shrink-0 border-r border-ui-subtle bg-ui-chrome" />}>
@@ -1273,6 +1272,7 @@ function StudioViewBody({
         </Suspense>
       )}
       <div className="flex min-w-0 flex-1 flex-col">
+      {fullPage && !phone && <WindowStrip />}
       {(!fullPage || phone) && <StudioTopBar
         profiles={config.profiles}
         profile={storedProfile}

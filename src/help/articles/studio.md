@@ -13,7 +13,7 @@ The editor window: a sidebar of views on the left, the work area in the middle, 
 | View | What it holds |
 |---|---|
 | **Screens** | Your screens: which one opens, sizes, pages, rotation and each screen's own frame rate. **New** opens the New page, where you start from Blank or a template. See [Screens and the grid](profiles). |
-| **Continue editing** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets** (the widgets, InfoPanel's items and elements, as tiles), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
+| **Edit** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets** (the widgets, InfoPanel's items and elements, as tiles), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
 | **Theme** | One editor for the theme at every level: Browse themes, its quick changes, your saved themes and colors. See [Themes](themes). |
 | **Library** | Your Styles, Panels, gauges, media, fonts and canvases. See [Library](library). |
 | **Gauges** | Browse, edit and build gauges. See [Gauges](gauges). |
@@ -28,7 +28,7 @@ At the foot, above Settings, **Live** shows how many kiosks are connected and op
 
 ## The editor's top bar
 
-Other views have a page header; the top bar belongs to Edit. In the desktop app every view has the thin window strip with the caption buttons.
+Other views have a page header; the top bar belongs to Edit. In the desktop app every view has the window strip with the caption buttons beside the sidebar.
 
 - The breadcrumb names the screen (with a pencil to rename it) and its page; the screen name opens a list of your screens, each with its size, and the pages of the current one. Pick one to edit it. **Manage screens…** opens **Screens**, and **Screen settings…** opens **Screens** on the screen you are editing. Which screen your displays open is set in **Settings › Dashboard › Startup screen**. See [Screens and the grid](profiles#which-screen-opens).
 - The top of that list says what the screen is: **Imported from InfoPanel** for a profile brought in from an .infopanel file or the InfoPanel app, otherwise **Screen**.
