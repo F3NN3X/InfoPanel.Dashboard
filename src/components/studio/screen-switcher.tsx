@@ -47,7 +47,7 @@ export function ScreenSwitcher({ profiles, profile, pageId, onSelect, onManage, 
           {profile.name}
           {compact && <span className="font-normal text-ui-3"> / {page.name}</span>}
         </span>
-        <span className="font-ui-mono text-micro text-ui-hint max-[959px]:hidden">
+        <span className="font-ui-mono text-micro text-ui-hint max-[1279px]:hidden">
           {profile.width} × {profile.height} · {profile.cols} × {profile.rows} grid
         </span>
       </Popover.Trigger>

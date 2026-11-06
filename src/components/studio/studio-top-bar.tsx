@@ -81,10 +81,10 @@ function Breadcrumb(props: StudioTopBarProps) {
     <div className="flex min-w-0 shrink items-center gap-1">
       {!phone && (
         <>
-          <button type="button" onClick={props.onManageScreens} className={cn("h-7 shrink-0 rounded-ui-md px-1.5 text-body text-ui-3 transition-colors hover:text-ui-1 max-[959px]:hidden", FOCUS_RING)}>
+          <button type="button" onClick={props.onManageScreens} className={cn("h-7 shrink-0 rounded-ui-md px-1.5 text-body text-ui-3 transition-colors hover:text-ui-1 max-[1279px]:hidden", FOCUS_RING)}>
             Screens
           </button>
-          <ChevronRight className="h-4 w-4 shrink-0 text-ui-hint max-[959px]:hidden" aria-hidden />
+          <ChevronRight className="h-4 w-4 shrink-0 text-ui-hint max-[1279px]:hidden" aria-hidden />
         </>
       )}
       {renaming ? (
@@ -179,7 +179,7 @@ export function StudioTopBar(props: StudioTopBarProps) {
             )}
           >
             <StatusDot tone={saved.tone} />
-            <span role="status" className="min-w-0 truncate max-[959px]:sr-only">
+            <span role="status" className="min-w-0 truncate max-[1279px]:sr-only">
               {saved.text}
             </span>
           </button>
@@ -187,9 +187,9 @@ export function StudioTopBar(props: StudioTopBarProps) {
             type="button"
             onClick={props.onExitStudio}
             title="Open kiosk view"
-            className={cn("flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 transition-colors hover:bg-ui-hover", FOCUS_RING)}
+            className={cn("flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-ui-md border border-ui-strong bg-ui-raised px-3 text-body text-ui-1 transition-colors hover:bg-ui-hover max-[1279px]:w-8 max-[1279px]:justify-center max-[1279px]:px-0", FOCUS_RING)}
           >
-            <Play className="h-3.5 w-3.5" aria-hidden /> <span className="max-[959px]:sr-only">Preview</span>
+            <Play className="h-3.5 w-3.5" aria-hidden /> <span className="max-[1279px]:sr-only">Preview</span>
           </button>
           {props.fileMenu}
         </>
