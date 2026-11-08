@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { RAMP_START } from "@/looks/data-viz";
 import { readCpuFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, heat, rampColor, accentOf, hw, Num, useIpTag, STATE, type ShellProps } from "./kit";
-import { meta } from "./meta/CoreHeatmap";
+import { Widget, shell, get, num, fmt, heat, rampColor, accentOf, hw, Num, useIpTag, STATE, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

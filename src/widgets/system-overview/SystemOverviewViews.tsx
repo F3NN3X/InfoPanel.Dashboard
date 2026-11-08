@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { fitGrid, fitRows, Num, Ring, Spark, ToneCue, TONES, type Tone } from "./kit";
+import { fitGrid, fitRows, Num, Ring, Spark, ToneCue, TONES, type Tone } from "../kit";
 
 /** One metric of the Graphs / Gauges views, already read, formatted and coloured. */
 export interface MetricRow {

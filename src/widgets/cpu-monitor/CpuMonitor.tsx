@@ -1,9 +1,9 @@
-import { SKINS } from "./core/theme";
+import { SKINS } from "../core/theme";
 import { readCpuFlat, readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { fitRows, roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, scaleY, type ShellProps } from "./kit";
-import { meta } from "./meta/CpuMonitor";
+import { fitRows, roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, useHistory, tone, Empty, heat, hw, Num, scaleY, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

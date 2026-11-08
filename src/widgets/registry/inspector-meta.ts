@@ -13,13 +13,8 @@ const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta,
 /** Every group widget, by id; a folder widget (`src/widgets/<kebab-id>/widget.ts`) carries its own `inspector`. */
 export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group A: system and hardware
-  SystemOverview: as("title-only", DENSE, { fmt: ["tempUnit", "decimals"], thr: ["load", "temp", "full"] }),
   KpiTiles: as("none", BOTH),
   Vitals: as("none", BOTH),
-  // The unit and decimals of its temperatures.
-  CpuMonitor: yes(CARD, { fmt: ["tempUnit", "decimals"], thr: ["load"] }),
-  CoreHeatmap: yes(DENSE),
-  GpuMonitor: yes(CARD, { thr: ["temp"] }),
   // Group B: storage, network, info, generic
   DriveSpace: yes(BOTH, { thr: ["full"] }),
   StorageHealth: yes(CARD),

@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "./kit";
-import { meta } from "./meta/GpuMonitor";
+import { roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 
