@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AudioState } from "@/lib/audio-control";
-import { allChannels, findChannel, iconOf, mixOf, muteAction, overridesOf, pickChannels, routeKey, volumeAction } from "@/widgets/StreamMixer/channels";
+import { allChannels, findChannel, iconOf, mixOf, muteAction, overridesOf, pickChannels, routeKey, volumeAction } from "@/widgets/stream-mixer/channels";
 
 const STATE: AudioState = {
   windows: {

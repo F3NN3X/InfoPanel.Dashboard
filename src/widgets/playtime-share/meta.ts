@@ -1,8 +1,5 @@
 // PlaytimeShare's catalog entry, apart from its component so the registry can list it without loading the widget.
 import type { WidgetMeta } from "../core/types";
-import { hue } from "../core/tokens";
-
-export const PALETTE = [hue(0), hue(70), hue(140), hue(210), hue(280), "rgba(255,255,255,0.35)"];
 
 export const meta: WidgetMeta = {
   id: "PlaytimeShare",

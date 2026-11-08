@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ChatMessage, ChatState } from "@/lib/chat";
 import { EMPTY_TWITCH, EMPTY_YOUTUBE } from "@/lib/extras";
-import { canSend, mentions, mergeChat, nameHue, sendTarget } from "@/widgets/StreamChat/merge";
+import { canSend, mentions, mergeChat, nameHue, sendTarget } from "@/widgets/stream-chat/merge";
 
 const msg = (id: string, ts: number, platform: ChatMessage["platform"] = "twitch"): ChatMessage => ({ id, platform, user: "u", text: id, color: "", badge: "", ts });
 

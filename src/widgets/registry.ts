@@ -4,13 +4,8 @@
 import { isDeviceKind, type DashboardModule } from "@/modules/types";
 import { GROUP_A } from "./registry/a";
 import { GROUP_B } from "./registry/b";
-import { GROUP_C } from "./registry/c";
 import { GROUP_D } from "./registry/d";
 import { GROUP_HISTORY } from "./registry/history";
-import { GROUP_STREAM_AUDIO } from "./registry/stream-audio";
-import { GROUP_STREAM_CHAT } from "./registry/stream-chat";
-import { GROUP_STREAM_DECK } from "./registry/stream-deck";
-import { GROUP_STREAM_OBS } from "./registry/stream-obs";
 import { fitSettings, INSPECTOR_META } from "./registry/inspector-meta";
 import { folderModule } from "./folder-module";
 import { FOLDER_SLOTS, FOLDER_WIDGETS } from "./registry.generated";
@@ -21,7 +16,7 @@ const deviceKindOf = (m: DashboardModule): DashboardModule["deviceKind"] => {
   return isDeviceKind(from) ? from : undefined;
 };
 
-const GROUPS: DashboardModule[] = [...GROUP_A, ...GROUP_B, ...GROUP_C, ...GROUP_D, ...GROUP_HISTORY, ...GROUP_STREAM_AUDIO, ...GROUP_STREAM_OBS, ...GROUP_STREAM_CHAT, ...GROUP_STREAM_DECK];
+const GROUPS: DashboardModule[] = [...GROUP_A, ...GROUP_B, ...GROUP_D, ...GROUP_HISTORY];
 
 /** The group widgets with their `INSPECTOR_META` entry, and each folder widget inserted at its place (in ascending order). */
 const ALL = FOLDER_WIDGETS.reduce(

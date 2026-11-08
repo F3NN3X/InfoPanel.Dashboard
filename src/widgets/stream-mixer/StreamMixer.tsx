@@ -2,17 +2,17 @@ import { useState } from "react";
 import { meterKey, useWavelinkMeter } from "@/lib/wavelink";
 import { audioAct, audioRefusal, useAudio, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, hue, type ShellProps } from "./kit";
-import type { MixerLook } from "./core/mixer-look";
-import { useDeviceLevel } from "./core/level-source";
-import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "./core/mixer-views";
-import { audioIds } from "./audio-data";
-import { allChannels, iconOf, pickChannels, type AudioSource, type MixChannel } from "./StreamMixer/channels";
-import { setVolume, toggleMute } from "./StreamMixer/control";
-import { MixFader, type FaderMode } from "./StreamMixer/Fader";
-import { OutputPicker } from "./StreamMixer/OutputPicker";
-import { ReadOnly } from "./ReadOnly";
-import { meta } from "./meta/StreamMixer";
+import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty, hue, type ShellProps } from "../kit";
+import type { MixerLook } from "../core/mixer-look";
+import { useDeviceLevel } from "../core/level-source";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "../core/mixer-views";
+import { audioIds } from "../audio-data";
+import { allChannels, iconOf, pickChannels, type AudioSource, type MixChannel } from "./channels";
+import { setVolume, toggleMute } from "./control";
+import { MixFader, type FaderMode } from "./Fader";
+import { OutputPicker } from "./OutputPicker";
+import { ReadOnly } from "../ReadOnly";
+import { meta } from "./meta";
 
 export { meta };
 

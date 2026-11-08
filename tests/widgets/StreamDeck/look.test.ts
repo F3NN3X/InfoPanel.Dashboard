@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { frameSurface, keyLook, keyRadius, pressedOf, scalePx, type IconOverlay } from "@/widgets/StreamDeck/look";
+import { frameSurface, keyLook, keyRadius, pressedOf, scalePx, type IconOverlay } from "@/widgets/stream-deck/look";
 import { skinContext } from "@/widgets/core/look";
 
 const pane = { className: "pane-class", style: { background: "red", boxShadow: "0 0 1px red" } };

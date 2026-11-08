@@ -2,11 +2,11 @@
 // keys and defaults the old Audio and Wave Link widgets stored.
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import type { WaveLinkProps } from "../WaveLink";
+import type { WaveLinkProps } from "../wave-link/WaveLink";
 import { flowFilterOf } from "../audio-data";
 import { MIXER_LOOK, type MixerLook } from "../core/mixer-look";
 import type { WidgetMeta } from "../core/types";
-import { meta as waveLinkMeta } from "../meta/WaveLink";
+import { meta as waveLinkMeta } from "../wave-link/meta";
 import { boolSetting, colorSetting, enumSetting, numberOf, numberSetting, oneOf, splitKeys, textSetting, viewKeyOf, viewSetting } from "./settings-kit";
 
 /** The meters' response (Behaviour › Motion), themed: the theme editor lists it too. */
@@ -294,3 +294,16 @@ export const autoCount = (v: unknown): number | undefined => {
   const n = numberOf(v);
   return n !== undefined && n > 0 ? n : undefined;
 };
+
+// The Stream Deck screen's audio widgets (Stream Mixer, Audio Button, Audio Fader) share these rows.
+const FADERS = [
+  { value: "leds", label: "LEDs" },
+  { value: "bar", label: "Bar" },
+];
+
+/** A row listing what the server's audio control offers now (channels, mixes, output devices). */
+export const audioPick = (key: string, label: string, extra: Partial<ModuleSetting> = {}): ModuleSetting => ({ key, label, type: "select", default: "", optionsFrom: "audio-control", tab: "data", ...extra });
+
+export const faderSetting = (): ModuleSetting => enumSetting("fader", "Fader", "leds", FADERS, { group: "Fader" });
+export const mixSetting = (visibleIf?: ModuleSetting["visibleIf"]): ModuleSetting => audioPick("mix", "Wave Link mix", { group: "Source", hint: "The mix whose levels and mutes the channels use", ...(visibleIf ? { visibleIf } : {}) });
+export const faderOf = (v: unknown) => oneOf(v, ["leds", "bar"] as const);

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({ extras: null as Extras | null, chat: null as C
 vi.mock("@/widgets/time-hooks", async (original) => ({ ...(await original<typeof import("@/widgets/time-hooks")>()), useExtras: () => mocks.extras }));
 vi.mock("@/lib/chat", async (original) => ({ ...(await original<typeof import("@/lib/chat")>()), useChat: () => mocks.chat, chatSend: mocks.send }));
 
-import StreamChat from "@/widgets/StreamChat";
+import StreamChat from "@/widgets/stream-chat/StreamChat";
 
 const m = (id: string, ts: number, user: string, text: string, extra: Partial<ChatMessage> = {}): ChatMessage => ({ id, platform: "twitch", user, text, color: "", badge: "", ts, ...extra });
 const state = (messages: ChatMessage[], connected = true): ChatState => ({ messages, platforms: { twitch: { connected, channel: "me" } } });

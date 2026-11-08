@@ -8,7 +8,7 @@ import { trackOf, type TrackSource } from "./now-playing/track";
 import { friendsOf } from "./friends-data";
 import { widgetImage } from "./data-adapter";
 import { boolSetting } from "./shared/settings-kit";
-import { fader } from "./WaveLink/fader";
+import { fader } from "./wave-link/fader";
 
 const NP_SOURCES = ["auto", "media", "spotify", "pushed"] as const;
 const npSource = (v: unknown): TrackSource | undefined => NP_SOURCES.find((s) => s === v);

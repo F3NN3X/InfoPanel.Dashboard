@@ -9,7 +9,7 @@ import { AUTO_RULES, autoDevice, deviceOptions, deviceReading } from "@/lib/devi
 import { cn } from "@/lib/utils";
 import { meterKey, useWavelinkState } from "@/lib/wavelink";
 import { shortName } from "@/widgets/audio-data";
-import { allChannels } from "@/widgets/StreamMixer/channels";
+import { allChannels } from "@/widgets/stream-mixer/channels";
 import type { DeviceKind, ModuleSetting, ModuleSettingValue } from "@/modules/types";
 import { ChipsField } from "./alerts-fields";
 import { SELECT as SELECT_BASE, StackRow, type RowLabelProps } from "./setting-rows";

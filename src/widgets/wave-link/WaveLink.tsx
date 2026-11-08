@@ -3,12 +3,12 @@ import { SILENCE_DB, formatDb } from "@/lib/audio/decibels";
 import { meterKey, useWavelinkMeter, useWavelinkState, type WlChannel, type WlDevice, type WlGain, type WlMix, type WlState } from "@/lib/wavelink";
 import type { ModuleSettings } from "@/modules/types";
 import { useElementSize } from "@/hooks/use-element-size";
-import { useFitRows, ChannelRow, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier } from "./kit";
-import { MeterPair, dbPos, fmtDb, levelBar, useWlLevels, type MeterVariant } from "./WaveLink/meters";
-import type { MixerLook } from "./core/mixer-look";
-import { MixerViewBody, PERCENT, fitMixer, toneOf, type FaderUnit, type StripChannel } from "./core/mixer-views";
-import { meta } from "./meta/WaveLink";
-import { fader } from "./WaveLink/fader";
+import { useFitRows, ChannelRow, Widget, shell, Icon, Chip, Empty, STATE, type BallisticsPreset, type ShellProps, type Tier } from "../kit";
+import { MeterPair, dbPos, fmtDb, levelBar, useWlLevels, type MeterVariant } from "./meters";
+import type { MixerLook } from "../core/mixer-look";
+import { MixerViewBody, PERCENT, fitMixer, toneOf, type FaderUnit, type StripChannel } from "../core/mixer-views";
+import { meta } from "./meta";
+import { fader } from "./fader";
 
 export { meta, fader };
 

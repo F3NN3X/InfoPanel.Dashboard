@@ -1,11 +1,11 @@
 import { useRef, useState, type SubmitEvent } from "react";
 import { chatRefusal, chatSend, useChat, type ChatBadge, type ChatPlatform } from "@/lib/chat";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, fmt, Icon, Chip, Dot, Empty, hue, STATE, type ShellProps } from "./kit";
-import { canSend, mentions, mergeChat, nameHue, platformsOf, sendTarget, type ChatSource } from "./StreamChat/merge";
-import { useWholeRows } from "./StreamChat/whole-rows";
-import { useExtras } from "./time-hooks";
-import { meta } from "./meta/StreamChat";
+import { Widget, shell, fmt, Icon, Chip, Dot, Empty, hue, STATE, type ShellProps } from "../kit";
+import { canSend, mentions, mergeChat, nameHue, platformsOf, sendTarget, type ChatSource } from "./merge";
+import { useWholeRows } from "./whole-rows";
+import { useExtras } from "../time-hooks";
+import { meta } from "./meta";
 
 export { meta };
 

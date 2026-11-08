@@ -10,9 +10,9 @@ import { toFlat } from "@/widgets/data-adapter";
 import { sensorStore } from "@/lib/sensor-store";
 import type { ShellProps } from "@/widgets/kit";
 import { mixerLookOf } from "@/widgets/shared/audio-settings";
-import StreamMixer from "@/widgets/StreamMixer";
-import VolumeMixer from "@/widgets/VolumeMixer";
-import WaveLink from "@/widgets/WaveLink";
+import StreamMixer from "@/widgets/stream-mixer/StreamMixer";
+import VolumeMixer from "@/widgets/volume-mixer/VolumeMixer";
+import WaveLink from "@/widgets/wave-link/WaveLink";
 
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
 let AUDIO: AudioState = {
@@ -30,7 +30,7 @@ const sensorListeners: ((changed: readonly string[]) => void)[] = [];
 const fast = vi.hoisted(() => vi.fn());
 vi.mock("@/hooks/useSensors", async (orig) => ({ ...(await orig<typeof import("@/hooks/useSensors")>()), useFastSensors: fast }));
 const written = vi.hoisted(() => vi.fn());
-vi.mock("@/widgets/StreamMixer/control", async (orig) => ({ ...(await orig<typeof import("@/widgets/StreamMixer/control")>()), setVolume: written }));
+vi.mock("@/widgets/stream-mixer/control", async (orig) => ({ ...(await orig<typeof import("@/widgets/stream-mixer/control")>()), setVolume: written }));
 vi.mock("@/lib/audio-control", async (orig) => ({ ...(await orig<typeof import("@/lib/audio-control")>()), useAudio: () => AUDIO }));
 
 // happy-dom lays nothing out: each widget box reports this size.

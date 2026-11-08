@@ -1,0 +1,94 @@
+// Stream Deck: a virtual deck the dashboard server keeps in the Stream Deck app. What the registry needs; the component is its own chunk.
+// It reads the server's Stream Deck state (`src/lib/streamdeck.ts`), not sensor data.
+import { SURFACE_OPTIONS } from "@/modules/standard-settings";
+import { BOTH, defineWidget } from "../define";
+import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, oneOf, stringOf } from "../shared/settings-kit";
+import type { StreamDeckProps } from "./StreamDeck";
+import { meta } from "./meta";
+
+export default defineWidget({
+  meta,
+  inspector: { header: "yes", compact: BOTH },
+  settings: [
+    { key: "device", label: "Device", type: "select", default: "", optionsFrom: "streamdeck-devices", tab: "data", group: "Device", hint: "A virtual deck in the Stream Deck app. One widget, one device." },
+    // The grid lives on the device, not in the widget's saved settings: this row reads it from the server's stream and
+    // writes it with `{ op: "grid" }`; the value it is given is never used and it never changes it.
+    { key: "grid", label: "Grid", type: "select", default: "", optionsFrom: "streamdeck-grid", tab: "show", group: "Keys" },
+    boolSetting("showTitles", "Titles", true, { group: "Keys", tab: "show" }),
+    enumSetting(
+      "titleSize",
+      "Title size",
+      "md",
+      [
+        { value: "sm", label: "S" },
+        { value: "md", label: "M" },
+        { value: "lg", label: "L" },
+      ],
+      { group: "Keys", tab: "show", visibleIf: (v) => v.showTitles !== false }
+    ),
+    boolSetting("showPages", "Page row", true, { group: "Pages", tab: "show", hint: "Shows when the deck has more than one page" }),
+    boolSetting("swipe", "Swipe to change page", true, { group: "Pages", tab: "behaviour" }),
+    numberSetting("keyGap", "Key gap (px)", 8, { min: 0, max: 24, step: 1, group: "Key look", tab: "show" }),
+    numberSetting("keyRadius", "Key corner radius (px)", 0, { min: 0, max: 48, step: 1, group: "Key look", tab: "show", hint: "0 follows the widget's corners" }),
+    enumSetting(
+      "keyStyle",
+      "Key style",
+      "auto",
+      [{ value: "auto", label: "Theme's card" }, { value: "widget", label: "Same as widget" }, { value: "plain", label: "Plain" }, ...SURFACE_OPTIONS],
+      { group: "Key look", tab: "show", hint: "The keys' surface; it shows as a frame round each icon" }
+    ),
+    enumSetting(
+      "keyFrame",
+      "Frame",
+      "thin",
+      [
+        { value: "none", label: "None" },
+        { value: "thin", label: "Thin" },
+        { value: "thick", label: "Thick" },
+      ],
+      { group: "Key look", tab: "show", visibleIf: (v) => v.keyStyle !== "plain" }
+    ),
+    enumSetting(
+      "iconOverlay",
+      "Icon overlay",
+      "skin",
+      [
+        { value: "skin", label: "Theme's edge" },
+        { value: "sheen", label: "Sheen" },
+        { value: "glow", label: "Glow" },
+        { value: "none", label: "None" },
+      ],
+      { group: "Key look", tab: "show", hint: "Drawn over each icon" }
+    ),
+    numberSetting("overlayStrength", "Overlay strength (%)", 100, { min: 0, max: 100, step: 5, group: "Key look", tab: "show", visibleIf: (v) => v.iconOverlay !== "none" }),
+    enumSetting(
+      "pressedEffect",
+      "Pressed effect",
+      "skin",
+      [
+        { value: "skin", label: "Widget style" },
+        { value: "dip", label: "Dip" },
+        { value: "glow", label: "Glow" },
+        { value: "none", label: "None" },
+      ],
+      { group: "Key look", tab: "show" }
+    ),
+  ],
+  render: {
+    load: () => import("./StreamDeck"),
+    toProps: (s): Pick<StreamDeckProps, "device" | "showTitles" | "titleSize" | "showPages" | "swipe" | "keyGap" | "keyRadius" | "keyStyle" | "keyFrame" | "iconOverlay" | "overlayStrength" | "pressedEffect"> => ({
+      device: stringOf(s.device),
+      showTitles: boolOf(s.showTitles),
+      titleSize: oneOf(s.titleSize, ["sm", "md", "lg"] as const),
+      showPages: boolOf(s.showPages),
+      swipe: boolOf(s.swipe),
+      keyGap: numberOf(s.keyGap),
+      keyRadius: numberOf(s.keyRadius),
+      keyStyle: stringOf(s.keyStyle),
+      keyFrame: oneOf(s.keyFrame, ["none", "thin", "thick"] as const),
+      iconOverlay: oneOf(s.iconOverlay, ["skin", "sheen", "glow", "none"] as const),
+      overlayStrength: numberOf(s.overlayStrength),
+      pressedEffect: oneOf(s.pressedEffect, ["skin", "dip", "glow", "none"] as const),
+    }),
+  },
+});
