@@ -1,17 +1,17 @@
 import { audioRefusal, useAudio } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, fmt, clamp, roomy, Icon, Num, Empty, hue, type ShellProps } from "./kit";
-import { findChannel, iconOf } from "./StreamMixer/channels";
-import { setVolume, toggleMute } from "./StreamMixer/control";
-import { MixFader, type FaderMode } from "./StreamMixer/Fader";
-import { ReadOnly } from "./ReadOnly";
-import { meta } from "./meta/AudioFader";
+import { Widget, shell, fmt, clamp, roomy, Icon, Num, Empty, hue, type ShellProps } from "../kit";
+import { findChannel, iconOf } from "../stream-mixer/channels";
+import { setVolume, toggleMute } from "../stream-mixer/control";
+import { MixFader, type FaderMode } from "../stream-mixer/Fader";
+import { ReadOnly } from "../ReadOnly";
+import { meta } from "./meta";
 
 export { meta };
 
 export interface AudioFaderProps extends ShellProps {
   look?: ModuleSettings;
-  /** The channel: `master`, `mic`, `app:<exe>`, `wl:<channel>` (see `StreamMixer/channels.ts`). */
+  /** The channel: `master`, `mic`, `app:<exe>`, `wl:<channel>` (see `stream-mixer/channels.ts`). */
   channel?: string;
   /** Wave Link's mix for a `wl:` channel: an id, "all", or unset for the first. */
   mix?: string;

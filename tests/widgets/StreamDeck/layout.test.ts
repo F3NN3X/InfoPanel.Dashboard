@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitKeys, keyWindows, pageText, swipeOf, titlePx } from "@/widgets/StreamDeck/layout";
+import { fitKeys, keyWindows, pageText, swipeOf, titlePx } from "@/widgets/stream-deck/layout";
 
 describe("fitKeys", () => {
   it("fits square keys by the tighter side and reports the grid's size", () => {

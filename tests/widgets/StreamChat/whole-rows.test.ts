@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wholeRows } from "@/widgets/StreamChat/whole-rows";
+import { wholeRows } from "@/widgets/stream-chat/whole-rows";
 
 describe("wholeRows", () => {
   const rows = [20, 20, 40, 20]; // oldest first: 20, +3+40, +3+20, +3+20 = 109 with the gaps

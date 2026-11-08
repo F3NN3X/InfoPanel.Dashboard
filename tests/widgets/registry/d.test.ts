@@ -10,7 +10,7 @@ import FpsMonitor, { meta as fps } from "@/widgets/FpsMonitor";
 import FramePacing, { meta as pacing } from "@/widgets/FramePacing";
 import GameSpotlight, { meta as spotlight } from "@/widgets/game-spotlight/GameSpotlight";
 import OsdStrip, { meta as osd } from "@/widgets/osd-strip/OsdStrip";
-import PlaytimeShare, { meta as playtime } from "@/widgets/PlaytimeShare";
+import PlaytimeShare, { meta as playtime } from "@/widgets/playtime-share/PlaytimeShare";
 import SteamGame, { meta as game } from "@/widgets/steam-game/SteamGame";
 import SteamLibrary, { meta as library } from "@/widgets/steam-library/SteamLibrary";
 import SteamNews, { meta as news } from "@/widgets/steam-news/SteamNews";

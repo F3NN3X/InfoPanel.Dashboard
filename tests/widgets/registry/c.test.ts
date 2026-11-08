@@ -8,8 +8,8 @@ import AudioMeter, { meta as audioMeter } from "@/widgets/audio-meter/AudioMeter
 import MeterBridge, { meta as meterBridge } from "@/widgets/meter-bridge/MeterBridge";
 import NowPlaying, { meta as nowPlaying } from "@/widgets/now-playing/NowPlaying";
 import Visualizer, { meta as visualizer } from "@/widgets/visualizer/Visualizer";
-import VolumeMixer, { meta as volumeMixer } from "@/widgets/VolumeMixer";
-import WaveLink, { meta as waveLink } from "@/widgets/WaveLink";
+import VolumeMixer, { meta as volumeMixer } from "@/widgets/volume-mixer/VolumeMixer";
+import WaveLink, { meta as waveLink } from "@/widgets/wave-link/WaveLink";
 import { GROUP_C_IDS, groupOf } from "./group-of";
 import type { ShellProps } from "@/widgets/kit";
 

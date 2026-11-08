@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { modules } from "@/modules";
@@ -15,6 +16,11 @@ const DIR = "src/widgets";
 const read = (rel: string) => readFileSync(rel, "utf8").replace(/\r\n/g, "\n");
 /** The `from "<spec>"` of each import line that brings in values (not `import type`). */
 const valueImports = (text: string) => [...text.matchAll(/^import (?!type\b)[^;]*?from "([^"]+)";/gm)].map((m) => m[1]);
+/** The source file a relative or `@/` import names (`.ts` or `.tsx`), if the repo has one. */
+const sourceOf = (dir: string, spec: string) => {
+  const base = spec.startsWith("@/") ? join("src", spec.slice(2)) : join(dir, spec);
+  return [`${base}.ts`, `${base}.tsx`].find((f) => existsSync(f));
+};
 const folders = widgetFolders();
 
 describe("the widget folders", () => {
@@ -49,8 +55,12 @@ describe("the widget folders", () => {
       expect(html, "draws its own markup from the central sample").toMatch(/data-wp-/);
     });
 
-    it("keeps its component out of the kiosk entry: meta.ts imports types only, widget.ts the component as a type only", () => {
-      expect(valueImports(read(`${folder}/meta.ts`))).toEqual([]);
+    it("keeps its component out of the kiosk entry: meta.ts imports types only (or values from a module that does), widget.ts the component as a type only", () => {
+      for (const spec of valueImports(read(`${folder}/meta.ts`))) {
+        const file = sourceOf(folder, spec);
+        expect(file, `meta.ts: ${spec} is a module of this repo`).toBeDefined();
+        expect(valueImports(read(file!)), `meta.ts: ${spec} imports types only`).toEqual([]);
+      }
       const component = `./${id}`;
       const widget = read(`${folder}/widget.ts`);
       expect(valueImports(widget)).not.toContain(component);

@@ -17,8 +17,8 @@ vi.mock("@/hooks/useSensors", async (original) => ({ ...(await original<typeof i
 
 import { audioRefusal } from "@/lib/audio-control";
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
-import AudioButton from "@/widgets/AudioButton";
-import StreamMixer from "@/widgets/StreamMixer";
+import AudioButton from "@/widgets/audio-button/AudioButton";
+import StreamMixer from "@/widgets/stream-mixer/StreamMixer";
 import { mixerLookOf } from "@/widgets/shared/audio-settings";
 
 const SAMPLE: AudioState = {

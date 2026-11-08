@@ -20,27 +20,12 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   Forecast: yes(BOTH, { fmt: ["tempUnit"] }),
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
-  // Group C: media / audio
-  VolumeMixer: yes(BOTH),
-  WaveLink: yes(BOTH),
   // Group D: gaming
   FpsMonitor: yes(CARD),
   FramePacing: yes(BOTH),
-  PlaytimeShare: yes(BOTH),
-  // Group E: the plain plugin cards
-  StreamDeck: yes(BOTH),
   // History and analysis
   SessionStats: yes(CARD),
   ThresholdTimeline: yes(CARD, { thr: ["value"] }),
-  // Stream audio: the server's audio control
-  StreamMixer: yes(BOTH),
-  AudioButton: yes(NONE),
-  AudioFader: yes(NONE),
-  // Stream OBS: the server's OBS connection
-  StreamControl: yes(BOTH),
-  ObsButton: yes(NONE),
-  // Stream chat: the server's Twitch connection
-  StreamChat: yes(BOTH),
 };
 
 /**

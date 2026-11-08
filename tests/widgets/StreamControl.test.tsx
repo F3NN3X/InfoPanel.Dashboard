@@ -17,8 +17,8 @@ vi.mock("@/widgets/kit", async (original) => ({
 }));
 vi.mock("@/lib/obs-control", async (original) => ({ ...(await original<typeof import("@/lib/obs-control")>()), obsAct: mocks.act }));
 
-import ObsButton from "@/widgets/ObsButton";
-import StreamControl from "@/widgets/StreamControl";
+import ObsButton from "@/widgets/obs-button/ObsButton";
+import StreamControl from "@/widgets/stream-control/StreamControl";
 
 const connected = (obs: Partial<Extras["obs"]> = {}): Extras => ({
   ...EMPTY_EXTRAS,

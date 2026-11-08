@@ -2,11 +2,11 @@ import { useRef, type ReactNode } from "react";
 import { obsAct, obsRefusal } from "@/lib/obs-control";
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, fmt, clamp, Icon, Chip, Dot, Num, Spark, Empty, useHistory, hue, STATE, type ShellProps } from "./kit";
-import { ReadOnly } from "./ReadOnly";
-import { clock, GAP, planTiles } from "./StreamControl/layout";
-import { useExtras, useInStudio, useNow } from "./time-hooks";
-import { meta } from "./meta/StreamControl";
+import { Widget, shell, fmt, clamp, Icon, Chip, Dot, Num, Spark, Empty, useHistory, hue, STATE, type ShellProps } from "../kit";
+import { ReadOnly } from "../ReadOnly";
+import { clock, GAP, planTiles } from "./layout";
+import { useExtras, useInStudio, useNow } from "../time-hooks";
+import { meta } from "./meta";
 
 export { meta };
 

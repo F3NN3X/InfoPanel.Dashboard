@@ -3,13 +3,13 @@ import { deckAct, deckPress, iconUrl, streamDeckRefusal, useStreamDeck, useStrea
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import type { ModuleSettings } from "@/modules/types";
 import { chromeOf } from "@/modules/standard-settings";
-import { Widget, shell, Icon, Empty, usePane, accentVars, type ShellProps } from "./kit";
-import { ReadOnly } from "./ReadOnly";
-import { resolveAccent, skinContext } from "./core/look";
-import type { SkinContext } from "./core/types";
-import { fitKeys, HOLD_MS, keyWindows, MIN_TOUCH_KEY, PAGE_ROW, pageText, SLOP_PX, swipeOf, titlePx, WINDOW_COLS, WINDOW_MIN_KEY, WINDOW_ROWS } from "./StreamDeck/layout";
-import { frameSurface, keyLook, keyRadius, pressedOf, type IconOverlay, type KeyFrame, type KeyStyle, type PressedEffect } from "./StreamDeck/look";
-import { meta } from "./meta/StreamDeck";
+import { Widget, shell, Icon, Empty, usePane, accentVars, type ShellProps } from "../kit";
+import { ReadOnly } from "../ReadOnly";
+import { resolveAccent, skinContext } from "../core/look";
+import type { SkinContext } from "../core/types";
+import { fitKeys, HOLD_MS, keyWindows, MIN_TOUCH_KEY, PAGE_ROW, pageText, SLOP_PX, swipeOf, titlePx, WINDOW_COLS, WINDOW_MIN_KEY, WINDOW_ROWS } from "./layout";
+import { frameSurface, keyLook, keyRadius, pressedOf, type IconOverlay, type KeyFrame, type KeyStyle, type PressedEffect } from "./look";
+import { meta } from "./meta";
 
 export { meta };
 

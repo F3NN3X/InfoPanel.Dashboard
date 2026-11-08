@@ -1,35 +1,21 @@
 // Template widgets, group D: gaming (see _docs/redesign/phase9/brief-9.3c-templates.md).
-import type { DashboardModule, ModuleSettings, PaletteRole } from "@/modules/types";
+import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
-import { colorSetting, listOf, numberOf, numberSetting, splitKeys, textSetting, viewOnly, viewSetting, type ColorEntry } from "../shared/settings-kit";
+import { listOf, numberOf, numberSetting, splitKeys, textSetting, viewOnly, viewSetting } from "../shared/settings-kit";
 import type { FpsMonitorProps } from "../FpsMonitor";
 import { meta as fpsMonitorMeta } from "../meta/FpsMonitor";
 import type { FramePacingProps } from "../FramePacing";
 import { meta as framePacingMeta } from "../meta/FramePacing";
 import { FPS_LOOK_SETTINGS, fpsLookProps, targetOf, targetSetting } from "../fps-settings";
 import { fpsIsland } from "../island/gaming";
-import type { PlaytimeShareProps } from "../PlaytimeShare";
-import { PALETTE, meta as playtimeShareMeta } from "../meta/PlaytimeShare";
 
 // Each component loads in its own chunk, the first time a zone draws it.
 const FpsMonitor = lazyWidget(() => import("../FpsMonitor"));
 const FramePacing = lazyWidget(() => import("../FramePacing"));
-const PlaytimeShare = lazyWidget(() => import("../PlaytimeShare"));
 
 /** The gauge and trend views read the metrics, sparkline and colours; the frame-time graph reads none of them. */
 const gaugeOnly = viewOnly(fpsMonitorMeta, "gauge", "trend");
-
-/** The slices follow the theme's Series 1 to 6. */
-const PLAYTIME_ROLES = ["s1", "s2", "s3", "s4", "s5", "s6"] as const satisfies readonly PaletteRole[];
-const PLAYTIME_COLORS: ColorEntry[] = PALETTE.map((_, i) => ({ entry: String(i), key: `color${i + 1}`, label: `Slice ${i + 1}` }));
-/** The slice colours: a stored `colors` list, else the per-slice colours (an unset slice keeps its default). */
-function playtimeColors(s: ModuleSettings): string[] | undefined {
-  const list = listOf(s.colors, (x) => (typeof x === "string" && x ? x : undefined));
-  if (list?.length) return list;
-  const set = PLAYTIME_COLORS.map((c) => String(s[c.key] ?? "").trim());
-  return set.some(Boolean) ? set.map((c, i) => c || PALETTE[i]) : undefined;
-}
 
 /** Budget lines in Hz: a stored list or a comma-separated string ("" = the widget's default). */
 const hzList = (v: unknown): number[] | undefined => {
@@ -57,11 +43,5 @@ export const GROUP_D: DashboardModule[] = [
       numberSetting("window", "Samples", 120, { min: 30, max: 600, step: 10, group: "History", tab: "behaviour" }),
     ],
     toProps: (s) => ({ budgets: hzList(s.budgets), window: numberOf(s.window) }),
-  }),
-  templateModule<Pick<PlaytimeShareProps, "colors">>({
-    meta: playtimeShareMeta,
-    Component: PlaytimeShare,
-    settings: PLAYTIME_COLORS.map((c, i) => colorSetting(c.key, c.label, { role: PLAYTIME_ROLES[i], more: false })),
-    toProps: (s) => ({ colors: playtimeColors(s) }),
   }),
 ];

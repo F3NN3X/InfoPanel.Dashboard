@@ -1,7 +1,7 @@
 import { createElement, type ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
-import { MixFader } from "@/widgets/StreamMixer/Fader";
+import { MixFader } from "@/widgets/stream-mixer/Fader";
 import { CardFrame } from "@/widgets/core/card-frame";
 import { skinContext } from "@/widgets/core/look";
 import { HoldMark, LedLadder, Num, Ring, Spark } from "@/widgets/core/primitives";

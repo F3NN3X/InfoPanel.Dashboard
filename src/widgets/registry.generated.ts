@@ -2,6 +2,8 @@
 // The widget folders, kiosk-safe: each widget.ts holds metadata and settings, and its component as a lazy import only.
 import type { WidgetDefinition } from "./define";
 import achievements from "./achievements/widget";
+import audioButton from "./audio-button/widget";
+import audioFader from "./audio-fader/widget";
 import audioMeter from "./audio-meter/widget";
 import bluetooth from "./bluetooth/widget";
 import bottleneckLens from "./bottleneck-lens/widget";
@@ -27,8 +29,10 @@ import networkAdapters from "./network-adapters/widget";
 import networkThroughput from "./network-throughput/widget";
 import notifications from "./notifications/widget";
 import nowPlaying from "./now-playing/widget";
+import obsButton from "./obs-button/widget";
 import onAirBeacon from "./on-air-beacon/widget";
 import osdStrip from "./osd-strip/widget";
+import playtimeShare from "./playtime-share/widget";
 import powerDraw from "./power-draw/widget";
 import processList from "./process-list/widget";
 import radialClockStack from "./radial-clock-stack/widget";
@@ -42,6 +46,10 @@ import steamLibrary from "./steam-library/widget";
 import steamNews from "./steam-news/widget";
 import steamProfile from "./steam-profile/widget";
 import storageHealth from "./storage-health/widget";
+import streamChat from "./stream-chat/widget";
+import streamControl from "./stream-control/widget";
+import streamDeck from "./stream-deck/widget";
+import streamMixer from "./stream-mixer/widget";
 import systemOverview from "./system-overview/widget";
 import systemStatus from "./system-status/widget";
 import textFile from "./text-file/widget";
@@ -49,10 +57,12 @@ import thermals from "./thermals/widget";
 import timer from "./timer/widget";
 import uptime from "./uptime/widget";
 import visualizer from "./visualizer/widget";
+import volumeMixer from "./volume-mixer/widget";
+import waveLink from "./wave-link/widget";
 import webPage from "./web-page/widget";
 
 /** The folder widgets in the order of src/widgets/order.ts. */
 // biome-ignore lint/suspicious/noExplicitAny: each definition keeps its own props type.
-export const FOLDER_WIDGETS: readonly WidgetDefinition<any>[] = [systemOverview, menuBar, statusTracker, systemStatus, serviceHealth, processList, uptime, cpuMonitor, coreHeatmap, gpuRings, gpuMonitor, memoryUsage, thermals, powerDraw, fans, driveSpace, storageHealth, diskIo, networkThroughput, networkAdapters, clock, timer, countdown, statusBar, codingAgents, calendar, sensorGroup, nowPlaying, audioMeter, meterBridge, visualizer, gameSpotlight, osdStrip, steamProfile, steamFriends, steamGame, achievements, steamLibrary, steamNews, webPage, textFile, notifications, departures, bluetooth, dayPlanner, radialClockStack, onAirBeacon, bottleneckLens, frameHistogram];
+export const FOLDER_WIDGETS: readonly WidgetDefinition<any>[] = [systemOverview, menuBar, statusTracker, systemStatus, serviceHealth, processList, uptime, cpuMonitor, coreHeatmap, gpuRings, gpuMonitor, memoryUsage, thermals, powerDraw, fans, driveSpace, storageHealth, diskIo, networkThroughput, networkAdapters, clock, timer, countdown, statusBar, codingAgents, calendar, sensorGroup, nowPlaying, audioMeter, volumeMixer, meterBridge, visualizer, waveLink, gameSpotlight, osdStrip, playtimeShare, steamProfile, steamFriends, steamGame, achievements, steamLibrary, steamNews, webPage, textFile, notifications, departures, bluetooth, dayPlanner, radialClockStack, onAirBeacon, bottleneckLens, frameHistogram, streamMixer, audioButton, audioFader, streamControl, obsButton, streamChat, streamDeck];
 /** Each one's index in src/widgets/order.ts: its place among all the widgets. */
-export const FOLDER_SLOTS: readonly number[] = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 33, 34, 36, 37, 40, 41, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59];
+export const FOLDER_SLOTS: readonly number[] = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 33, 34, 35, 36, 37, 38, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67, 68];

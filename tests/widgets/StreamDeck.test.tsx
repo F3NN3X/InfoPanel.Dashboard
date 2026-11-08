@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HOLD_MS } from "@/widgets/StreamDeck/layout";
+import { HOLD_MS } from "@/widgets/stream-deck/layout";
 import type { StreamDeckLink, StreamDeckState } from "@/lib/streamdeck";
 
 const mocks = vi.hoisted(() => ({ state: null as StreamDeckState | null, link: "open" as StreamDeckLink, press: vi.fn(), act: vi.fn() }));
@@ -18,7 +18,7 @@ vi.mock("@/lib/streamdeck", async (original) => ({
 }));
 
 import { streamDeckRefusal } from "@/lib/streamdeck";
-import StreamDeck from "@/widgets/StreamDeck";
+import StreamDeck from "@/widgets/stream-deck/StreamDeck";
 
 const deck = (extra: Record<string, unknown> = {}) => ({
   id: "d1",

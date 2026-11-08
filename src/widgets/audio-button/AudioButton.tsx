@@ -1,10 +1,10 @@
 import { audioAct, audioRefusal, useAudio } from "@/lib/audio-control";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, ButtonTile, STATE, type ShellProps } from "./kit";
-import { findChannel, iconOf } from "./StreamMixer/channels";
-import { toggleMute } from "./StreamMixer/control";
-import { ReadOnly } from "./ReadOnly";
-import { meta } from "./meta/AudioButton";
+import { Widget, shell, ButtonTile, STATE, type ShellProps } from "../kit";
+import { findChannel, iconOf } from "../stream-mixer/channels";
+import { toggleMute } from "../stream-mixer/control";
+import { ReadOnly } from "../ReadOnly";
+import { meta } from "./meta";
 
 export { meta };
 
@@ -12,7 +12,7 @@ export interface AudioButtonProps extends ShellProps {
   look?: ModuleSettings;
   /** `mute` flips a channel's mute; `output` makes a device the default output. */
   action?: "mute" | "output";
-  /** The channel to mute: `master`, `mic`, `app:<exe>`, `wl:<channel>` (see `StreamMixer/channels.ts`). */
+  /** The channel to mute: `master`, `mic`, `app:<exe>`, `wl:<channel>` (see `stream-mixer/channels.ts`). */
   channel?: string;
   /** Wave Link's mix for a `wl:` channel: an id, "all", or unset for the first. */
   mix?: string;

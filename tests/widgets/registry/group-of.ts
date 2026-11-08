@@ -15,6 +15,7 @@ export const GROUP_C_IDS = ["NowPlaying", "AudioMeter", "VolumeMixer", "MeterBri
 export const GROUP_D_IDS = ["FpsMonitor", "GameSpotlight", "OsdStrip", "FramePacing", "PlaytimeShare", "SteamProfile", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews"];
 export const GROUP_E_IDS = ["WebPage", "TextFile", "Notifications", "Departures", "Bluetooth"];
 export const TIME_IDS = ["DayPlanner", "RadialClockStack", "OnAirBeacon"];
+export const STREAM_IDS = ["StreamMixer", "AudioButton", "AudioFader", "StreamControl", "ObsButton", "StreamChat", "StreamDeck"];
 export const GROUP_HISTORY_IDS = ["BottleneckLens", "FrameHistogram", "SessionStats", "ThresholdTimeline"];
 
 /** A folder widget's definition as the registry's old template options: its meta, own settings and props mapping, with the component the test draws. */

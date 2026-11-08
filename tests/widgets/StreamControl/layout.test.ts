@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clock, planTiles, type Cell } from "@/widgets/StreamControl/layout";
+import { clock, planTiles, type Cell } from "@/widgets/stream-control/layout";
 
 const scenes = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `s${i}`, i }));
 const names = (cells: Cell[]) => cells.map((c) => (c.kind === "scene" ? c.scene.id : c.kind));

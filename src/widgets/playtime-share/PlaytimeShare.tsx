@@ -1,5 +1,6 @@
-import { Widget, shell, get, num, fmt, rows, roomy, Num, LegendRow, useIpTag, type ShellProps } from "./kit";
-import { meta, PALETTE } from "./meta/PlaytimeShare";
+import { Widget, shell, get, num, fmt, rows, roomy, Num, LegendRow, useIpTag, type ShellProps } from "../kit";
+import { meta } from "./meta";
+import { PALETTE } from "./palette";
 
 export { meta, PALETTE };
 
