@@ -11,12 +11,6 @@ on:
 permissions:
   contents: read
 
-# Two tags in flight would both write the shared updater-beta feed in `publish`: they queue, never cancel (a release
-# in progress is not interrupted).
-concurrency:
-  group: release
-  cancel-in-progress: false
-
 jobs:
   gate:
     runs-on: ubuntu-26.04
@@ -162,8 +156,35 @@ jobs:
             --title "InfoPanel Studio $GITHUB_REF_NAME" \
             --notes-file notes.md "${prerelease[@]}"
 
+  # The one job that writes shared state, the updater-beta feed, so the only one with a concurrency group: feed writes
+  # queue, never cancel one in progress. GitHub keeps one pending run per group, so a queued feed job can be replaced
+  # by a newer one. That is harmless: every tag's build and release (`publish`) ran on its own, and the feed only needs
+  # the newest version. A job that does run writes its own version unless the feed already holds a newer one
+  # (tools/ci/feed-newer.mjs), so the feed never moves backwards, whatever order the jobs run or get dropped in. Only
+  # tags pushed out of version order can leave a dropped job's version out of the feed, and then the newer version is
+  # the one the feed keeps; the dropped tag's GitHub release exists regardless.
+  feed:
+    needs: publish
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: updater-feed
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: release
+
       # The beta channel reads latest.json from the fixed updater-beta release. Every release, beta or
-      # stable, overwrites it, so beta users also get a stable release that is newer than their beta.
+      # stable, overwrites it, so beta users also get a stable release that is newer than their beta, unless the
+      # feed already points at a newer version than this tag.
       - name: Update the beta update feed
         run: |
           # Created only when it is missing; any other lookup failure stops here.
@@ -175,5 +196,14 @@ jobs:
             gh release create updater-beta --prerelease --target "$GITHUB_SHA" \
               --title "Beta update feed" \
               --notes "Holds the beta channel's update feed (latest.json) for InfoPanel Studio's updater. Not a release to install: the installers are on the version releases."
+          fi
+          # No feed file yet (new release, or no asset): nothing to compare, so the guard says write.
+          mkdir current
+          gh release download updater-beta --pattern latest.json --dir current || echo "No current feed file."
+          version=$(node -p "require('./package.json').version")
+          decision=$(node tools/ci/feed-newer.mjs --version "$version" --feed current/latest.json)
+          if [ "$decision" = "skip" ]; then
+            echo "Feed left alone: it already points at a newer version than $version. The $GITHUB_REF_NAME release is published."
+            exit 0
           fi
           gh release upload updater-beta release/latest.json --clobber
