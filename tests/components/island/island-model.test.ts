@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { fitIslandSize, islandIdleWidth, islandReserve, NARROW_PAGE } from "@/components/island/island-model";
-import { gapWidth, ISLAND_MARGIN } from "@/widgets/StatusBar/layout";
+import { gapWidth, ISLAND_MARGIN } from "@/widgets/status-bar/layout";
 
 const page = (width: number, height = 1080) => ({ width, height });
 

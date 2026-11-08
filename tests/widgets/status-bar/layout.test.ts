@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ISLAND_DEFAULTS } from "@/lib/island/config";
 import { islandIdleWidth } from "@/components/island/island-model";
-import { barSize, fitAroundGap, fitSlots, gapPlacement, gapWidth, needAroundGap, splitCenter } from "@/widgets/StatusBar/layout";
-import { isWifi, shownOf } from "@/widgets/StatusBar/items";
+import { barSize, fitAroundGap, fitSlots, gapPlacement, gapWidth, needAroundGap, splitCenter } from "@/widgets/status-bar/layout";
+import { isWifi, shownOf } from "@/widgets/status-bar/items";
 
 describe("island gap width", () => {
   const idle = islandIdleWidth({ ...ISLAND_DEFAULTS, enabled: true }, { width: 1920, height: 480 });

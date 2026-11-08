@@ -119,6 +119,13 @@ export const rateUnitSetting = (extra: Extra = {}): ModuleSetting => ({
 });
 export const rateUnitOf = (v: unknown): RateUnit | undefined => oneOf(v, RATE_UNITS);
 
+/** The weather icon-set settings as the templates' icon props (Weather, Status Bar). */
+export const iconsOf = (s: ModuleSettings) => ({
+  iconSet: oneOf(s.iconSet, ["app", "meteocons"]),
+  iconStyle: oneOf(s.iconStyle, ["fill", "flat", "line", "monochrome"]),
+  iconAnimated: s.iconAnimated === true,
+});
+
 /** The Units & format rows (SPEC §4.7) besides Speed units: themed, so a profile sets them once. */
 const FORMAT_ROWS: Record<Exclude<FormatKey, "rateUnit">, ModuleSetting> = {
   tempUnit: {

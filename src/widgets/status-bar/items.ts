@@ -3,7 +3,7 @@ import { weatherKind, type WeatherCondition } from "@/lib/weather-icons";
 import { readSystemFlat, systemKeysFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import { adapterOf, detect, fmt, fmtDate, fmtRate, get, has, hw, num, type Data, type IpTagExtra, type RateUnit } from "../kit";
-import { trackOf } from "../NowPlaying/track";
+import { trackOf } from "../now-playing/track";
 import type { Card } from "./card-model";
 import { cardReading } from "./card-readings";
 import type { ItemKey } from "./item-keys";

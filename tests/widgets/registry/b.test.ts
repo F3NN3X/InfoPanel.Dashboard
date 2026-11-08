@@ -14,14 +14,17 @@ import * as Clock from "@/widgets/Clock";
 import * as Calendar from "@/widgets/Calendar";
 import * as Timer from "@/widgets/Timer";
 import * as Countdown from "@/widgets/Countdown";
-import * as StatusBar from "@/widgets/StatusBar";
+import * as StatusBar from "@/widgets/status-bar/StatusBar";
 import * as CodingAgents from "@/widgets/CodingAgents";
 import * as Weather from "@/widgets/Weather";
 import * as Forecast from "@/widgets/Forecast";
 import * as SensorValue from "@/widgets/SensorValue";
 import * as SensorGroup from "@/widgets/SensorGroup";
 import * as CustomGauge from "@/widgets/CustomGauge";
-import { GROUP_B } from "@/widgets/registry/b";
+import { modules } from "@/modules";
+
+// Group B as the registry lists it, after group A's 17 (StatusBar is a folder widget, src/widgets/status-bar/).
+const GROUP_B = modules.slice(17, 33);
 
 type Template = { meta: WidgetMeta; default: (p: never) => unknown };
 const TEMPLATES = [DriveSpace, StorageHealth, DiskIO, NetworkThroughput, NetworkAdapters, Clock, Timer, Countdown, StatusBar, CodingAgents, Calendar, Weather, Forecast, SensorValue, SensorGroup, CustomGauge] as unknown as Template[];

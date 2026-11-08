@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { ItemKey } from "@/widgets/StatusBar/item-keys";
+import type { ItemKey } from "@/widgets/status-bar/item-keys";
 import { stacksIn } from "@/widgets/core/layout";
-import { stackShown, stackTiles } from "@/widgets/StatusBar/Stack";
+import { stackShown, stackTiles } from "@/widgets/status-bar/Stack";
 
 describe("stacksIn", () => {
   it("stacks a zone that is not a strip and tall enough for tiles, and leaves strips and tiles alone", () => {

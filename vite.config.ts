@@ -23,15 +23,22 @@ const dom = domTests("tests").filter((file) => !file.startsWith("tests/server/")
 
 /**
  * Vitest renders the widgets with renderToString, which cannot wait for a widget's chunk (`src/widgets/lazy-widget.tsx`):
- * there each registry group loads its widgets before it exports, and `registry.ts` loads them all (the folder widgets,
- * `src/widgets/<kebab-id>/`, are in no group). A top-level await in those files themselves would make Rollup split the
- * kiosk entry into a chunk per module it shares with a widget.
+ * there each registry group loads its widgets before it exports, and `registry.ts` loads the folder widgets
+ * (`src/widgets/<kebab-id>/`, in no group). A top-level await in those files themselves would make Rollup split the kiosk
+ * entry into a chunk per module it shares with a widget.
  */
 const loadWidgetsInTests = (): Plugin => ({
   name: "load-widgets-in-tests",
   transform(code, id) {
+<<<<<<< HEAD
     if (!//src/widgets/(registry/(a|b|c|d|e|history|time|stream-audio|stream-chat|stream-deck|stream-obs)|registry).ts$/.test(id.replace(/\/g, "/"))) return;
     const group = /^export const (GROUP_w+|TIME_WIDGETS|TEMPLATE_MODULES)/m.exec(code)?.[1];
+=======
+    const file = id.replace(/\\/g, "/");
+    if (file.endsWith("/src/widgets/registry.ts")) return `${code}\nawait (await import("@/widgets/lazy-widget")).loadAll(TEMPLATE_MODULES.filter((m) => FOLDER_WIDGETS.some((w) => w.meta.id === m.id)));\n`;
+    if (!/\/src\/widgets\/registry\/(a|b|c|d|e|history|time)\.ts$/.test(file)) return;
+    const group = /^export const (GROUP_\w+|TIME_WIDGETS)\b/m.exec(code)?.[1];
+>>>>>>> 451b0e68 (refactor: move GpuRings, NowPlaying and StatusBar into widget folders)
     return group ? `${code}\nawait (await import("@/widgets/lazy-widget")).loadAll(${group});\n` : undefined;
   },
 });

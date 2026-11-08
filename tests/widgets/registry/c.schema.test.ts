@@ -5,7 +5,10 @@ import { isVisible } from "@/components/studio/inspector-model";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, settingKeys, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { fixtureSensors } from "@/widgets/__fixtures__";
-import { GROUP_C } from "@/widgets/registry/c";
+import { modules } from "@/modules";
+
+// Group C as the registry lists it, after groups A and B (NowPlaying is a folder widget, src/widgets/now-playing/).
+const GROUP_C = modules.slice(33, 39);
 
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
 

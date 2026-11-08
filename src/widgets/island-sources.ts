@@ -4,7 +4,7 @@
 import { storeSource, type DataSourceDef, type SourceNotice } from "@/lib/island/sources";
 import { wavelink, type WlState } from "@/lib/wavelink";
 import { get } from "./kit";
-import { trackOf, type TrackSource } from "./NowPlaying/track";
+import { trackOf, type TrackSource } from "./now-playing/track";
 import { friendsOf } from "./friends-data";
 import { widgetImage } from "./data-adapter";
 import { boolSetting } from "./registry/settings-kit";

@@ -41,6 +41,7 @@
     "build:stats": "vite build --mode stats",
     "build:fixtures": "vite build --mode fixtures",
     "looks:gen": "node tools/looks/generate.mjs",
+    "widgets:gen": "node tools/widgets/generate.mjs",
     "looks:scan": "node tools/looks/scan.mjs"
   },
   "dependencies": {

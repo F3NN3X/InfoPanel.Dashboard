@@ -18,7 +18,7 @@ const NONE: CompactShape = { card: false, dense: false };
 const yes = (compact: CompactShape, more: Omit<InspectorMeta, "header" | "compact"> = {}): InspectorMeta => ({ header: "yes", compact, ...more });
 const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta, "header" | "compact"> = {}): InspectorMeta => ({ header, compact, ...more });
 
-/** Every template widget, by id. */
+/** Every group widget, by id; a folder widget (`src/widgets/<kebab-id>/widget.ts`) carries its own `inspector`. */
 export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group A: system and hardware
   SystemOverview: as("title-only", DENSE, { fmt: ["tempUnit", "decimals"], thr: ["load", "temp", "full"] }),
@@ -34,7 +34,6 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // The unit and decimals of its temperatures.
   CpuMonitor: yes(CARD, { fmt: ["tempUnit", "decimals"], thr: ["load"] }),
   CoreHeatmap: yes(DENSE),
-  GpuRings: yes(DENSE),
   GpuMonitor: yes(CARD, { thr: ["temp"] }),
   MemoryUsage: yes(CARD, { thr: ["load"] }),
   Thermals: yes(BOTH, { fmt: ["tempUnit"], thr: ["temp"] }),
@@ -49,7 +48,6 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   Clock: as("title-only", DENSE, { fmt: ["clock"] }),
   Timer: yes(NONE),
   Countdown: yes(BOTH, { fmt: ["clock"] }),
-  StatusBar: as("none", DENSE, { fmt: ["clock", "tempUnit", "rateUnit"] }),
   CodingAgents: yes(BOTH),
   Calendar: as("none", CARD),
   Weather: yes(CARD, { fmt: ["tempUnit"] }),
@@ -58,7 +56,6 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   SensorGroup: yes(BOTH, { fmt: ["tempUnit", "decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
   // Group C: media / audio
-  NowPlaying: yes(BOTH),
   // Its amber and hot zones are the Audio level threshold (config v8).
   AudioMeter: yes(BOTH, { thr: ["db"] }),
   VolumeMixer: yes(BOTH),

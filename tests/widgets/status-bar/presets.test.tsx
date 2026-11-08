@@ -2,12 +2,12 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { modules } from "@/modules";
 import { fixtureSensors } from "@/widgets/__fixtures__";
-import { cardWidth, rowCount, sizeOf, type Card } from "@/widgets/StatusBar/card-model";
-import { CARD_ITEMS, cardReading, fpsOf } from "@/widgets/StatusBar/card-readings";
-import { CardView } from "@/widgets/StatusBar/Cards";
+import { cardWidth, rowCount, sizeOf, type Card } from "@/widgets/status-bar/card-model";
+import { CARD_ITEMS, cardReading, fpsOf } from "@/widgets/status-bar/card-readings";
+import { CardView } from "@/widgets/status-bar/Cards";
 import type { Data } from "@/widgets/kit";
-import { PRIORITY } from "@/widgets/StatusBar/items";
-import { fitByRank } from "@/widgets/StatusBar/layout";
+import { PRIORITY } from "@/widgets/status-bar/items";
+import { fitByRank } from "@/widgets/status-bar/layout";
 
 const bar = modules.find((m) => m.id === "StatusBar")!;
 // the capture holds a running game's RTSS keys: take them out, so the PresentMon plugin's keys are the only frame rate

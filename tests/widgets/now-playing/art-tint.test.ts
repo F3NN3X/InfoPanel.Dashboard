@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeSurfacePalette } from "@/looks/materials";
-import { tintedCardVars } from "@/widgets/NowPlaying/art-tint";
+import { tintedCardVars } from "@/widgets/now-playing/art-tint";
 
 const tint = { vibrant: [200, 60, 80], light: [240, 200, 210], dark: [40, 10, 20] } as never;
 

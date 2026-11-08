@@ -5,14 +5,14 @@ import { useTick } from "@/hooks/use-tick";
 import { islandIdleWidth } from "@/components/island/island-model";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, stacksIn, usePane, type RateUnit, type ShellProps, type WeatherIconProps } from "./kit";
-import { Bar, barPad, isPreset, type StatusBarView } from "./StatusBar/Bar";
-import { StackView, stackTiles } from "./StatusBar/Stack";
-import { cardWidth } from "./StatusBar/card-model";
-import { PRIORITY, readingOf, shownOf, type Display, type ItemKey, type Reading } from "./StatusBar/items";
-import { barSize, fitAroundGap, fitByRank, fitSlots, gapWidth, needAroundGap, type IslandGapMode, type Slots } from "./StatusBar/layout";
-import { useGap } from "./StatusBar/use-gap";
-import { meta } from "./meta/StatusBar";
+import { Widget, shell, stacksIn, usePane, type RateUnit, type ShellProps, type WeatherIconProps } from "../kit";
+import { Bar, barPad, isPreset, type StatusBarView } from "./Bar";
+import { StackView, stackTiles } from "./Stack";
+import { cardWidth } from "./card-model";
+import { PRIORITY, readingOf, shownOf, type Display, type ItemKey, type Reading } from "./items";
+import { barSize, fitAroundGap, fitByRank, fitSlots, gapWidth, needAroundGap, type IslandGapMode, type Slots } from "./layout";
+import { useGap } from "./use-gap";
+import { meta } from "./meta";
 
 export { meta };
 

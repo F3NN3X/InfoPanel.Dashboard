@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tuningLookOf, vizStyleOf } from "@/widgets/NowPlaying/settings";
+import { tuningLookOf, vizStyleOf } from "@/widgets/now-playing/settings";
 
 describe("vizStyleOf", () => {
   it("live waveform: scrolling (the default) is scroll; static is bars, line or mirror", () => {
