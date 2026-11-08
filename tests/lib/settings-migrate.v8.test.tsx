@@ -5,8 +5,8 @@ import { levelText } from "@/components/studio/thresholds-control";
 import { shownValue, zoneLookValues } from "@/components/studio/inspector/zone-fields";
 import { modules } from "@/modules";
 import type { ModuleSettings } from "@/modules/types";
-import type { NowPlayingProps } from "@/widgets/NowPlaying";
-import { tuningLookOf, vizStyleOf } from "@/widgets/NowPlaying/settings";
+import type { NowPlayingProps } from "@/widgets/now-playing/NowPlaying";
+import { tuningLookOf, vizStyleOf } from "@/widgets/now-playing/settings";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import parity from "@tests/lib/__fixtures__/v8-parity.json";
 import { CONFIG_VERSION, type Placement, type StoredConfig } from "@/lib/layout";
@@ -16,8 +16,8 @@ import { PARITY_CASES } from "@/lib/settings-migrate.v8.cases";
 import { appearanceOf, resolveWith } from "@/lib/style-resolve";
 
 const seen = vi.hoisted(() => [] as unknown[]);
-vi.mock("@/widgets/NowPlaying", async (orig) => {
-  const m = await orig<typeof import("@/widgets/NowPlaying")>();
+vi.mock("@/widgets/now-playing/NowPlaying", async (orig) => {
+  const m = await orig<typeof import("@/widgets/now-playing/NowPlaying")>();
   return { ...m, default: (p: NowPlayingProps) => (seen.push(p), m.default(p)) };
 });
 

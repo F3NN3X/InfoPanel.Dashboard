@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { placementContent, placementPrefixes, quietPrefix } from "@/components/studio/placement-content";
@@ -179,9 +179,12 @@ describe("Other sensors zone", () => {
 describe("quietPrefix", () => {
   it("never silences a widget that reads the fast audio stream", () => {
     const dir = "src/widgets";
-    const ids = readdirSync(dir)
+    // The group widgets' components, and each widget folder's (`<kebab-id>/<Id>.tsx`, the folder holding a widget.ts).
+    const folders = readdirSync(dir).filter((f) => existsSync(`${dir}/${f}/widget.ts`));
+    const files = [...readdirSync(dir), ...folders.flatMap((f) => readdirSync(`${dir}/${f}`).filter((x) => /^[A-Z]/.test(x)).map((x) => `${f}/${x}`))];
+    const ids = files
       .filter((f) => f.endsWith(".tsx") && readFileSync(`${dir}/${f}`, "utf8").includes("useFastSensors("))
-      .map((f) => f.replace(/\.tsx$/, ""));
+      .map((f) => f.replace(/^.*\//, "").replace(/\.tsx$/, ""));
     expect(ids).toEqual(expect.arrayContaining(["Visualizer", "MeterBridge", "AudioMeter"]));
     for (const id of ids) expect([id, quietPrefix(place({ module: id }))]).toEqual([id, undefined]);
   });

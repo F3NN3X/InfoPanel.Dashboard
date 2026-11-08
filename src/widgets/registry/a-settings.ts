@@ -2,12 +2,11 @@
 // with the adapters back to props (_docs/redesign/phase9/brief-9.5-inspector.md). SystemOverview's are in system-overview.ts.
 import { decimalsOf, deviceOf, levelOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { boolOf, boolSetting, colorSetting, colorsOf, deviceSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, viewSetting, type ColorEntry } from "./settings-kit";
+import { boolOf, boolSetting, deviceSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, viewSetting } from "./settings-kit";
 import type { CoreHeatmapProps } from "../CoreHeatmap";
 import type { CpuMonitorProps } from "../CpuMonitor";
 import type { FansProps } from "../Fans";
 import type { GpuMonitorProps } from "../GpuMonitor";
-import type { GpuRingsProps } from "../GpuRings";
 import type { KpiTilesProps } from "../KpiTiles";
 import type { MemoryUsageProps } from "../MemoryUsage";
 import type { MenuBarProps } from "../MenuBar";
@@ -177,26 +176,7 @@ export const coreHeatmapProps = (s: ModuleSettings): Partial<CoreHeatmapProps> =
   hotOutline: numberOf(s.hotOutline),
 });
 
-/* ───────── GpuRings / GpuMonitor ───────── */
-const RING_COLORS: ColorEntry[] = [
-  { entry: "outer", key: "outerColor", label: "Outer ring" },
-  { entry: "inner", key: "innerColor", label: "Inner ring" },
-];
-/** The rings follow the theme's Series 1 and 2 ("" = the widget's own colours). */
-const RING_ROLES = { outerColor: "s1", innerColor: "s2" } as const;
-export const GPURINGS_SETTINGS: ModuleSetting[] = [
-  enumSetting("outer", "Outer ring", "vram", opts(["vram", "VRAM"], ["load", "Load"], ["power", "Power"]), { group: "Rings" }),
-  enumSetting("inner", "Inner ring", "load", opts(["load", "Load"], ["vram", "VRAM"], ["fan", "Fan"]), { group: "Rings" }),
-  ...RING_COLORS.map((e) => colorSetting(e.key, e.label, { role: RING_ROLES[e.key as keyof typeof RING_ROLES], more: false })),
-  deviceSetting("Graphics card", "gpu", { group: "Graphics card" }),
-];
-export const gpuRingsProps = (s: ModuleSettings): Partial<GpuRingsProps> => ({
-  gpu: deviceOf(s, "gpu"),
-  outer: oneOf(s.outer, ["vram", "load", "power"]),
-  inner: oneOf(s.inner, ["load", "vram", "fan"]),
-  colors: colorsOf(s, RING_COLORS),
-});
-
+/* ───────── GpuMonitor ───────── */
 export const GPUMONITOR_SETTINGS: ModuleSetting[] = [deviceSetting("Graphics card", "gpu", { group: "Graphics card" }), thresholdSetting("temp")];
 export const gpuMonitorProps = (s: ModuleSettings): Partial<GpuMonitorProps> => {
   const { warn, crit } = thresholdsOf(s, "temp", ["warnTemp", "critTemp"]);

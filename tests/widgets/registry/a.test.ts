@@ -5,7 +5,7 @@ import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import type { ShellProps, WidgetMeta } from "@/widgets/core/types";
 import { toFlat } from "@/widgets/data-adapter";
-import { GROUP_A } from "@/widgets/registry/a";
+import { modules } from "@/modules";
 import * as SystemOverview from "@/widgets/SystemOverview";
 import * as MenuBar from "@/widgets/MenuBar";
 import * as KpiTiles from "@/widgets/KpiTiles";
@@ -17,12 +17,15 @@ import * as ProcessList from "@/widgets/ProcessList";
 import * as Uptime from "@/widgets/Uptime";
 import * as CpuMonitor from "@/widgets/CpuMonitor";
 import * as CoreHeatmap from "@/widgets/CoreHeatmap";
-import * as GpuRings from "@/widgets/GpuRings";
+import * as GpuRings from "@/widgets/gpu-rings/GpuRings";
 import * as GpuMonitor from "@/widgets/GpuMonitor";
 import * as MemoryUsage from "@/widgets/MemoryUsage";
 import * as Thermals from "@/widgets/Thermals";
 import * as PowerDraw from "@/widgets/PowerDraw";
 import * as Fans from "@/widgets/Fans";
+
+// Group A as the registry lists it, its first 17 (GpuRings is a folder widget, src/widgets/gpu-rings/).
+const GROUP_A = modules.slice(0, 17);
 
 interface Entry {
   meta: WidgetMeta;

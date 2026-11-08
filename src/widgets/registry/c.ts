@@ -5,27 +5,23 @@ import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import { audioFlowSetting, audioSettings, ballisticsOf, flowOfSettings, mixerLookOf, mixerViewSettings, pickedDevicesOf, WAVELINK_SETTINGS, wavelinkToProps } from "./audio-settings";
-import { boolOf, boolSetting, colorSetting, deviceSetting, devicesSetting, enumSetting, numberOf, numberSetting, oneOf, pick, stringOf, thresholdSetting, viewOnly, viewSetting } from "./settings-kit";
+import { boolSetting, colorSetting, deviceSetting, devicesSetting, enumSetting, numberOf, numberSetting, oneOf, pick, stringOf, thresholdSetting, viewOnly, viewSetting } from "./settings-kit";
 import type { AudioMeterProps } from "../AudioMeter";
 import { AUDIO_HOT_DB, AUDIO_WARN_DB, meta as audioMeter } from "../meta/AudioMeter";
 import type { MeterBridgeProps } from "../MeterBridge";
 import { meta as meterBridge } from "../meta/MeterBridge";
-import type { NowPlayingProps } from "../NowPlaying";
-import { meta as nowPlaying } from "../meta/NowPlaying";
-import { NOW_PLAYING_SETTINGS, sharedPropsOf, vizStyleOf } from "../NowPlaying/settings";
-import { colorModeOf, VIZ_DYNAMICS_GROUP, vizColorRows, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
+import { VIZ_DYNAMICS_GROUP, vizColorRows, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "./viz-settings";
 import type { VisualizerProps } from "../Visualizer";
 import { meta as visualizer } from "../meta/Visualizer";
 import type { VolumeMixerProps } from "../VolumeMixer";
 import { meta as volumeMixer } from "../meta/VolumeMixer";
 import { meta as waveLink } from "../meta/WaveLink";
-import { nowPlayingIsland, waveLinkIsland } from "../island-sources";
+import { waveLinkIsland } from "../island-sources";
 import { volumeMixerIsland } from "../island/audio";
 
 // Each component loads in its own chunk, the first time a zone draws it.
 const AudioMeter = lazyWidget(() => import("../AudioMeter"));
 const MeterBridge = lazyWidget(() => import("../MeterBridge"));
-const NowPlaying = lazyWidget(() => import("../NowPlaying"));
 const Visualizer = lazyWidget(() => import("../Visualizer"));
 const VolumeMixer = lazyWidget(() => import("../VolumeMixer"));
 const WaveLink = lazyWidget(() => import("../WaveLink"));
@@ -61,43 +57,7 @@ const VIZ_COLOR_ROWS = vizColorRows("ramp");
 const DYNAMICS = vizDynamicsSettings();
 const AUTO_GAIN = DYNAMICS.find((d) => d.key === "vizAutoGain")!;
 
-/**
- * Where the template reads the keys it no longer offers: the saved values under the resolved ones, with
- * `vizGap` / `vizShape` only when saved (their defaults must not hide a saved legacy bar width or radius).
- */
-function hiddenOf(s: ModuleSettings, saved: ModuleSettings | undefined): ModuleSettings {
-  const out: ModuleSettings = { ...saved, ...s };
-  for (const k of ["vizGap", "vizShape"]) {
-    if (saved?.[k] === undefined) delete out[k];
-    else out[k] = saved[k];
-  }
-  return out;
-}
-
 export const GROUP_C: DashboardModule[] = [
-  templateModule({
-    meta: nowPlaying,
-    Component: NowPlaying,
-    settings: NOW_PLAYING_SETTINGS,
-    island: nowPlayingIsland,
-    // the visualiser's levels: read, not owned
-    prefixes: ["plugins.audio-level-meter."],
-    // The keys no row offers (`vizMinPx`, `vizScrollAs`; before config v8 the old engines' keys) are read from the saved values.
-    toProps: (s, saved) => {
-      const hidden = hiddenOf(s, saved);
-      const shared = sharedPropsOf(s, hidden);
-      return {
-      ...pick<NowPlayingProps>(["source", "showArt", "progress", "showTimeline"])(s),
-      ...shared,
-      vizLook: { ...shared.vizLook, colorMode: colorModeOf(s, saved), peaks: boolOf(s.vizPeaks) },
-      vizMode: vizStyleOf(hidden),
-      // unset / Auto = "" (the loudest live device); undefined would pin default-audio
-      vizDevices: pickedDevicesOf(hidden, "vizDevices"),
-      vizFlow: flowOfSettings(s),
-      vizRamp: stringOf(s.vizColor1) ?? stringOf(hidden.vizRamp),
-      };
-    },
-  }),
   templateModule({
     meta: audioMeter,
     Component: AudioMeter,

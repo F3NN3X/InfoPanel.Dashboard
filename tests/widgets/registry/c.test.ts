@@ -6,12 +6,15 @@ import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { toFlat } from "@/widgets/data-adapter";
 import AudioMeter, { meta as audioMeter } from "@/widgets/AudioMeter";
 import MeterBridge, { meta as meterBridge } from "@/widgets/MeterBridge";
-import NowPlaying, { meta as nowPlaying } from "@/widgets/NowPlaying";
+import NowPlaying, { meta as nowPlaying } from "@/widgets/now-playing/NowPlaying";
 import Visualizer, { meta as visualizer } from "@/widgets/Visualizer";
 import VolumeMixer, { meta as volumeMixer } from "@/widgets/VolumeMixer";
 import WaveLink, { meta as waveLink } from "@/widgets/WaveLink";
-import { GROUP_C } from "@/widgets/registry/c";
+import { modules } from "@/modules";
 import type { ShellProps } from "@/widgets/kit";
+
+// Group C as the registry lists it, after groups A and B (NowPlaying is a folder widget, src/widgets/now-playing/).
+const GROUP_C = modules.slice(33, 39);
 
 // WaveLink reads the shared Wave Link client, not sensor keys: give it a connected one.
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));

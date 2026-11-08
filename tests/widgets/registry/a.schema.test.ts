@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, settingKeys, type SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { GROUP_A } from "@/widgets/registry/a";
+import { modules } from "@/modules";
+
+// Group A as the registry lists it, its first 17 (GpuRings is a folder widget, src/widgets/gpu-rings/).
+const GROUP_A = modules.slice(0, 17);
 
 const SPECS = import.meta.glob("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 const specOf = (id: string): string => Object.entries(SPECS).find(([p]) => p.endsWith(`/${id}.md`))?.[1] ?? "";

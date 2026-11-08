@@ -4,7 +4,7 @@ import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/t
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import * as M from "../meta";
-import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, formatSetting, itemsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, timeSetting, viewOnly, viewsExcept, viewSetting } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, formatSetting, iconsOf, itemsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, timeSetting, viewOnly, viewsExcept, viewSetting } from "./settings-kit";
 import { driveSpaceIsland, networkAdaptersIsland, networkThroughputIsland } from "../island/hardware";
 import { weatherIsland } from "../island/info";
 import { countdownIsland } from "../island/countdown";
@@ -18,8 +18,6 @@ import type * as Clock from "../Clock";
 import type * as Calendar from "../Calendar";
 import type * as Timer from "../Timer";
 import type * as Countdown from "../Countdown";
-import type * as StatusBar from "../StatusBar";
-import { ITEMS, ITEM_LABELS } from "../StatusBar/item-keys";
 import { isDate, isTime } from "@/lib/countdown";
 import type * as CodingAgents from "../CodingAgents";
 import type * as Weather from "../Weather";
@@ -233,44 +231,9 @@ const fxOf = (s: ModuleSettings): Partial<Weather.WeatherProps> => {
   };
 };
 
-/** The weather icon-set settings as the templates' icon props. */
-const iconsOf = (s: ModuleSettings) => ({
-  iconSet: oneOf(s.iconSet, ["app", "meteocons"]),
-  iconStyle: oneOf(s.iconStyle, ["fill", "flat", "line", "monochrome"]),
-  iconAnimated: s.iconAnimated === true,
-});
-
 /** The weather templates' `units` prop from the themed Temperature unit (config v7 moved `units` → `tempUnit`). */
 const unitsOf = (s: ModuleSettings): "C" | "F" => (tempUnitOf(s) === "f" ? "F" : "C");
 const yrLocation = (group: string): ModuleSetting => ({ key: "location", label: "Location", type: "select", default: "", optionsFrom: "sources", sourcePlugin: "plugins.yr-weather-plugin.", group, tab: "data", hint: "Blank = the first Yr location" });
-
-/** A Status Bar slot: the stored comma-separated items that exist; undefined while unset (the bar's own). */
-const slotOf = (v: unknown) => (v === undefined ? undefined : splitKeys(v).flatMap((k) => oneOf(k, ITEMS) ?? []));
-const barUses = (...keys: (typeof ITEMS)[number][]) => (v: ModuleSettings) => [v.left ?? "logo", v.center ?? "date,time", v.right ?? "weather,network,volume,battery"].some((s) => splitKeys(s).some((k) => (keys as string[]).includes(k)));
-const BAR_ITEMS = ITEMS.map((value) => ({ value, label: ITEM_LABELS[value] }));
-const usesWeather = barUses("weather");
-const STATUSBAR_SETTINGS: ModuleSetting[] = [
-  // The presets set the slots when added; switching View in the inspector changes the frame only, so it is a plain select
-  { ...viewSetting(M.StatusBar, { group: "Layout" }), type: "select", options: (M.StatusBar.views ?? []).map((v) => ({ value: v.id, label: v.name })) },
-  enumSetting("left", "Left", "logo", BAR_ITEMS, { multiple: true, group: "Slots", hint: "Items show in the order picked; one with no data is left out" }),
-  enumSetting("center", "Center", "date,time", BAR_ITEMS, { multiple: true, group: "Slots" }),
-  enumSetting("right", "Right", "weather,network,volume,battery", BAR_ITEMS, { multiple: true, group: "Slots" }),
-  enumSetting("display", "Show", "both", [{ value: "both", label: "Icon and value" }, { value: "value", label: "Value" }, { value: "icon", label: "Icon" }], { group: "Display", perWidget: true, hint: "Network, volume and battery show their icon only, unless set to Value" }),
-  boolSetting("separators", "Dividers", true, { group: "Display", perWidget: true }),
-  enumSetting("spacing", "Spacing", "normal", [{ value: "compact", label: "Compact" }, { value: "normal", label: "Normal" }, { value: "roomy", label: "Roomy" }], { group: "Display", perWidget: true }),
-  { key: "logoIcon", label: "Logo icon", type: "icon", default: "monitor", group: "Logo", visibleIf: barUses("logo") },
-  { key: "logoImage", label: "Logo image", type: "image", default: "", group: "Logo", perWidget: true, hint: "Replaces the icon", visibleIf: barUses("logo") },
-  textSetting("text", "Text", "", { group: "Text", hint: "Empty = the item is left out", visibleIf: barUses("text") }),
-  boolSetting("seconds", "Show seconds", false, { group: "Time", visibleIf: barUses("time", "datetime") }),
-  { key: "iconSet", label: "Weather icon set", type: "select", default: "app", options: [{ value: "app", label: "App icons" }, { value: "meteocons", label: "Meteocons" }], group: "Icons", perWidget: true, visibleIf: usesWeather },
-  { key: "iconStyle", label: "Icon style", type: "select", default: "line", options: [{ value: "fill", label: "Fill" }, { value: "flat", label: "Flat" }, { value: "line", label: "Line" }, { value: "monochrome", label: "Monochrome" }], group: "Icons", perWidget: true, visibleIf: (v) => usesWeather(v) && v.iconSet === "meteocons" },
-  { key: "iconAnimated", label: "Animated icons", type: "boolean", default: false, group: "Icons", perWidget: true, hint: "Animated icons use more CPU and memory on the kiosk, and run outside the Max FPS cap.", visibleIf: (v) => usesWeather(v) && v.iconSet === "meteocons" },
-  enumSetting("islandGap", "Gap for the island", "auto", [{ value: "auto", label: "Auto" }, { value: "off", label: "Off" }, { value: "custom", label: "Custom" }], { group: "Island", perWidget: true, hint: "Auto leaves room for the Dynamic Island at the page center while it is on; the center items split around it" }),
-  numberSetting("islandGapPx", "Gap width (px)", 160, { min: 80, max: 400, step: 10, group: "Island", perWidget: true, visibleIf: (v) => v.islandGap === "custom" }),
-  formatSetting("clock"),
-  formatSetting("tempUnit"),
-  rateUnitSetting(),
-];
 
 /** The Coding Agents settings that only apply to the Full view. */
 const full = viewOnly(M.CodingAgents, "full");
@@ -380,30 +343,6 @@ export const GROUP_B: DashboardModule[] = [
       clock: clockOf(s),
     }),
     island: countdownIsland,
-  }),
-  templateModule({
-    meta: M.StatusBar,
-    Component: lazyWidget(() => import("../StatusBar")),
-    settings: STATUSBAR_SETTINGS,
-    toProps: (s): Partial<StatusBar.StatusBarProps> => ({
-      view: oneOf(s.view, ["edge", "pill", "islands", "meters", "orbit", "ticker"]),
-      left: slotOf(s.left),
-      center: slotOf(s.center),
-      right: slotOf(s.right),
-      display: oneOf(s.display, ["both", "value", "icon"]),
-      separators: boolOf(s.separators),
-      spacing: oneOf(s.spacing, ["compact", "normal", "roomy"]),
-      logoIcon: stringOf(s.logoIcon),
-      logoImage: stringOf(s.logoImage),
-      text: stringOf(s.text),
-      seconds: boolOf(s.seconds),
-      clock: clockOf(s),
-      tempUnit: tempUnitOf(s),
-      rateUnit: rateUnitOf(s.rateUnit),
-      ...iconsOf(s),
-      islandGap: oneOf(s.islandGap, ["auto", "off", "custom"]),
-      islandGapPx: numberOf(s.islandGapPx),
-    }),
   }),
   templateModule({
     meta: M.CodingAgents,

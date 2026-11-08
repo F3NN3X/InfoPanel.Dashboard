@@ -1,12 +1,13 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { modules } from "@/modules";
 import type { ModuleSettings } from "@/modules/types";
 import { GROUP_C } from "@/widgets/registry/c";
 import { renderModule } from "@/widgets/test-render";
 
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
 
-const html = (id: string, settings: ModuleSettings) => renderModule(GROUP_C.find((m) => m.id === id)!, settings);
+const html = (id: string, settings: ModuleSettings) => renderModule(modules.find((m) => m.id === id)!, settings);
 
 describe("audio widgets: inputs and outputs", () => {
   it("Audio Meter: the bridge lists the devices of the flow shown, and the picked ones", () => {

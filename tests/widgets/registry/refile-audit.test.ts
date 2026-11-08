@@ -3,7 +3,6 @@ import { allSections, inspectorTabs, tabStates, widgetContext } from "@/componen
 import { categorize, OTHER_TITLE } from "@/components/studio/inspector-categories";
 import { modules } from "@/modules";
 import { STANDARD_KEYS } from "@/modules/standard-settings";
-import { INSPECTOR_META } from "@/widgets/registry/inspector-meta";
 
 // The audit of the refile (widget settings v2, SPEC §6.4 and §9), over every widget filed so far:
 // the nine sample widgets, the three batches of the rest and the history widgets: all 63.
@@ -28,7 +27,7 @@ const REFILED = [
 it("covers all 69 widgets", () => {
   expect(REFILED).toHaveLength(69);
   expect(new Set(REFILED).size).toBe(69);
-  expect([...REFILED].sort()).toEqual(modules.filter((m) => INSPECTOR_META[m.id]).map((m) => m.id).sort());
+  expect([...REFILED].sort()).toEqual(modules.filter((m) => m.header).map((m) => m.id).sort());
 });
 
 it("files every widget by the rules: no Content, Other or widget-name section, a role on every colour row, no empty tab or section", () => {

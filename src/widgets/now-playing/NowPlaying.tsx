@@ -1,15 +1,15 @@
 import type { CSSProperties } from "react";
 import { makeSurfacePalette, type ModernStyle } from "@/looks/materials";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "./kit";
-import type { VizLook, VizStyle } from "./core/viz/types";
-import { widgetImage } from "./data-adapter";
-import { tintedCardVars, useArtTint } from "./NowPlaying/art-tint";
-import { AUDIO, levelDevice, useLevelDevice } from "./audio-device";
-import { audioIdsIn, pickedIds, type FlowFilter } from "./audio-data";
+import { Widget, shell, has, Img, Chip, MediaProgress, roomy, scaleX, type MediaProgressMode, type ShellProps } from "../kit";
+import type { VizLook, VizStyle } from "../core/viz/types";
+import { widgetImage } from "../data-adapter";
+import { tintedCardVars, useArtTint } from "./art-tint";
+import { AUDIO, levelDevice, useLevelDevice } from "../audio-device";
+import { audioIdsIn, pickedIds, type FlowFilter } from "../audio-data";
 import { useFastSensors } from "@/hooks/useSensors";
-import { meta } from "./meta/NowPlaying";
-import { trackOf, type Track, type TrackSource } from "./NowPlaying/track";
+import { meta } from "./meta";
+import { trackOf, type Track, type TrackSource } from "./track";
 
 export { meta, trackOf, type Track };
 

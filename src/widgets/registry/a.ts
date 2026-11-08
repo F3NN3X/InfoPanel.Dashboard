@@ -24,7 +24,6 @@ export const GROUP_A: DashboardModule[] = [
   templateModule({ meta: M.Uptime, Component: lazyWidget(() => import("../Uptime")), settings: S.UPTIME_SETTINGS, toProps: S.uptimeProps }),
   templateModule({ meta: M.CpuMonitor, Component: lazyWidget(() => import("../CpuMonitor")), settings: S.CPUMONITOR_SETTINGS, toProps: S.cpuMonitorProps }),
   templateModule({ meta: M.CoreHeatmap, Component: lazyWidget(() => import("../CoreHeatmap")), settings: S.COREHEATMAP_SETTINGS, toProps: S.coreHeatmapProps }),
-  templateModule({ meta: M.GpuRings, Component: lazyWidget(() => import("../GpuRings")), settings: S.GPURINGS_SETTINGS, toProps: S.gpuRingsProps }),
   templateModule({ meta: M.GpuMonitor, Component: lazyWidget(() => import("../GpuMonitor")), settings: S.GPUMONITOR_SETTINGS, toProps: S.gpuMonitorProps }),
   templateModule({ meta: M.MemoryUsage, Component: lazyWidget(() => import("../MemoryUsage")), settings: S.MEMORYUSAGE_SETTINGS, toProps: S.memoryUsageProps }),
   templateModule({ meta: M.Thermals, Component: lazyWidget(() => import("../Thermals")), settings: [...THERMALS_SETTINGS, ...S.THERMALS_EXTRA_SETTINGS], toProps: S.thermalsProps }),

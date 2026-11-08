@@ -2,12 +2,12 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { ModuleSettings, SensorMap } from "@/modules/types";
 import { fixtureSensors } from "@/widgets/__fixtures__";
-import type { NowPlayingProps } from "@/widgets/NowPlaying";
-import { GROUP_C } from "@/widgets/registry/c";
+import type { NowPlayingProps } from "@/widgets/now-playing/NowPlaying";
+import { modules } from "@/modules";
 
 const seen = vi.hoisted(() => [] as NowPlayingProps[]);
-vi.mock("@/widgets/NowPlaying", async (orig) => ({
-  ...(await orig<typeof import("@/widgets/NowPlaying")>()),
+vi.mock("@/widgets/now-playing/NowPlaying", async (orig) => ({
+  ...(await orig<typeof import("@/widgets/now-playing/NowPlaying")>()),
   default: (p: NowPlayingProps) => {
     seen.push(p);
     return null;
@@ -15,7 +15,7 @@ vi.mock("@/widgets/NowPlaying", async (orig) => ({
 }));
 
 const SENSORS = fixtureSensors() as SensorMap;
-const nowPlaying = GROUP_C.find((m) => m.id === "NowPlaying")!;
+const nowPlaying = modules.find((m) => m.id === "NowPlaying")!;
 const propsFor = (saved: ModuleSettings) => {
   seen.length = 0;
   renderToString(nowPlaying.render(SENSORS, saved));

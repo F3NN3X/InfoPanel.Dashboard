@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
-import { GROUP_A } from "@/widgets/registry/a";
-import { GROUP_B } from "@/widgets/registry/b";
+import { modules } from "@/modules";
 
 // Groups C, D and E are swept by their own change; this guards the dependent settings of A and B (backlog X4).
-const MODULES: DashboardModule[] = [...GROUP_A, ...GROUP_B];
+const MODULES: DashboardModule[] = modules.slice(0, 33);
 const settingsOf = (id: string): ModuleSetting[] => MODULES.find((m) => m.id === id)?.settings ?? [];
 const defaultsOf = (settings: ModuleSetting[]): ModuleSettings => Object.fromEntries(settings.map((d) => [d.key, d.default]));
 const shown = (id: string, key: string, over: ModuleSettings): boolean => {
