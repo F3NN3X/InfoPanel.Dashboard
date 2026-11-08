@@ -64,7 +64,10 @@ the servers on 3921 or 3922. See [desktop/README.md](desktop/README.md).
 ## Verifying a change
 
 `npm run verify` runs the checks the changed files need (the feature map and the modes are in [TESTING.md](TESTING.md)).
-Run `npm run verify:full` before opening a pull request. Optionally, `git config core.hooksPath .githooks` enables
+To land a branch, commit everything and run `npm run ship` (`tools/ship.mjs`): it runs `verify --full` here and, only when
+every check passed (none "not run") on exactly this commit, pushes, opens the pull request (or reuses it; `-- --title "<subject>"
+--body-file <path>` sets them, `--fill` otherwise), posts the `local-verify` commit status on the head and squash merges.
+`-- --no-merge` stops after the status. Optionally, `git config core.hooksPath .githooks` enables
 `.githooks/pre-push`, which runs `node tools/verify.mjs --check-fresh` and, if the last run is stale, `npm run verify`.
 
 ## CI and releases
@@ -79,7 +82,8 @@ nothing and a widget change skips Rust. The jobs: `lint` (Biome, and actionlint 
 (the browser checks the plan lists, Playwright specs, the Edit v3 fixtures and the overflow probe, against the built pages and a
 debug `ips-server`, in `.github/actions/e2e`) and `rust` (Windows: the same
 Rust tests for the server crates, plus the Tauri app's `cargo test` and `clippy --workspace` when the app crate is
-involved). `ci-ok` is the one required check: it passes when every job that ran passed. The browser checks are slow, so
+involved). `ci-ok` passes when every job that ran passed. It is advisory on pull requests (the merge gate is `local-verify`,
+below) and is what the release gate reads. The browser checks are slow, so
 a pull request runs only the ones `verify` maps to its changed files (the plan's `e2e_cmds`, with the same spec scoping as
 `verify`); the label `ci:e2e` runs all of them whatever changed, and `ci:full` runs everything. The release runs them before
 it publishes, and the nightly every night. On
@@ -98,7 +102,9 @@ on `windows-latest` and the e2e specs on Linux run side by side, and once both p
 section as its notes and the NSIS installer (`InfoPanel Studio_<version>_x64-setup.exe`) attached. The unit and Rust
 tests don't run again: the gate already requires them green. Each tag builds and publishes on its own run; only the `feed` job (the shared `updater-beta` update feed) queues, one at a time, and it leaves the feed alone when it already holds a newer version (`tools/ci/feed-newer.mjs`). No test depends on the machine's locale.
 
-`main` takes changes only through pull requests: its ruleset requires `ci-ok` and blocks deleting the branch.
+`main` takes changes only through pull requests: its ruleset requires the `local-verify` status (posted by `npm run ship`
+after a full local `verify`, so merging never waits on GitHub's runners), refuses force pushes and blocks deleting the branch.
+A tag is still released only once GitHub's `ci-ok` vouches for it (above).
 
 To release, on a branch: bump the version in `package.json`, `package-lock.json` (both `version` fields),
 `src-tauri/Cargo.toml`, `src-tauri/crates/ips-server/Cargo.toml`, `src-tauri/crates/ips-agent/Cargo.toml` and the
