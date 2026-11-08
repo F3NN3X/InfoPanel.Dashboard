@@ -2,9 +2,9 @@
 // mapping to template props.
 import { decimalsOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings, PaletteRole } from "@/modules/types";
-import type { Detail, Section, SystemOverviewProps } from "../system-overview/SystemOverview";
-import { meta } from "../system-overview/meta";
-import { boolSetting, colorSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, splitKeys, textSetting, thresholdSetting, viewOnly, viewSetting } from "./settings-kit";
+import { boolSetting, colorSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, splitKeys, textSetting, thresholdSetting, viewOnly, viewSetting } from "../shared/settings-kit";
+import type { Detail, Section, SystemOverviewProps } from "./SystemOverview";
+import { meta } from "./meta";
 
 /** The detail switches, each stored under the old System widget's key. */
 const DETAIL_KEYS: Record<Detail, string> = {
