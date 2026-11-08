@@ -69,6 +69,10 @@ jobs:
           workspaces: src-tauri
           shared-key: native
       - uses: ./.github/actions/playwright-install
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/actionlint
+          key: actionlint-${{ runner.os }}-${{ hashFiles('tools/ci/actionlint.mjs') }}
       - run: node tools/verify.mjs --full --allow-incomplete
 
   # Windows: the unsigned installer build (what release.yml does without the updater key, so packaging breaks show here
@@ -92,6 +96,10 @@ jobs:
       - run: npx playwright install chromium
       # A check that needs something the runner doesn't have, or is local only (look-visual: this PC's text rendering,
       # docs/TESTING.md), reports "not run" (exit 3), so incomplete is not a failure.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/actionlint
+          key: actionlint-${{ runner.os }}-${{ hashFiles('tools/ci/actionlint.mjs') }}
       - run: node tools/verify.mjs --full --allow-incomplete
 
   # The perf suites measure and never gate (docs/performance.md). The JSON goes up as an artifact, and the table against

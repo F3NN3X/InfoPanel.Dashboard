@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assetFor } from "../../tools/ci/actionlint.mjs";
+import { assetFor, fetchRetried } from "../../tools/ci/actionlint.mjs";
 import { planOutputs } from "../../tools/ci/plan-outputs.mjs";
 import { decideRelease, retried } from "../../tools/ci/release-gate.mjs";
 import { DEFAULT_COMMANDS, parseCommands } from "../../tools/ci/run-commands.mjs";
@@ -131,5 +131,34 @@ describe("actionlint pin", () => {
   it("pins linux and windows x64 with a SHA-256 each", () => {
     for (const platform of ["linux", "win32"]) expect(assetFor(platform, "x64").sha256).toMatch(/^[0-9a-f]{64}$/);
     expect(assetFor("darwin", "arm64")).toBeNull();
+  });
+});
+
+describe("actionlint download retries", () => {
+  const replies = (...steps) => {
+    let calls = 0;
+    const fn = async () => {
+      const step = steps[Math.min(calls++, steps.length - 1)];
+      if (step instanceof Error) throw step;
+      return { ok: step === 200, status: step };
+    };
+    return { fn, calls: () => calls };
+  };
+
+  it("retries a 504 and a network error with the backoff, then returns the download", async () => {
+    const slept = [];
+    const net = replies(504, new Error("fetch failed"), 200);
+    const response = await fetchRetried("u", [5, 15, 30], net.fn, async (ms) => slept.push(ms));
+    expect(response.status).toBe(200);
+    expect(slept).toEqual([5, 15]);
+  });
+
+  it("throws a 404 at once, and the last 5xx once the tries are used up", async () => {
+    const missing = replies(404);
+    await expect(fetchRetried("u", [1, 1], missing.fn, async () => {})).rejects.toThrow("download failed: 404");
+    expect(missing.calls()).toBe(1);
+    const down = replies(504);
+    await expect(fetchRetried("u", [1, 1], down.fn, async () => {})).rejects.toThrow("download failed: 504");
+    expect(down.calls()).toBe(3);
   });
 });

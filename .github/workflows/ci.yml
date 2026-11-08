@@ -91,7 +91,13 @@ jobs:
       # Biome lint (biome.json); the formatter is off until a one-off format commit.
       - if: needs.plan.outputs.lint == 'true'
         run: npx biome ci
-      # The workflows themselves: a pinned actionlint (tools/ci/actionlint.mjs).
+      # The workflows themselves: a pinned actionlint (tools/ci/actionlint.mjs), cached so a GitHub release outage
+      # can't fail lint once the binary has been downloaded.
+      - if: needs.plan.outputs.actionlint == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/actionlint
+          key: actionlint-${{ runner.os }}-${{ hashFiles('tools/ci/actionlint.mjs') }}
       - if: needs.plan.outputs.actionlint == 'true'
         run: node tools/ci/actionlint.mjs
 

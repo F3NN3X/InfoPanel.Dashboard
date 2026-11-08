@@ -16,6 +16,28 @@ const ASSETS = {
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
+/**
+ * Fetches `url`, retrying a network error or a 5xx after each delay in turn (GitHub's release downloads 504 during an
+ * outage); a 4xx or the last failure throws.
+ */
+export async function fetchRetried(url, delays = [5000, 15000, 30000], fetchFn = fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms))) {
+  for (let attempt = 0; ; attempt++) {
+    let error;
+    try {
+      const response = await fetchFn(url);
+      if (response.ok) return response;
+      error = new Error(`download failed: ${response.status}`);
+      if (response.status < 500) throw error;
+    } catch (caught) {
+      if (caught === error) throw error;
+      error = caught;
+    }
+    if (attempt >= delays.length) throw error;
+    console.error(`${error.message}, retrying in ${delays[attempt] / 1000} s`);
+    await sleep(delays[attempt]);
+  }
+}
+
 /** The pinned asset for this platform, or null. */
 export function assetFor(platform = process.platform, arch = process.arch) {
   return ASSETS[`${platform}-${arch}`] ?? null;
@@ -28,8 +50,7 @@ async function ensureBinary() {
   const bin = path.join(dir, process.platform === "win32" ? "actionlint.exe" : "actionlint");
   if (fs.existsSync(bin)) return bin;
   fs.mkdirSync(dir, { recursive: true });
-  const response = await fetch(`https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${asset.name}`);
-  if (!response.ok) throw new Error(`download failed: ${response.status}`);
+  const response = await fetchRetried(`https://github.com/rhysd/actionlint/releases/download/v${VERSION}/${asset.name}`);
   const bytes = Buffer.from(await response.arrayBuffer());
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   if (sha256 !== asset.sha256) throw new Error(`actionlint ${asset.name} has SHA-256 ${sha256}, expected ${asset.sha256}`);
