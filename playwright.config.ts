@@ -1,4 +1,9 @@
 import { defineConfig } from "@playwright/test";
+import { playwrightScope, quarantinedFiles } from "./tools/ci/quarantine.mjs";
+
+// Specs held out of the gating runs (tests/quarantine.json, docs/TESTING.md); QUARANTINE=only runs just those.
+const quarantined: string[] = quarantinedFiles(process.cwd());
+const quarantineOnly = process.env.QUARANTINE === "only";
 
 // The e2e and perf harness (docs/performance.md, "The harness"). Every spec starts its own scratch server on a copy
 // of tests/fixtures/perf/data (tools/perf/scratch.mjs); none touches the real data folder. Vitest stays the unit runner.
@@ -13,6 +18,7 @@ export default defineConfig({
       name: "e2e",
       testDir: "tests/e2e",
       testMatch: "*.spec.ts",
+      ...playwrightScope(quarantined, "tests/e2e", quarantineOnly),
       timeout: 30_000,
       use: { browserName: "chromium", headless: true },
     },
@@ -27,6 +33,7 @@ export default defineConfig({
       name: "one-editor",
       testDir: "tests/visual/one-editor",
       testMatch: "*.spec.ts",
+      ...playwrightScope(quarantined, "tests/visual/one-editor", quarantineOnly),
       dependencies: ["one-editor-build"],
       timeout: 30_000,
       use: { browserName: "chromium", headless: true },

@@ -44,6 +44,9 @@ const png = Uint8Array.from(atob(${JSON.stringify(PNG_1PX)}), (c) => c.charCodeA
 </script></body>`;
 }
 
+/** The paths the attack reaches and the server refuses with 403, sorted. */
+const REFUSED = ["/api/config", "/api/control/page", "/api/assets", "/api/integrations", "/api/studio-prefs"].sort();
+
 test("a page from another origin can't write: fetch, CORS or form", async ({ page, scratch }) => {
   const read = async () => ({
     config: await (await fetch(`${scratch.base}/api/config`)).text(),
@@ -68,7 +71,8 @@ test("a page from another origin can't write: fetch, CORS or form", async ({ pag
   try {
     await page.goto(`http://127.0.0.1:${(evil.address() as AddressInfo).port}/`);
     await expect(page).toHaveTitle("done", { timeout: 15_000 });
-    await page.waitForTimeout(1000);
+    // The form posts answer after the page says "done": wait for the refusals the assertions below name.
+    await expect.poll(() => [...new Set(writes.filter((w) => w.status === 403).map((w) => w.path))].sort(), { timeout: 5000 }).toEqual(REFUSED);
   } finally {
     evil.close();
   }
@@ -79,5 +83,5 @@ test("a page from another origin can't write: fetch, CORS or form", async ({ pag
   expect(accepted, JSON.stringify(writes)).toEqual([]);
   // The attack did reach the server: the simple requests and the form posts, refused with 403.
   const refused = writes.filter((w) => w.status === 403).map((w) => w.path);
-  expect(new Set(refused), JSON.stringify(writes)).toEqual(new Set(["/api/config", "/api/control/page", "/api/assets", "/api/integrations", "/api/studio-prefs"]));
+  expect([...new Set(refused)].sort(), JSON.stringify(writes)).toEqual(REFUSED);
 });

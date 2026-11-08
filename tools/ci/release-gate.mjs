@@ -26,7 +26,21 @@ export function decideRelease({ sha, check, commitChecks, pulls, nightlyShas }) 
   return { ok: false, reason: `${sha.slice(0, 7)} has no successful ${check} (on the commit or the PR that merged it) and is not the last green nightly's commit` };
 }
 
-const gh = (...args) => JSON.parse(execFileSync("gh", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }));
+const sleepSync = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+/** `fn()`, tried again after each delay (ms) while it throws; the last attempt's error is thrown. A 5xx or a secondary rate limit passes. */
+export function retried(fn, delays = [2000, 5000], sleep = sleepSync) {
+  for (const delay of delays) {
+    try {
+      return fn();
+    } catch {
+      sleep(delay);
+    }
+  }
+  return fn();
+}
+
+const gh = (...args) => retried(() => JSON.parse(execFileSync("gh", ["api", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })));
 
 function gather({ repo, sha }) {
   const checksOf = (ref) => gh(`repos/${repo}/commits/${ref}/check-runs?per_page=100`).check_runs;

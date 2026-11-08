@@ -70,16 +70,19 @@ Run `npm run verify:full` before opening a pull request. Optionally, `git config
 ## CI and releases
 
 `.github/workflows/ci.yml` runs on every pull request, and on `main` when the dependencies or `src-tauri/` change. On `main`
-it runs only `server` and `rust`, the jobs whose Rust and npm caches PRs restore, since every change already passed in its PR.
+it runs only `server` and `rust`, the jobs whose Rust and npm caches PRs restore, since every change already passed in its PR (a push to
+`main` never cancels a run: a cancelled one skips the cache save).
 Its `plan` job asks `node tools/verify.mjs --plan --json` which checks the change needs, so a docs change runs almost
 nothing and a widget change skips Rust. The jobs: `lint` (Biome, and actionlint when `.github/` changed),
-`typecheck-build` (`tsc -b`, the build, the Settings build, the bundle budgets), `unit` (the whole Vitest suite),
+`typecheck-build` (`tsc -b`, the build, the Settings build, the bundle budgets, and the pack budgets and `--ui-*` usage check when the plan lists them), `unit` (the whole Vitest suite, in two shards),
 `lab`, `server` (Linux: `npm run test:server`, `cargo test`/`clippy` for `ips-server` and `ips-agent`), `e2e`
-(Playwright against the built pages and a debug `ips-server`, in `.github/actions/e2e`) and `rust` (Windows: the same
+(the browser checks the plan lists, Playwright specs, the Edit v3 fixtures and the overflow probe, against the built pages and a
+debug `ips-server`, in `.github/actions/e2e`) and `rust` (Windows: the same
 Rust tests for the server crates, plus the Tauri app's `cargo test` and `clippy --workspace` when the app crate is
-involved). `ci-ok` is the one required check: it passes when every job that ran passed. The e2e specs are slow, so a pull
-request runs them only with the label `ci:e2e`; the release runs them before it publishes, and the nightly every night.
-The label `ci:full` runs everything. On
+involved). `ci-ok` is the one required check: it passes when every job that ran passed. The browser checks are slow, so
+a pull request runs only the ones `verify` maps to its changed files (the plan's `e2e_cmds`, with the same spec scoping as
+`verify`); the label `ci:e2e` runs all of them whatever changed, and `ci:full` runs everything. The release runs them before
+it publishes, and the nightly every night. On
 the Windows runner `tools/ci-stub-desktop.mjs` replaces `npm run desktop:prepare`: tauri-build only checks that the
 bundled resources exist.
 

@@ -74,7 +74,9 @@ class StubIntersectionObserver implements IntersectionObserver {
 }
 
 if (typeof window !== "undefined") {
-  const { cleanup } = await import("@testing-library/react");
+  const { cleanup, configure } = await import("@testing-library/react");
+  // findBy and waitFor give up after 1 s by default: a starved CI worker misses that (the Twitch connections test failed once).
+  configure({ asyncUtilTimeout: 5000 });
   beforeEach(() => {
     width = DEFAULT_WIDTH;
     queries.clear();

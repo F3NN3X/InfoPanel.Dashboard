@@ -1,0 +1,29 @@
+name: Install Playwright's Chromium (Linux)
+description: Chromium and its system libraries for the Playwright specs, with the browser download cached. The caller sets up Node and node_modules first. Linux only (the apt step and `timeout`); Windows runners use a bare `npx playwright install chromium`.
+
+runs:
+  using: composite
+  steps:
+    - id: playwright
+      shell: bash
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    - id: browsers
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+    # apt can hang (run 40234176716 sat 8+ min): bound each try and retry once. Infrastructure only, never the tests.
+    - if: steps.browsers.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        for _ in 1 2; do
+          timeout 150 npx playwright install --with-deps chromium && exit 0
+        done
+        exit 1
+    - if: steps.browsers.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        for _ in 1 2; do
+          timeout 150 npx playwright install-deps chromium && exit 0
+        done
+        exit 1

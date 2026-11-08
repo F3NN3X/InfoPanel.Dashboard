@@ -46,6 +46,9 @@ async function openStudio(page: Page, scratch: Scratch, previewData: string | nu
   await page.locator(`[data-zone-id="${cpuZone}"]`).waitFor();
 }
 
+/** How long a frozen canvas is watched: the fake values change every second, so 3.5 s without a change is a held canvas. */
+const FROZEN_MS = 3500;
+
 const cpuText = (page: Page) => page.locator(`[data-zone-id="${cpuZone}"]`).innerText();
 const streams = (page: Page) => page.evaluate(() => (window as unknown as { __dataStreams: () => number }).__dataStreams());
 
@@ -54,22 +57,17 @@ test("frozen: the canvas holds still, Refresh moves it, and the studio opens no 
   await openStudio(page, scratch, "frozen");
   await expect(page.getByText(/^Frozen · \d/)).toBeVisible();
   const held = await cpuText(page);
-  await page.waitForTimeout(3500);
+  await page.waitForTimeout(FROZEN_MS);
   expect(await cpuText(page)).toBe(held);
   // Screens, where the studio opens, was live: its streams close 2 s after Design replaces it.
   await expect.poll(() => streams(page), { timeout: 10_000 }).toBe(0);
 
   // The fake values move every second: some refresh within a few lands on a new one.
-  await expect
-    .poll(
-      async () => {
-        await page.getByRole("button", { name: /Refresh the snapshot/ }).click();
-        await page.waitForTimeout(1200);
-        return (await cpuText(page)) !== held;
-      },
-      { timeout: 15_000, intervals: [0] }
-    )
-    .toBe(true);
+  const refreshed = async () => {
+    await page.getByRole("button", { name: /Refresh the snapshot/ }).click();
+    return expect.poll(() => cpuText(page), { timeout: 1500 }).not.toBe(held).then(() => true, () => false);
+  };
+  await expect.poll(refreshed, { timeout: 15_000, intervals: [0] }).toBe(true);
   expect(errors).toEqual([]);
 });
 
