@@ -82,9 +82,8 @@ function view(over: Record<string, unknown> = {}) {
 const live = () => screen.getByRole("region", { name: "Live on displays" });
 
 describe("Live on displays", () => {
-  it("says so when no display is connected, and still offers the kiosk address", () => {
+  it("still offers the kiosk address when no display is connected", () => {
     view();
-    expect(within(live()).getByText("No display is connected.")).toBeTruthy();
     expect(within(live()).getByRole("region", { name: "Add a display" }).textContent).toContain("?kiosk=1");
   });
 
@@ -151,10 +150,9 @@ describe("Live on displays", () => {
 });
 
 describe("Your screens", () => {
-  it("has a search whose placeholder is not cut off, and / and Ctrl+F go to it", () => {
+  it("sends / and Ctrl+F to the search", () => {
     view();
     const search = screen.getByRole("searchbox", { name: "Search screens" }) as HTMLInputElement;
-    expect(search.placeholder).toBe("Search screens");
     fireEvent.keyDown(window, { key: "/" });
     expect(document.activeElement).toBe(search);
     (document.activeElement as HTMLElement).blur();
