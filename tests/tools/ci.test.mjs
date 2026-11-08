@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assetFor, fetchRetried } from "../../tools/ci/actionlint.mjs";
+import { assetFor, downloadFirst, fetchRetried, sourcesFor } from "../../tools/ci/actionlint.mjs";
 import { planOutputs } from "../../tools/ci/plan-outputs.mjs";
 import { decideRelease, retried } from "../../tools/ci/release-gate.mjs";
 import { DEFAULT_COMMANDS, parseCommands } from "../../tools/ci/run-commands.mjs";
@@ -128,8 +128,11 @@ describe("release gate retries", () => {
 });
 
 describe("actionlint pin", () => {
-  it("pins linux and windows x64 with a SHA-256 each", () => {
-    for (const platform of ["linux", "win32"]) expect(assetFor(platform, "x64").sha256).toMatch(/^[0-9a-f]{64}$/);
+  it("pins linux and windows x64 with an asset id and a SHA-256 each", () => {
+    for (const platform of ["linux", "win32"]) {
+      expect(assetFor(platform, "x64").sha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(assetFor(platform, "x64").id).toBeGreaterThan(0);
+    }
     expect(assetFor("darwin", "arm64")).toBeNull();
   });
 });
@@ -148,17 +151,38 @@ describe("actionlint download retries", () => {
   it("retries a 504 and a network error with the backoff, then returns the download", async () => {
     const slept = [];
     const net = replies(504, new Error("fetch failed"), 200);
-    const response = await fetchRetried("u", [5, 15, 30], net.fn, async (ms) => slept.push(ms));
+    const response = await fetchRetried("u", {}, [5, 15, 30], net.fn, async (ms) => slept.push(ms));
     expect(response.status).toBe(200);
     expect(slept).toEqual([5, 15]);
   });
 
   it("throws a 404 at once, and the last 5xx once the tries are used up", async () => {
     const missing = replies(404);
-    await expect(fetchRetried("u", [1, 1], missing.fn, async () => {})).rejects.toThrow("download failed: 404");
+    await expect(fetchRetried("u", {}, [1, 1], missing.fn, async () => {})).rejects.toThrow("download failed: 404");
     expect(missing.calls()).toBe(1);
     const down = replies(504);
-    await expect(fetchRetried("u", [1, 1], down.fn, async () => {})).rejects.toThrow("download failed: 504");
+    await expect(fetchRetried("u", {}, [1, 1], down.fn, async () => {})).rejects.toThrow("download failed: 504");
     expect(down.calls()).toBe(3);
+  });
+});
+
+describe("actionlint download sources", () => {
+  const asset = assetFor("linux", "x64");
+
+  it("tries the API asset route first, with the token when there is one, then the github.com link", () => {
+    const [api, web] = sourcesFor(asset, "t0k");
+    expect(api.url).toBe(`https://api.github.com/repos/rhysd/actionlint/releases/assets/${asset.id}`);
+    expect(api.init.headers).toEqual({ Accept: "application/octet-stream", Authorization: "Bearer t0k" });
+    expect(web.url).toContain(`/releases/download/`);
+    expect(sourcesFor(asset, "")[0].init.headers.Authorization).toBeUndefined();
+  });
+
+  it("falls back to the next source when one fails, and throws the last error when all do", async () => {
+    const tried = [];
+    const firstDown = async (url) => { tried.push(url); if (tried.length === 1) throw new Error("download failed: 504"); return { url }; };
+    expect(await downloadFirst([{ url: "a" }, { url: "b" }], firstDown)).toEqual({ url: "b" });
+    expect(tried).toEqual(["a", "b"]);
+    const allDown = async (url) => { throw new Error(`down ${url}`); };
+    await expect(downloadFirst([{ url: "a" }, { url: "b" }], allDown)).rejects.toThrow("down b");
   });
 });

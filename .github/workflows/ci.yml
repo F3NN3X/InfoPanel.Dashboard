@@ -100,6 +100,8 @@ jobs:
           key: actionlint-${{ runner.os }}-${{ hashFiles('tools/ci/actionlint.mjs') }}
       - if: needs.plan.outputs.actionlint == 'true'
         run: node tools/ci/actionlint.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   # tsc -b, the kiosk and studio build, the Settings window build and the gating bundle budgets.
   typecheck-build:
