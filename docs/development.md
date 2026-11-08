@@ -96,7 +96,7 @@ always runs).
 or on the pull request that merged it, or the last green nightly: `tools/ci/release-gate.mjs`). Then `npm run desktop:build`
 on `windows-latest` and the e2e specs on Linux run side by side, and once both pass it creates a GitHub release with that
 section as its notes and the NSIS installer (`InfoPanel Studio_<version>_x64-setup.exe`) attached. The unit and Rust
-tests don't run again: the gate already requires them green. No test depends on the machine's locale.
+tests don't run again: the gate already requires them green. Each tag builds and publishes on its own run; only the `feed` job (the shared `updater-beta` update feed) queues, one at a time, and it leaves the feed alone when it already holds a newer version (`tools/ci/feed-newer.mjs`). No test depends on the machine's locale.
 
 `main` takes changes only through pull requests: its ruleset requires `ci-ok` and blocks deleting the branch.
 
