@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // CI: turns `node tools/verify.mjs --plan --json` into the `plan` job's outputs, one per job that may be skipped.
 //   node tools/verify.mjs --plan --json --base origin/main | node tools/ci/plan-outputs.mjs [--all | --e2e | --warm]
-// `--all` (the ci:full label) sets every job's output to true (not the new-test gate, which needs the changed files). The browser checks (e2e, one-editor, overflow) run when the plan
-// lists one for the change, scoped to the specs `verify` maps to the changed files (`e2e_cmds`); `--e2e` (the ci:e2e label)
-// or `--all` runs them whole, whatever changed. `--warm` (a push to main) runs only the jobs that save the Rust and npm
+// `--all` (the ci:full label) sets every job's output to true (not the new-test gate, which needs the changed files). The
+// browser checks (e2e, one-editor, overflow) and the spec gate (flake-e2e) run only with `--e2e` (the ci:e2e label) or
+// `--all`, whole: `npm run ship` runs them locally before a PR merges, and the nightly and the release run them too. `--warm` (a push to main) runs only the jobs that save the Rust and npm
 // caches PRs restore. `quarantine` is on while tests/quarantine.json lists anything (an advisory job). Writes name=value
 // lines to $GITHUB_OUTPUT, or to stdout when it isn't set. Node built-ins only.
 import fs from "node:fs";
@@ -55,10 +55,12 @@ export function planOutputs(plan, { all = false, e2e = false, warm = false, comm
   const steps = plan.steps.filter((step) => step.cmd);
   const planned = new Set(steps.map((step) => step.id));
   const outputs = Object.fromEntries(Object.entries(OUTPUTS).map(([name, ids]) => [name, all || ids.some((id) => planned.has(id))]));
+  // The browser checks run on a PR only on request: `npm run ship` ran them locally before the merge, and the nightly and
+  // the release run them whole. With the label they run whole, and the spec gate repeats the changed specs.
   const forced = all || e2e;
-  const gateE2e = steps.filter((step) => step.id === GATE_E2E).map((step) => gateCommand(step, plan));
-  const browser = forced ? BROWSER_CHECKS.map((id) => commands[id]).filter(Boolean) : steps.filter((step) => BROWSER_CHECKS.includes(step.id) && step.status !== "not-run").map((step) => step.cmd);
-  const withE2e = forced || browser.length > 0;
+  const gateE2e = forced ? steps.filter((step) => step.id === GATE_E2E).map((step) => gateCommand(step, plan)) : [];
+  const browser = forced ? BROWSER_CHECKS.map((id) => commands[id]).filter(Boolean) : [];
+  const withE2e = forced;
   const gateUnit = all ? [] : steps.filter((step) => step.id === GATE_UNIT).map((step) => gateCommand(step, plan));
   return { ...outputs, e2e: withE2e, e2e_cmds: JSON.stringify(browser), flake_e2e: gateE2e.length > 0, flake_e2e_cmds: JSON.stringify(gateE2e), flake_unit: gateUnit.length > 0, flake_unit_cmds: JSON.stringify(gateUnit), quarantine: quarantined, build: outputs.build || withE2e || gateE2e.length > 0, full: all || plan.mode === "full", docs_only: !all && !withE2e && planned.size === 0 };
 }

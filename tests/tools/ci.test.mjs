@@ -11,14 +11,14 @@ describe("plan outputs", () => {
     expect(planOutputs(plan("default", "-lint"))).toMatchObject({ docs_only: true, lint: false, unit: false, full: false });
   });
 
-  it("switches on the jobs a widget change needs, and runs the browser checks the plan lists, as planned", () => {
+  it("switches on the jobs a widget change needs, and leaves the browser checks it plans to the label (ship ran them locally)", () => {
     const widget = plan("default", "lint", "typecheck", "unit", "build", "ui-usage", "server-bin", "e2e", "overflow");
     const out = planOutputs(widget);
-    expect(out).toMatchObject({ lint: true, typecheck: true, unit: true, build: true, ui_usage: true, pack_budgets: false, e2e: true, server: false, rust: false, windows: false, docs_only: false });
-    expect(JSON.parse(out.e2e_cmds)).toEqual(["run e2e", "run overflow"]);
+    expect(out).toMatchObject({ lint: true, typecheck: true, unit: true, build: true, ui_usage: true, pack_budgets: false, e2e: false, server: false, rust: false, windows: false, docs_only: false });
+    expect(JSON.parse(out.e2e_cmds)).toEqual([]);
   });
 
-  it("leaves the browser alone when the plan lists no browser check, unless the ci:e2e label forces the whole checks", () => {
+  it("runs no browser check without a label, and the whole checks with the ci:e2e label", () => {
     const logic = plan("default", "lint", "typecheck", "unit");
     expect(planOutputs(logic)).toMatchObject({ e2e: false, e2e_cmds: "[]" });
     const commands = { e2e: "npm run test:e2e", "one-editor": "npm run test:one-editor", overflow: "node overflow" };
@@ -75,19 +75,20 @@ describe("release gate", () => {
 describe("plan outputs for the new-test gate and quarantine", () => {
   const gated = (mode, ...ids) => ({ mode, changed: ["tests/lib/a.test.ts", "src/x.ts", "tests/e2e/k.spec.ts"], steps: ids.map((id) => ({ id, cmd: `run ${id}` })) });
 
-  it("gives the Vitest gate its own job and the spec gate a place after the browser checks", () => {
-    const out = planOutputs(gated("default", "unit", "e2e", "flake-unit", "flake-e2e"));
+  it("gives the Vitest gate its own job, and the spec gate a job of its own with the ci:e2e label", () => {
+    const commands = { e2e: "npm run test:e2e" };
+    const out = planOutputs(gated("default", "unit", "e2e", "flake-unit", "flake-e2e"), { e2e: true, commands });
     expect(out).toMatchObject({ flake_unit: true, e2e: true });
     expect(JSON.parse(out.flake_unit_cmds)).toEqual(["run flake-unit"]);
-    expect(JSON.parse(out.e2e_cmds)).toEqual(["run e2e"]);
+    expect(JSON.parse(out.e2e_cmds)).toEqual(["npm run test:e2e"]);
     expect(out).toMatchObject({ flake_e2e: true, build: true });
     expect(JSON.parse(out.flake_e2e_cmds)).toEqual(["run flake-e2e"]);
-    expect(planOutputs(gated("default", "flake-e2e"))).toMatchObject({ e2e: false, flake_e2e: true, build: true });
+    expect(planOutputs(gated("default", "flake-e2e"))).toMatchObject({ e2e: false, flake_e2e: false, flake_e2e_cmds: "[]" });
     expect(planOutputs(gated("default", "unit"))).toMatchObject({ flake_unit: false, flake_unit_cmds: "[]" });
   });
 
   it("puts the changed test files on the gate's command when the plan escalated (CI has no merge base to read)", () => {
-    const out = planOutputs(gated("full", "flake-unit", "flake-e2e"));
+    const out = planOutputs(gated("full", "flake-unit", "flake-e2e"), { e2e: true });
     expect(JSON.parse(out.flake_unit_cmds)).toEqual(["run flake-unit tests/lib/a.test.ts tests/e2e/k.spec.ts"]);
     expect(JSON.parse(out.flake_e2e_cmds)).toEqual(["run flake-e2e tests/lib/a.test.ts tests/e2e/k.spec.ts"]);
   });
