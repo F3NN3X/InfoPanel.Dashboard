@@ -3,7 +3,7 @@ import { isVisible } from "@/components/studio/inspector-model";
 import { modules } from "@/modules";
 import { effectiveSettings, type ModuleSettings } from "@/modules/types";
 import { MIXER_LOOK } from "@/widgets/core/mixer-look";
-import { mixerLookOf } from "@/widgets/registry/audio-settings";
+import { mixerLookOf } from "@/widgets/shared/audio-settings";
 
 
 // The mixer widgets' views (D-21): saved widgets from before them keep the rows view, and every option reads back.

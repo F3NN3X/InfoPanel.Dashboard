@@ -4,7 +4,7 @@ import { clockOf } from "@/modules/setting-readers";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import { templateModule, type TemplateOptions } from "../module";
 import { lazyWidget } from "../lazy-widget";
-import { boolOf, boolSetting, colorSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, sensorSetting, stringOf, textSetting } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, sensorSetting, stringOf, textSetting } from "../shared/settings-kit";
 import type { DayPlannerProps } from "../DayPlanner";
 import { meta as dayPlannerMeta } from "../meta/DayPlanner";
 import type { OnAirBeaconProps } from "../OnAirBeacon";

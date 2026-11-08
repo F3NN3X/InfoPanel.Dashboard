@@ -2,7 +2,7 @@
 import { clockOf, tempUnitOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { defineWidget } from "../define";
-import { boolOf, boolSetting, enumSetting, formatSetting, iconsOf, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, splitKeys, stringOf, textSetting, viewSetting } from "../registry/settings-kit";
+import { boolOf, boolSetting, enumSetting, formatSetting, iconsOf, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, splitKeys, stringOf, textSetting, viewSetting } from "../shared/settings-kit";
 import { ITEMS, ITEM_LABELS } from "./item-keys";
 import { meta } from "./meta";
 import type { StatusBarProps } from "./StatusBar";

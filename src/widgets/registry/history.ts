@@ -4,7 +4,7 @@ import type { DashboardModule } from "@/modules/types";
 import { thresholdsOf } from "@/modules/setting-readers";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
-import { numberOf, numberSetting, sensorSetting, splitKeys, thresholdSetting } from "./settings-kit";
+import { numberOf, numberSetting, sensorSetting, splitKeys, thresholdSetting } from "../shared/settings-kit";
 import type { BottleneckLensProps } from "../BottleneckLens";
 import { meta as bottleneckMeta } from "../meta/BottleneckLens";
 import type { FrameHistogramProps } from "../FrameHistogram";

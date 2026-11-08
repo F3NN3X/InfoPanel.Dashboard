@@ -2,7 +2,7 @@
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { GameSpotlightProps } from "./GameSpotlight";
 import { meta } from "./meta/GameSpotlight";
-import { viewSetting } from "./registry/settings-kit";
+import { viewSetting } from "./shared/settings-kit";
 
 export const SPOTLIGHT_COMPOSITE_SETTINGS: ModuleSetting[] = [
   { key: "showStats", label: "Stats", type: "boolean", default: true, group: "Composite" },

@@ -7,7 +7,7 @@ import { get } from "./kit";
 import { trackOf, type TrackSource } from "./now-playing/track";
 import { friendsOf } from "./friends-data";
 import { widgetImage } from "./data-adapter";
-import { boolSetting } from "./registry/settings-kit";
+import { boolSetting } from "./shared/settings-kit";
 import { fader } from "./WaveLink/fader";
 
 const NP_SOURCES = ["auto", "media", "spotify", "pushed"] as const;

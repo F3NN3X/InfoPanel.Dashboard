@@ -6,7 +6,7 @@ import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/t
 import { templateModule, type TemplateOptions } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import { INSPECTOR_META } from "./inspector-meta";
-import { boolOf, boolSetting, colorSetting, numberOf, numberSetting, stringOf, textSetting, viewSetting } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, numberOf, numberSetting, stringOf, textSetting, viewSetting } from "../shared/settings-kit";
 import type { BluetoothProps } from "../Bluetooth";
 import { meta as bluetoothMeta } from "../meta/Bluetooth";
 import type { DeparturesProps } from "../Departures";

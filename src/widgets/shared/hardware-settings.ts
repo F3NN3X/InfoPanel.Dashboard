@@ -1,5 +1,5 @@
 // The Thermals gauges' settings, under the keys and defaults the old Hardware widget stored
-// (LibreHardwareMonitor / HWiNFO, `libre.*` / `hwinfo.*`). SensorGroup's auto-discovered list is in b.ts.
+// (LibreHardwareMonitor / HWiNFO, `libre.*` / `hwinfo.*`). SensorGroup's auto-discovered list is in registry/b.ts.
 import type { ModuleSetting } from "@/modules/types";
 import { meta } from "../meta/Thermals";
 import { colorSetting, viewOnly, viewSetting } from "./settings-kit";

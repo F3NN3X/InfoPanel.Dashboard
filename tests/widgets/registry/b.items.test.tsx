@@ -6,7 +6,7 @@ import { SensorListField } from "@/components/studio/widget-editor/sensor-list-f
 import { renderModule } from "@/widgets/test-render";
 import { effectiveSettings } from "@/modules/types";
 import { GROUP_B } from "@/widgets/registry/b";
-import { clearItem, itemsOf, setItemField } from "@/widgets/registry/settings-kit";
+import { clearItem, itemsOf, setItemField } from "@/widgets/shared/settings-kit";
 
 vi.mock("@/hooks/useSensors", () => ({ useSensors: () => ({ "x.fan": { value: 600, unit: "RPM" } }) }));
 vi.mock("@/lib/catalog", async (orig) => ({ ...(await orig<typeof import("@/lib/catalog")>()), useSensorCatalog: () => ({ sources: null, sensors: {}, status: "ready", fetchedAt: 0 }) }));

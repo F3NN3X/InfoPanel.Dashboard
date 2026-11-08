@@ -2,9 +2,9 @@
 import type { ModuleSettings } from "@/modules/types";
 import { defineWidget } from "../define";
 import { nowPlayingIsland } from "../island-sources";
-import { flowOfSettings, pickedDevicesOf } from "../registry/audio-settings";
-import { boolOf, pick, stringOf } from "../registry/settings-kit";
-import { colorModeOf } from "../registry/viz-settings";
+import { flowOfSettings, pickedDevicesOf } from "../shared/audio-settings";
+import { boolOf, pick, stringOf } from "../shared/settings-kit";
+import { colorModeOf } from "../shared/viz-settings";
 import type { NowPlayingProps } from "./NowPlaying";
 import { meta } from "./meta";
 import { NOW_PLAYING_SETTINGS, sharedPropsOf, vizStyleOf } from "./settings";

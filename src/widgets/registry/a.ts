@@ -3,9 +3,9 @@ import type { DashboardModule } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import * as M from "../meta";
-import { THERMALS_SETTINGS } from "./hardware-settings";
+import { THERMALS_SETTINGS } from "../shared/hardware-settings";
 import * as S from "./a-settings";
-import { SYSTEM_OVERVIEW_SETTINGS, systemOverviewProps } from "./system-overview";
+import { SYSTEM_OVERVIEW_SETTINGS, systemOverviewProps } from "../shared/system-overview";
 
 export const GROUP_A: DashboardModule[] = [
   templateModule({

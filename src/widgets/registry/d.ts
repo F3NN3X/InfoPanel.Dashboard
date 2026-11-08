@@ -2,7 +2,7 @@
 import type { DashboardModule, ModuleSettings, PaletteRole } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
-import { boolOf, boolSetting, colorSetting, colorsOf, enumSetting, listOf, numberOf, numberSetting, oneOf, splitKeys, textSetting, viewOnly, viewSetting, viewsExcept, type ColorEntry } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, colorsOf, enumSetting, listOf, numberOf, numberSetting, oneOf, splitKeys, textSetting, viewOnly, viewSetting, viewsExcept, type ColorEntry } from "../shared/settings-kit";
 import type { AchievementsProps } from "../Achievements";
 import { meta as achievementsMeta } from "../meta/Achievements";
 import type { FpsMonitorProps } from "../FpsMonitor";

@@ -3,7 +3,7 @@ import { Plus, SlidersHorizontal, X } from "lucide-react";
 import { useSensors } from "@/hooks/useSensors";
 import { useDataModel } from "@/lib/use-data-model";
 import { cn } from "@/lib/utils";
-import { itemsOf, joinKeys, splitKeys, toggleKey } from "@/widgets/registry/settings-kit";
+import { itemsOf, joinKeys, splitKeys, toggleKey } from "@/widgets/shared/settings-kit";
 import { DataPicker } from "../inspector/data-picker";
 import { liveText } from "../inspector/bound-data-model";
 import { StackRow, type RowLabelProps } from "../setting-rows";

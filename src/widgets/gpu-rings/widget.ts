@@ -2,7 +2,7 @@
 import { deviceOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { defineWidget } from "../define";
-import { colorSetting, colorsOf, deviceSetting, enumSetting, oneOf, type ColorEntry } from "../registry/settings-kit";
+import { colorSetting, colorsOf, deviceSetting, enumSetting, oneOf, type ColorEntry } from "../shared/settings-kit";
 import type { GpuRingsProps } from "./GpuRings";
 import { meta } from "./meta";
 

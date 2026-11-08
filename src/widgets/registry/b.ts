@@ -4,7 +4,7 @@ import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/t
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import * as M from "../meta";
-import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, formatSetting, iconsOf, itemsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, timeSetting, viewOnly, viewsExcept, viewSetting } from "./settings-kit";
+import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, formatSetting, iconsOf, itemsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, timeSetting, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
 import { driveSpaceIsland, networkAdaptersIsland, networkThroughputIsland } from "../island/hardware";
 import { weatherIsland } from "../island/info";
 import { countdownIsland } from "../island/countdown";

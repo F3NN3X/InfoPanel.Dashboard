@@ -21,7 +21,7 @@ import {
   toggleKey,
   viewOnly,
   viewSetting,
-} from "@/widgets/registry/settings-kit";
+} from "@/widgets/shared/settings-kit";
 import type { WidgetMeta } from "@/widgets/core/types";
 
 describe("narrowing", () => {

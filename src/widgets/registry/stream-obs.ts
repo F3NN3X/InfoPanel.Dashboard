@@ -7,7 +7,7 @@ import type { ObsButtonProps } from "../ObsButton";
 import type { StreamControlProps } from "../StreamControl";
 import { meta as obsButton } from "../meta/ObsButton";
 import { meta as streamControl } from "../meta/StreamControl";
-import { boolOf, boolSetting, enumSetting, oneOf, stringOf, textSetting } from "./settings-kit";
+import { boolOf, boolSetting, enumSetting, oneOf, stringOf, textSetting } from "../shared/settings-kit";
 
 const ObsButton = lazyWidget(() => import("../ObsButton"));
 const StreamControl = lazyWidget(() => import("../StreamControl"));

@@ -3,7 +3,7 @@
 import { breakdownOf, isDate, isTime, phaseOf, targetOf, unitWord } from "@/lib/countdown";
 import type { DataSourceDef, SourceActivity } from "@/lib/island/sources";
 import type { ModuleSettings } from "@/modules/types";
-import { oneOf } from "../registry/settings-kit";
+import { oneOf } from "../shared/settings-kit";
 
 /** The activity for the widget's settings at `now`; null while no valid date is set. */
 export function countdownActivity(settings: ModuleSettings, now: Date): SourceActivity | null {

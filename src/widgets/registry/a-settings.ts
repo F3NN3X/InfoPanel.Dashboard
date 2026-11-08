@@ -2,7 +2,7 @@
 // with the adapters back to props (_docs/redesign/phase9/brief-9.5-inspector.md). SystemOverview's are in system-overview.ts.
 import { decimalsOf, deviceOf, levelOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { boolOf, boolSetting, deviceSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, viewSetting } from "./settings-kit";
+import { boolOf, boolSetting, deviceSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, viewSetting } from "../shared/settings-kit";
 import type { CoreHeatmapProps } from "../CoreHeatmap";
 import type { CpuMonitorProps } from "../CpuMonitor";
 import type { FansProps } from "../Fans";

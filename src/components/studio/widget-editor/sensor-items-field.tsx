@@ -1,5 +1,5 @@
 import { RotateCcw } from "lucide-react";
-import { clearItem, itemsOf, setItemField, type ItemField } from "@/widgets/registry/settings-kit";
+import { clearItem, itemsOf, setItemField, type ItemField } from "@/widgets/shared/settings-kit";
 import { FIELD } from "../setting-rows";
 
 const DECIMALS = [0, 1, 2, 3, 4];

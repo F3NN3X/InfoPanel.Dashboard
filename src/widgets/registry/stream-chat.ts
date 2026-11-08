@@ -4,7 +4,7 @@ import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import type { StreamChatProps } from "../StreamChat";
 import { meta as streamChat } from "../meta/StreamChat";
-import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, oneOf, stringOf, textSetting } from "./settings-kit";
+import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, oneOf, stringOf, textSetting } from "../shared/settings-kit";
 
 const StreamChat = lazyWidget(() => import("../StreamChat"));
 

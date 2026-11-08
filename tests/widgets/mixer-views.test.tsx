@@ -9,7 +9,7 @@ import { lcdAppearanceFor } from "@/widgets/core/mixer-views";
 import { toFlat } from "@/widgets/data-adapter";
 import { sensorStore } from "@/lib/sensor-store";
 import type { ShellProps } from "@/widgets/kit";
-import { mixerLookOf } from "@/widgets/registry/audio-settings";
+import { mixerLookOf } from "@/widgets/shared/audio-settings";
 import StreamMixer from "@/widgets/StreamMixer";
 import VolumeMixer from "@/widgets/VolumeMixer";
 import WaveLink from "@/widgets/WaveLink";

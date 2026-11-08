@@ -4,7 +4,7 @@
 import type { DataSourceDef } from "@/lib/island/sources";
 import type { Data } from "../core/types";
 import { get, has, num } from "../core/data";
-import { boolSetting, textSetting } from "../registry/settings-kit";
+import { boolSetting, textSetting } from "../shared/settings-kit";
 
 const YR = "plugins.yr-weather-plugin.";
 

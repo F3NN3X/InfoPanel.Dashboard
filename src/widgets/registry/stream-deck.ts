@@ -6,7 +6,7 @@ import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import type { StreamDeckProps } from "../StreamDeck";
 import { meta as streamDeck } from "../meta/StreamDeck";
-import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, oneOf, stringOf } from "./settings-kit";
+import { boolOf, boolSetting, enumSetting, numberOf, numberSetting, oneOf, stringOf } from "../shared/settings-kit";
 
 const StreamDeck = lazyWidget(() => import("../StreamDeck"));
 
