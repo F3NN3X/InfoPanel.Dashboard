@@ -1,7 +1,7 @@
 // GPU Rings: VRAM, core load and temperature as stacked rings. What the registry needs; the component is its own chunk.
 import { deviceOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { DENSE, defineWidget } from "../define";
 import { colorSetting, colorsOf, deviceSetting, enumSetting, oneOf, type ColorEntry } from "../shared/settings-kit";
 import type { GpuRingsProps } from "./GpuRings";
 import { meta } from "./meta";
@@ -26,7 +26,7 @@ const settings: ModuleSetting[] = [
 export default defineWidget({
   meta,
   // A dense view of its own, no summary card.
-  inspector: { header: "yes", compact: { card: false, dense: true } },
+  inspector: { header: "yes", compact: DENSE },
   settings,
   render: {
     load: () => import("./GpuRings"),

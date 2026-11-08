@@ -3,7 +3,7 @@
 import type { ComponentType } from "react";
 import type { ApiSources } from "@/lib/catalog";
 import type { IslandSourceDef } from "@/lib/island/sources";
-import type { ModuleSetting, ModuleSettings } from "@/modules/types";
+import type { CompactShape, ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { ShellProps, WidgetMeta } from "./core/types";
 import type { TemplateOptions } from "./module";
 import type { InspectorMeta } from "./registry/inspector-meta";
@@ -78,6 +78,16 @@ export interface WidgetDefinition<P extends object = object> {
   presets?: () => Promise<{ default: readonly WidgetPreset[] }>;
   controls?: () => Promise<{ default: ComponentType<WidgetControlsProps> }>;
 }
+
+/* The small-zone shapes of `inspector.compact`, shared so each definition names one rather than spelling it out. */
+/** A summary card and a dense view of its own (`compact` and `studio` descriptors). */
+export const BOTH: CompactShape = { card: true, dense: true };
+/** A summary card; the dense view falls back to it (no `studio` descriptor). */
+export const CARD: CompactShape = { card: true, dense: "fallback" };
+/** A dense view only (no `compact` descriptor). */
+export const DENSE: CompactShape = { card: false, dense: true };
+/** Neither: small zones keep the full layout. */
+export const NONE: CompactShape = { card: false, dense: false };
 
 /** A widget package's definition: it always states its migrations and its sample, where a built-in leaves them central. */
 export type PackageWidgetDefinition<P extends object = object> = WidgetDefinition<P> & Required<Pick<WidgetDefinition<P>, "migrations" | "sample">>;

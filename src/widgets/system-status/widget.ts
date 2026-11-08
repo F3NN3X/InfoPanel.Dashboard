@@ -1,7 +1,7 @@
 // System Status: CPU, RAM and Data API health. What the registry needs; the component is its own chunk.
 import { thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { CARD, defineWidget } from "../define";
 import { thresholdSetting } from "../shared/settings-kit";
 import type { SystemStatusProps } from "./SystemStatus";
 import { meta } from "./meta";
@@ -9,7 +9,7 @@ import { meta } from "./meta";
 export default defineWidget({
   meta,
   // A summary card (the dense view falls back to it); the Load threshold.
-  inspector: { header: "yes", compact: { card: true, dense: "fallback" }, thr: ["load"] },
+  inspector: { header: "yes", compact: CARD, thr: ["load"] },
   settings: [thresholdSetting("load")],
   render: {
     load: () => import("./SystemStatus"),

@@ -1,6 +1,6 @@
 // Now Playing: track, artist and cover art, with an optional visualiser. What the registry needs; the component is its own chunk.
 import type { ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { BOTH, defineWidget } from "../define";
 import { nowPlayingIsland } from "../island-sources";
 import { flowOfSettings, pickedDevicesOf } from "../shared/audio-settings";
 import { boolOf, pick, stringOf } from "../shared/settings-kit";
@@ -25,7 +25,7 @@ function hiddenOf(s: ModuleSettings, saved: ModuleSettings | undefined): ModuleS
 export default defineWidget({
   meta,
   // A summary card and a dense view of its own.
-  inspector: { header: "yes", compact: { card: true, dense: true } },
+  inspector: { header: "yes", compact: BOTH },
   settings: NOW_PLAYING_SETTINGS,
   island: nowPlayingIsland,
   render: {

@@ -1,6 +1,6 @@
 // Service Health: the status of every data source. What the registry needs; the component is its own chunk.
 import type { ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { BOTH, defineWidget } from "../define";
 import { oneOf, viewSetting } from "../shared/settings-kit";
 import type { ServiceHealthProps } from "./ServiceHealth";
 import { meta } from "./meta";
@@ -8,7 +8,7 @@ import { meta } from "./meta";
 export default defineWidget({
   meta,
   // A summary card and a dense view of its own.
-  inspector: { header: "yes", compact: { card: true, dense: true } },
+  inspector: { header: "yes", compact: BOTH },
   /** The template's `layout` is stored as `healthLayout` (the standard `layout` keeps its meaning). */
   settings: [viewSetting(meta, { label: "Services as", group: "Services" })],
   render: {

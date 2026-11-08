@@ -1,7 +1,7 @@
 // Thermals: every temperature sensor, hottest first. What the registry needs; the component is its own chunk.
 import { tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { BOTH, defineWidget } from "../define";
 import { THERMALS_SETTINGS } from "../shared/hardware-settings";
 import { boolOf, boolSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, optionPairs as opts, stringOf, thresholdSetting } from "../shared/settings-kit";
 import type { ThermalsProps } from "./Thermals";
@@ -23,7 +23,7 @@ const thermalLevels = (s: ModuleSettings): { warn?: number; crit?: number } => (
 export default defineWidget({
   meta,
   // A summary card and a dense view of its own; the temperature unit and the Temperature threshold.
-  inspector: { header: "yes", compact: { card: true, dense: true }, fmt: ["tempUnit"], thr: ["temp"] },
+  inspector: { header: "yes", compact: BOTH, fmt: ["tempUnit"], thr: ["temp"] },
   settings,
   render: {
     load: () => import("./Thermals"),

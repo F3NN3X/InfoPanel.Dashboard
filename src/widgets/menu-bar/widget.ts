@@ -1,7 +1,7 @@
 // Menu Bar: a glance strip of labels and values. What the registry needs; the component is its own chunk.
 import { deviceOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { BOTH, defineWidget } from "../define";
 import { boolOf, boolSetting, deviceSetting, enumSetting, listPick, oneOf, optionPairs as opts, rateUnitOf, rateUnitSetting, splitKeys } from "../shared/settings-kit";
 import type { MenuBarProps } from "./MenuBar";
 import { meta } from "./meta";
@@ -23,7 +23,7 @@ const settings: ModuleSetting[] = [
 export default defineWidget({
   meta,
   // No header; a summary card and a dense view of its own; the speed unit of its network rates.
-  inspector: { header: "none", compact: { card: true, dense: true }, fmt: ["rateUnit"] },
+  inspector: { header: "none", compact: BOTH, fmt: ["rateUnit"] },
   settings,
   render: {
     load: () => import("./MenuBar"),

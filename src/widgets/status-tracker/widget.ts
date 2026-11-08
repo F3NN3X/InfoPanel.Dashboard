@@ -1,7 +1,7 @@
 // Status Tracker: a state history, one block per reading. What the registry needs; the component is its own chunk.
 import { levelOf, thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { BOTH, defineWidget } from "../define";
 import { numberOf, numberSetting, sensorSetting, stringOf, textSetting, thresholdSetting } from "../shared/settings-kit";
 import type { StatusTrackerProps, Track } from "./StatusTracker";
 import { meta } from "./meta";
@@ -42,7 +42,7 @@ const trackLevelOf = (s: ModuleSettings, n: number, level: "warn" | "crit", load
 export default defineWidget({
   meta,
   // A summary card and a dense view of its own; the Load threshold.
-  inspector: { header: "yes", compact: { card: true, dense: true }, thr: ["load"] },
+  inspector: { header: "yes", compact: BOTH, thr: ["load"] },
   settings,
   render: {
     load: () => import("./StatusTracker"),

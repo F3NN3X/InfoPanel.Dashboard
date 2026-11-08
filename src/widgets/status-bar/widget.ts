@@ -1,7 +1,7 @@
 // Status Bar: a one-row bar with a left, a center and a right slot. What the registry needs; the component is its own chunk.
 import { clockOf, tempUnitOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { DENSE, defineWidget } from "../define";
 import { boolOf, boolSetting, enumSetting, formatSetting, iconsOf, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, splitKeys, stringOf, textSetting, viewSetting } from "../shared/settings-kit";
 import { ITEMS, ITEM_LABELS } from "./item-keys";
 import { meta } from "./meta";
@@ -38,7 +38,7 @@ const settings: ModuleSetting[] = [
 export default defineWidget({
   meta,
   // No header; a dense view of its own, no summary card; its time, temperatures and network rates follow Units & format.
-  inspector: { header: "none", compact: { card: false, dense: true }, fmt: ["clock", "tempUnit", "rateUnit"] },
+  inspector: { header: "none", compact: DENSE, fmt: ["clock", "tempUnit", "rateUnit"] },
   settings,
   render: {
     load: () => import("./StatusBar"),

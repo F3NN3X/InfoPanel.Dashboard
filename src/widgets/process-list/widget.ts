@@ -1,6 +1,6 @@
 // Processes: the top processes by CPU or memory. What the registry needs; the component is its own chunk.
 import type { ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
+import { BOTH, defineWidget } from "../define";
 import { enumSetting, numberOf, numberSetting, oneOf, optionPairs as opts } from "../shared/settings-kit";
 import type { ProcessListProps } from "./ProcessList";
 import { meta } from "./meta";
@@ -8,7 +8,7 @@ import { meta } from "./meta";
 export default defineWidget({
   meta,
   // A summary card and a dense view of its own.
-  inspector: { header: "yes", compact: { card: true, dense: true } },
+  inspector: { header: "yes", compact: BOTH },
   settings: [
     numberSetting("rows", "Rows (0 = fit the height)", 0, { min: 0, max: 30, step: 1, group: "Rows" }),
     enumSetting("sort", "Sort by", "cpu", opts(["cpu", "CPU"], ["utility", "CPU utility"], ["memory", "Memory"]), { group: "Sorting", tab: "behaviour" }),
