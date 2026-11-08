@@ -35,7 +35,7 @@ const PAGE: [string, string][] = [
   ["#", "A link to this widget's section, to share or bookmark."],
   ["URL", "Every control is mirrored to the URL, so a copied link opens exactly this view."],
   ["Console", "window.__qaOverflow() lists what overflows, overlaps or is clipped in each frame; await window.__qaMountAll() first."],
-  ["Screenshots", "npm run qa:shots writes a PNG per widget, span, view and skin to .cache/qa-shots/<label>/; npm run qa:shots -- --compare before after writes a page of the two side by side, changed first (see docs/redesign/phase9/qa.md)."],
+  ["Screenshots", "npm run qa:shots writes a PNG per widget, span, view and skin to .cache/qa-shots/<label>/; npm run qa:shots -- --compare before after writes a page of the two side by side, changed first (see _docs/redesign/phase9/qa.md)."],
 ];
 
 function Rows({ rows }: { rows: [string, string][] }) {

@@ -149,7 +149,7 @@ jobs:
       - uses: ./.github/actions/setup-node-deps
       - run: npm test -- --shard=${{ matrix.shard }}/2
 
-  # The new-test gate (tools/ci/flake-gate.mjs, docs/TESTING.md): a Vitest file added or changed on the branch passes 10
+  # The new-test gate (tools/ci/flake-gate.mjs, _docs/TESTING.md): a Vitest file added or changed on the branch passes 10
   # shuffled runs. The specs' gate runs in `e2e`, where the build and the server are.
   flake-unit:
     needs: plan
@@ -228,7 +228,7 @@ jobs:
           path: .cache/playwright
           retention-days: 7
 
-  # Advisory, never in ci-ok: the tests in tests/quarantine.json keep running here (docs/TESTING.md, "Quarantine"). It only
+  # Advisory, never in ci-ok: the tests in tests/quarantine.json keep running here (_docs/TESTING.md, "Quarantine"). It only
   # exists while something is quarantined.
   quarantine:
     needs: plan

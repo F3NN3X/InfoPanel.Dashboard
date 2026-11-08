@@ -2,7 +2,7 @@ import { startScratch, type Scratch } from "../../../tools/perf/scratch.mjs";
 import { expect, test } from "@playwright/test";
 import { SAMPLE_PRESET_GROUPS } from "../../../src/lib/screen-templates/sample-presets";
 
-// The sample themes (docs/look-system/03-theme-packs-spec.md) on the Widget QA page: one sheet per theme, the mockups' six
+// The sample themes (_docs/look-system/03-theme-packs-spec.md) on the Widget QA page: one sheet per theme, the mockups' six
 // widgets at 2x2 and 4x2 with the theme's card, accent, text colours and font over its page colour, as
 // tests/visual/look/baselines/samples-<theme>.png. Windows only and outside CI, like classic.spec.ts; refresh with
 // `npx playwright test --project=look-visual --update-snapshots` after `npm run build`, and say why.

@@ -1,5 +1,5 @@
 // Skin · retro — CRT terminal: VT323 pixel type, scanlines, bar graphs, block meters.
-// Fonts to load: VT323. Docs: docs/redesign/widgets/docs/skins/retro.md
+// Fonts to load: VT323. Docs: _docs/redesign/widgets/docs/skins/retro.md
 import type { SkinPack } from "../types";
 
 export const retroSkin: SkinPack = {

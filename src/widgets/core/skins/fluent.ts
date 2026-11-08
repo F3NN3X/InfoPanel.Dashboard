@@ -1,5 +1,5 @@
 // Skin · fluent — Windows 11: Mica surface, 8px radius, Segoe UI Variable, line graphs.
-// Fonts to load: system fonts only. Docs: docs/redesign/widgets/docs/skins/fluent.md
+// Fonts to load: system fonts only. Docs: _docs/redesign/widgets/docs/skins/fluent.md
 import type { SkinPack } from "../types";
 
 export const fluentSkin: SkinPack = {

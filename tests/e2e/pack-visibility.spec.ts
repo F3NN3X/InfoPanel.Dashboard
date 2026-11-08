@@ -8,7 +8,7 @@ import { expect, manifest, settled, test, watchErrors } from "./fixtures";
 // opens the kiosk with each pack worn and reads what the browser drew. The overlay stays under its alpha cap, nothing the
 // pack draws is click-blocking, the text and the marks of every card are effectively visible (opacity down the tree at least
 // 0.5, a colour that is not transparent) and every gauge's value mark is painted, unlike its track and with contrast against the card (a ring's arc, a bar's lit cells). Wearing a pack makes no request to a font host (D23). A user pack's CSS gets the same measures at import, in the studio's render check (`measurePack` is the one reader, L94).
-// Set PACK_SHOTS=<folder> (and PACK_SHOTS_PREFIX, default p10) to also save one kiosk screenshot per pack there (docs/investigations/look-system/shots/<prefix>-<id>.png).
+// Set PACK_SHOTS=<folder> (and PACK_SHOTS_PREFIX, default p10) to also save one kiosk screenshot per pack there (_docs/investigations/look-system/shots/<prefix>-<id>.png).
 
 const OVERLAY_ALPHA_MAX = 0.4;
 const MIN_OPACITY = 0.5;

@@ -2,8 +2,7 @@
 
 How the desktop app and the dashboard server are protected, the review done for 1.3.0-beta.10 against Microsoft's
 [WebView2 security guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security) and Tauri 2's
-security model, what was fixed, what was decided, and what is deferred. Performance work from the same release is in
-[desktop/webview-performance.md](desktop/webview-performance.md).
+security model, what was fixed, what was decided, and what is deferred.
 
 ## Trust model
 

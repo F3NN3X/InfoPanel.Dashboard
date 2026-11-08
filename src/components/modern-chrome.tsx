@@ -16,7 +16,7 @@ export const SCRIM = "hsl(var(--background) / 0.45)";
 
 /**
  * The standard per-widget chrome (see `modules/standard-settings.ts` and
- * `docs/widget-settings.md`): a user-supplied background image behind the
+ * `_docs/widget-settings.md`): a user-supplied background image behind the
  * surface, an optional header (icon + custom title), the accent color as
  * `--wp-accent`, and the style options — size, alignment, spacing, colors
  * and type — as `--wp-*` CSS variables the widget's layout reads through

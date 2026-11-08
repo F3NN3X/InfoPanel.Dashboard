@@ -1,4 +1,4 @@
-// Template widgets, group B: storage, network, info, generic (see docs/redesign/phase9/brief-9.3c-templates.md).
+// Template widgets, group B: storage, network, info, generic (see _docs/redesign/phase9/brief-9.3c-templates.md).
 import { clockOf, decimalsOf, deviceOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";

@@ -1,4 +1,4 @@
-/* The settings pages' color tokens (docs/redesign/app-settings/SPEC.md section 7). The settings window's own
+/* The settings pages' color tokens (_docs/redesign/app-settings/SPEC.md section 7). The settings window's own
    stylesheet (settings.css) and the studio's (index.css, for Settings › App) both take them from here. */
 /* The icon rail of the desktop Settings and Help sidebars (those with data-narrow): under 820px they show icons only,
    and open again while the search field has focus. Other uses of NavItem (the browser Settings window) never match. */

@@ -1,4 +1,4 @@
-// Template widgets, group D: gaming (see docs/redesign/phase9/brief-9.3c-templates.md).
+// Template widgets, group D: gaming (see _docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule, ModuleSettings, PaletteRole } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";

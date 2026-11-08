@@ -1,5 +1,5 @@
 // Skin · synth — Synthwave: dusk gradient + horizon grid, neon pink, Orbitron numerals with glow.
-// Fonts to load: Orbitron, Geist. Docs: docs/redesign/widgets/docs/skins/synth.md
+// Fonts to load: Orbitron, Geist. Docs: _docs/redesign/widgets/docs/skins/synth.md
 import type { SkinPack } from "../types";
 
 export const synthSkin: SkinPack = {

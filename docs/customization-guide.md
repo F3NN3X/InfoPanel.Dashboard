@@ -1,8 +1,6 @@
 # Customization guide
 
-How to make a widget look the way you want, from the studio. For the setting
-keys and how they are stored, see [widget-settings.md](widget-settings.md);
-for what happens behind the scenes, [architecture.md](architecture.md).
+How to make a widget look the way you want, from the studio.
 
 Open the studio with the wrench button on the dashboard (or
 `http://127.0.0.1:3922/?studio=1`). Changes save automatically; **Save**
@@ -54,7 +52,7 @@ full view at a time: **Screens**, **Design**, then **Theme**, **Library**,
 **Gauges**, **Alerts & Island** and **Data**. **Help** and **Settings** sit at
 its foot; Settings opens its own window. Only **Design** has the canvas, the
 left panel and the inspector; the other views take the whole page and are
-described in their own sections. **Library** (your saved images, fonts, gauges, panels, Themes, Styles and imported InfoPanel canvases) and **Gauges** (design a Custom gauge or edit a screen's) replace the canvas; **Import** and **Export** in the top bar bring an `.infopanel` profile in as a canvas zone and write one out. They are described in [architecture](architecture.md#importing-and-exporting-an-infopanel-profile) and [docs/infopanel-import](infopanel-import/PLAN.md).
+described in their own sections. **Library** (your saved images, fonts, gauges, panels, Themes, Styles and imported InfoPanel canvases) and **Gauges** (design a Custom gauge or edit a screen's) replace the canvas; **Import** in the top bar brings an `.infopanel` profile in as a canvas zone.
 
 A **floating zoom bar** sits over the bottom of the canvas, centred. It
 toggles the grid and the rulers, zooms out and in (or
@@ -1333,9 +1331,6 @@ On a screen nobody touches, the Menu Bar's **Active item** shows one tab
 selected, with its detail panel when the zone is tall enough (about two rows
 at cell 110). Clicking another tab still works.
 
-Where each widget setting takes effect, by zone size, is in
-[widget-settings-coverage.md](widget-settings-coverage.md).
-
 ## Dynamic Island
 
 A pill at the top centre of a profile, like the macOS notch. When idle it shows the
@@ -1480,9 +1475,6 @@ the activity (the playing track) opens it.
 
 **Quiet hours.** The alerts' quiet hours also hold back the island's own notices below
 the minimum severity.
-
-The design, the internals and how to make another widget send to the island are in
-[redesign/island/PLAN.md](redesign/island/PLAN.md).
 
 ## Desktop app
 

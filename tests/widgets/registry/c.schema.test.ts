@@ -9,7 +9,7 @@ import { GROUP_C } from "@/widgets/registry/c";
 
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
 
-const SPECS = import.meta.glob("/docs/redesign/widgets/docs/widgets/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+const SPECS = import.meta.glob("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
 /** The prop names of a spec's "Widget-specific" block (quotes and parenthesised notes stripped, then the first word of each comma item). */
 function specProps(id: string): string[] {

@@ -9,7 +9,7 @@ interface Probe {
   ticker: TickerStats | null;
 }
 
-// docs/desktop/webview-performance.md, "Hot and cold": the Design view on first load ("hot"), then after
+// _docs/desktop/webview-performance.md, "Hot and cold": the Design view on first load ("hot"), then after
 // Design → Help → Screens → Design ("cold"), on the heavy profile and on the visualisers'. Help opens in its own window (in the
 // desktop app too); the studio's window is minimized meanwhile, as a window behind Help is occluded and hidden on
 // Windows, so the round trip hides the studio and brings it back. Each state records the rAF callers, the ticker's

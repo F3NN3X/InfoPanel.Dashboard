@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// The gate for new tests (docs/TESTING.md, "The new-test gate"): a test file added or changed on this branch must pass
+// The gate for new tests (_docs/TESTING.md, "The new-test gate"): a test file added or changed on this branch must pass
 // repeated runs before it counts as proven. Vitest files: 10 runs, shuffled by a fresh seed each, 4 workers. Playwright
 // specs: `--repeat-each 3` on half the cores (at most 4): the whole-page measure specs starve when 4 workers share 4 vCPUs.
 //   node tools/ci/flake-gate.mjs --unit [files...]    node tools/ci/flake-gate.mjs --e2e [files...]

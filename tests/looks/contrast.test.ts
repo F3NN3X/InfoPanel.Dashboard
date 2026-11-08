@@ -1,6 +1,6 @@
 // The D13 contrast test: every Look, in every mode it supports, on every card it draws, keeps fg, muted, ok, warn, crit and
 // the axis label at 4.5:1 on the card (the pairs a widget draws as text or a thin line). A failure fails the test unless it
-// is listed in KNOWN_GAPS with the ledger row (docs/look-system/progress.md) that owns it.
+// is listed in KNOWN_GAPS with the ledger row (_docs/look-system/progress.md) that owns it.
 import { createElement as h } from "react";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";

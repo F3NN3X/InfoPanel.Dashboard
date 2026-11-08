@@ -1,5 +1,5 @@
 // Inspector settings of the group A templates: every widget-specific prop of the spec as a setting,
-// with the adapters back to props (docs/redesign/phase9/brief-9.5-inspector.md). SystemOverview's are in system-overview.ts.
+// with the adapters back to props (_docs/redesign/phase9/brief-9.5-inspector.md). SystemOverview's are in system-overview.ts.
 import { decimalsOf, deviceOf, levelOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { boolOf, boolSetting, colorSetting, colorsOf, deviceSetting, enumSetting, formatSetting, numberOf, numberSetting, oneOf, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, viewSetting, type ColorEntry } from "./settings-kit";

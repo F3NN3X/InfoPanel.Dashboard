@@ -1,4 +1,4 @@
-/** The block types of an article (docs/redesign/help/SPEC.md section 3.2). */
+/** The block types of an article (_docs/redesign/help/SPEC.md section 3.2). */
 export type CalloutKind = "tip" | "note" | "warn" | "soon";
 
 export type Block =

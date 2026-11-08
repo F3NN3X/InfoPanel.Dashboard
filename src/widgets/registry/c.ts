@@ -1,4 +1,4 @@
-// Template widgets, group C: media / audio (see docs/redesign/phase9/brief-9.3c-templates.md).
+// Template widgets, group C: media / audio (see _docs/redesign/phase9/brief-9.3c-templates.md).
 import { BALLISTICS } from "@/lib/audio/ballistics";
 import { deviceOf, devicesOf, thresholdsOf } from "@/modules/setting-readers";
 import type { DashboardModule, ModuleSettings } from "@/modules/types";

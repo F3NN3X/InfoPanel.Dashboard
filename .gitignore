@@ -17,7 +17,6 @@ Thumbs.db
 .playwright-mcp/
 
 # Widget QA screenshots
-docs/redesign/phase9/shots/
 
 # Desktop app (InfoPanel Studio) build outputs and the cached Node download
 src-tauri/target/

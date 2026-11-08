@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 // The Classic look (today's default skin) on the Widget QA page: every widget kind at 1x1, 2x2, 4x2 and 4x4, once per
 // material, as one image per kind and material (its four frames side by side) in tests/visual/look/baselines/. Windows
-// only and outside CI (docs/TESTING.md, "The look baselines"): the pixels are those of this machine's text rendering.
+// only and outside CI (_docs/TESTING.md, "The look baselines"): the pixels are those of this machine's text rendering.
 // Refresh with `npx playwright test --project=look-visual --update-snapshots` after `npm run build`, and say why.
 const MATERIALS = ["glass", "matte-light"] as const;
 const SPANS = "1x1,2x2,4x2,4x4";

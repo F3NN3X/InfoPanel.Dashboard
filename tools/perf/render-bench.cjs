@@ -4,7 +4,7 @@
 // page's blur layers, canvas memory and decoded image memory. Windows only. Read-only.
 //   PW_CORE=<path to playwright-core> CHROME=<chrome.exe or msedge.exe> [CLICK=<button name>] node tools/perf/render-bench.cjs <url> [variants=all] [seconds=60] [WxH=1920x550]
 // variants: a comma list of the names in VARIANTS. Never point it at the live server: start a scratch one on a copy
-// of the data (docs/performance.md, "How to measure").
+// of the data (_docs/performance.md, "How to measure").
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");

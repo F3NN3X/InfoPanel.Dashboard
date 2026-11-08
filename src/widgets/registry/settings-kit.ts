@@ -1,5 +1,5 @@
 // Shared helpers of the registry groups: narrowing stored settings into widget props, and builders for
-// the inspector schema (docs/redesign/phase9/brief-9.5-inspector.md).
+// the inspector schema (_docs/redesign/phase9/brief-9.5-inspector.md).
 import { critKey, QUANTITIES, warnKey } from "@/lib/theme-model";
 import type { DeviceKind, FormatKey, ModuleSetting, ModuleSettings, ThresholdQuantity } from "@/modules/types";
 import { RATE_UNITS, type RateUnit } from "../core/data";

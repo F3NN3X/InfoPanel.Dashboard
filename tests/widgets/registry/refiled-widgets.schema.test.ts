@@ -87,7 +87,7 @@ describe("batch C", () => {
     for (const id of ["FpsMonitor", "Bluetooth"]) expect(modules.find((m) => m.id === id)!.settings!.find((d) => d.key === "view")!.type, id).toBe("preset");
   });
 
-  // A scrim darkens the widget's own artwork, so it sits with the artwork in Show (docs/redesign/settings-audit.md).
+  // A scrim darkens the widget's own artwork, so it sits with the artwork in Show (_docs/redesign/settings-audit.md).
   it("files the scrims with the artwork in Show", () => {
     for (const [id, group] of [["GameSpotlight", "Layout"], ["SteamGame", "Artwork"]]) {
       const scrim = modules.find((m) => m.id === id)!.settings!.find((d) => d.key === "scrim")!;

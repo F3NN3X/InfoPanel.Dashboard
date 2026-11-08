@@ -6,7 +6,7 @@ import { uid } from "./layout";
  * The studio's alert starters: "Blank sensor rule", "Blank notification rule" and the presets. A preset
  * carries a matcher (a regex over a catalogue point's key and name); the rule takes the first live
  * numeric point that matches, and keeps an empty key (the editor asks to pick one) when none does.
- * See docs/redesign/alerts/PLAN.md.
+ * See _docs/redesign/alerts/PLAN.md.
  */
 
 /** What the matcher needs of a catalogue point. */

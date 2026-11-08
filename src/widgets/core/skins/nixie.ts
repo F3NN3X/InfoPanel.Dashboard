@@ -1,5 +1,5 @@
 // Skin · nixie — Nixie tube: smoked glass, glowing orange Nixie One numerals.
-// Fonts to load: Nixie One, Geist. Docs: docs/redesign/widgets/docs/skins/nixie.md
+// Fonts to load: Nixie One, Geist. Docs: _docs/redesign/widgets/docs/skins/nixie.md
 import type { SkinPack } from "../types";
 
 export const nixieSkin: SkinPack = {

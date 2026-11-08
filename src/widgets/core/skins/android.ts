@@ -1,5 +1,5 @@
 // Skin · android — Material You: tonal surface from accent, 28px radius, Roboto Flex, squiggly progress.
-// Fonts to load: Roboto Flex. Docs: docs/redesign/widgets/docs/skins/android.md
+// Fonts to load: Roboto Flex. Docs: _docs/redesign/widgets/docs/skins/android.md
 import type { SkinPack } from "../types";
 
 export const androidSkin: SkinPack = {

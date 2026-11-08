@@ -3,7 +3,7 @@
 // webview's memory grows over a long session. Read-only.
 //   node tools/perf/metrics-trend.mjs [metrics.csv] [bucketMinutes=30] [sinceIso]
 // Default file: %LOCALAPPDATA%\dev.f3nn3x.infopanel-studio\logs\metrics.csv. Columns: see CSV_COLUMNS in
-// src-tauri/src/debug.rs. See docs/desktop/webview-performance.md.
+// src-tauri/src/debug.rs. See _docs/desktop/webview-performance.md.
 import fs from "node:fs";
 import path from "node:path";
 

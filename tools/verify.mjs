@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // npm run verify: works out which features the changed files belong to (tests/feature-map.json) and runs exactly the
-// checks those features need, fast to slow. docs/TESTING.md, "Verify", describes the modes and the exit codes.
+// checks those features need, fast to slow. _docs/TESTING.md, "Verify", describes the modes and the exit codes.
 //   verify                  checks for what changed since the merge base with origin/main (commits, staged, unstaged, untracked)
 //   verify --fast           the features' own tests only, no `vitest related`
 //   verify --full           every check in the map

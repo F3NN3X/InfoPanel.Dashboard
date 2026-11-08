@@ -2,7 +2,7 @@
 // Measures a page's idle cost in a headed Chromium: renderer and GPU process CPU (Windows), and with
 // `trace`, a 3 s devtools trace of frames, paints and the style/layout invalidations behind them.
 //   PW_CORE=<path to playwright-core> CHROME=<chrome.exe> node tools/perf/studio-cpu.cjs <url> [cpu|trace] [seconds=15]
-// Never point it at the live server: start a scratch one on a copy of the data (docs/desktop/webview-performance.md).
+// Never point it at the live server: start a scratch one on a copy of the data (_docs/desktop/webview-performance.md).
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");

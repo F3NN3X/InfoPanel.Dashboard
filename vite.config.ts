@@ -8,7 +8,7 @@ import { availableParallelism } from "node:os";
 import path from "node:path";
 import { quarantinedFiles } from "./tools/ci/quarantine.mjs";
 
-// Test files held out of the gating runs (tests/quarantine.json, docs/TESTING.md); QUARANTINE=only runs just those.
+// Test files held out of the gating runs (tests/quarantine.json, _docs/TESTING.md); QUARANTINE=only runs just those.
 const quarantined: string[] = quarantinedFiles(__dirname);
 const quarantineOnly = process.env.QUARANTINE === "only";
 

@@ -17,7 +17,7 @@ const CAPTURE_OPTIONS = { bandCount: BAND_COUNT, minHz: 30, maxHz: 16000, minDb:
 /** The update stops once no engine has read the input for this long, and restarts on the next read. */
 const IDLE_MS = 1000;
 
-/** Dev only: every mounted input, read by `window.__vizInputs()` (tone / sweep checks, `docs/redesign/visualizer`). */
+/** Dev only: every mounted input, read by `window.__vizInputs()` (tone / sweep checks, `_docs/redesign/visualizer`). */
 const PROBES = new Set<{ device: () => string; raw: () => RawInput; get: () => VizInput }>();
 const peakOf = (a: ArrayLike<number> | null) => {
   if (!a?.length) return -1;

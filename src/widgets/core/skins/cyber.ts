@@ -1,5 +1,5 @@
 // Skin · cyber — Cyberpunk: chamfered corners, signal yellow, Chakra Petch, stepped graphs.
-// Fonts to load: Chakra Petch. Docs: docs/redesign/widgets/docs/skins/cyber.md
+// Fonts to load: Chakra Petch. Docs: _docs/redesign/widgets/docs/skins/cyber.md
 import type { SkinPack } from "../types";
 
 export const cyberSkin: SkinPack = {

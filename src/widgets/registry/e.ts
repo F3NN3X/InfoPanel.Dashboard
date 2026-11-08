@@ -1,4 +1,4 @@
-// Template widgets, group E: the plain plugin cards that had no template (see docs/redesign/phase9/gaps.md).
+// Template widgets, group E: the plain plugin cards that had no template (see _docs/redesign/phase9/gaps.md).
 // Each module's options are exported for the schema tests (`e.schema.test.ts`).
 import { notificationsIsland } from "../island/info";
 import { styleSubsetSettings } from "@/modules/standard-settings";
