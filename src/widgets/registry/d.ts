@@ -23,8 +23,6 @@ import type { SteamLibraryProps } from "../SteamLibrary";
 import { meta as steamLibraryMeta } from "../meta/SteamLibrary";
 import type { SteamNewsProps } from "../SteamNews";
 import { meta as steamNewsMeta } from "../meta/SteamNews";
-import type { SteamProfileProps } from "../SteamProfile";
-import { meta as steamProfileMeta } from "../meta/SteamProfile";
 import type { FriendStatus, SteamFriendsProps } from "../SteamFriends";
 import { meta as steamFriendsMeta } from "../meta/SteamFriends";
 import { steamFriendsIsland } from "../island-sources";
@@ -40,7 +38,6 @@ const PlaytimeShare = lazyWidget(() => import("../PlaytimeShare"));
 const SteamGame = lazyWidget(() => import("../SteamGame"));
 const SteamLibrary = lazyWidget(() => import("../SteamLibrary"));
 const SteamNews = lazyWidget(() => import("../SteamNews"));
-const SteamProfile = lazyWidget(() => import("../SteamProfile"));
 const SteamFriends = lazyWidget(() => import("../SteamFriends"));
 
 const OSD_CELLS = ["fps", "low", "ft", "gpu", "cpu", "vram", "display"] as const satisfies readonly OsdCell[];
@@ -162,13 +159,6 @@ export const GROUP_D: DashboardModule[] = [
     Component: PlaytimeShare,
     settings: PLAYTIME_COLORS.map((c, i) => colorSetting(c.key, c.label, { role: PLAYTIME_ROLES[i], more: false })),
     toProps: (s) => ({ colors: playtimeColors(s) }),
-  }),
-  // No own settings: Data shows where the profile comes from (read-only), so the tab is not empty.
-  templateModule<Pick<SteamProfileProps, never>>({
-    meta: steamProfileMeta,
-    Component: SteamProfile,
-    settings: [{ key: "account", label: "Steam API", type: "status", default: "", sourcePlugin: "plugins.InfoPanel.SteamAPI.", group: "Account", tab: "data" }],
-    toProps: () => ({}),
   }),
   templateModule<Pick<SteamFriendsProps, "view" | "sort" | "showCounts" | "ingameOnly" | "showTime" | "colors">>({
     meta: steamFriendsMeta,

@@ -38,29 +38,17 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   OsdStrip: as("none", BOTH),
   FramePacing: yes(BOTH),
   PlaytimeShare: yes(BOTH),
-  SteamProfile: yes(CARD),
   SteamFriends: yes(BOTH),
   SteamGame: as("none", CARD),
   Achievements: yes(CARD),
   SteamLibrary: yes(CARD),
   SteamNews: yes(BOTH),
   // Group E: the plain plugin cards
-  // A URL, no sensor data: its Data tab is empty too.
-  WebPage: as("none", NONE, { styleSubset: ["colors:accent", "spacing:scale,radius", "border"], noData: true }),
-  TextFile: yes(BOTH),
-  Notifications: yes(BOTH),
-  Departures: yes(BOTH),
-  Bluetooth: yes(BOTH),
   StreamDeck: yes(BOTH),
   // History and analysis
-  BottleneckLens: yes(CARD),
   FrameHistogram: yes(CARD),
   SessionStats: yes(CARD),
   ThresholdTimeline: yes(CARD, { thr: ["value"] }),
-  // Time and status: the calendar, weather, OBS and the clock
-  DayPlanner: yes(BOTH),
-  RadialClockStack: yes(BOTH),
-  OnAirBeacon: yes(NONE),
   // Stream audio: the server's audio control
   StreamMixer: yes(BOTH),
   AudioButton: yes(NONE),

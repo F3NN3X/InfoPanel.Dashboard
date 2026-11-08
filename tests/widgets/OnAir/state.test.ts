@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { elapsedText, ON_AIR_LABEL, onAirKind } from "@/widgets/OnAir/state";
+import { elapsedText, ON_AIR_LABEL, onAirKind } from "@/widgets/on-air-beacon/state";
 
 const obs = (o: Partial<Parameters<typeof onAirKind>[0]>) => ({ configured: true, connected: true, streaming: false, recording: false, ...o });
 
