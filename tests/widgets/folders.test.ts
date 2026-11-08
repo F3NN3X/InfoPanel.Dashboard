@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { modules } from "@/modules";
+import { fixtureSensors } from "@/widgets/__fixtures__";
+import { withDemo } from "@/widgets/widget-qa/demo-settings";
 import { WIDGET_ORDER } from "@/widgets/order";
 import { FOLDER_WIDGETS } from "@/widgets/registry.generated";
 import { INSPECTOR_META } from "@/widgets/registry/inspector-meta";
@@ -35,6 +38,13 @@ describe("the widget folders", () => {
       expect(sample === "central" || typeof sample === "function" || (typeof sample === "object" && typeof sample.none === "string" && sample.none !== ""), "sample").toBe(true);
       const sections = readmeSections(read(`${folder}/README.md`));
       for (const title of README_SECTIONS) expect(sections[title], `README.md: ${title}`).toBeTruthy();
+    });
+
+    it("draws from its sample: a central one is the shared fixture sensors and demo settings (Widget QA's data)", () => {
+      if (w.sample !== "central") return;
+      const mod = modules.find((m) => m.id === id)!;
+      const html = renderToStaticMarkup(mod.render(fixtureSensors(), withDemo(id, {}, false)) as never);
+      expect(html, "draws its own markup from the central sample").toMatch(/data-wp-/);
     });
 
     it("keeps its component out of the kiosk entry: meta.ts imports types only, widget.ts the component as a type only", () => {

@@ -199,13 +199,6 @@ The whole library shares one design system, in `src/widgets/core/`:
   `plugins.bluetooth-battery-plugin.*`: the status container (the one with
   a `.bt_status` key) gives the status line; every other container is a
   paired device (`Name`, `Status`, `Battery Level` → green/amber/red bar).
-- **NowPlaying**, Spotify source — `spotify.track` /
-  `spotify.artist` / `spotify.art` / `spotify.progress` /
-  `spotify.playing`, falling back to `plugins.spotify-plugin.spotify.*`
-  equivalents.
-- **NowPlaying**, Media source — `plugins.media-plugin.media.*`:
-  `current-track`, `artist`, `cover-art`, `track-progress`,
-  `elapsed-time`, `remaining-time`, `playback-state` (= 2 → playing).
 - **Weather** — `plugins.yr-weather-plugin.*`:
   `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
   `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
