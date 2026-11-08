@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 import type { ModuleSettings } from "@/modules/types";
 import { clockOf, leftOf, timer, type TimerState } from "@/lib/timer";
-import { useNow } from "./time-hooks";
-import { Widget, shell, Num, Bar, Icon, roomy, rowPx, type ShellProps } from "./kit";
-import { meta } from "./meta/Timer";
+import { useNow } from "../time-hooks";
+import { Widget, shell, Num, Bar, Icon, roomy, rowPx, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

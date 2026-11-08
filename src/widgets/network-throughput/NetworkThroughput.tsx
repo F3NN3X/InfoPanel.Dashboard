@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, gbStat, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "./kit";
-import { meta } from "./meta/NetworkThroughput";
+import { Widget, shell, get, num, fmt, gbStat, fmtRate, rateUnitOf, adapterOf, pretty, hue, Spark, Stat, Icon, Num, roomy, useHistory, useIpTag, Empty, type RateUnit, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

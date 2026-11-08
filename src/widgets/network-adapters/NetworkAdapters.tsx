@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { fillRows, roomy, tileHero, useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "./kit";
-import { meta } from "./meta/NetworkAdapters";
+import { fillRows, roomy, tileHero, useFitRows, Widget, shell, get, num, fmt, has, Dot, Chip, Icon, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

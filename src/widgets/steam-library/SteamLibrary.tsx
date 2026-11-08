@@ -1,5 +1,5 @@
-import { Widget, shell, get, num, fmt, rows, Metric, Bar, Icon, type ShellProps } from "./kit";
-import { meta } from "./meta/SteamLibrary";
+import { Widget, shell, get, num, fmt, rows, Metric, Bar, Icon, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

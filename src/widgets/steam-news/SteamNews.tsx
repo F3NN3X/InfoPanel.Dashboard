@@ -1,5 +1,5 @@
-import { roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, rows, has, type ShellProps } from "./kit";
-import { meta } from "./meta/SteamNews";
+import { roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, rows, has, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

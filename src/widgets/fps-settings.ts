@@ -1,7 +1,7 @@
 // FpsMonitor's look settings and their mapping to props (same keys, defaults and groups as the old FPS
 // widget).
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { colorSetting } from "./shared/settings-kit";
+import { colorSetting, numberOf, numberSetting } from "./shared/settings-kit";
 import type { FpsMonitorProps } from "./FpsMonitor";
 
 /** showMetrics, sparkline and the two colours (the ring follows the theme's Series 1, the sparkline Series 2). */
@@ -25,3 +25,9 @@ export function fpsLookProps(s: ModuleSettings): FpsLookProps {
   };
 }
 
+/** An fps target, where 0 (and anything below) means the display's refresh rate. */
+export const targetOf = (v: unknown): number | undefined => {
+  const n = numberOf(v);
+  return n !== undefined && n > 0 ? n : undefined;
+};
+export const targetSetting = numberSetting("target", "FPS target (0 = refresh rate)", 0, { min: 0, max: 360, step: 5, group: "Target", tab: "data" });

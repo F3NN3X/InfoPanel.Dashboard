@@ -4,8 +4,8 @@ import { useTick } from "@/hooks/use-tick";
 import { breakdownOf, dateLine, phaseOf, targetOf, tickMs, trimTrailingZeros, unitWord, type Breakdown, type CountMode } from "@/lib/countdown";
 import type { ModuleSettings } from "@/modules/types";
 import { CountdownBodyView, type CountdownView } from "./CountdownViews";
-import { Empty, Widget, shell, type ShellProps } from "./kit";
-import { meta } from "./meta/Countdown";
+import { Empty, Widget, shell, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

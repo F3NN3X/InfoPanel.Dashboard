@@ -28,7 +28,7 @@ describe("Limit blur", () => {
 
   it.each([
     "src/widgets/GameSpotlight.tsx",
-    "src/widgets/SteamGame.tsx",
+    "src/widgets/steam-game/SteamGame.tsx",
     "src/widgets/core/primitives.tsx",
     "src/components/widgets/panel-overlay.tsx",
     "src/components/alerts/alert-layer.tsx",

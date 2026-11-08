@@ -37,7 +37,7 @@ export const RULES = [
     name: "blur outside the cap",
     pattern: /backdrop-blur[\w-]*|(?<!backdrop-)blur\(\d+px\)|drop-shadow\(/g,
     // the cap helper's own lines are skipped below; allowed: the privacy blur, the cover art, page media, island keyframes
-    skip: under(["src/widgets/core/views.tsx", "src/widgets/NetworkAdapters.tsx", "src/widgets/now-playing/NowPlaying.tsx", "src/lib/appearance.ts", "src/index.css", "src/widgets/widget-qa/"]),
+    skip: under(["src/widgets/core/views.tsx", "src/widgets/network-adapters/NetworkAdapters.tsx", "src/widgets/now-playing/NowPlaying.tsx", "src/lib/appearance.ts", "src/index.css", "src/widgets/widget-qa/"]),
     lineSkip: /wp-blur-cap/,
   },
   {

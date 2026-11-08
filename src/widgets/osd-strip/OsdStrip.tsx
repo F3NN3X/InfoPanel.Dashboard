@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, STATE, type IpTagExtra, type ShellProps } from "./kit";
-import { fpsSubLine } from "./fps-line";
-import { meta } from "./meta/OsdStrip";
+import { Widget, shell, get, num, fmt, has, stacksIn, useSkin, useIpTag, ToneCue, hw, STATE, type IpTagExtra, type ShellProps } from "../kit";
+import { fpsSubLine } from "../fps-line";
+import { meta } from "./meta";
 
 export { meta };
 

@@ -1,7 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
 import { DriveIcon, DriveRows, type DriveRow } from "./DriveSpaceViews";
-import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Chip, Pill, type ShellProps, type Tone } from "./kit";
-import { meta } from "./meta/DriveSpace";
+import { fillRows, roomy, useFitRows, Widget, shell, get, num, fmt, fmtMB, Bar, BarRow, Ring, Num, tone, Chip, Pill, type ShellProps, type Tone } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

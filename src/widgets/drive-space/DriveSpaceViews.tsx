@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import type { ReactNode } from "react";
-import { Bar, fillRows, fitRows, Icon, roomy, TONES, type Tone } from "./kit";
+import { Bar, fillRows, fitRows, Icon, roomy, TONES, type Tone } from "../kit";
 
 const DriveIconImpl = lazy(() => import("./DriveIcon"));
 

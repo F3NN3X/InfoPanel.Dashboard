@@ -1,5 +1,5 @@
 import { unitWord, type Part } from "@/lib/countdown";
-import { Num } from "./kit";
+import { Num } from "../kit";
 
 export type CountdownView = "inline" | "tiles" | "big";
 

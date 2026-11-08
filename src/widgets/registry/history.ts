@@ -5,27 +5,18 @@ import { thresholdsOf } from "@/modules/setting-readers";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import { numberOf, numberSetting, sensorSetting, splitKeys, thresholdSetting } from "../shared/settings-kit";
-import type { FrameHistogramProps } from "../FrameHistogram";
-import { meta as frameHistogramMeta } from "../meta/FrameHistogram";
 import type { SessionStatsProps } from "../SessionStats";
 import { MAX_SENSORS, meta as sessionStatsMeta } from "../meta/SessionStats";
 import type { ThresholdTimelineProps } from "../ThresholdTimeline";
 import { MAX_LANES, meta as thresholdTimelineMeta } from "../meta/ThresholdTimeline";
 
 // Each component loads in its own chunk, the first time a zone draws it.
-const FrameHistogram = lazyWidget(() => import("../FrameHistogram"));
 const SessionStats = lazyWidget(() => import("../SessionStats"));
 const ThresholdTimeline = lazyWidget(() => import("../ThresholdTimeline"));
 
 const SENSORS_HINT = (n: number) => `Up to ${n}. Empty = CPU and GPU load and temperature`;
 
 export const GROUP_HISTORY: DashboardModule[] = [
-  templateModule<Pick<FrameHistogramProps, "window">>({
-    meta: frameHistogramMeta,
-    Component: FrameHistogram,
-    settings: [numberSetting("window", "Window (s)", 60, { min: 10, max: 600, step: 10, group: "History", tab: "behaviour", hint: "Frames counted; one reading a second" })],
-    toProps: (s) => ({ window: numberOf(s.window) }),
-  }),
   templateModule<Pick<SessionStatsProps, "sensors" | "above">>({
     meta: sessionStatsMeta,
     Component: SessionStats,
