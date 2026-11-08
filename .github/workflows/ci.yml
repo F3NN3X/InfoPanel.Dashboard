@@ -65,6 +65,8 @@ jobs:
             echo '{"mode":"full","steps":[]}' | node tools/ci/plan-outputs.mjs --all
           else
             node tools/verify.mjs --plan --json --base "origin/$BASE" > "$RUNNER_TEMP/plan.json"
+            # No merge base (a shallow clone) makes verify plan the full suite: say so instead of running it silently.
+            node -e 'if (!JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).base) console.log("::warning::the plan found no merge base with origin/" + process.argv[2] + ", so it runs every check")' "$RUNNER_TEMP/plan.json" "$BASE"
             if [ "$E2E_LABEL" = "true" ]; then e2e=--e2e; else e2e=; fi
             node tools/ci/plan-outputs.mjs $e2e < "$RUNNER_TEMP/plan.json"
           fi
