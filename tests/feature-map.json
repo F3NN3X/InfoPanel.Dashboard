@@ -710,8 +710,8 @@
     },
     {
       "id": "ci-workflows",
-      "summary": "The CI, nightly and release workflows, and the scripts they run (plan outputs, release gate, actionlint pin, desktop stub).",
-      "paths": [".github/**", "tools/ci/**", "tools/ci-stub-desktop.mjs", "tests/quarantine.json"],
+      "summary": "The CI, nightly and release workflows, the scripts they run (plan outputs, release gate, actionlint pin, desktop stub), and ship (the local-verify merge gate).",
+      "paths": [".github/**", "tools/ci/**", "tools/ci-stub-desktop.mjs", "tools/ship.mjs", "tests/quarantine.json"],
       "tests": ["tests/tools/ci*.test.mjs"],
       "checks": ["unit", "actionlint"]
     },
