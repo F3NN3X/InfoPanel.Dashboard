@@ -2,7 +2,7 @@
 // whether it draws a header, what it draws in small zones, the units and thresholds it renders (its schema has
 // one Units & format / Thresholds row each; checked against what each renderer draws) and its look subset.
 import type { CompactShape, DashboardModule, HeaderMode, ModuleSetting } from "@/modules/types";
-import { BOTH, CARD, DENSE, NONE } from "../define";
+import { BOTH, CARD, NONE } from "../define";
 
 export type InspectorMeta = Required<Pick<DashboardModule, "header" | "compact">> &
   Pick<DashboardModule, "fmt" | "thr" | "styleSubset" | "noData">;
@@ -21,15 +21,10 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
   // Group C: media / audio
-  // Its amber and hot zones are the Audio level threshold (config v8).
-  AudioMeter: yes(BOTH, { thr: ["db"] }),
   VolumeMixer: yes(BOTH),
-  MeterBridge: yes(DENSE, { thr: ["db"] }),
-  Visualizer: yes(DENSE),
   WaveLink: yes(BOTH),
   // Group D: gaming
   FpsMonitor: yes(CARD),
-  GameSpotlight: as("none", BOTH),
   FramePacing: yes(BOTH),
   PlaytimeShare: yes(BOTH),
   // Group E: the plain plugin cards

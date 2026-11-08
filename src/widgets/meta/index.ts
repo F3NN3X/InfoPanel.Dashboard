@@ -1,14 +1,11 @@
 // Every widget's catalog entry by id, light enough for the kiosk entry (the components load on demand, `lazy-widget.tsx`).
 export { meta as AudioButton } from "./AudioButton";
 export { meta as AudioFader } from "./AudioFader";
-export { meta as AudioMeter } from "./AudioMeter";
 export { meta as CustomGauge } from "./CustomGauge";
 export { meta as Forecast } from "./Forecast";
 export { meta as FpsMonitor } from "./FpsMonitor";
 export { meta as FramePacing } from "./FramePacing";
-export { meta as GameSpotlight } from "./GameSpotlight";
 export { meta as KpiTiles } from "./KpiTiles";
-export { meta as MeterBridge } from "./MeterBridge";
 export { meta as ObsButton } from "./ObsButton";
 export { meta as PlaytimeShare } from "./PlaytimeShare";
 export { meta as SensorValue } from "./SensorValue";
@@ -18,7 +15,6 @@ export { meta as StreamChat } from "./StreamChat";
 export { meta as StreamControl } from "./StreamControl";
 export { meta as StreamMixer } from "./StreamMixer";
 export { meta as ThresholdTimeline } from "./ThresholdTimeline";
-export { meta as Visualizer } from "./Visualizer";
 export { meta as Vitals } from "./Vitals";
 export { meta as VolumeMixer } from "./VolumeMixer";
 export { meta as WaveLink } from "./WaveLink";

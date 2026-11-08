@@ -286,3 +286,11 @@ export const wavelinkToProps = (s: ModuleSettings): Partial<WaveLinkProps> => ({
   muteColor: String(s.muteColor ?? ""),
   mixerLook: mixerLookOf(s, "meterOrientation"),
 });
+
+/** Select options for plain values, labelled by capitalising them (the meters' styles, the visualizer's modes). */
+export const opts = (values: readonly string[]) => values.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+/** A segment count where 0 = the widget sizes it to the zone. */
+export const autoCount = (v: unknown): number | undefined => {
+  const n = numberOf(v);
+  return n !== undefined && n > 0 ? n : undefined;
+};

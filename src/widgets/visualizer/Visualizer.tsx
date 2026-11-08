@@ -1,12 +1,12 @@
 import { useFastSensors } from "@/hooks/useSensors";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, type ShellProps } from "./kit";
-import { AudioViz } from "./core/viz/AudioViz";
-import { resolveLook, type VizLook } from "./core/viz/types";
-import { levelOf, useVizInput } from "./core/viz/use-viz-input";
-import { AUDIO, useLevelDevice } from "./audio-device";
-import { audioIdsIn, pickedIds, type FlowFilter } from "./audio-data";
-import { meta } from "./meta/Visualizer";
+import { Widget, shell, get, num, fmt, type ShellProps } from "../kit";
+import { AudioViz } from "../core/viz/AudioViz";
+import { resolveLook, type VizLook } from "../core/viz/types";
+import { levelOf, useVizInput } from "../core/viz/use-viz-input";
+import { AUDIO, useLevelDevice } from "../audio-device";
+import { audioIdsIn, pickedIds, type FlowFilter } from "../audio-data";
+import { meta } from "./meta";
 
 export { meta };
 

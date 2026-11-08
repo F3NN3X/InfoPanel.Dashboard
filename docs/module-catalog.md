@@ -159,6 +159,10 @@ The whole library shares one design system, in `src/widgets/core/`:
 - **Calendar** ([README](../src/widgets/calendar/README.md)) — The clock plugin's date, `plugins.clock-plugin.clock.day`, `month` and `year` (read, not owned: Clock owns the prefix). It draws without sensor keys too.
 - **SensorGroup** ([README](../src/widgets/sensor-group/README.md)) — Pick sensors: the chosen keys, any source. With none picked, this machine's own `system.cpu.load`, the graphics card's `libre.<gpu>_gpu_core_load` and `gpu_core`, `system.ram.load` and `plugins.volume-plugin.default.volume`. Auto-discover: every live `libre.*` / `hwinfo.*` reading.
 - **NowPlaying** ([README](../src/widgets/now-playing/README.md)) — The media plugin, `plugins.media-plugin.media.*`: `current-track`, `artist`, `album`, `cover-art`, `track-progress`, `elapsed-time`, `remaining-time`, `playback-state` (2 or 4 = playing). The Spotify plugin, `plugins.spotify-plugin.spotify.*` (the same names), with pushed `spotify.track` / `artist` / `album` / `art` / `progress` / `playing` winning over it. The visualiser reads the audio level meter, `plugins.audio-level-meter.*`, without owning it.
+- **AudioMeter** ([README](../src/widgets/audio-meter/README.md)) — The audio level meter plugin, `plugins.audio-level-meter.*` (it owns the prefix), grouped by container (device): the entries are found by their key suffix (`audio-level`, `peak-level`, `rms-level`, `left-channel`, `right-channel`, `device-name`), and the legacy plain names (`Level`, `Peak`, ...) are the fallback. The `default-audio` container is labelled "Default device". Volume and mute come from the volume plugin when shown.
+- **MeterBridge** ([README](../src/widgets/meter-bridge/README.md)) — The audio level meter plugin, `plugins.audio-level-meter.*`, and the volume plugin's volume and mute, `plugins.volume-plugin.*` (both read, not owned). Devices are found by container, as Audio Meter does; **Channels** picks them (none = all).
+- **Visualizer** ([README](../src/widgets/visualizer/README.md)) — The audio level meter plugin's spectrum, `plugins.audio-level-meter.*` (read, not owned). It draws the loudest device unless **Audio devices** picks some.
+- **GameSpotlight** ([README](../src/widgets/game-spotlight/README.md)) — The Steam API plugin, `plugins.InfoPanel.SteamAPI.`: Profile (`player-name`, `online-status`, `steam-level`, `profile_image_url`, `current_game_banner_url`, `game_logo_url`, `game_icon_url`), Session (`current-game`, `current-game-playtime`, `current-session-time`, `session-start-time`), Library (`total-games`), Achievements (`current-achievements`, `latest-achievement`, `latest-achievement-icon`), Social (`friends-online`, `total-friends`) and News (`current_game_news_title`). Image keys are validated with `isImageUrl` before use. It owns no prefix. The music overlay reads the media or Spotify plugin.
 - **OsdStrip** ([README](../src/widgets/osd-strip/README.md)) — The RTSS plugin, `plugins.InfoPanel.RTSS.rtss.*` (`fps`, `1% low fps`, `current frame time`, `refreshrate`, `windowtitle`), and LibreHardwareMonitor's GPU load, temperature and memory and CPU load, `libre.*`. It owns no prefix.
 - **SteamProfile** ([README](../src/widgets/steam-profile/README.md)) — The Steam API plugin, `plugins.InfoPanel.SteamAPI.SteamAPI-Profile.*` and `plugins.InfoPanel.SteamAPI.SteamAPI-Social.*` (it owns both prefixes).
 - **SteamFriends** ([README](../src/widgets/steam-friends/README.md)) — The Steam API plugin's social container, `plugins.InfoPanel.SteamAPI.SteamAPI-Social.*` (it owns the prefix).
@@ -240,15 +244,6 @@ The whole library shares one design system, in `src/widgets/core/`:
   per day under 100 px tall), Calendar (the current week under 120 px tall),
   Playtime Share (one line under 110 px tall), Sensor Group (rows counted
   with their gaps).
-- **GameSpotlight** (composite mode) — `plugins.InfoPanel.SteamAPI.`:
-  Profile (`player-name`, `online-status`, `steam-level`,
-  `profile_image_url`, `current_game_banner_url`, `game_logo_url`,
-  `game_icon_url`), Session (`current-game`, `current-game-playtime`,
-  `current-session-time`, `session-start-time`), Library (`total-games`),
-  Achievements (`current-achievements`, `latest-achievement`,
-  `latest-achievement-icon`), Social (`friends-online`,
-  `total-friends`), News (`current_game_news_title`). Image keys are
-  validated with `isImageUrl` before use.
 
 ## Naming conventions
 

@@ -2,6 +2,7 @@
 // The widget folders, kiosk-safe: each widget.ts holds metadata and settings, and its component as a lazy import only.
 import type { WidgetDefinition } from "./define";
 import achievements from "./achievements/widget";
+import audioMeter from "./audio-meter/widget";
 import bluetooth from "./bluetooth/widget";
 import bottleneckLens from "./bottleneck-lens/widget";
 import calendar from "./calendar/widget";
@@ -16,10 +17,12 @@ import diskIo from "./disk-io/widget";
 import driveSpace from "./drive-space/widget";
 import fans from "./fans/widget";
 import frameHistogram from "./frame-histogram/widget";
+import gameSpotlight from "./game-spotlight/widget";
 import gpuMonitor from "./gpu-monitor/widget";
 import gpuRings from "./gpu-rings/widget";
 import memoryUsage from "./memory-usage/widget";
 import menuBar from "./menu-bar/widget";
+import meterBridge from "./meter-bridge/widget";
 import networkAdapters from "./network-adapters/widget";
 import networkThroughput from "./network-throughput/widget";
 import notifications from "./notifications/widget";
@@ -45,10 +48,11 @@ import textFile from "./text-file/widget";
 import thermals from "./thermals/widget";
 import timer from "./timer/widget";
 import uptime from "./uptime/widget";
+import visualizer from "./visualizer/widget";
 import webPage from "./web-page/widget";
 
 /** The folder widgets in the order of src/widgets/order.ts. */
 // biome-ignore lint/suspicious/noExplicitAny: each definition keeps its own props type.
-export const FOLDER_WIDGETS: readonly WidgetDefinition<any>[] = [systemOverview, menuBar, statusTracker, systemStatus, serviceHealth, processList, uptime, cpuMonitor, coreHeatmap, gpuRings, gpuMonitor, memoryUsage, thermals, powerDraw, fans, driveSpace, storageHealth, diskIo, networkThroughput, networkAdapters, clock, timer, countdown, statusBar, codingAgents, calendar, sensorGroup, nowPlaying, osdStrip, steamProfile, steamFriends, steamGame, achievements, steamLibrary, steamNews, webPage, textFile, notifications, departures, bluetooth, dayPlanner, radialClockStack, onAirBeacon, bottleneckLens, frameHistogram];
+export const FOLDER_WIDGETS: readonly WidgetDefinition<any>[] = [systemOverview, menuBar, statusTracker, systemStatus, serviceHealth, processList, uptime, cpuMonitor, coreHeatmap, gpuRings, gpuMonitor, memoryUsage, thermals, powerDraw, fans, driveSpace, storageHealth, diskIo, networkThroughput, networkAdapters, clock, timer, countdown, statusBar, codingAgents, calendar, sensorGroup, nowPlaying, audioMeter, meterBridge, visualizer, gameSpotlight, osdStrip, steamProfile, steamFriends, steamGame, achievements, steamLibrary, steamNews, webPage, textFile, notifications, departures, bluetooth, dayPlanner, radialClockStack, onAirBeacon, bottleneckLens, frameHistogram];
 /** Each one's index in src/widgets/order.ts: its place among all the widgets. */
-export const FOLDER_SLOTS: readonly number[] = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 33, 41, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59];
+export const FOLDER_SLOTS: readonly number[] = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 33, 34, 36, 37, 40, 41, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59];

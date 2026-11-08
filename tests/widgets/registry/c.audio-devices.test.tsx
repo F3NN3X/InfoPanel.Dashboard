@@ -2,7 +2,6 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { modules } from "@/modules";
 import type { ModuleSettings } from "@/modules/types";
-import { GROUP_C } from "@/widgets/registry/c";
 import { renderModule } from "@/widgets/test-render";
 
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
@@ -47,7 +46,7 @@ describe("audio widgets: inputs and outputs", () => {
 
   it("Visualizer and Now Playing draw from either flow without throwing", () => {
     for (const flow of ["all", "output", "input"]) {
-      expect(renderToString(GROUP_C.find((m) => m.id === "Visualizer")!.render({}, { flow }) ?? <i />).length).toBeGreaterThan(0);
+      expect(renderToString(modules.find((m) => m.id === "Visualizer")!.render({}, { flow }) ?? <i />).length).toBeGreaterThan(0);
       expect(html("NowPlaying", { progress: "visualizer", flow, vizDevices: "default-input,default-audio" }).length).toBeGreaterThan(0);
     }
     expect(html("Visualizer", { flow: "input" })).toMatch(/(Wave Mic 1|Microphone|Line In) visualizer/);

@@ -1,11 +1,11 @@
 import type { CSSProperties } from "react";
-import { Widget, GlassPill, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, useIpTag, type ShellProps } from "./kit";
+import { Widget, GlassPill, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot, MediaProgress, KenBurns, Logo, useIpTag, type ShellProps } from "../kit";
 import type { ModuleSettings } from "@/modules/types";
 import { sizeTierOf } from "@/modules/setting-readers";
-import type { VizStyle } from "./core/viz/types";
-import { widgetImage } from "./data-adapter";
+import type { VizStyle } from "../core/viz/types";
+import { widgetImage } from "../data-adapter";
 import { CompositeView } from "./GameSpotlightComposite";
-import { meta } from "./meta/GameSpotlight";
+import { meta } from "./meta";
 
 export { meta };
 
