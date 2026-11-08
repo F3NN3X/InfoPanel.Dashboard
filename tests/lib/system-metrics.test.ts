@@ -275,7 +275,8 @@ describe("readSystemFlat", () => {
   });
 
   it("memoises per data identity", () => {
-    expect(readSystemFlat(flat)).toBe(f);
+    const first = readSystemFlat(flat);
+    expect(readSystemFlat(flat)).toBe(first);
   });
 
   it("takes hardware and drive names from the sensor names when given", () => {
