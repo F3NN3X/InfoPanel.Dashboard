@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { bodyGap, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps } from "./kit";
-import { meta } from "./meta/ServiceHealth";
+import { bodyGap, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, has, Dot, Pill, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

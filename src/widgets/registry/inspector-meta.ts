@@ -22,23 +22,12 @@ const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta,
 export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group A: system and hardware
   SystemOverview: as("title-only", DENSE, { fmt: ["tempUnit", "decimals"], thr: ["load", "temp", "full"] }),
-  MenuBar: as("none", BOTH, { fmt: ["rateUnit"] }),
   KpiTiles: as("none", BOTH),
-  StatusTracker: yes(BOTH, { thr: ["load"] }),
-  SystemStatus: yes(CARD, { thr: ["load"] }),
   Vitals: as("none", BOTH),
-  ServiceHealth: yes(BOTH),
-  ProcessList: yes(BOTH),
-  // Its one reading is the plugin's uptime: nothing to pick or bind.
-  Uptime: yes(CARD, { noData: true }),
   // The unit and decimals of its temperatures.
   CpuMonitor: yes(CARD, { fmt: ["tempUnit", "decimals"], thr: ["load"] }),
   CoreHeatmap: yes(DENSE),
   GpuMonitor: yes(CARD, { thr: ["temp"] }),
-  MemoryUsage: yes(CARD, { thr: ["load"] }),
-  Thermals: yes(BOTH, { fmt: ["tempUnit"], thr: ["temp"] }),
-  PowerDraw: yes(CARD),
-  Fans: yes(BOTH),
   // Group B: storage, network, info, generic
   DriveSpace: yes(BOTH, { thr: ["full"] }),
   StorageHealth: yes(CARD),

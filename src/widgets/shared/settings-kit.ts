@@ -37,6 +37,8 @@ export const splitKeys = (v: unknown): string[] => (typeof v === "string" && v ?
 export const joinKeys = (keys: readonly string[]): string => keys.join(",");
 /** `keys` with `key` removed when present, else appended (the order is the binding order). */
 export const toggleKey = (keys: readonly string[], key: string): string[] => (keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key]);
+/** A stored comma-separated pick as its valid items; undefined while unset (the template's own list). */
+export const listPick = <T extends string>(v: unknown, allowed: readonly T[]): T[] | undefined => (v === undefined ? undefined : splitKeys(v).flatMap((k) => oneOf(k, allowed) ?? []));
 
 /* ───────── schema builders ───────── */
 
@@ -46,6 +48,8 @@ type Option = NonNullable<ModuleSetting["options"]>[number];
 
 /** A select (a segmented control up to four options). */
 export const enumSetting = (key: string, label: string, def: string, options: Option[], extra: Extra = {}): ModuleSetting => ({ key, label, type: "select", default: def, options, ...extra });
+/** `[value, label]` pairs as a select's options. */
+export const optionPairs = (...pairs: [string, string][]): Option[] => pairs.map(([value, label]) => ({ value, label }));
 
 /** The key a widget's view is stored under (`WidgetMeta.viewKey`, default `view`). */
 export const viewKeyOf = (meta: Pick<WidgetMeta, "viewKey">): string => meta.viewKey ?? "view";

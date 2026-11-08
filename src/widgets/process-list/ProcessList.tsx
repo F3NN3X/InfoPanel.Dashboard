@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, fillRows, useFitRows, Widget, shell, get, num, fmt, fmtMB, rows, Metric, Stat, Bar, Segmented, type ShellProps } from "./kit";
-import { meta } from "./meta/ProcessList";
+import { roomy, fillRows, useFitRows, Widget, shell, get, num, fmt, fmtMB, rows, Metric, Stat, Bar, Segmented, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

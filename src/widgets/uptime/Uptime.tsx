@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import type { ModuleSettings } from "@/modules/types";
-import { bodyGap, roomy, Widget, shell, get, num, Num, useIpTag, type ShellProps } from "./kit";
-import { meta } from "./meta/Uptime";
+import { bodyGap, roomy, Widget, shell, get, num, Num, useIpTag, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

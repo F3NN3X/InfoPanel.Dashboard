@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, gbParts, fmtRate, adapterOf, firstDisk, Spark, useHistory, tone, TONES, useSkin, numFont, hw, type RateUnit, type ShellProps } from "./kit";
-import { meta } from "./meta/MenuBar";
+import { Widget, shell, get, num, fmt, gbParts, fmtRate, adapterOf, firstDisk, Spark, useHistory, tone, TONES, useSkin, numFont, hw, type RateUnit, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

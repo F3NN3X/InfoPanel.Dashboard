@@ -1,7 +1,7 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Unit, roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, Spark, useHistory, hue, hw, Num, stackX, type ShellProps } from "./kit";
-import { meta } from "./meta/PowerDraw";
+import { Unit, roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, Spark, useHistory, hue, hw, Num, stackX, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

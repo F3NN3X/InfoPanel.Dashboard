@@ -1,7 +1,7 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, fmt, fitRows, roomy, Icon, Bar, hw, Num, type ShellProps } from "./kit";
-import { meta } from "./meta/Fans";
+import { Widget, shell, get, num, fmt, fitRows, roomy, Icon, Bar, hw, Num, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

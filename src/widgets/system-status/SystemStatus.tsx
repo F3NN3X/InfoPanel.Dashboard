@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Unit, roomy, Widget, shell, get, num, fmt, Metric, BarRow, Ring, RING_TEXT, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps } from "./kit";
-import { meta } from "./meta/SystemStatus";
+import { Unit, roomy, Widget, shell, get, num, fmt, Metric, BarRow, Ring, RING_TEXT, Spark, Dot, useHistory, tone, TONES, Num, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

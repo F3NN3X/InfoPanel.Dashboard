@@ -1,9 +1,9 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import { afterHero, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, fmt, diskShort, tone, TONES, useHistory, Empty, Ring, Num, ToneCue, slideX, hw, type Tone, type ShellProps } from "./kit";
-import { readings } from "./hardware-readings";
-import { meta } from "./meta/Thermals";
+import { afterHero, fillRows, roomy, SummaryHero, SUMMARY_H, useFitRows, Widget, shell, get, num, fmt, diskShort, tone, TONES, useHistory, Empty, Ring, Num, ToneCue, slideX, hw, type Tone, type ShellProps } from "../kit";
+import { readings } from "../hardware-readings";
+import { meta } from "./meta";
 
 export { meta };
 
