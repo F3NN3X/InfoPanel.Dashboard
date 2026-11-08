@@ -1,5 +1,5 @@
 // The AudioLevelMeter / volume-plugin keys the audio widgets read.
-import { get, num, type Data } from "./kit";
+import { get, num, type Data } from "../kit";
 
 const LEVEL = /^plugins\.audio-level-meter\.([^.]+)\.device-name$/;
 const GUID = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;

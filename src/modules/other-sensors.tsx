@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { toFlat, toNames } from "@/widgets/data-adapter";
+import { toFlat, toNames } from "@/widgets/shared/data-adapter";
 import { sensorLabel } from "@/widgets/kit";
 import { shellProps, useZoneLook } from "@/widgets/module";
 import SensorValue from "@/widgets/SensorValue";

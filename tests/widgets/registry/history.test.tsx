@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { toFlat, toNames } from "@/widgets/data-adapter";
+import { toFlat, toNames } from "@/widgets/shared/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
 import BottleneckLens, { meta as bottleneck } from "@/widgets/bottleneck-lens/BottleneckLens";
 import FrameHistogram, { meta as histogram } from "@/widgets/frame-histogram/FrameHistogram";
@@ -11,7 +11,7 @@ import SessionStats, { meta as stats } from "@/widgets/SessionStats";
 import ThresholdTimeline, { meta as timeline } from "@/widgets/ThresholdTimeline";
 import { resolveRole } from "@/lib/infopanel/templates/roles";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
-import { RULES, roleData, type Role } from "@/widgets/role-data";
+import { RULES, roleData, type Role } from "@/widgets/shared/role-data";
 import { GROUP_HISTORY_IDS, groupOf } from "./group-of";
 
 const WIDGETS: [typeof bottleneck, ComponentType<ShellProps>][] = [

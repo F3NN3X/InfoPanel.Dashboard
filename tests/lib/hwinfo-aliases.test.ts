@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { aliasSource, isHwinfoDefaultName, slugOf, withHwinfoAliases } from "@/lib/hwinfo-aliases";
 import { readAdapters, readSystem } from "@/lib/system-metrics";
 import type { SensorMap } from "@/modules/types";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import { hw } from "@/widgets/core/data";
 import capture from "./infopanel/__fixtures__/hwinfo-capture.json";
 

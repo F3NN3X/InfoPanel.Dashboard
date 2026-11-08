@@ -427,7 +427,7 @@ function flatSensors(data: Record<string, string | { value: string }>, names?: R
 const flatCache = new WeakMap<object, { names?: Record<string, string>; readings: SystemReadings }>();
 
 /**
- * The readings from the widget templates' flat data (`{ key: "62.5 %" }`, `widgets/data-adapter.ts`).
+ * The readings from the widget templates' flat data (`{ key: "62.5 %" }`, `widgets/shared/data-adapter.ts`).
  * Flat data carries no sensor names: without `names` (the display names by key) hardware names stay
  * unset and drives are named by their key slug (`kingston_sfyrd2000g`). Memoised per data identity.
  */

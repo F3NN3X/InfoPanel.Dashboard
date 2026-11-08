@@ -1,4 +1,4 @@
-import { audioIds, deviceLabel, type Flow } from "@/widgets/audio-data";
+import { audioIds, deviceLabel, type Flow } from "@/widgets/shared/audio-data";
 import { detect, diskName, fmtRate, hw, pretty } from "@/widgets/core/data";
 import type { DeviceKind, SensorMap } from "@/modules/types";
 

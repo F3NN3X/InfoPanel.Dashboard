@@ -8,7 +8,7 @@ import { AMBIENT_FPS } from "@/lib/ticker";
 import type { VisualFrame } from "@/lib/audio/types";
 import { get, has, num } from "../data";
 import type { Data } from "../types";
-import { AUDIO, spectrumOf } from "../../audio-device";
+import { AUDIO, spectrumOf } from "../../shared/audio-device";
 import { BAND_COUNT, createInputState, stepInput, type Dynamics, type RawInput } from "./input";
 import type { VizInput } from "./types";
 

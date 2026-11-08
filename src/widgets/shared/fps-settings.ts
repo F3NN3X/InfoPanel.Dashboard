@@ -1,8 +1,8 @@
 // FpsMonitor's look settings and their mapping to props (same keys, defaults and groups as the old FPS
 // widget).
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { colorSetting, numberOf, numberSetting } from "./shared/settings-kit";
-import type { FpsMonitorProps } from "./FpsMonitor";
+import { colorSetting, numberOf, numberSetting } from "./settings-kit";
+import type { FpsMonitorProps } from "../FpsMonitor";
 
 /** showMetrics, sparkline and the two colours (the ring follows the theme's Series 1, the sparkline Series 2). */
 export const FPS_LOOK_SETTINGS: ModuleSetting[] = [

@@ -2,7 +2,7 @@
 // drop with LibreHardwareMonitor, HWiNFO or RTSS names alike. Memoised per data object.
 // A small copy of the name rules of `lib/infopanel/templates/roles.ts` for the roles used here: that file also
 // carries the InfoPanel profile templates' tables, which the kiosk entry has no use for (`history.test` keeps the two in step).
-import { num, type Data } from "./kit";
+import { num, type Data } from "../kit";
 
 export type Role = "cpu.load" | "cpu.temp" | "cpu.maxcore" | "gpu.load" | "gpu.temp" | "vram.used" | "vram.total" | "fps" | "frametime";
 

@@ -1,7 +1,7 @@
 import { Widget, shell, fmt, frameSample, ChartAxis, Num, TONES, type ShellProps } from "../kit";
 import { frameHistogram, frameLows } from "../core/histogram";
 import { useSeries, type SeriesLimits } from "../core/history";
-import { roleData, roleValue } from "../role-data";
+import { roleData, roleValue } from "../shared/role-data";
 import { meta } from "./meta";
 
 export { meta };

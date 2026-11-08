@@ -2,7 +2,7 @@ import { useContext, useRef, useState } from "react";
 import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, IpTagCtx, Num, type ShellProps } from "./kit";
 import { useOnData } from "./core/history";
 import { average, durationText, observe, type SessionStat } from "./core/session-stats";
-import { roleData, unitOf } from "./role-data";
+import { roleData, unitOf } from "./shared/role-data";
 import { meta, MAX_SENSORS } from "./meta/SessionStats";
 
 export { meta, MAX_SENSORS };

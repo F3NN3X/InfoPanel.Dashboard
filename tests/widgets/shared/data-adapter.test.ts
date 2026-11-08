@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import { get, hw, num } from "@/widgets/core/data";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { neverReported, toFlat, toNames, widgetImage } from "@/widgets/data-adapter";
+import { neverReported, toFlat, toNames, widgetImage } from "@/widgets/shared/data-adapter";
 
 describe("toFlat", () => {
   it("joins a value and its unit with a space", () => {

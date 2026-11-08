@@ -3,7 +3,7 @@ import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, ButtonTile, STATE, type ShellProps } from "../kit";
 import { findChannel, iconOf } from "../stream-mixer/channels";
 import { toggleMute } from "../stream-mixer/control";
-import { ReadOnly } from "../ReadOnly";
+import { ReadOnly } from "../shared/ReadOnly";
 import { meta } from "./meta";
 
 export { meta };

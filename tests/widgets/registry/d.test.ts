@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
 import Achievements, { meta as achievements } from "@/widgets/achievements/Achievements";
 import FpsMonitor, { meta as fps } from "@/widgets/FpsMonitor";

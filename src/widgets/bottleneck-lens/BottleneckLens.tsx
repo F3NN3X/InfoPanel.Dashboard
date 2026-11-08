@@ -3,7 +3,7 @@ import { Widget, shell, Bar, TickBar, Num, fmt, roomy, TONES, tone, type ShellPr
 import { DEFAULT_BOTTLENECK, VERDICT_LABEL, classify, holdVerdict, logVerdict, reasonFor, verdictRuns, vramPct, type BottleneckInput, type HoldState, type Verdict, type VerdictAt } from "../core/bottleneck";
 import { useOnData } from "../core/history";
 import { fitFontPx } from "../fit-font";
-import { roleData, roleValue } from "../role-data";
+import { roleData, roleValue } from "../shared/role-data";
 import { meta } from "./meta";
 
 export { meta };

@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import AudioMeter, { meta as audioMeter } from "@/widgets/audio-meter/AudioMeter";
 import MeterBridge, { meta as meterBridge } from "@/widgets/meter-bridge/MeterBridge";
 import NowPlaying, { meta as nowPlaying } from "@/widgets/now-playing/NowPlaying";

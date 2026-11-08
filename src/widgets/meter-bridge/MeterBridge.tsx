@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import { useFastSensors } from "@/hooks/useSensors";
-import { AUDIO } from "../audio-device";
+import { AUDIO } from "../shared/audio-device";
 import type { ModuleSettings } from "@/modules/types";
 import { useFitRows, Widget, shell, fmt, Dot, Icon, LedLadder, HoldMark, scaleX, scaleY, slideX, STATE, useMeterBallistics, type BallisticsPreset, type ShellProps } from "../kit";
-import { audioIdsIn, pickedIds, readDevice, type FlowFilter } from "../audio-data";
+import { audioIdsIn, pickedIds, readDevice, type FlowFilter } from "../shared/audio-data";
 import { meta } from "./meta";
 
 export { meta };

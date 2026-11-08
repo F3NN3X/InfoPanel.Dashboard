@@ -6,12 +6,12 @@ import { Widget, shell, num, fmt, clamp, Icon, ChannelRow, CHANNEL_TRACK, Empty,
 import type { MixerLook } from "../core/mixer-look";
 import { useDeviceLevel } from "../core/level-source";
 import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "../core/mixer-views";
-import { audioIds } from "../audio-data";
+import { audioIds } from "../shared/audio-data";
 import { allChannels, iconOf, pickChannels, type AudioSource, type MixChannel } from "./channels";
 import { setVolume, toggleMute } from "./control";
 import { MixFader, type FaderMode } from "./Fader";
 import { OutputPicker } from "./OutputPicker";
-import { ReadOnly } from "../ReadOnly";
+import { ReadOnly } from "../shared/ReadOnly";
 import { meta } from "./meta";
 
 export { meta };

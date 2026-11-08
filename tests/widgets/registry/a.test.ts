@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import type { ShellProps, WidgetMeta } from "@/widgets/core/types";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import { GROUP_A_IDS, groupOf } from "./group-of";
 import * as SystemOverview from "@/widgets/system-overview/SystemOverview";
 import * as MenuBar from "@/widgets/menu-bar/MenuBar";

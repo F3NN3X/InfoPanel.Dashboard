@@ -1,8 +1,8 @@
 // Which AudioMeter plugin container an audio widget reads, and its real spectrum.
 import { useRef } from "react";
 import { parseSpectrum, SPECTRUM_ENTRY } from "@/lib/audio/spectrum";
-import { get, has, num } from "./core/data";
-import type { Data } from "./core/types";
+import { get, has, num } from "../core/data";
+import type { Data } from "../core/types";
 
 /** The AudioMeter plugin's namespace (`plugins.audio-level-meter.<device>.<entry>`). */
 export const AUDIO = "plugins.audio-level-meter.";

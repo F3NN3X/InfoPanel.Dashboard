@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sensorLabel } from "@/widgets/core/data";
-import { kindOf, readings } from "@/widgets/hardware-readings";
+import { kindOf, readings } from "@/widgets/shared/hardware-readings";
 
 describe("readings", () => {
   const data = {

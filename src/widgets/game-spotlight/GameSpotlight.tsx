@@ -3,7 +3,7 @@ import { Widget, GlassPill, shell, get, num, fmt, has, Img, Icon, Bar, Ring, Dot
 import type { ModuleSettings } from "@/modules/types";
 import { sizeTierOf } from "@/modules/setting-readers";
 import type { VizStyle } from "../core/viz/types";
-import { widgetImage } from "../data-adapter";
+import { widgetImage } from "../shared/data-adapter";
 import { CompositeView } from "./GameSpotlightComposite";
 import { meta } from "./meta";
 
