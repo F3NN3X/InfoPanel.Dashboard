@@ -5,7 +5,7 @@ import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { MixerSize, MixerView } from "./mixer-fit";
 import type { WidgetView } from "./types";
 
-/** A mixer view's options, read from the widget's settings (`mixerLookOf`, `registry/audio-settings.ts`). */
+/** A mixer view's options, read from the widget's settings (`mixerLookOf`, `shared/audio-settings.ts`). */
 export interface MixerLook {
   view: MixerView;
   vertical: boolean;

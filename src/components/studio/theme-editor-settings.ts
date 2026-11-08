@@ -1,8 +1,8 @@
 import { PALETTE_ROLES, ROLE_LABELS, THRESHOLD_QUANTITIES } from "@/lib/theme-model";
 import { THEME_SETTINGS } from "@/modules/standard-settings";
 import type { FormatKey, ModuleSetting } from "@/modules/types";
-import { METER_BALLISTICS } from "@/widgets/registry/audio-settings";
-import { formatSetting, thresholdSetting } from "@/widgets/registry/settings-kit";
+import { METER_BALLISTICS } from "@/widgets/shared/audio-settings";
+import { formatSetting, thresholdSetting } from "@/widgets/shared/settings-kit";
 
 /**
  * The rows of the theme editor (SPEC §7): every themed key a screen or a

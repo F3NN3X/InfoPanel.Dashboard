@@ -5,27 +5,27 @@ import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import type { ShellProps, WidgetMeta } from "@/widgets/core/types";
 import { toFlat } from "@/widgets/data-adapter";
-import { modules } from "@/modules";
+import { GROUP_A_IDS, groupOf } from "./group-of";
 import * as SystemOverview from "@/widgets/SystemOverview";
-import * as MenuBar from "@/widgets/MenuBar";
+import * as MenuBar from "@/widgets/menu-bar/MenuBar";
 import * as KpiTiles from "@/widgets/KpiTiles";
-import * as StatusTracker from "@/widgets/StatusTracker";
-import * as SystemStatus from "@/widgets/SystemStatus";
+import * as StatusTracker from "@/widgets/status-tracker/StatusTracker";
+import * as SystemStatus from "@/widgets/system-status/SystemStatus";
 import * as Vitals from "@/widgets/Vitals";
-import * as ServiceHealth from "@/widgets/ServiceHealth";
-import * as ProcessList from "@/widgets/ProcessList";
-import * as Uptime from "@/widgets/Uptime";
+import * as ServiceHealth from "@/widgets/service-health/ServiceHealth";
+import * as ProcessList from "@/widgets/process-list/ProcessList";
+import * as Uptime from "@/widgets/uptime/Uptime";
 import * as CpuMonitor from "@/widgets/CpuMonitor";
 import * as CoreHeatmap from "@/widgets/CoreHeatmap";
 import * as GpuRings from "@/widgets/gpu-rings/GpuRings";
 import * as GpuMonitor from "@/widgets/GpuMonitor";
-import * as MemoryUsage from "@/widgets/MemoryUsage";
-import * as Thermals from "@/widgets/Thermals";
-import * as PowerDraw from "@/widgets/PowerDraw";
-import * as Fans from "@/widgets/Fans";
+import * as MemoryUsage from "@/widgets/memory-usage/MemoryUsage";
+import * as Thermals from "@/widgets/thermals/Thermals";
+import * as PowerDraw from "@/widgets/power-draw/PowerDraw";
+import * as Fans from "@/widgets/fans/Fans";
 
-// Group A as the registry lists it, its first 17 (GpuRings is a folder widget, src/widgets/gpu-rings/).
-const GROUP_A = modules.slice(0, 17);
+// Group A as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_A = groupOf(GROUP_A_IDS);
 
 interface Entry {
   meta: WidgetMeta;

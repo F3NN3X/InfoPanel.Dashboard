@@ -4,7 +4,7 @@
 import type { DataSourceDef, SourceNotice } from "@/lib/island/sources";
 import type { Data } from "../core/types";
 import { get, has, num } from "../core/data";
-import { boolSetting } from "../registry/settings-kit";
+import { boolSetting } from "../shared/settings-kit";
 
 const DEFAULT = "plugins.volume-plugin.default.";
 

@@ -5,7 +5,7 @@ import type { DataSourceDef, SourceNotice } from "@/lib/island/sources";
 import type { Data } from "../core/types";
 import { get, has, num, rows } from "../core/data";
 import { widgetImage } from "../data-adapter";
-import { boolSetting, numberSetting } from "../registry/settings-kit";
+import { boolSetting, numberSetting } from "../shared/settings-kit";
 
 const RTSS = "plugins.InfoPanel.RTSS.rtss.";
 const PRESENTMON = "plugins.fps-plugin.fps.";

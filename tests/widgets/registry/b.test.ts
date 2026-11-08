@@ -21,10 +21,10 @@ import * as Forecast from "@/widgets/Forecast";
 import * as SensorValue from "@/widgets/SensorValue";
 import * as SensorGroup from "@/widgets/SensorGroup";
 import * as CustomGauge from "@/widgets/CustomGauge";
-import { modules } from "@/modules";
+import { GROUP_B_IDS, groupOf } from "./group-of";
 
-// Group B as the registry lists it, after group A's 17 (StatusBar is a folder widget, src/widgets/status-bar/).
-const GROUP_B = modules.slice(17, 33);
+// Group B as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_B = groupOf(GROUP_B_IDS);
 
 type Template = { meta: WidgetMeta; default: (p: never) => unknown };
 const TEMPLATES = [DriveSpace, StorageHealth, DiskIO, NetworkThroughput, NetworkAdapters, Clock, Timer, Countdown, StatusBar, CodingAgents, Calendar, Weather, Forecast, SensorValue, SensorGroup, CustomGauge] as unknown as Template[];

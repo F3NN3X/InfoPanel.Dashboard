@@ -1,8 +1,8 @@
 // GPU Rings: VRAM, core load and temperature as stacked rings. What the registry needs; the component is its own chunk.
 import { deviceOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
-import { defineWidget } from "../define";
-import { colorSetting, colorsOf, deviceSetting, enumSetting, oneOf, type ColorEntry } from "../registry/settings-kit";
+import { DENSE, defineWidget } from "../define";
+import { colorSetting, colorsOf, deviceSetting, enumSetting, oneOf, type ColorEntry } from "../shared/settings-kit";
 import type { GpuRingsProps } from "./GpuRings";
 import { meta } from "./meta";
 
@@ -26,7 +26,7 @@ const settings: ModuleSetting[] = [
 export default defineWidget({
   meta,
   // A dense view of its own, no summary card.
-  inspector: { header: "yes", compact: { card: false, dense: true } },
+  inspector: { header: "yes", compact: DENSE },
   settings,
   render: {
     load: () => import("./GpuRings"),
@@ -37,8 +37,6 @@ export default defineWidget({
       colors: colorsOf(s, RING_COLORS),
     }),
   },
-  // settings-migrate.ts: the v7 device key, the no-card set and the v8 colour roles.
-  migrations: "central",
-  // src/widgets/__fixtures__/snapshot.json; widget-qa needs no demo settings for it.
-  sample: "central",
+  // Migrations and sample stay central (the default): settings-migrate.ts has the v7 device key, the no-card set and the
+  // v8 colour roles; the sample is src/widgets/__fixtures__/snapshot.json, with no widget-qa demo settings.
 });

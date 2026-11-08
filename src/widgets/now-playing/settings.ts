@@ -5,9 +5,9 @@ import { VIZ_STYLES, type VizLook, type VizStyle } from "../core/viz/types";
 import type { NowPlayingProps } from "./NowPlaying";
 import { meta } from "./meta";
 import { devicesOf } from "@/modules/setting-readers";
-import { audioFlowSetting } from "../registry/audio-settings";
-import { boolSetting, colorSetting, devicesSetting, enumSetting, numberOf, numberSetting, oneOf, viewOnly, viewSetting } from "../registry/settings-kit";
-import { VIZ_COLORS_GROUP, VIZ_DYNAMICS_GROUP, vizColorRows, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "../registry/viz-settings";
+import { audioFlowSetting } from "../shared/audio-settings";
+import { boolSetting, colorSetting, devicesSetting, enumSetting, numberOf, numberSetting, oneOf, viewOnly, viewSetting } from "../shared/settings-kit";
+import { VIZ_COLORS_GROUP, VIZ_DYNAMICS_GROUP, vizColorRows, vizColorSettings, vizDynamicsSettings, vizLookOf, vizShapeSettings } from "../shared/viz-settings";
 
 /** The audio-level-meter plugin, which drives the visualizers' live level. */
 export const AUDIO_LEVEL = "plugins.audio-level-meter.";

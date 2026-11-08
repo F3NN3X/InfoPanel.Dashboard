@@ -2,18 +2,10 @@
 // whether it draws a header, what it draws in small zones, the units and thresholds it renders (its schema has
 // one Units & format / Thresholds row each; checked against what each renderer draws) and its look subset.
 import type { CompactShape, DashboardModule, HeaderMode, ModuleSetting } from "@/modules/types";
+import { BOTH, CARD, DENSE, NONE } from "../define";
 
 export type InspectorMeta = Required<Pick<DashboardModule, "header" | "compact">> &
   Pick<DashboardModule, "fmt" | "thr" | "styleSubset" | "noData">;
-
-/** A summary card and a dense view of its own (`compact` and `studio` descriptors). */
-const BOTH: CompactShape = { card: true, dense: true };
-/** A summary card; the dense view falls back to it (no `studio` descriptor). */
-const CARD: CompactShape = { card: true, dense: "fallback" };
-/** A dense view only (no `compact` descriptor). */
-const DENSE: CompactShape = { card: false, dense: true };
-/** Neither: small zones keep the full layout. */
-const NONE: CompactShape = { card: false, dense: false };
 
 const yes = (compact: CompactShape, more: Omit<InspectorMeta, "header" | "compact"> = {}): InspectorMeta => ({ header: "yes", compact, ...more });
 const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta, "header" | "compact"> = {}): InspectorMeta => ({ header, compact, ...more });
@@ -22,23 +14,12 @@ const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta,
 export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group A: system and hardware
   SystemOverview: as("title-only", DENSE, { fmt: ["tempUnit", "decimals"], thr: ["load", "temp", "full"] }),
-  MenuBar: as("none", BOTH, { fmt: ["rateUnit"] }),
   KpiTiles: as("none", BOTH),
-  StatusTracker: yes(BOTH, { thr: ["load"] }),
-  SystemStatus: yes(CARD, { thr: ["load"] }),
   Vitals: as("none", BOTH),
-  ServiceHealth: yes(BOTH),
-  ProcessList: yes(BOTH),
-  // Its one reading is the plugin's uptime: nothing to pick or bind.
-  Uptime: yes(CARD, { noData: true }),
   // The unit and decimals of its temperatures.
   CpuMonitor: yes(CARD, { fmt: ["tempUnit", "decimals"], thr: ["load"] }),
   CoreHeatmap: yes(DENSE),
   GpuMonitor: yes(CARD, { thr: ["temp"] }),
-  MemoryUsage: yes(CARD, { thr: ["load"] }),
-  Thermals: yes(BOTH, { fmt: ["tempUnit"], thr: ["temp"] }),
-  PowerDraw: yes(CARD),
-  Fans: yes(BOTH),
   // Group B: storage, network, info, generic
   DriveSpace: yes(BOTH, { thr: ["full"] }),
   StorageHealth: yes(CARD),

@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { effectiveSettings, settingKeys, type SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { modules } from "@/modules";
+import { GROUP_A_IDS, groupOf } from "./group-of";
 
-// Group A as the registry lists it, its first 17 (GpuRings is a folder widget, src/widgets/gpu-rings/).
-const GROUP_A = modules.slice(0, 17);
+// Group A as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_A = groupOf(GROUP_A_IDS);
 
 const SPECS = import.meta.glob("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 const specOf = (id: string): string => Object.entries(SPECS).find(([p]) => p.endsWith(`/${id}.md`))?.[1] ?? "";

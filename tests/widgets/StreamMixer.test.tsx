@@ -19,7 +19,7 @@ import { audioRefusal } from "@/lib/audio-control";
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import AudioButton from "@/widgets/AudioButton";
 import StreamMixer from "@/widgets/StreamMixer";
-import { mixerLookOf } from "@/widgets/registry/audio-settings";
+import { mixerLookOf } from "@/widgets/shared/audio-settings";
 
 const SAMPLE: AudioState = {
   windows: {

@@ -5,7 +5,7 @@ import type { DataSourceDef, SourceNotice } from "@/lib/island/sources";
 import { deviceOf, thresholdsOf } from "@/modules/setting-readers";
 import type { Data } from "../core/types";
 import { adapterOf, fmtMB, fmtRate, get, has, num, pretty } from "../core/data";
-import { boolSetting, numberSetting } from "../registry/settings-kit";
+import { boolSetting, numberSetting } from "../shared/settings-kit";
 
 const DRIVE = "plugins.drive-info-plugin.";
 

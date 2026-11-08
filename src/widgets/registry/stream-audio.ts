@@ -10,8 +10,8 @@ import type { StreamMixerProps } from "../StreamMixer";
 import { meta as audioButton } from "../meta/AudioButton";
 import { meta as audioFader } from "../meta/AudioFader";
 import { meta as streamMixer } from "../meta/StreamMixer";
-import { mixerLookOf, mixerViewSettings } from "./audio-settings";
-import { enumSetting, oneOf, splitKeys, stringOf, textSetting, viewOnly } from "./settings-kit";
+import { mixerLookOf, mixerViewSettings } from "../shared/audio-settings";
+import { enumSetting, oneOf, splitKeys, stringOf, textSetting, viewOnly } from "../shared/settings-kit";
 
 const AudioButton = lazyWidget(() => import("../AudioButton"));
 const AudioFader = lazyWidget(() => import("../AudioFader"));
