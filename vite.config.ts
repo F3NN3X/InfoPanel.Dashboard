@@ -29,7 +29,7 @@ const dom = domTests("tests").filter((file) => !file.startsWith("tests/server/")
 const loadWidgetsInTests = (): Plugin => ({
   name: "load-widgets-in-tests",
   transform(code, id) {
-    if (!/\/src\/widgets\/registry\/(a|b|c|d|e|history|time)\.ts$/.test(id.replace(/\\/g, "/"))) return;
+    if (!/\/src\/widgets\/registry\/(a|b|c|d|e|history|time|stream-audio|stream-chat|stream-deck|stream-obs)\.ts$/.test(id.replace(/\\/g, "/"))) return;
     const group = /^export const (GROUP_\w+|TIME_WIDGETS)\b/m.exec(code)?.[1];
     return group ? `${code}\nawait (await import("@/widgets/lazy-widget")).loadAll(${group});\n` : undefined;
   },
