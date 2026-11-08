@@ -17,6 +17,7 @@
 // Known limit: the probe walks elements, so it cannot see pseudo-elements (::before, ::after); a widget that draws
 // part of its content there is only checked through its element box.
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { chromium } from "@playwright/test";
 import { startScratch } from "../perf/scratch.mjs";
@@ -91,17 +92,20 @@ let frames;
 const withSurface = {};
 const withLook = {};
 try {
-  // A fixed clock and zone: reset times and clocks on the fixtures are "now plus", so the text would differ per run.
-  const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, timezoneId: "UTC", locale: "en-US" });
-  await page.clock.setFixedTime(new Date("2026-01-15T12:00:00Z"));
-  // The fixtures' art lives on other hosts (a Steam logo on localhost:39482): loaded or not changes a widget's text, so each one answers here, on every machine.
-  await page.route("**/*", (route) => {
-    const request = route.request();
-    if (request.resourceType() !== "image" || request.url().startsWith(scratch.base)) return route.fallback();
-    return route.fulfill({ contentType: "image/png", body: PIXEL });
-  });
+  const newQaPage = async () => {
+    // A fixed clock and zone: reset times and clocks on the fixtures are "now plus", so the text would differ per run.
+    const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, timezoneId: "UTC", locale: "en-US" });
+    await page.clock.setFixedTime(new Date("2026-01-15T12:00:00Z"));
+    // The fixtures' art lives on other hosts (a Steam logo on localhost:39482): loaded or not changes a widget's text, so each one answers here, on every machine.
+    await page.route("**/*", (route) => {
+      const request = route.request();
+      if (request.resourceType() !== "image" || request.url().startsWith(scratch.base)) return route.fallback();
+      return route.fulfill({ contentType: "image/png", body: PIXEL });
+    });
+    return page;
+  };
   const module = args.module ? `&module=${args.module}` : "";
-  const run = async (surface, look) => {
+  const run = async (page, surface, look) => {
     const style = look && PACK_STYLES[look];
     const settings = look ? `&settings=${encodeURIComponent(JSON.stringify(style))}` : "";
     await page.goto(`${scratch.base}/?widget-qa${module}&spans=${spans}&eager=1${surface ? `&surface=${surface}` : ""}${settings}`);
@@ -117,12 +121,26 @@ try {
     if (!look) for (const f of Object.values(found)) delete f.markup;
     return found;
   };
-  frames = await run();
-  for (const surface of (args["same-boxes"] ?? "").split(",").filter(Boolean)) withSurface[surface] = await run(surface);
-  for (const look of (args.looks ?? "").split(",").filter(Boolean)) {
-    if (!Object.hasOwn(PACK_STYLES, look)) throw new Error(`overflow: no styles for the pack ${look} (tools/qa/pack-styles.mjs)`);
-    withLook[look] = await run(undefined, look);
-  }
+  const looks = (args.looks ?? "").split(",").filter(Boolean);
+  for (const look of looks) if (!Object.hasOwn(PACK_STYLES, look)) throw new Error(`overflow: no styles for the pack ${look} (tools/qa/pack-styles.mjs)`);
+  // Each run is its own page load with the same fixed clock, so they go side by side: a page per eight cores, up to
+  // four (one on a 4 vCPU CI runner, where they ran one after another before).
+  const surfaces = (args["same-boxes"] ?? "").split(",").filter(Boolean);
+  const done = new Map();
+  const jobs = [
+    async (page) => { frames = await run(page); },
+    ...surfaces.map((surface) => async (page) => done.set(`surface:${surface}`, await run(page, surface))),
+    ...looks.map((look) => async (page) => done.set(`look:${look}`, await run(page, undefined, look))),
+  ];
+  const lanes = Math.min(jobs.length, 4, Math.max(1, Math.floor(os.availableParallelism() / 8)));
+  let next = 0;
+  await Promise.all(Array.from({ length: lanes }, async () => {
+    const page = await newQaPage();
+    while (next < jobs.length) await jobs[next++](page);
+  }));
+  // In the order asked for, whichever finished first: the reports and a saved markup baseline keep their order.
+  for (const surface of surfaces) withSurface[surface] = done.get(`surface:${surface}`);
+  for (const look of looks) withLook[look] = done.get(`look:${look}`);
 } finally {
   await browser.close();
   scratch.stop();

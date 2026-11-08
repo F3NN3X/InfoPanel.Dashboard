@@ -3,6 +3,9 @@ import { FIXTURE_NAMES, type FixtureName } from "@/dev/fixtures/types";
 import { CHECKS } from "./checks";
 import { expect, openFixture, shoot, test } from "./harness";
 
+// Each test has its own scratch server (harness.ts), so they spread over the workers.
+test.describe.configure({ mode: "parallel" });
+
 // The Edit v3 reference states (SPEC §18): each fixture opens in Edit, and its reference checklist waits, skipped with
 // the phase that enables it, until that phase builds the UI. A phase turns its lines on in the same change.
 
