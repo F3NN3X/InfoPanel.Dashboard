@@ -37,8 +37,6 @@ export default defineWidget({
       colors: colorsOf(s, RING_COLORS),
     }),
   },
-  // settings-migrate.ts: the v7 device key, the no-card set and the v8 colour roles.
-  migrations: "central",
-  // src/widgets/__fixtures__/snapshot.json; widget-qa needs no demo settings for it.
-  sample: "central",
+  // Migrations and sample stay central (the default): settings-migrate.ts has the v7 device key, the no-card set and the
+  // v8 colour roles; the sample is src/widgets/__fixtures__/snapshot.json, with no widget-qa demo settings.
 });

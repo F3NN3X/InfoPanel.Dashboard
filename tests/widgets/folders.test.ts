@@ -33,15 +33,17 @@ describe("the widget folders", () => {
       expect(Array.isArray(w.settings)).toBe(true);
       expect(typeof w.render.load).toBe("function");
       expect(typeof w.render.toProps).toBe("function");
-      expect(w.migrations).toBeDefined();
-      const sample = w.sample;
+      // Absent = "central", the built-ins' default (define.ts).
+      const migrations = w.migrations ?? "central";
+      expect(migrations === "central" || (typeof migrations === "object" && Array.isArray(migrations.steps)), "migrations").toBe(true);
+      const sample = w.sample ?? "central";
       expect(sample === "central" || typeof sample === "function" || (typeof sample === "object" && typeof sample.none === "string" && sample.none !== ""), "sample").toBe(true);
       const sections = readmeSections(read(`${folder}/README.md`));
       for (const title of README_SECTIONS) expect(sections[title], `README.md: ${title}`).toBeTruthy();
     });
 
     it("draws from its sample: a central one is the shared fixture sensors and demo settings (Widget QA's data)", () => {
-      if (w.sample !== "central") return;
+      if ((w.sample ?? "central") !== "central") return;
       const mod = modules.find((m) => m.id === id)!;
       const html = renderToStaticMarkup(mod.render(fixtureSensors(), withDemo(id, {}, false)) as never);
       expect(html, "draws its own markup from the central sample").toMatch(/data-wp-/);

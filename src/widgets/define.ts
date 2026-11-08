@@ -67,14 +67,20 @@ export interface WidgetDefinition<P extends object = object> {
   render: WidgetRender<P>;
   /** "Send to island": for built-ins, a def from the central island files. */
   island?: IslandSourceDef;
-  /** Built-ins: "central". Packages: their own steps and version. */
-  migrations: Central | { version: number; steps: readonly WidgetMigration[] };
-  /** Built-ins: "central" (fixtures, widget-qa demo settings) or `{ none: why }`. Packages: a loader. */
-  sample: Central | { none: string } | (() => Promise<{ default: WidgetSample }>);
+  /** Absent = "central", the built-ins' default. Packages: their own steps and version, stated (`PackageWidgetDefinition`). */
+  migrations?: Central | { version: number; steps: readonly WidgetMigration[] };
+  /**
+   * Absent = "central" (fixtures, widget-qa demo settings), the built-ins' default, or `{ none: why }`. Packages: a
+   * loader, stated (`PackageWidgetDefinition`).
+   */
+  sample?: Central | { none: string } | (() => Promise<{ default: WidgetSample }>);
   /** Packages only. A built-in ships presets.ts and controls.tsx as files, which the generator wires into a studio-only module. */
   presets?: () => Promise<{ default: readonly WidgetPreset[] }>;
   controls?: () => Promise<{ default: ComponentType<WidgetControlsProps> }>;
 }
+
+/** A widget package's definition: it always states its migrations and its sample, where a built-in leaves them central. */
+export type PackageWidgetDefinition<P extends object = object> = WidgetDefinition<P> & Required<Pick<WidgetDefinition<P>, "migrations" | "sample">>;
 
 /** Identity at run time: the type is the point. */
 export const defineWidget = <P extends object>(def: WidgetDefinition<P>): WidgetDefinition<P> => def;

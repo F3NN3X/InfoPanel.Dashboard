@@ -62,8 +62,6 @@ export default defineWidget({
       islandGapPx: numberOf(s.islandGapPx),
     }),
   },
-  // No migration steps of its own today.
-  migrations: "central",
-  // src/widgets/__fixtures__/snapshot.json; widget-qa needs no demo settings for it.
-  sample: "central",
+  // Migrations and sample stay central (the default): no migration steps of its own today; the sample is
+  // src/widgets/__fixtures__/snapshot.json, with no widget-qa demo settings.
 });

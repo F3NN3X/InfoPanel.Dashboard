@@ -48,8 +48,7 @@ export default defineWidget({
       };
     },
   },
-  // settings-migrate.ts: config v8 renamed the old Spotify / Media widgets' keys (now-playing/settings.ts reads both).
-  migrations: "central",
-  // src/widgets/__fixtures__/snapshot.json; widget-qa needs no demo settings for it.
-  sample: "central",
+  // Migrations and sample stay central (the default): in settings-migrate.ts config v8 renamed the old Spotify / Media
+  // widgets' keys (now-playing/settings.ts reads both); the sample is src/widgets/__fixtures__/snapshot.json, with no
+  // widget-qa demo settings.
 });
