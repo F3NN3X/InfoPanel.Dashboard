@@ -107,10 +107,12 @@ A test file added or changed on the branch has to pass repeated runs before it c
 
 - Vitest files (`flake-unit`): 10 runs, each shuffling files and tests with a fresh `--sequence.seed`, `--maxWorkers=4`. Not
   `tests/server` (it needs the binary).
-- Playwright specs (`flake-e2e`): `--repeat-each 5 --workers 4`, per project (`e2e`, `one-editor`).
+- Playwright specs (`flake-e2e`): `--repeat-each 3` on half the cores (`--workers` 1 to 4, so 2 on a 4 vCPU runner), per project (`e2e`, `one-editor`).
+  Four workers on four vCPUs starved the whole-page measure specs past their 30 s limit; a spec that is slow but right under load gets a
+  longer `test.setTimeout` with its reason, never a looser assertion.
 - Both are `verify` checks that take the changed test files (committed since the merge base, staged, unstaged, untracked) and skip when
   there are none; `verify:full` runs them over the same set. A quarantined file is exempt. CI runs them from the plan: `flake-unit` is its own
-  job (in `ci-ok`), `flake-e2e` runs in the `e2e` job after the browser checks. `look-visual`, perf and desktop specs are not repeated.
+  job and `flake-e2e` another (both in `ci-ok`), so neither shares time or CPU with the `e2e` job. `look-visual`, perf and desktop specs are not repeated.
 - A failure means the test is not stable: fix it, or quarantine it with an issue, an owner and a deadline.
 
 ## The feature map and `verify`

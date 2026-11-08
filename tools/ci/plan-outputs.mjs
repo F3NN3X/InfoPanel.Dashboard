@@ -33,9 +33,9 @@ export const OUTPUTS = {
 export const BROWSER_CHECKS = ["e2e", "one-editor", "overflow"];
 
 /**
- * The new-test gates (tools/ci/flake-gate.mjs). `flake-e2e` runs inside the e2e job after the browser checks;
- * `flake-unit` has a job of its own. An escalated plan's command has no file list (verify reads git), and CI's checkout
- * has no merge base, so the changed test files go on its command line.
+ * The new-test gates (tools/ci/flake-gate.mjs). `flake-unit` and `flake-e2e` each have a job of their own, so a slow
+ * gate can neither starve the browser checks nor run them out of time. An escalated plan's command has no file list
+ * (verify reads git), and CI's checkout has no merge base, so the changed test files go on its command line.
  */
 export const GATE_E2E = "flake-e2e";
 export const GATE_UNIT = "flake-unit";
@@ -57,12 +57,10 @@ export function planOutputs(plan, { all = false, e2e = false, warm = false, comm
   const outputs = Object.fromEntries(Object.entries(OUTPUTS).map(([name, ids]) => [name, all || ids.some((id) => planned.has(id))]));
   const forced = all || e2e;
   const gateE2e = steps.filter((step) => step.id === GATE_E2E).map((step) => gateCommand(step, plan));
-  const browser = forced
-    ? [...BROWSER_CHECKS.map((id) => commands[id]).filter(Boolean), ...gateE2e]
-    : [...steps.filter((step) => BROWSER_CHECKS.includes(step.id) && step.status !== "not-run").map((step) => step.cmd), ...gateE2e];
+  const browser = forced ? BROWSER_CHECKS.map((id) => commands[id]).filter(Boolean) : steps.filter((step) => BROWSER_CHECKS.includes(step.id) && step.status !== "not-run").map((step) => step.cmd);
   const withE2e = forced || browser.length > 0;
   const gateUnit = all ? [] : steps.filter((step) => step.id === GATE_UNIT).map((step) => gateCommand(step, plan));
-  return { ...outputs, e2e: withE2e, e2e_cmds: JSON.stringify(browser), flake_unit: gateUnit.length > 0, flake_unit_cmds: JSON.stringify(gateUnit), quarantine: quarantined, build: outputs.build || withE2e, full: all || plan.mode === "full", docs_only: !all && !withE2e && planned.size === 0 };
+  return { ...outputs, e2e: withE2e, e2e_cmds: JSON.stringify(browser), flake_e2e: gateE2e.length > 0, flake_e2e_cmds: JSON.stringify(gateE2e), flake_unit: gateUnit.length > 0, flake_unit_cmds: JSON.stringify(gateUnit), quarantine: quarantined, build: outputs.build || withE2e || gateE2e.length > 0, full: all || plan.mode === "full", docs_only: !all && !withE2e && planned.size === 0 };
 }
 
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(new URL(import.meta.url))) {

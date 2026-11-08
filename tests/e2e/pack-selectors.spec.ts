@@ -78,6 +78,7 @@ async function wornPage(page: import("@playwright/test").Page, style: object, id
 
 for (const id of Object.keys(PACK_STYLES)) {
   test(`every gauge lit without the ${id} pack's css is lit with it`, async ({ page }) => {
+  test.setTimeout(90_000); // whole-page measures: slow, not wrong, when workers share a 4 vCPU runner (the flake gate, run 42460790140)
     await wornPage(page, PACK_STYLES[id as keyof typeof PACK_STYLES], id);
     const twin = await page.evaluate(measurePack, measures(id));
     expect(twin.bare.gauges.filter((g) => g.lit).length).toBeGreaterThan(10);
@@ -89,6 +90,7 @@ for (const id of Object.keys(PACK_STYLES)) {
 }
 
 test("the gauge-ink check catches a pack that hides some of its gauges and not all", async ({ page }) => {
+  test.setTimeout(90_000); // whole-page measures: slow, not wrong, when workers share a 4 vCPU runner (the flake gate, run 42460790140)
   await wornPage(page, PACK_STYLES.term, "term");
   const { worn: ref } = await page.evaluate(measurePack, measures("term"));
   // what a bad pack could do: no ink on every other bar, meter and ring
@@ -135,6 +137,7 @@ test("the render measures catch a faded label, keyed like a covered one", async 
 
 // A text pushed where the page cannot scroll to (left of the page) is outside the viewport whatever scrolls: it is a problem, not a pass.
 test("the render measures do not pass a text that sits outside the viewport", async ({ page }) => {
+  test.setTimeout(90_000); // whole-page measures: slow, not wrong, when workers share a 4 vCPU runner (the flake gate, run 42460790140)
   await wornPage(page, PACK_STYLES.term, "term");
   const { worn: clean } = await page.evaluate(measurePack, measures("term"));
   const outside = (problems: string[]) => problems.filter((p) => p.includes("could not be checked"));

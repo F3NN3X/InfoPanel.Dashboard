@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { classify, playwrightCommand, UNIT_RUNS, vitestCommand } from "../../tools/ci/flake-gate.mjs";
+import { classify, gateWorkers, playwrightCommand, UNIT_RUNS, vitestCommand } from "../../tools/ci/flake-gate.mjs";
 import { playwrightScope, problems, QUARANTINE_FILE, readQuarantine } from "../../tools/ci/quarantine.mjs";
 
 const entry = { issue: 301, owner: "F3NN3X", until: "2026-12-01" };
@@ -44,9 +44,10 @@ describe("new-test gate", () => {
     expect(specs).toEqual({ e2e: ["tests/e2e/k.spec.ts"], "one-editor": ["tests/visual/one-editor/f.spec.ts"] });
   });
 
-  it("repeats a Vitest file 10 times shuffled, a spec 5 times on 4 workers", () => {
+  it("repeats a Vitest file 10 times shuffled, a spec 3 times on half the cores (1 to 4 workers)", () => {
     expect(UNIT_RUNS).toBe(10);
     expect(vitestCommand(["tests/a.test.ts"], 7)).toContain("--sequence.shuffle.tests --sequence.seed=7 --maxWorkers=4 tests/a.test.ts");
-    expect(playwrightCommand("e2e", ["tests/e2e/k.spec.ts"])).toBe("npx playwright test --project=e2e --repeat-each 5 --workers 4 tests/e2e/k.spec.ts");
+    expect(playwrightCommand("e2e", ["tests/e2e/k.spec.ts"], 2)).toBe("npx playwright test --project=e2e --repeat-each 3 --workers 2 tests/e2e/k.spec.ts");
+    expect([1, 2, 4, 8, 32].map(gateWorkers)).toEqual([1, 1, 2, 4, 4]);
   });
 });
