@@ -17,7 +17,13 @@ Add a test when a change touches one of those or fixes a regression. Don't test 
 - One case per behaviour, plus its boundaries. No size x variant x skin matrix sweeps; use a table only where each row hits a different branch.
 - happy-dom only when the test needs a DOM.
 - Tests live in `tests/`, mirroring `src/` and `tools/` (`src/lib/foo.ts` is tested by `tests/lib/foo.test.ts`).
-- `npm test` stays under about 10 s locally.
+- `npm test` stays under about 10 s locally (today about 23 s on a 32-thread PC).
+- Vitest runs two projects (`vite.config.ts`): `node` for the files without a DOM, with `isolate: false` (a worker keeps its
+  module graph from one file to the next), and `dom` for the files marked `// @vitest-environment happy-dom`, each in a fresh
+  environment. The split is read from that docblock, so a new file needs nothing. In `node` files, restore what a test
+  changes (timers, globals, spies, module state) in an `afterEach`, or it leaks into the next file in that worker;
+  `npx vitest run --project node --sequence.shuffle.files --sequence.seed=N` shows one. The DOM files stay isolated:
+  without it 38 of the 95 fail on state shared through the DOM and the module graph.
 - Rust tests live in their modules (`#[cfg(test)]`) and run in CI with `cargo test`. The server (`ips-server`) has its
   own: unit tests in its modules, route tests over a real socket (`crates/ips-server/tests/routes*.rs`) and parity tests
   (`tests/parity*.rs`) that read the frozen Node-server cases in `tests/fixtures/parity/` and are never regenerated.

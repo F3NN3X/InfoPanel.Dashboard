@@ -3,13 +3,23 @@ import { defineConfig, configDefaults } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import { availableParallelism } from "node:os";
 import path from "node:path";
 import { quarantinedFiles } from "./tools/ci/quarantine.mjs";
 
 // Test files held out of the gating runs (tests/quarantine.json, docs/TESTING.md); QUARANTINE=only runs just those.
 const quarantined: string[] = quarantinedFiles(__dirname);
 const quarantineOnly = process.env.QUARANTINE === "only";
+
+/** Test files that opt into a DOM with `// @vitest-environment happy-dom` (a docblock comment near the top). */
+const domTests = (dir: string): string[] =>
+  readdirSync(path.join(__dirname, dir), { withFileTypes: true }).flatMap((entry) => {
+    const rel = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) return domTests(rel);
+    return /\.test\.(ts|tsx|mjs)$/.test(entry.name) && /^\/\/ @vitest-environment happy-dom$/m.test(readFileSync(path.join(__dirname, rel), "utf8").slice(0, 400)) ? [rel] : [];
+  });
+const dom = domTests("tests").filter((file) => !file.startsWith("tests/server/"));
 
 /**
  * Vitest renders the widgets with renderToString, which cannot wait for a widget's chunk (`src/widgets/lazy-widget.tsx`):
@@ -44,6 +54,15 @@ const qaWebPage = (mode: string): Plugin => ({
   },
 });
 
+// Which files a project runs: `include` is every test file (or just the quarantined ones with QUARANTINE=only), `exclude`
+// leaves out tests/server (`npm run test:server`), agent worktrees under .claude/, lab/ (its own config) and the quarantine.
+const scope = (isDom: boolean) => {
+  const all = quarantineOnly ? quarantined.filter((file) => /\.test\.(ts|tsx|mjs)$/.test(file)) : ["tests/**/*.test.{ts,tsx,mjs}"];
+  const skip = [...configDefaults.exclude, ".claude/**", "lab/**", ...(process.env.SERVER_SUITE ? [] : ["tests/server/**"]), ...(quarantineOnly ? [] : quarantined)];
+  if (!isDom) return { include: all, exclude: [...skip, ...dom] };
+  return { include: quarantineOnly ? all.filter((file) => dom.includes(file)) : dom, exclude: skip };
+};
+
 // `vite build --mode stats` (npm run build:stats): an unminified build in .cache/dist-stats with the ticker's debug stats
 // (window.__tickerStats, src/lib/ticker.ts) for the perf specs; release builds leave them out.
 export default defineConfig(({ mode }) => ({
@@ -74,9 +93,6 @@ export default defineConfig(({ mode }) => ({
   // Agent worktrees live under .claude/; their copies of the tests are not ours.
   // lab/ has its own Vitest config (npm run lab:test).
   test: {
-    include: quarantineOnly ? quarantined.filter((file) => /\.test\.(ts|tsx|mjs)$/.test(file)) : ["tests/**/*.test.{ts,tsx,mjs}"],
-    // tests/server runs against the ips-server binary: `npm run test:server`.
-    exclude: [...configDefaults.exclude, ".claude/**", "lab/**", ...(process.env.SERVER_SUITE ? [] : ["tests/server/**"]), ...(quarantineOnly ? [] : quarantined)],
     // Component tests opt into a DOM per file (`// @vitest-environment happy-dom`); the setup is a no-op in Node.
     setupFiles: ["tests/setup/dom-setup.ts"],
     // Worker threads start faster than forked processes: about 7.5 s against 10 s for the suite.
@@ -86,6 +102,13 @@ export default defineConfig(({ mode }) => ({
     hookTimeout: 15_000,
     // Vitest hands a stylesheet import back as an empty string; the built-in packs' `pack.css?raw` must be the real text, so the lint tests see it.
     css: { include: [/\/pack\.css/] },
+    // Each project starts as many workers as there are cores, so the two together oversubscribe; half the cores each ran the suite about 20% faster on a 32-thread PC.
+    maxWorkers: Math.max(1, Math.ceil(availableParallelism() / 2)),
+    // Two projects: the Node files share a worker's module graph (`isolate: false`, no fresh load per file); the DOM files keep a fresh environment each.
+    projects: [
+      { extends: true, test: { name: "node", isolate: false, ...scope(false) } },
+      { extends: true, test: { name: "dom", ...scope(true) } },
+    ],
   },
   server: {
     port: 5173,
