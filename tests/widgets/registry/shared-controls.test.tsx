@@ -1,5 +1,14 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { AudioState } from "@/lib/audio-control";
+
+// The audio widgets read their channels from the audio store, which the server fills; empty, StreamMixer draws its
+// "No audio devices" body and Card has nothing to show. One output device gives it something to draw, as sensors do.
+const AUDIO: AudioState = {
+  windows: { available: true, outputs: [{ id: "o1", name: "Speakers", volume: 30, muted: false, default: true }], inputs: [], apps: [] },
+  wavelink: { status: "absent", channels: [], mixes: [] },
+};
+vi.mock("@/lib/audio-control", async (original) => ({ ...(await original<typeof import("@/lib/audio-control")>()), useAudio: () => AUDIO }));
 import { followInfo, resetKeysOfSection, sectionsFor, widgetContext, widgetLookValues } from "@/components/studio/inspector-model";
 import { parsePins } from "@/components/studio/inspector/inspector-prefs";
 import { filterSettings } from "@/components/studio/settings-model";
