@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AgentSession } from "@/lib/agents";
-import { limitRows, statusWord } from "@/widgets/CodingAgents/summary";
+import { limitRows, statusWord } from "@/widgets/coding-agents/summary";
 
 const session = (over: Partial<AgentSession>): AgentSession => ({ key: "k", agent: "claude", project: "repo", state: "working", since: 0, ...over });
 

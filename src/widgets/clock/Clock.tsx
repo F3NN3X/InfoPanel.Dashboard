@@ -2,9 +2,9 @@ import { useGeneral } from "@/hooks/use-general";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { localeHour12 } from "@/lib/general";
 import type { ModuleSettings } from "@/modules/types";
-import { Figure } from "./SensorValue";
-import { Widget, shell, roomy, get, num, Num, useIpTag, type ShellProps } from "./kit";
-import { meta } from "./meta/Clock";
+import { Figure } from "../SensorValue";
+import { Widget, shell, roomy, get, num, Num, useIpTag, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

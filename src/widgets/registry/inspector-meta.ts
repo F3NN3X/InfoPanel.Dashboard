@@ -17,19 +17,13 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   Vitals: as("none", BOTH),
   // Group B: storage, network, info, generic
   DriveSpace: yes(BOTH, { thr: ["full"] }),
-  StorageHealth: yes(CARD),
-  DiskIO: yes(BOTH),
   NetworkThroughput: yes(CARD, { fmt: ["rateUnit"] }),
   NetworkAdapters: yes(BOTH),
-  Clock: as("title-only", DENSE, { fmt: ["clock"] }),
   Timer: yes(NONE),
   Countdown: yes(BOTH, { fmt: ["clock"] }),
-  CodingAgents: yes(BOTH),
-  Calendar: as("none", CARD),
   Weather: yes(CARD, { fmt: ["tempUnit"] }),
   Forecast: yes(BOTH, { fmt: ["tempUnit"] }),
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
-  SensorGroup: yes(BOTH, { fmt: ["tempUnit", "decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
   // Group C: media / audio
   // Its amber and hot zones are the Audio level threshold (config v8).

@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { Widget, shell, get, num, Num, roomy, useIpTag, type ShellProps } from "./kit";
-import { meta } from "./meta/Calendar";
+import { Widget, shell, get, num, Num, roomy, useIpTag, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

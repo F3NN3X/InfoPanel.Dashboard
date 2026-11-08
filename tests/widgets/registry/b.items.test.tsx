@@ -5,13 +5,13 @@ import { SensorOverride } from "@/components/studio/widget-editor/sensor-items-f
 import { SensorListField } from "@/components/studio/widget-editor/sensor-list-field";
 import { renderModule } from "@/widgets/test-render";
 import { effectiveSettings } from "@/modules/types";
-import { GROUP_B } from "@/widgets/registry/b";
+import { GROUP_B_IDS, groupOf } from "./group-of";
 import { clearItem, itemsOf, setItemField } from "@/widgets/shared/settings-kit";
 
 vi.mock("@/hooks/useSensors", () => ({ useSensors: () => ({ "x.fan": { value: 600, unit: "RPM" } }) }));
 vi.mock("@/lib/catalog", async (orig) => ({ ...(await orig<typeof import("@/lib/catalog")>()), useSensorCatalog: () => ({ sources: null, sensors: {}, status: "ready", fetchedAt: 0 }) }));
 
-const mod = GROUP_B.find((m) => m.id === "SensorGroup")!;
+const mod = groupOf(GROUP_B_IDS).find((m) => m.id === "SensorGroup")!;
 const one = (s: object, value = 600, unit = "RPM") => renderModule(mod, { sensors: "x.fan", groupLayout: "rows", ...s }, { "x.fan": { value, unit } });
 
 describe("per-sensor overrides (items)", () => {

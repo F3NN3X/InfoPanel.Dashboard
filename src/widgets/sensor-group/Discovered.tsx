@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { inUnit } from "@/modules/setting-readers";
 import { useFitRows, Widget, shell, Num, Empty, STATE } from "../kit";
 import { readings, type Reading, type ReadingKind } from "../hardware-readings";
-import type { SensorGroupProps } from "../SensorGroup";
+import type { SensorGroupProps } from "./SensorGroup";
 
 const DOTS: Record<ReadingKind, string> = { temp: STATE.crit, fan: "#38bdf8", power: STATE.warn, other: "var(--w-accent)" };
 const GAP = 6;

@@ -1,4 +1,4 @@
-// Clock's catalog entry, apart from its component so the registry can list it without loading the widget.
+// Clock's catalog entry: pure data, so the registry and the generator read it without the component.
 import type { WidgetMeta } from "../core/types";
 
 export const meta: WidgetMeta = {

@@ -1,8 +1,8 @@
 import { inUnit } from "@/modules/setting-readers";
 import type { ModuleSettings } from "@/modules/types";
-import Discovered from "./SensorGroup/Discovered";
-import { roomy, Widget, shell, get, num, fmt, has, hw, sensorLabel, useFitRows, Bar, Num, tone, TONES, type ShellProps } from "./kit";
-import { meta } from "./meta/SensorGroup";
+import Discovered from "./Discovered";
+import { roomy, Widget, shell, get, num, fmt, has, hw, sensorLabel, useFitRows, Bar, Num, tone, TONES, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

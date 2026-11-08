@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, useFitRows, Widget, shell, hue, get, num, fmt, fmtRate, diskShort, Spark, Metric, useHistory, slideX, stackX, hw, type ShellProps } from "./kit";
-import { meta } from "./meta/DiskIO";
+import { roomy, useFitRows, Widget, shell, hue, get, num, fmt, fmtRate, diskShort, Spark, Metric, useHistory, slideX, stackX, hw, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

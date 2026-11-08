@@ -1,6 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
-import { roomy, TickBar, StatGrid, Widget, hue, shell, get, num, fmt, fmtGB, gbStat, unitStat, fmtRate, diskShort, firstDisk, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, hw, type ShellProps } from "./kit";
-import { meta } from "./meta/StorageHealth";
+import { roomy, TickBar, StatGrid, Widget, hue, shell, get, num, fmt, fmtGB, gbStat, unitStat, fmtRate, diskShort, firstDisk, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, hw, type ShellProps } from "../kit";
+import { meta } from "./meta";
 
 export { meta };
 

@@ -4,26 +4,20 @@ import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/t
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import * as M from "../meta";
-import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, formatSetting, iconsOf, itemsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, splitKeys, stringOf, textSetting, thresholdSetting, timeSetting, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
+import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, FINE_DECIMALS, formatSetting, iconsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, stringOf, textSetting, thresholdSetting, timeSetting, valueThresholds, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
 import { driveSpaceIsland, networkAdaptersIsland, networkThroughputIsland } from "../island/hardware";
 import { weatherIsland } from "../island/info";
 import { countdownIsland } from "../island/countdown";
 import { timerIsland } from "../island/timer";
 import type * as DriveSpace from "../DriveSpace";
-import type * as StorageHealth from "../StorageHealth";
-import type * as DiskIO from "../DiskIO";
 import type * as NetworkThroughput from "../NetworkThroughput";
 import type * as NetworkAdapters from "../NetworkAdapters";
-import type * as Clock from "../Clock";
-import type * as Calendar from "../Calendar";
 import type * as Timer from "../Timer";
 import type * as Countdown from "../Countdown";
 import { isDate, isTime } from "@/lib/countdown";
-import type * as CodingAgents from "../CodingAgents";
 import type * as Weather from "../Weather";
 import type * as Forecast from "../Forecast";
 import * as SensorValue from "../SensorValue";
-import type * as SensorGroup from "../SensorGroup";
 import * as CustomGauge from "../CustomGauge";
 
 /** "5, 15, 25" → [5, 15, 25]: whole minutes 1-1440, at most eight. */
@@ -54,10 +48,6 @@ const DRIVE_SETTINGS: ModuleSetting[] = [
 
 /** A stored number where 0 (and blank) = off / automatic. */
 const positiveOf = (v: unknown): number | undefined => numberOf(v) || undefined;
-/** Decimals with 3 and 4 kept for a single reading (SPEC §6.2). */
-const FINE_DECIMALS = formatSetting("decimals", { options: ["auto", "0", "1", "2", "3", "4"].map((value) => ({ value, label: value === "auto" ? "Auto" : value })) });
-/** A sensor's own thresholds: off until set (blank was off), unless the theme sets the Value levels. */
-const valueThresholds = (extra: Partial<ModuleSetting> = {}): ModuleSetting => thresholdSetting("value", { default: "off", defaultY: "off", ...extra });
 const ranged = (v: ModuleSettings): boolean => v.display === "gauge" || v.display === "bar" || v.display === "line";
 
 const SENSOR_VALUE_SETTINGS: ModuleSetting[] = [
@@ -72,39 +62,6 @@ const SENSOR_VALUE_SETTINGS: ModuleSetting[] = [
   FINE_DECIMALS,
   valueThresholds(),
 ];
-
-// SensorGroup's `sensors` are stored as ordered keys (labelled from the sensor display name); the bar range, decimals and thresholds are shared by every item, and `items` overrides them (and the label) per sensor.
-/** Pick sensors (the list) or Auto-discover (every hardware reading); `mode` was the `auto` toggle until config v8. */
-const discovered = (v: ModuleSettings): boolean => v.mode === "auto";
-const listed = (v: ModuleSettings): boolean => !discovered(v);
-const SENSOR_GROUP_SETTINGS: ModuleSetting[] = [
-  enumSetting("mode", "Readings", "pick", [{ value: "pick", label: "Pick sensors" }, { value: "auto", label: "Auto-discover" }], { group: "Readings" }),
-  viewSetting(M.SensorGroup, { label: "Layout", group: "Readings", visibleIf: listed }),
-  boolSetting("bars", "Bar per item", true, { group: "Readings", visibleIf: listed }),
-  numberSetting("maxRows", "Max rows (0 = all)", 12, { min: 0, max: 100, step: 2, group: "Readings", visibleIf: discovered }),
-  // The dots of the discovered list: the theme's Critical, Series 3 and Series 5 ("" = red, blue, amber).
-  colorSetting("tempColor", "Temperature dot", { role: "crit", more: false, visibleIf: discovered }),
-  colorSetting("fanColor", "Fan dot", { role: "s3", more: false, visibleIf: discovered }),
-  colorSetting("powerColor", "Power dot", { role: "s5", more: false, visibleIf: discovered }),
-  // `items` (per-sensor overrides, a JSON object string) is tuned inline on each listed sensor.
-  sensorSetting("sensors", "Sensors", { keyY: "items", defaultY: "", group: "Sensors", tab: "data", multiple: true, hint: "Empty = CPU, GPU, memory and volume. Tune a row to override its label, bar maximum, thresholds or decimals.", visibleIf: listed }),
-  numberSetting("groupMax", "Bar maximum", 0, { min: 0, max: 500, step: 10, group: "Bar scale", tab: "data", hint: "Every item; 0 = Auto (100 for % and °, else no bar)", visibleIf: listed }),
-  // Discovered temperatures read in the unit too.
-  formatSetting("tempUnit"),
-  { ...FINE_DECIMALS, visibleIf: listed },
-  valueThresholds({ visibleIf: listed }),
-];
-
-function sensorItems(s: ModuleSettings): SensorGroup.SensorGroupProps["sensors"] {
-  const keys = splitKeys(s.sensors);
-  if (!keys.length) return undefined;
-  // 0 / blank bar maximum = automatic (SensorGroup derives it from the unit); unset decimals / levels = per reading / none
-  const max = numberOf(s.groupMax) || undefined;
-  const decimals = decimalsOf(s, "groupDecimals");
-  const shared = { ...(max !== undefined ? { max } : {}), ...(decimals !== undefined ? { decimals } : {}), ...thresholdsOf(s, "value", ["groupWarn", "groupCrit"]) };
-  const items = itemsOf(s.items);
-  return keys.map((key) => ({ key, ...shared, ...items[key] }));
-}
 
 /** NetworkThroughput's view and toggles, under the old Network widget's keys. */
 // The old `view` select (speeds / totals) only bundled these two switches; a stored `view` is ignored.
@@ -235,9 +192,6 @@ const fxOf = (s: ModuleSettings): Partial<Weather.WeatherProps> => {
 const unitsOf = (s: ModuleSettings): "C" | "F" => (tempUnitOf(s) === "f" ? "F" : "C");
 const yrLocation = (group: string): ModuleSetting => ({ key: "location", label: "Location", type: "select", default: "", optionsFrom: "sources", sourcePlugin: "plugins.yr-weather-plugin.", group, tab: "data", hint: "Blank = the first Yr location" });
 
-/** The Coding Agents settings that only apply to the Full view. */
-const full = viewOnly(M.CodingAgents, "full");
-
 export const GROUP_B: DashboardModule[] = [
   templateModule({
     meta: M.DriveSpace,
@@ -245,20 +199,6 @@ export const GROUP_B: DashboardModule[] = [
     settings: DRIVE_SETTINGS,
     toProps: (s): Partial<DriveSpace.DriveSpaceProps> => ({ view: oneOf(s.view, ["list", "segments", "bars"]), drive: deviceOf(s, "drive"), sort: oneOf(s.sort, ["usage", "name"]), ...thresholdsOf(s, "full", ["warn", "crit"]), neutral: boolOf(s.neutral), icons: stringOf(s.icons) }),
     island: driveSpaceIsland,
-  }),
-  // any vendor's drive: the keys are read, not owned (the fallback grid keeps the rest of `libre.`)
-  templateModule({ meta: M.StorageHealth, Component: lazyWidget(() => import("../StorageHealth")), prefixes: ["libre."], settings: [deviceSetting("Disk", "disk", { group: "Disk" })], toProps: (s): Partial<StorageHealth.StorageHealthProps> => ({ disk: deviceOf(s, "disk") }) }),
-  templateModule({
-    meta: M.DiskIO,
-    Component: lazyWidget(() => import("../DiskIO")),
-    settings: [
-      boolSetting("showHistory", "Combined history", true, { group: "Chart" }),
-      // Read and write follow the theme's Series 1 and 2 ("" = the widget's own colours).
-      colorSetting("readColor", "Read", { role: "s1", more: false }),
-      colorSetting("writeColor", "Write", { role: "s2", more: false }),
-      deviceSetting("Disk", "disk", { group: "Disk", hint: "Auto = every detected drive" }),
-    ],
-    toProps: (s): Partial<DiskIO.DiskIOProps> => ({ ...pass<Partial<DiskIO.DiskIOProps>>("readColor", "writeColor")(s), disk: deviceOf(s, "disk"), showHistory: boolOf(s.showHistory) }),
   }),
   templateModule({
     meta: M.NetworkThroughput,
@@ -285,21 +225,6 @@ export const GROUP_B: DashboardModule[] = [
     ],
     toProps: (s): Partial<NetworkAdapters.NetworkAdaptersProps> => ({ ...pass<Partial<NetworkAdapters.NetworkAdaptersProps>>("showDown", "hideIp")(s), showIpv6: s.showIpv6 === "show" ? true : s.showIpv6 === "hide" ? false : undefined }),
     island: networkAdaptersIsland,
-  }),
-  templateModule({
-    meta: M.Clock,
-    Component: lazyWidget(() => import("../Clock")),
-    settings: [
-      enumSetting("face", "Face", "digital", [{ value: "digital", label: "Digital" }, { value: "analog", label: "Analog" }, { value: "line", label: "Line" }, { value: "figure", label: "Figure" }], { group: "Face" }),
-      boolSetting("showSeconds", "Seconds", true, { group: "Time & date" }),
-      boolSetting("showDate", "Date", true, { group: "Time & date" }),
-      // Themed (config v7 moved the Clock's `format` here); 24 h stays this widget's own default.
-      formatSetting("clock", { default: "24" }),
-    ],
-    toProps: (s): Partial<Clock.ClockProps> => {
-      const clock = clockOf(s);
-      return { ...pass<Partial<Clock.ClockProps>>("showSeconds", "showDate", "face")(s), format: clock === "12" ? "12h" : clock === "24" ? "24h" : "auto" };
-    },
   }),
   templateModule({
     meta: M.Timer,
@@ -345,62 +270,6 @@ export const GROUP_B: DashboardModule[] = [
     island: countdownIsland,
   }),
   templateModule({
-    meta: M.CodingAgents,
-    Component: lazyWidget(() => import("../CodingAgents")),
-    settings: [
-      viewSetting(M.CodingAgents, { group: "Agents" }),
-      enumSetting(
-        "agents",
-        "Agents",
-        "both",
-        [
-          { value: "both", label: "Claude and Codex" },
-          { value: "claude", label: "Claude Code" },
-          { value: "codex", label: "Codex" },
-        ],
-        { group: "Agents" }
-      ),
-      full(boolSetting("showPlan", "Plan use", true, { group: "Plan limits", hint: "The 5-hour and weekly windows, from the statusline (Claude) and the session files (Codex)" })),
-      full(boolSetting("showSessions", "Sessions", true, { group: "Sessions", hint: "Each session: working with its tool, waiting for you, done" })),
-      full(boolSetting("showUsage", "Tokens per day", true, { group: "Tokens", hint: "Today's tokens and the last five weeks, read from the transcripts" })),
-      full(boolSetting("showBreakdown", "Breakdown", true, { group: "Tokens", hint: "This week's tokens by model and project, and today's by type, read from the transcripts" })),
-      full(
-        enumSetting("limitStyle", "Limit style", "bars", [{ value: "bars", label: "Bars" }, { value: "rings", label: "Rings" }], {
-          group: "Plan limits",
-          hint: "Rings fall back to bars when the cell is too small for them",
-          visibleIf: (v) => v.showPlan !== false,
-        })
-      ),
-      enumSetting("percent", "Show limits as", "used", [{ value: "used", label: "Used" }, { value: "left", label: "Left" }], { group: "Plan limits", visibleIf: (v) => v.showPlan !== false }),
-      full(
-        enumSetting("history", "History", "bars", [{ value: "bars", label: "Daily bars" }, { value: "heatmap", label: "Heatmap" }], {
-          group: "Tokens",
-          hint: "The heatmap moves beside the rest in a wide cell, and falls back to bars when it does not fit",
-          visibleIf: (v) => v.showUsage !== false,
-        })
-      ),
-    ],
-    toProps: (s): Partial<CodingAgents.CodingAgentsProps> => ({
-      view: oneOf(s.view, ["full", "summary", "limits"] as const),
-      agents: oneOf(String(s.agents), ["both", "claude", "codex"] as const),
-      showPlan: boolOf(s.showPlan),
-      showSessions: boolOf(s.showSessions),
-      showUsage: boolOf(s.showUsage),
-      showBreakdown: boolOf(s.showBreakdown),
-      limitStyle: oneOf(s.limitStyle, ["bars", "rings"] as const),
-      percent: oneOf(s.percent, ["used", "left"] as const),
-      history: oneOf(s.history, ["bars", "heatmap"] as const),
-    }),
-  }),
-  templateModule({
-    meta: M.Calendar,
-    Component: lazyWidget(() => import("../Calendar")),
-    // the date comes from the clock plugin, owned by Clock
-    prefixes: ["plugins.clock-plugin."],
-    settings: [enumSetting("weekStart", "Week starts on", "1", [{ value: "1", label: "Monday" }, { value: "0", label: "Sunday" }], { group: "Week" })],
-    toProps: (s): Partial<Calendar.CalendarProps> => ({ weekStart: numberOf(oneOf(String(s.weekStart), ["0", "1"])) }),
-  }),
-  templateModule({
     meta: M.Weather,
     Component: lazyWidget(() => import("../Weather")),
     settings: [
@@ -433,18 +302,6 @@ export const GROUP_B: DashboardModule[] = [
         max: positiveOf(s.max),
       };
     },
-  }),
-  templateModule({
-    meta: M.SensorGroup,
-    Component: lazyWidget(() => import("../SensorGroup")),
-    settings: SENSOR_GROUP_SETTINGS,
-    toProps: (s): Partial<SensorGroup.SensorGroupProps> => ({
-      ...pass<Partial<SensorGroup.SensorGroupProps>>("bars", "maxRows", "tempColor", "fanColor", "powerColor")(s),
-      auto: discovered(s),
-      layout: oneOf(s.groupLayout, ["auto", "rows", "grid"]),
-      sensors: sensorItems(s),
-      tempUnit: tempUnitOf(s),
-    }),
   }),
   templateModule({
     meta: CustomGauge.meta,

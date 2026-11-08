@@ -3,16 +3,16 @@ import { AGENT_COLORS, AGENT_IDS, AGENT_NAMES, bySalience, modelLabel, planView,
 import { extras } from "@/lib/extras";
 import { useNow } from "@/components/widgets/hooks";
 import { PulseDot } from "@/components/pulse-dot";
-import { Empty, Widget, fitRows, shell, type ShellProps } from "./kit";
-import { BarLimits, RingLimits, barDensity, densityH, ringLayout, type Density, type LimitStyle, type Percent, type PlanEntry, type RingLayout } from "./CodingAgents/limits";
-import { Breakdown, breakdownH, breakdownOf, tokensToday } from "./CodingAgents/breakdown";
-import { LimitsView, SummaryView } from "./CodingAgents/summary";
-import { BARS_H, DailyBars, HEADER_H, Heatmap, HistoryHeader, dayKey, heatmapFit, heatmapWeeks, type HeatFit, type HistoryStyle } from "./CodingAgents/history";
-import { meta } from "./meta/CodingAgents";
+import { Empty, Widget, fitRows, shell, type ShellProps } from "../kit";
+import { BarLimits, RingLimits, barDensity, densityH, ringLayout, type Density, type LimitStyle, type Percent, type PlanEntry, type RingLayout } from "./limits";
+import { Breakdown, breakdownH, breakdownOf, tokensToday } from "./breakdown";
+import { LimitsView, SummaryView } from "./summary";
+import { BARS_H, DailyBars, HEADER_H, Heatmap, HistoryHeader, dayKey, heatmapFit, heatmapWeeks, type HeatFit, type HistoryStyle } from "./history";
+import { meta } from "./meta";
 
 export { meta };
 
-export { resetText } from "./CodingAgents/limits";
+export { resetText } from "./limits";
 
 
 
