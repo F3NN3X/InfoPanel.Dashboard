@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { forecastDay, weatherBand } from "@/widgets/DayPlanner/weather-band";
+import { forecastDay, weatherBand } from "@/widgets/day-planner/weather-band";
 
 const H = 3_600_000;
 

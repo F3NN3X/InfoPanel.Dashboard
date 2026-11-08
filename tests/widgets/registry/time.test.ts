@@ -5,9 +5,14 @@ import type { ModuleSettings, SensorMap } from "@/modules/types";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import { toFlat } from "@/widgets/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
-import { dayPlannerOptions, onAirOptions, radialOptions, TIME_WIDGETS } from "@/widgets/registry/time";
+import DayPlanner from "@/widgets/day-planner/DayPlanner";
+import OnAirBeacon from "@/widgets/on-air-beacon/OnAirBeacon";
+import RadialClockStack from "@/widgets/radial-clock-stack/RadialClockStack";
+import { folderOptions, groupOf, TIME_IDS } from "./group-of";
 
-const OPTIONS = [dayPlannerOptions, radialOptions, onAirOptions];
+const OPTIONS = [folderOptions("DayPlanner", DayPlanner), folderOptions("RadialClockStack", RadialClockStack), folderOptions("OnAirBeacon", OnAirBeacon)];
+// The time widgets as the registry lists them, wherever each lives (group file or folder).
+const TIME_WIDGETS = groupOf(TIME_IDS);
 const DATA = toFlat(fixtureSensors() as SensorMap);
 const defaultsOf = (settings: { key: string; default?: unknown }[]): ModuleSettings => Object.fromEntries(settings.map((d) => [d.key, d.default])) as ModuleSettings;
 

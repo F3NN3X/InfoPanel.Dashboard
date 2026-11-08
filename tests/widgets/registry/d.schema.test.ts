@@ -5,7 +5,10 @@ import { isIslandKey } from "@/lib/island/sources";
 import { isVisible } from "@/components/studio/inspector-model";
 import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { GROUP_D } from "@/widgets/registry/d";
+import { GROUP_D_IDS, groupOf } from "./group-of";
+
+// Group D as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_D = groupOf(GROUP_D_IDS);
 
 const SPECS = import.meta.glob("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 const specBlock = (id: string): string => {
@@ -39,7 +42,7 @@ const STANDARD_KEYS = new Set(STANDARD_SETTINGS.map((s) => s.key));
 // The island's "Send to island" toggle and its options are shared like the standard block: they reach no widget prop;
 // nor does a read-only status row (SteamProfile's source).
 const OWN_KEYS = (id: string): string[] =>
-  (GROUP_D.find((m) => m.id === id)!.settings ?? []).filter((s) => !STANDARD_SETTINGS.includes(s) && !isIslandKey(s.key) && s.type !== "status").map((s) => s.key);
+  (GROUP_D.find((m) => m.id === id)!.settings ?? []).filter((s) => !STANDARD_KEYS.has(s.key) && !isIslandKey(s.key) && s.type !== "status").map((s) => s.key);
 
 describe("group D inspector schema", () => {
   for (const [id, props] of Object.entries(MANIFEST)) {

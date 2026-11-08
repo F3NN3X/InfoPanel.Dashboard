@@ -23,8 +23,8 @@ picker shows and what the kiosk can render: the plain index of the
 ## Library widgets (templates)
 
 Every template widget is a component in `src/widgets/` drawn inside the shared
-shell and registered through `templateModule` (`src/widgets/registry/a.ts` –
-`e.ts`, one group per category family). The id is the template's name; the
+shell and registered through `templateModule` (the group files in
+`src/widgets/registry/`, or a widget's own folder, `src/widgets/<id>/widget.ts`). The id is the template's name; the
 minimum footprint comes from its `meta.minSize`. All of them take the standard
 block and the Look keys (skin, variant, graph, meter, summary card); the options of each are in the
 inspector's Show, Data and Behaviour tabs.
@@ -154,30 +154,25 @@ The whole library shares one design system, in `src/widgets/core/`:
 - **Calendar** ([README](../src/widgets/calendar/README.md)) — The clock plugin's date, `plugins.clock-plugin.clock.day`, `month` and `year` (read, not owned: Clock owns the prefix). It draws without sensor keys too.
 - **SensorGroup** ([README](../src/widgets/sensor-group/README.md)) — Pick sensors: the chosen keys, any source. With none picked, this machine's own `system.cpu.load`, the graphics card's `libre.<gpu>_gpu_core_load` and `gpu_core`, `system.ram.load` and `plugins.volume-plugin.default.volume`. Auto-discover: every live `libre.*` / `hwinfo.*` reading.
 - **NowPlaying** ([README](../src/widgets/now-playing/README.md)) — The media plugin, `plugins.media-plugin.media.*`: `current-track`, `artist`, `album`, `cover-art`, `track-progress`, `elapsed-time`, `remaining-time`, `playback-state` (2 or 4 = playing). The Spotify plugin, `plugins.spotify-plugin.spotify.*` (the same names), with pushed `spotify.track` / `artist` / `album` / `art` / `progress` / `playing` winning over it. The visualiser reads the audio level meter, `plugins.audio-level-meter.*`, without owning it.
+- **SteamProfile** ([README](../src/widgets/steam-profile/README.md)) — The Steam API plugin, `plugins.InfoPanel.SteamAPI.SteamAPI-Profile.*` and `plugins.InfoPanel.SteamAPI.SteamAPI-Social.*` (it owns both prefixes).
+- **WebPage** ([README](../src/widgets/web-page/README.md)) — None: it reads a URL and no sensor keys, so its Data tab is empty and it draws without sensor keys.
+- **TextFile** ([README](../src/widgets/text-file/README.md)) — The TextFile plugin, `plugins.InfoPanel.TextFile.*`: `content`, `status`, `file-size` and `line-count`.
+- **Notifications** ([README](../src/widgets/notifications/README.md)) — The Notifications plugin, `plugins.InfoPanel.Notifications.*`: `notification-count`, `last-notification`, `notification-history` and `status`.
+- **Departures** ([README](../src/widgets/departures/README.md)) — The VBZ plugin, `plugins.InfoPanel.VBZ.*`: `station_name`, `status`, and per departure `dep_<n>_line`, `dep_<n>_dest` and `dep_<n>_time`.
+- **Bluetooth** ([README](../src/widgets/bluetooth/README.md)) — The BTData plugin, `plugins.bluetooth-battery-plugin.*`: a `bt_status` entry, and one entry per device with its name, status and battery level.
+- **DayPlanner** ([README](../src/widgets/day-planner/README.md)) — The calendar links set under Settings › Connections (served by the server, not sensor keys), and the Yr weather plugin, `plugins.yr-weather-plugin.*` (read for the weather band). It draws without sensor keys too.
+- **RadialClockStack** ([README](../src/widgets/radial-clock-stack/README.md)) — The clock only, plus the calendar links set under Settings › Connections (served by the server) for the event ring, and any one sensor key the user picks for the sensor ring. It draws without sensor keys too.
+- **OnAirBeacon** ([README](../src/widgets/on-air-beacon/README.md)) — The OBS connection under Settings › Connections (served by the server, not sensor keys). It draws without sensor keys.
+- **BottleneckLens** ([README](../src/widgets/bottleneck-lens/README.md)) — The sensor roles, not fixed keys (`role-data.ts`, owning no prefix): `gpu.load`, `cpu.load`, `cpu.maxcore`, `vram.used`, `vram.total`, `fps` and `gpu.temp`, and the thermal and power throttle flags.
 
 <!-- @generated:end keys -->
 
-- **SystemOverview** — loads from `system.cpu.load` and
-  `system.ram.load`; the rest from LibreHardwareMonitor, found by key suffix
-  and unit because the keys carry the hardware name
-  (`src/lib/system-metrics.ts`): GPU `_gpu_core_load`, `_gpu_core` (°C),
-  `_gpu_package` (W), `_gpu_core_clock`, VRAM `_gpu_memory` (%),
-  `_gpu_memory_used` / `_gpu_memory_total` (MB); CPU `_cpu_total`,
-  `_core__tctl_tdie` or `_cpu_package` (°C), `_package` (W); RAM
-  `total_memory_memory_used` / `_available` (GB). Extras: per-thread CPU load
-  `_cpu_core__N` (%), GPU `_gpu_memory_junction` (hotspot), `_gpu_fan_N` (RPM) /
-  `_gpu_fan_N_control` (%), `_gpu_memory_clock`, `_gpu_power` (% of limit), page
-  file `virtual_memory_memory_used` / `_available` / `virtual_memory_memory`.
-  Drives, one per `<drive>_used_space` (%): `_temperature__N` (else
-  `_composite_temperature`), `_read_rate` / `_write_rate` (bytes/s; the source labels them KB/s), `_life`,
-  `_total_space` / `_free_space` (GB); the doubled `_load` / `_data` variants
-  are ignored. Temperatures and power that read 0 count as unreadable and are
+- **SystemOverview** (readings and drives) — Temperatures and power that read 0 count as unreadable and are
   hidden; the first GPU wins. Identical drives (three of one NVMe model) are
   numbered by the Data API: the first keeps `kingston_sfyrd2000g_…`, the others
   get `#2`, `#3` in their name and `__2`, `__3` in the key
-  (`kingston_sfyrd2000g__2_…`). Each drive also carries its volumes:
-  `<drive>_volumes` (text, "C: Windows, D: Games": letter plus label when set)
-  and `<drive>_drive_letters` ("C:, D:"). Widgets label a drive by its volumes
+  (`kingston_sfyrd2000g__2_…`). Each drive also carries `<drive>_drive_letters`
+  ("C:, D:"). Widgets label a drive by its volumes
   (`diskShort`, else "Kingston #2"), the drive picker lists "C: Windows ·
   Kingston SFYRD2000G" (`diskName`), and Auto picks a model's first drive
   (`firstDisk`).
@@ -187,11 +182,8 @@ The whole library shares one design system, in `src/widgets/core/`:
   `1% low fps` / `1% low`, `0.1% low`, `current frame time` / `frame time`,
   `gpu-name`, `gpu utilization`, `gpu busy`, `cpu busy`, `display latency`,
   `refreshrate`, `resolution`, `windowtitle`.
-- **SensorGroup** (auto) and **Thermals** — every live `libre.*` / `hwinfo.*`
-  entry (LibreHardwareMonitor / HWiNFO exports); rows are kind-dotted
-  (temp / fan / power first), capped by the `maxRows` option. The "temps"
-  view is the `Thermals` template: the top four temperature readings as arc
-  gauges plus a fan-reading chip row.
+- **Thermals** — the "temps" view of the Sensor Group rows: the top four
+  temperature readings as arc gauges plus a fan-reading chip row.
 - **NetworkThroughput** — `libre.ethernet_*`
   (LibreHardwareMonitor): `download_speed` / `upload_speed` (bytes/s, though
   the source labels them KB/s → `fmtRate`; **Speed units** Auto / MB/s / Mb/s /
@@ -215,10 +207,6 @@ The whole library shares one design system, in `src/widgets/core/`:
   device) is labelled "Default device" so it doesn't read as a duplicate of
   that device's own container. AudioMeter binds to one device
   with `device`, MeterBridge picks devices with `channels` (`""` = all).
-- **Bluetooth** (`src/widgets/Bluetooth.tsx`) —
-  `plugins.bluetooth-battery-plugin.*`: the status container (the one with
-  a `.bt_status` key) gives the status line; every other container is a
-  paired device (`Name`, `Status`, `Battery Level` → green/amber/red bar).
 - **Weather** — `plugins.yr-weather-plugin.*`:
   `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
   `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,

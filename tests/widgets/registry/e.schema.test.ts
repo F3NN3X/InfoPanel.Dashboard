@@ -6,18 +6,23 @@ import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { toFlat } from "@/widgets/data-adapter";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import type { SensorMap } from "@/modules/types";
-import { bluetoothOptions, departuresOptions, notificationsOptions, textFileOptions, webPageOptions } from "@/widgets/registry/e";
+import Bluetooth from "@/widgets/bluetooth/Bluetooth";
+import Departures from "@/widgets/departures/Departures";
+import Notifications from "@/widgets/notifications/Notifications";
+import TextFile from "@/widgets/text-file/TextFile";
+import WebPage from "@/widgets/web-page/WebPage";
+import { folderOptions } from "./group-of";
 
 // These templates have no handoff spec: the manifest is the props each component's own interface declares
 // (beyond ShellProps and `look`), with the setting key that carries each.
 const MANIFEST = [
-  { id: "WebPage", options: webPageOptions, props: { url: "url" } },
-  { id: "TextFile", options: textFileOptions, props: { showMeta: "showMeta" } },
-  { id: "Notifications", options: notificationsOptions, props: { showHistory: "showHistory", maxLines: "maxLines" } },
-  { id: "Departures", options: departuresOptions, props: { showStatus: "showStatus" } },
+  { id: "WebPage", options: folderOptions("WebPage", WebPage), props: { url: "url" } },
+  { id: "TextFile", options: folderOptions("TextFile", TextFile), props: { showMeta: "showMeta" } },
+  { id: "Notifications", options: folderOptions("Notifications", Notifications), props: { showHistory: "showHistory", maxLines: "maxLines" } },
+  { id: "Departures", options: folderOptions("Departures", Departures), props: { showStatus: "showStatus" } },
   {
     id: "Bluetooth",
-    options: bluetoothOptions,
+    options: folderOptions("Bluetooth", Bluetooth),
     props: { showStatus: "showStatus", showDevices: "showDevices", showBattery: "showBattery", batteryMidColor: "batteryMidColor", batteryLowColor: "batteryLowColor" },
   },
 ] as const;

@@ -14,9 +14,9 @@ import PlaytimeShare, { meta as playtime } from "@/widgets/PlaytimeShare";
 import SteamGame, { meta as game } from "@/widgets/SteamGame";
 import SteamLibrary, { meta as library } from "@/widgets/SteamLibrary";
 import SteamNews, { meta as news } from "@/widgets/SteamNews";
-import SteamProfile, { meta as profile } from "@/widgets/SteamProfile";
+import SteamProfile, { meta as profile } from "@/widgets/steam-profile/SteamProfile";
 import SteamFriends, { meta as friends } from "@/widgets/SteamFriends";
-import { GROUP_D } from "@/widgets/registry/d";
+import { GROUP_D_IDS, groupOf } from "./group-of";
 
 const WIDGETS: [typeof fps, ComponentType<ShellProps>][] = [
   [fps, FpsMonitor],
@@ -31,6 +31,8 @@ const WIDGETS: [typeof fps, ComponentType<ShellProps>][] = [
   [library, SteamLibrary],
   [news, SteamNews],
 ];
+// Group D as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_D = groupOf(GROUP_D_IDS);
 const DATA = toFlat((snapshot as unknown as { sensors: SensorMap }).sensors);
 
 // Every source of this group is in the captured snapshot (RTSS, Steam, libre).

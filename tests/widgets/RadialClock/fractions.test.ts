@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayFraction, nextEvent, rangeFraction, secondFraction, untilText, weekFraction, yearFraction } from "@/widgets/RadialClock/fractions";
+import { dayFraction, nextEvent, rangeFraction, secondFraction, untilText, weekFraction, yearFraction } from "@/widgets/radial-clock-stack/fractions";
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0) => new Date(y, mo, d, h, mi).getTime();
 

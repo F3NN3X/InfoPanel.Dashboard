@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import WebPage from "@/widgets/WebPage";
+import WebPage from "@/widgets/web-page/WebPage";
 
 /** The server's frame check answering `frame` for every URL, recording what it was asked. */
 function serverSays(frame: string) {

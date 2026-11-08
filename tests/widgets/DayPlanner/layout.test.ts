@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allDayTitles, hourMarks, nowFraction, placeEvents, railWindow, type RailEvent } from "@/widgets/DayPlanner/layout";
+import { allDayTitles, hourMarks, nowFraction, placeEvents, railWindow, type RailEvent } from "@/widgets/day-planner/layout";
 
 const H = 3_600_000;
 const win = { start: 0, end: 10 * H };

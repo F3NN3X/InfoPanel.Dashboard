@@ -5,14 +5,14 @@ import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { toFlat, toNames } from "@/widgets/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
-import BottleneckLens, { meta as bottleneck } from "@/widgets/BottleneckLens";
+import BottleneckLens, { meta as bottleneck } from "@/widgets/bottleneck-lens/BottleneckLens";
 import FrameHistogram, { meta as histogram } from "@/widgets/FrameHistogram";
 import SessionStats, { meta as stats } from "@/widgets/SessionStats";
 import ThresholdTimeline, { meta as timeline } from "@/widgets/ThresholdTimeline";
-import { GROUP_HISTORY } from "@/widgets/registry/history";
 import { resolveRole } from "@/lib/infopanel/templates/roles";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
 import { RULES, roleData, type Role } from "@/widgets/role-data";
+import { GROUP_HISTORY_IDS, groupOf } from "./group-of";
 
 const WIDGETS: [typeof bottleneck, ComponentType<ShellProps>][] = [
   [bottleneck, BottleneckLens],
@@ -20,6 +20,8 @@ const WIDGETS: [typeof bottleneck, ComponentType<ShellProps>][] = [
   [stats, SessionStats],
   [timeline, ThresholdTimeline],
 ];
+// The history widgets as the registry lists them, wherever each lives (group file or folder).
+const GROUP_HISTORY = groupOf(GROUP_HISTORY_IDS);
 const SENSORS = (snapshot as unknown as { sensors: SensorMap }).sensors;
 const RTSS = "plugins.InfoPanel.RTSS.rtss.";
 const GPU = "libre.nvidia_geforce_rtx_5090_gpu_core_load";
