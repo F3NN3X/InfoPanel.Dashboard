@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assetFor } from "../../tools/ci/actionlint.mjs";
 import { planOutputs } from "../../tools/ci/plan-outputs.mjs";
-import { decideRelease } from "../../tools/ci/release-gate.mjs";
+import { decideRelease, retried } from "../../tools/ci/release-gate.mjs";
 
 const plan = (mode, ...ids) => ({ mode, steps: ids.map((id) => (id.startsWith("-") ? { id: id.slice(1), cmd: null } : { id, cmd: `run ${id}` })) });
 
@@ -57,6 +57,26 @@ describe("release gate", () => {
     expect(decideRelease({ ...base, nightlyShas: [sha] }).ok).toBe(true);
     expect(decideRelease({ ...base, commitChecks: [{ name: "ci-ok", conclusion: "failure" }] }).ok).toBe(false);
     expect(decideRelease(base).reason).toContain("no successful ci-ok");
+  });
+});
+
+describe("release gate retries", () => {
+  const flaky = (failures) => {
+    let calls = 0;
+    return { fn: () => { if (++calls <= failures) throw new Error("HTTP 502"); return "ok"; }, calls: () => calls };
+  };
+
+  it("passes after two transient errors, sleeping the backoff between tries", () => {
+    const slept = [];
+    const call = flaky(2);
+    expect(retried(call.fn, [2000, 5000], (ms) => slept.push(ms))).toBe("ok");
+    expect(slept).toEqual([2000, 5000]);
+  });
+
+  it("throws the last error once the tries are used up (the gate then exits 1)", () => {
+    const call = flaky(9);
+    expect(() => retried(call.fn, [1, 1], () => {})).toThrow("HTTP 502");
+    expect(call.calls()).toBe(3);
   });
 });
 

@@ -21,10 +21,11 @@ on:
 permissions:
   contents: read
 
-# A new push to a PR cancels that PR's run still in progress.
+# A new push to a PR cancels that PR's run still in progress. A push to main never cancels one: a cancelled run
+# skips the cache save that every PR restores.
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Which jobs the change needs (tools/ci/plan-outputs.mjs). ci:full turns every one on, ci:e2e adds e2e, a push to

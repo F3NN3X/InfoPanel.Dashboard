@@ -38,7 +38,12 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
         run: |
-          last=$(gh run list --workflow nightly.yml --branch main --status success --limit 1 --json headSha --jq '.[0].headSha // empty')
+          # An API error is tried again; if it persists, run the night (an empty $last never matches the commit).
+          retry() { for delay in 2 5; do "$@" && return 0; sleep "$delay"; done; "$@"; }
+          last=$(retry gh run list --workflow nightly.yml --branch main --status success --limit 1 --json headSha --jq '.[0].headSha // empty') || {
+            echo "::warning::could not read the last green nightly: running"
+            last=
+          }
           if [ "$EVENT" = "schedule" ] && [ "$last" = "$GITHUB_SHA" ]; then
             echo "main is still ${GITHUB_SHA::7}, where the last green nightly ran: nothing to do." >> "$GITHUB_STEP_SUMMARY"
             echo "run=false" >> "$GITHUB_OUTPUT"
@@ -63,7 +68,7 @@ jobs:
         with:
           workspaces: src-tauri
           shared-key: native
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/playwright-install
       - run: node tools/verify.mjs --full --allow-incomplete
 
   # Windows: the unsigned installer build (what release.yml does without the updater key, so packaging breaks show here
@@ -113,7 +118,7 @@ jobs:
           shared-key: native
       - run: cargo build -p ips-server
         working-directory: src-tauri
-      - run: npx playwright install --with-deps chromium
+      - uses: ./.github/actions/playwright-install
       - run: npm run perf:all
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -153,18 +158,20 @@ jobs:
       RESULTS: ${{ needs.linux.result }} ${{ needs.windows.result }}
     steps:
       - run: |
-          existing=$(gh issue list --state open --search '"Nightly failing" in:title' --json number,title --jq '[.[] | select(.title == "Nightly failing")][0].number // empty')
+          # A failed night is the one that must reach the issue: an API error is tried again.
+          retry() { for delay in 2 5; do "$@" && return 0; sleep "$delay"; done; "$@"; }
+          existing=$(retry gh issue list --state open --search '"Nightly failing" in:title' --json number,title --jq '[.[] | select(.title == "Nightly failing")][0].number // empty')
           case " $RESULTS " in
             *" failure "*)
               if [ -n "$existing" ]; then
-                gh issue comment "$existing" --body "Still failing: $RUN_URL"
+                retry gh issue comment "$existing" --body "Still failing: $RUN_URL"
               else
-                gh issue create --title "Nightly failing" --body "The nightly run failed: $RUN_URL"
+                retry gh issue create --title "Nightly failing" --body "The nightly run failed: $RUN_URL"
               fi ;;
             *" cancelled "*|*" skipped "*) echo "Run was cancelled or skipped: leaving the issue as it is." ;;
             *)
               if [ -n "$existing" ]; then
-                gh issue comment "$existing" --body "Green again: $RUN_URL"
-                gh issue close "$existing"
+                retry gh issue comment "$existing" --body "Green again: $RUN_URL"
+                retry gh issue close "$existing"
               fi ;;
           esac

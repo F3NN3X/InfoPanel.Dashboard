@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# Two tags in flight would both write the shared updater-beta feed in `publish`: they queue, never cancel (a release
+# in progress is not interrupted).
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   gate:
     runs-on: ubuntu-26.04
