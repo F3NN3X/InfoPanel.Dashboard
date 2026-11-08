@@ -2,6 +2,9 @@ name: Run the e2e specs
 description: The Playwright specs and the Edit v3 fixtures against the built pages in dist/ and a debug ips-server built here. The caller sets up Node (setup-node-deps) and dist/ first.
 
 inputs:
+  commands:
+    description: 'The commands to run, a JSON array (the CI plan chooses them). Empty: the whole e2e and one-editor suites'
+    default: ""
   save-cache:
     description: Save the Rust cache ("false" where nothing else can restore it, as under a release tag)
     default: "true"
@@ -20,8 +23,8 @@ runs:
       run: cargo build -p ips-server
       working-directory: src-tauri
     - uses: ./.github/actions/playwright-install
+    # Default: the e2e specs, then the Edit v3 fixtures (src/dev/fixtures; the project builds its own fixtures build).
     - shell: bash
-      run: npm run test:e2e
-    # The Edit v3 fixtures (src/dev/fixtures); the project builds its own fixtures build.
-    - shell: bash
-      run: npm run test:one-editor
+      env:
+        COMMANDS: ${{ inputs.commands }}
+      run: node tools/ci/run-commands.mjs

@@ -1,10 +1,10 @@
 name: CI
 
 # PRs run the checks their change needs. `plan` asks tools/verify.mjs (tests/feature-map.json) which checks the changed
-# files call for and the jobs below run or skip accordingly; `ci-ok` is the one required status check. The e2e specs
-# are slow, so a PR runs them only with the label ci:e2e (or ci:full, which runs every job); the release runs them
-# before it publishes (release.yml) and the nightly every night. A push to main runs only when the dependencies or the
-# Rust code change, and then only the jobs that save the Rust and npm caches (GitHub shares caches saved on main with
+# files call for and the jobs below run or skip accordingly; `ci-ok` is the one required status check. The browser
+# checks (e2e specs, overflow) are slow, so a PR runs only those `verify` maps to its files; the label ci:e2e runs them
+# all, ci:full runs every job. The release runs them before it publishes (release.yml) and the nightly every night. A
+# push to main runs only when the dependencies or the Rust code change, and then only the jobs that save the Rust and npm caches (GitHub shares caches saved on main with
 # every PR): every change already passed this check in its PR.
 on:
   pull_request:
@@ -28,8 +28,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Which jobs the change needs (tools/ci/plan-outputs.mjs). ci:full turns every one on, ci:e2e adds e2e, a push to
-  # main runs the cache-saving ones.
+  # Which jobs the change needs (tools/ci/plan-outputs.mjs). ci:full turns every one on, ci:e2e runs the whole browser
+  # checks, a push to main runs the cache-saving ones.
   plan:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
@@ -42,6 +42,9 @@ jobs:
       settings: ${{ steps.plan.outputs.settings }}
       server: ${{ steps.plan.outputs.server }}
       e2e: ${{ steps.plan.outputs.e2e }}
+      e2e_cmds: ${{ steps.plan.outputs.e2e_cmds }}
+      ui_usage: ${{ steps.plan.outputs.ui_usage }}
+      pack_budgets: ${{ steps.plan.outputs.pack_budgets }}
       lab: ${{ steps.plan.outputs.lab }}
       rust: ${{ steps.plan.outputs.rust }}
       windows: ${{ steps.plan.outputs.windows }}
@@ -105,6 +108,12 @@ jobs:
       # The deterministic bundle budgets (tools/perf/budgets.json); CPU and memory stay report-only.
       - if: needs.plan.outputs.budgets == 'true'
         run: npm run perf:budgets
+      # The built-in packs' budgets and the --ui-* tokens the settings, help and touch pages read (the map's pack-budgets
+      # and ui-usage checks): both read the build above, under a second each.
+      - if: needs.plan.outputs.pack_budgets == 'true'
+        run: node tools/perf/check-budgets.mjs --packs
+      - if: needs.plan.outputs.ui_usage == 'true'
+        run: node tools/looks/generate.mjs --check-usage
       - if: needs.plan.outputs.e2e == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -112,16 +121,20 @@ jobs:
           path: dist
           retention-days: 1
 
-  # The whole Vitest suite, whatever the change: the selective runs are local, CI is the complete backstop.
+  # The whole Vitest suite, whatever the change: the selective runs are local, CI is the complete backstop. Two shards
+  # (the matrix is one `unit` result to ci-ok): the suite is 100 to 140 s on a 4-core runner.
   unit:
     needs: plan
     if: needs.plan.outputs.unit == 'true'
     runs-on: ubuntu-26.04
     timeout-minutes: 15
+    strategy:
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-node-deps
-      - run: npm test
+      - run: npm test -- --shard=${{ matrix.shard }}/2
 
   # The import lab: its typecheck and its tests (the InfoPanel corpus round-trips).
   lab:
@@ -161,13 +174,14 @@ jobs:
         run: cargo clippy -p ips-server -p ips-agent --all-targets -- -D warnings
         working-directory: src-tauri
 
-  # Opt-in (ci:e2e, ci:full): the Playwright specs against the built pages (artifact from typecheck-build), in the
+  # The browser checks the plan lists for the change (e2e specs, Edit v3 fixtures, the overflow probe), scoped as `verify`
+  # scopes them, or all of them with ci:e2e or ci:full: against the built pages (artifact from typecheck-build), in the
   # shared action release.yml runs too.
   e2e:
     needs: [plan, typecheck-build]
     if: needs.plan.outputs.e2e == 'true'
     runs-on: ubuntu-26.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: ./.github/actions/setup-node-deps
@@ -176,6 +190,8 @@ jobs:
           name: dist
           path: dist
       - uses: ./.github/actions/e2e
+        with:
+          commands: ${{ needs.plan.outputs.e2e_cmds }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
