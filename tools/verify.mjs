@@ -134,6 +134,7 @@ function main() {
     tracked: trackedFiles(ROOT),
     exists: (file) => fs.existsSync(path.join(ROOT, file)),
     platform: process.platform,
+    ci: Boolean(process.env.CI),
   });
   const overheadMs = Date.now() - started;
   if (flags.has("--plan")) {

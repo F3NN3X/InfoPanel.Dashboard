@@ -40,9 +40,10 @@ export function escalates(features, map) {
  * The plan.
  * - `mode`: "default" (feature tests plus tests related to the changed sources), "fast" (feature tests only) or "full".
  * - `features`: the selected feature objects. `changed`: the changed files (may include deleted ones).
- * - `tracked`: every tracked file; `exists(file)`: whether it is on disk now; `platform`: process.platform.
+ * - `tracked`: every tracked file; `exists(file)`: whether it is on disk now; `platform`: process.platform; `ci`: whether CI is set
+ * (a check marked `localOnly` is then not run).
  */
-export function buildPlan({ map, features, changed, mode, tracked, exists, platform }) {
+export function buildPlan({ map, features, changed, mode, tracked, exists, platform, ci = false }) {
   const escalated = mode === "full" || escalates(features, map);
   const effective = escalated ? "full" : mode;
   const present = changed.filter(exists);
@@ -61,7 +62,12 @@ export function buildPlan({ map, features, changed, mode, tracked, exists, platf
 
   function step(name, check) {
     const base = { id: name, cwd: check.cwd ?? ".", platform: check.platform ?? null };
-    const notRun = check.platform && check.platform !== platform ? { status: "not-run", reason: `needs ${check.platform === "win32" ? "Windows" : check.platform}` } : {};
+    const notRun =
+      check.platform && check.platform !== platform
+        ? { status: "not-run", reason: `needs ${check.platform === "win32" ? "Windows" : check.platform}` }
+        : check.localOnly && ci
+          ? { status: "not-run", reason: "local only (CI is set)" }
+          : {};
     if (effective === "full") return { ...base, ...notRun, cmd: check.fullCmd ?? check.cmd };
     if (check.files) {
       const files = present.filter((file) => matchesAny(file, check.files));
