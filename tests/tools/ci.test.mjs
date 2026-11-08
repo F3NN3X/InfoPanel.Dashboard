@@ -43,7 +43,8 @@ describe("plan outputs", () => {
 
   it("is everything on --all (the ci:full label), and `full` follows an escalated plan", () => {
     const all = planOutputs(plan("default", "-lint"), { all: true });
-    expect(Object.entries(all).filter(([name, value]) => name !== "docs_only" && !value)).toEqual([]);
+    const gates = ["docs_only", "flake_unit", "quarantine"]; // the gate needs the changed files; quarantine follows its list
+    expect(Object.entries(all).filter(([name, value]) => !gates.includes(name) && !value)).toEqual([]);
     expect(all.docs_only).toBe(false);
     expect(planOutputs(plan("full", "lint", "unit")).full).toBe(true);
   });
@@ -68,6 +69,28 @@ describe("release gate", () => {
     expect(decideRelease({ ...base, nightlyShas: [sha] }).ok).toBe(true);
     expect(decideRelease({ ...base, commitChecks: [{ name: "ci-ok", conclusion: "failure" }] }).ok).toBe(false);
     expect(decideRelease(base).reason).toContain("no successful ci-ok");
+  });
+});
+
+describe("plan outputs for the new-test gate and quarantine", () => {
+  const gated = (mode, ...ids) => ({ mode, changed: ["tests/lib/a.test.ts", "src/x.ts", "tests/e2e/k.spec.ts"], steps: ids.map((id) => ({ id, cmd: `run ${id}` })) });
+
+  it("gives the Vitest gate its own job and the spec gate a place after the browser checks", () => {
+    const out = planOutputs(gated("default", "unit", "e2e", "flake-unit", "flake-e2e"));
+    expect(out).toMatchObject({ flake_unit: true, e2e: true });
+    expect(JSON.parse(out.flake_unit_cmds)).toEqual(["run flake-unit"]);
+    expect(JSON.parse(out.e2e_cmds)).toEqual(["run e2e", "run flake-e2e"]);
+    expect(planOutputs(gated("default", "unit"))).toMatchObject({ flake_unit: false, flake_unit_cmds: "[]" });
+  });
+
+  it("puts the changed test files on the gate's command when the plan escalated (CI has no merge base to read)", () => {
+    const out = planOutputs(gated("full", "flake-unit", "flake-e2e"));
+    expect(JSON.parse(out.flake_unit_cmds)).toEqual(["run flake-unit tests/lib/a.test.ts tests/e2e/k.spec.ts"]);
+  });
+
+  it("starts the advisory quarantine job only while something is quarantined", () => {
+    expect(planOutputs(gated("default", "unit"), { quarantined: true }).quarantine).toBe(true);
+    expect(planOutputs(gated("default", "unit")).quarantine).toBe(false);
   });
 });
 

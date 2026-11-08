@@ -82,6 +82,37 @@ on a release build, debug off). It names nothing outside its own body, because i
 the verdict, is pure and is tested in `tests/looks/pack-render-check.dom.test.ts`, the grammar in `tests/looks/user-css.test.ts`, the
 signature in `pack_sign.rs` and `crates/ips-server/tests/routes_packs.rs`.
 
+## Quarantine
+
+A test that flakes and cannot be fixed at once goes into `tests/quarantine.json` instead of being skipped, loosened or deleted:
+
+```json
+{ "tests/lib/foo.test.ts": { "issue": 301, "owner": "F3NN3X", "until": "2026-12-01" } }
+```
+
+- The key is the test file (Vitest `*.test.*`, or a Playwright spec of the `e2e` or `one-editor` project); `issue` is the tracking
+  issue (labelled `flaky`, with the failing run, owner and deadline), `owner` a name and `until` a `YYYY-MM-DD` date.
+  `tests/tools/ci-quarantine.test.mjs` fails the suite on an entry without an issue or owner, with a bad or past date, or whose file is gone,
+  so the list cannot become a graveyard. It is empty today.
+- `vite.config.ts` and `playwright.config.ts` leave the listed files out of every gating run (`npm test`, `unit`, `e2e`, the nightly's
+  `verify --full`). `QUARANTINE=only` runs just them.
+- They keep running in the advisory `quarantine` check (`node tools/ci/quarantine.mjs run`): in `verify --full`, so the nightly, and in a
+  `quarantine` CI job that exists only while the list is not empty, is not in `ci-ok`'s `needs` and has `continue-on-error`. It prints
+  whether they pass now and always exits 0. A fixed test leaves the list.
+- Never make the `quarantine` job or the nightly required.
+
+## The new-test gate
+
+A test file added or changed on the branch has to pass repeated runs before it counts as proven (`tools/ci/flake-gate.mjs`):
+
+- Vitest files (`flake-unit`): 10 runs, each shuffling files and tests with a fresh `--sequence.seed`, `--maxWorkers=4`. Not
+  `tests/server` (it needs the binary).
+- Playwright specs (`flake-e2e`): `--repeat-each 5 --workers 4`, per project (`e2e`, `one-editor`).
+- Both are `verify` checks that take the changed test files (committed since the merge base, staged, unstaged, untracked) and skip when
+  there are none; `verify:full` runs them over the same set. A quarantined file is exempt. CI runs them from the plan: `flake-unit` is its own
+  job (in `ci-ok`), `flake-e2e` runs in the `e2e` job after the browser checks. `look-visual`, perf and desktop specs are not repeated.
+- A failure means the test is not stable: fix it, or quarantine it with an issue, an owner and a deadline.
+
 ## The feature map and `verify`
 
 `tests/feature-map.json` maps every tracked file to a feature, and each feature to the tests and checks that cover it.
@@ -103,4 +134,6 @@ signature in `pack_sign.rs` and `crates/ips-server/tests/routes_packs.rs`.
   platform (`cargo-app` needs Windows), 4 only from `--check-fresh` (stale). `--allow-incomplete` turns 3 into 0.
 - Each run writes `.cache/verify/last.json` (commit, a hash of the changed content, per-check results).
   `--check-fresh` compares it with the tree now: `fresh-pass` (exit 0), `fresh-fail` (1), `stale` (4).
+- The browser checks in CI follow the plan: `e2e`, `one-editor` and `overflow` run on a pull request when `verify` plans them for the changed
+  files (`tools/ci/plan-outputs.mjs` hands the planned commands to the `e2e` job); the label `ci:e2e` runs them whole.
 - Report-only work (perf specs, `audit:views`) is listed under `report` in the map and never gates.

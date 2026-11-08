@@ -11,6 +11,8 @@ import { expect, manifest, test, watchErrors } from "./fixtures";
 const CARD = "200 50% 40%";
 const BG = "#123456";
 const BG_RGB = "rgb(18, 52, 86)";
+/** How long a studio that must not save is given to save. */
+const QUIET_MS = 800;
 
 test("a v15 dashboard look is each screen's own after the studio's first save, and the v15 file is kept", async ({ page, scratch }) => {
   const { errors } = watchErrors(page);
@@ -35,7 +37,8 @@ test("a v15 dashboard look is each screen's own after the studio's first save, a
   const ask = page.getByRole("alertdialog", { name: "Your screens need an update" });
   await expect(ask).toContainText("format 15) will be updated to format 18");
   await page.keyboard.press("Control+s");
-  await page.waitForTimeout(800);
+  // Nothing happens to wait for: give a (wrongly) saving studio time to write, then check it did not.
+  await page.waitForTimeout(QUIET_MS);
   expect(JSON.parse(fs.readFileSync(file, "utf8")).version).toBe(15);
   await ask.getByRole("button", { name: "Update now" }).click();
   const done = page.getByRole("alertdialog", { name: "Your screens are updated" });

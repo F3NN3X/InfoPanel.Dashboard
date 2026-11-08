@@ -5,6 +5,11 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { quarantinedFiles } from "./tools/ci/quarantine.mjs";
+
+// Test files held out of the gating runs (tests/quarantine.json, docs/TESTING.md); QUARANTINE=only runs just those.
+const quarantined: string[] = quarantinedFiles(__dirname);
+const quarantineOnly = process.env.QUARANTINE === "only";
 
 /**
  * Vitest renders the widgets with renderToString, which cannot wait for a widget's chunk (`src/widgets/lazy-widget.tsx`):
@@ -69,13 +74,16 @@ export default defineConfig(({ mode }) => ({
   // Agent worktrees live under .claude/; their copies of the tests are not ours.
   // lab/ has its own Vitest config (npm run lab:test).
   test: {
-    include: ["tests/**/*.test.{ts,tsx,mjs}"],
+    include: quarantineOnly ? quarantined.filter((file) => /\.test\.(ts|tsx|mjs)$/.test(file)) : ["tests/**/*.test.{ts,tsx,mjs}"],
     // tests/server runs against the ips-server binary: `npm run test:server`.
-    exclude: [...configDefaults.exclude, ".claude/**", "lab/**", ...(process.env.SERVER_SUITE ? [] : ["tests/server/**"])],
+    exclude: [...configDefaults.exclude, ".claude/**", "lab/**", ...(process.env.SERVER_SUITE ? [] : ["tests/server/**"]), ...(quarantineOnly ? [] : quarantined)],
     // Component tests opt into a DOM per file (`// @vitest-environment happy-dom`); the setup is a no-op in Node.
     setupFiles: ["tests/setup/dom-setup.ts"],
     // Worker threads start faster than forked processes: about 7.5 s against 10 s for the suite.
     pool: "threads",
+    // The default 5 s is shorter than the 10 s waits some DOM tests ask for, and a starved CI worker (Windows nightly, 2026-10-26) hit it.
+    testTimeout: 15_000,
+    hookTimeout: 15_000,
     // Vitest hands a stylesheet import back as an empty string; the built-in packs' `pack.css?raw` must be the real text, so the lint tests see it.
     css: { include: [/\/pack\.css/] },
   },

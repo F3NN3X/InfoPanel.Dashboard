@@ -98,22 +98,34 @@ test("the gauge-ink check catches a pack that hides some of its gauges and not a
   expect(unlit(ref.gauges, now.gauges).length).toBeGreaterThan(0);
 });
 
-// A box over a neighbour's text hides it whatever the colours say: the check reads what the eye meets at each text (elementsFromPoint).
-test("the render measures catch an opaque box laid over other text", async ({ page }) => {
-  test.setTimeout(90_000); // three whole-page measures; a Windows runner took over 30 s
+// Each whole-page measure is its own test, so a slow runner fails one rather than the lot (a Windows runner took over 30 s for three).
+const byLabel = (problems: string[]) => problems.filter((p) => p.includes("is covered by") && p.includes("(label) ["));
+// each carries its widget, span and text, so the same words covered elsewhere in the twin do not cancel it
+const keyed = /\[(\w+@\d+x\d+|card \d+) #\d+\]$/;
+
+test("the render measures find no label covered on the clean Term pack", async ({ page }) => {
+  test.setTimeout(90_000);
   await wornPage(page, PACK_STYLES.term, "term");
   const { worn: clean } = await page.evaluate(measurePack, measures("term"));
   // (the Term card's own header already overlaps the body at the smallest tier: that is the page, and a pack is judged against its twin)
-  const byLabel = (problems: string[]) => problems.filter((p) => p.includes("is covered by") && p.includes("(label) ["));
   expect(byLabel(clean.problems)).toEqual([]);
+});
+
+// A box over a neighbour's text hides it whatever the colours say: the check reads what the eye meets at each text (elementsFromPoint).
+test("the render measures catch an opaque box laid over other text", async ({ page }) => {
+  test.setTimeout(90_000);
+  await wornPage(page, PACK_STYLES.term, "term");
   await page.addStyleTag({ content: '[data-part="label"] { position: absolute !important; inset: 0 !important; background: #123456 !important; opacity: 1 !important; }' });
   const { worn } = await page.evaluate(measurePack, measures("term"));
   expect(byLabel(worn.problems).length).toBeGreaterThan(0);
-  // each carries its widget, span and text, so the same words covered elsewhere in the twin do not cancel it
-  const keyed = /\[(\w+@\d+x\d+|card \d+) #\d+\]$/;
   expect(byLabel(worn.problems).every((p) => keyed.test(p))).toBe(true);
   expect(new Set(byLabel(worn.problems).map((p) => p.match(/@(\d+x\d+) #/)?.[1])).size).toBeGreaterThan(1);
-  // a faded text is keyed the same way
+});
+
+// a faded text is keyed the same way
+test("the render measures catch a faded label, keyed like a covered one", async ({ page }) => {
+  test.setTimeout(90_000);
+  await wornPage(page, PACK_STYLES.term, "term");
   await page.addStyleTag({ content: '[data-part="label"] { opacity: 0.2 !important; }' });
   const { worn: faded } = await page.evaluate(measurePack, measures("term"));
   const fadedText = faded.problems.filter((p) => p.includes("is at opacity"));

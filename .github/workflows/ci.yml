@@ -45,6 +45,9 @@ jobs:
       e2e_cmds: ${{ steps.plan.outputs.e2e_cmds }}
       ui_usage: ${{ steps.plan.outputs.ui_usage }}
       pack_budgets: ${{ steps.plan.outputs.pack_budgets }}
+      flake_unit: ${{ steps.plan.outputs.flake_unit }}
+      flake_unit_cmds: ${{ steps.plan.outputs.flake_unit_cmds }}
+      quarantine: ${{ steps.plan.outputs.quarantine }}
       lab: ${{ steps.plan.outputs.lab }}
       rust: ${{ steps.plan.outputs.rust }}
       windows: ${{ steps.plan.outputs.windows }}
@@ -136,6 +139,20 @@ jobs:
       - uses: ./.github/actions/setup-node-deps
       - run: npm test -- --shard=${{ matrix.shard }}/2
 
+  # The new-test gate (tools/ci/flake-gate.mjs, docs/TESTING.md): a Vitest file added or changed on the branch passes 10
+  # shuffled runs. The specs' gate runs in `e2e`, where the build and the server are.
+  flake-unit:
+    needs: plan
+    if: needs.plan.outputs.flake_unit == 'true'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-node-deps
+      - env:
+          COMMANDS: ${{ needs.plan.outputs.flake_unit_cmds }}
+        run: node tools/ci/run-commands.mjs
+
   # The import lab: its typecheck and its tests (the InfoPanel corpus round-trips).
   lab:
     needs: plan
@@ -199,6 +216,22 @@ jobs:
           path: .cache/playwright
           retention-days: 7
 
+  # Advisory, never in ci-ok: the tests in tests/quarantine.json keep running here (docs/TESTING.md, "Quarantine"). It only
+  # exists while something is quarantined.
+  quarantine:
+    needs: plan
+    if: needs.plan.outputs.quarantine == 'true'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-node-deps
+      - run: npm run build
+      - uses: ./.github/actions/e2e
+        with:
+          commands: '["node tools/ci/quarantine.mjs run"]'
+
   # Windows: the Rust tests and clippy of ips-server and ips-agent (the server leg that used to be a matrix entry), and
   # when the app crate is in play, the Tauri app's. tools/ci-stub-desktop.mjs stands in for the web build, the Node
   # download and the release agent build of `npm run desktop:prepare`: only tauri-build's resource checks need them.
@@ -242,7 +275,7 @@ jobs:
   # the PR next to the newer run's result.
   ci-ok:
     if: ${{ !cancelled() }}
-    needs: [plan, lint, typecheck-build, unit, lab, server, e2e, rust]
+    needs: [plan, lint, typecheck-build, unit, flake-unit, lab, server, e2e, rust]
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
