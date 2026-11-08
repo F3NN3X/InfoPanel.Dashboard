@@ -1,3 +1,4 @@
+import os from "node:os";
 import { defineConfig } from "@playwright/test";
 import { playwrightScope, quarantinedFiles } from "./tools/ci/quarantine.mjs";
 
@@ -8,12 +9,14 @@ const quarantineOnly = process.env.QUARANTINE === "only";
 // The e2e and perf harness (_docs/performance.md, "The harness"). Every spec starts its own scratch server on a copy
 // of tests/fixtures/perf/data (tools/perf/scratch.mjs); none touches the real data folder. Vitest stays the unit runner.
 // The perf projects run one worker at a time (the npm scripts pass --workers=1) so runs don't share the CPU.
-// e2e runs on 2 workers in CI too: each spec has its own scratch server and port, and 2 fit a 4 vCPU runner.
+// Each spec has its own scratch server and port, so specs run side by side: 2 workers fit CI's 4 vCPU runner, and a dev
+// machine takes a quarter of its cores (8 on 32 threads). PW_WORKERS overrides both.
+const workers = Number(process.env.PW_WORKERS) || (process.env.CI ? 2 : Math.max(2, Math.floor(os.availableParallelism() / 4)));
 export default defineConfig({
   outputDir: ".cache/playwright",
   reporter: [["list"]],
   forbidOnly: !!process.env.CI,
-  workers: 2,
+  workers,
   projects: [
     {
       name: "e2e",

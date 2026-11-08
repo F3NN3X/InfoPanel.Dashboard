@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The gate for new tests (_docs/TESTING.md, "The new-test gate"): a test file added or changed on this branch must pass
 // repeated runs before it counts as proven. Vitest files: 10 runs, shuffled by a fresh seed each, 4 workers. Playwright
-// specs: `--repeat-each 3` on half the cores (at most 4): the whole-page measure specs starve when 4 workers share 4 vCPUs.
+// specs: `--repeat-each 3` on half the cores up to 4, a quarter above that: the whole-page measure specs starve when 4 workers share 4 vCPUs.
 //   node tools/ci/flake-gate.mjs --unit [files...]    node tools/ci/flake-gate.mjs --e2e [files...]
 // Without files, the test files changed since the merge base (as `verify` computes them). Quarantined files are exempt.
 // Node built-ins only.
@@ -18,8 +18,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 
 export const UNIT_RUNS = 10;
 export const E2E_REPEATS = 3;
-/** Playwright workers for `cores`: half of them, 1 to 4. Browsers, a server and the page's own work each need a core. */
-export const gateWorkers = (cores) => Math.max(1, Math.min(4, Math.floor(cores / 2)));
+/**
+ * Playwright workers for `cores`: half of them up to 4, or a quarter on a bigger machine (8 on 32 threads, as
+ * playwright.config.ts). Browsers, a server and the page's own work each need a core; 2 on CI's 4 vCPU runner.
+ */
+export const gateWorkers = (cores) => Math.max(1, Math.min(Math.max(4, Math.floor(cores / 4)), Math.floor(cores / 2)));
 const UNIT = ["tests/**/*.test.{ts,tsx,mjs}"];
 // tests/server needs the ips-server binary (npm run test:server); it is not repeated here.
 const UNIT_EXCLUDE = ["tests/server/**"];

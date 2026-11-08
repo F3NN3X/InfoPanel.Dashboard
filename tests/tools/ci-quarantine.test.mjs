@@ -48,6 +48,6 @@ describe("new-test gate", () => {
     expect(UNIT_RUNS).toBe(10);
     expect(vitestCommand(["tests/a.test.ts"], 7)).toContain("--sequence.shuffle.tests --sequence.seed=7 --maxWorkers=4 tests/a.test.ts");
     expect(playwrightCommand("e2e", ["tests/e2e/k.spec.ts"], 2)).toBe("npx playwright test --project=e2e --repeat-each 3 --workers 2 tests/e2e/k.spec.ts");
-    expect([1, 2, 4, 8, 32].map(gateWorkers)).toEqual([1, 1, 2, 4, 4]);
+    expect([1, 2, 4, 8, 16, 32].map(gateWorkers)).toEqual([1, 1, 2, 4, 4, 8]);
   });
 });

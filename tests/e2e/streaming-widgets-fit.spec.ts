@@ -7,6 +7,9 @@ import { expect, test } from "./fixtures";
 // A span below a widget's minimum is no frame (StreamChat's 2x1 and 3x1), hence 16 frames of 18. The Elgato Stream Deck widget (minimum 1x1) is held to all 6 of its spans.
 
 // The QA page is served in debug mode only, so these run on their own scratch server with DASHBOARD_DEBUG=1.
+// Read-only against the scratch server, so its tests spread over the workers (one server per worker, from beforeAll).
+test.describe.configure({ mode: "parallel" });
+
 let qa: Scratch;
 test.beforeAll(async () => {
   qa = await startScratch({ env: { DASHBOARD_DEBUG: "1" } });

@@ -23,7 +23,8 @@ export function stubDesktop(root = ROOT) {
   const agent = path.join(resources, "ips-agent.exe");
   const app = path.join(resources, "app");
   if (!fs.existsSync(agent)) {
-    const built = path.join(root, "src-tauri", "target", "debug", "ips-agent.exe");
+    // verify's cargo lane builds into its own CARGO_TARGET_DIR (tools/verify/lane.mjs).
+    const built = path.join(process.env.CARGO_TARGET_DIR ?? path.join(root, "src-tauri", "target"), "debug", "ips-agent.exe");
     if (!fs.existsSync(built) || fs.statSync(built).size === 0) throw new Error("no built ips-agent.exe to stub from: run `cargo build -p ips-agent` in src-tauri first");
     fs.mkdirSync(resources, { recursive: true });
     fs.copyFileSync(built, agent);

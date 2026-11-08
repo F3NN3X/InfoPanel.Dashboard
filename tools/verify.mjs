@@ -10,11 +10,13 @@
 //   verify --check-fresh    does .cache/verify/last.json still describe this tree? (exit 0 fresh-pass, 1 fresh-fail, 4 stale)
 //   --base <ref>  --json  --allow-incomplete  --keep-going
 // Exit: 0 passed, 1 a check failed, 2 usage error or unmapped file, 3 a needed check couldn't run here, 4 stale.
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { changedFiles, fileAt, head, trackedFiles, treeHash } from "./verify/git.mjs";
+import { laneIds } from "./verify/lane.mjs";
 import { loadMap, resolveChanges, whereIs } from "./verify/map.mjs";
 import { buildPlan, EXIT, exitCodeFor } from "./verify/plan.mjs";
 import { RELEASE_FEATURE, splitVersionOnly } from "./verify/release.mjs";
@@ -65,7 +67,54 @@ function runStep(step, { json, map }) {
   return { id: step.id, status: run.status === 0 ? "passed" : notRun ? "not-run" : "failed", ms: Date.now() - started };
 }
 
-function main() {
+/**
+ * Start the cargo lane (tools/verify/lane.mjs) beside the other checks; null when no step goes to it. `done` resolves
+ * with its results once it exits, `stop()` ends it early (a failure elsewhere).
+ */
+function startLane(steps, ids, map, keepGoing) {
+  if (!ids.size) return null;
+  const dir = path.join(ROOT, ".cache", "verify");
+  fs.mkdirSync(dir, { recursive: true });
+  const spec = {
+    steps: steps
+      .filter((step) => ids.has(step.id))
+      .map((step) => ({ id: step.id, cmd: step.cmd, cwd: path.join(ROOT, step.cwd), notRunExit: map.checks[step.id]?.notRunExit })),
+    log: path.join(dir, "lane.log"),
+    out: path.join(dir, "lane.json"),
+    keepGoing,
+  };
+  fs.rmSync(spec.out, { force: true });
+  const specFile = path.join(dir, "lane-spec.json");
+  fs.writeFileSync(specFile, JSON.stringify(spec));
+  const env = {
+    ...process.env,
+    CARGO_TARGET_DIR: path.join(ROOT, "src-tauri", "target", "verify-lane"),
+    CARGO_BUILD_JOBS: process.env.CARGO_BUILD_JOBS ?? String(Math.max(2, Math.floor(os.availableParallelism() / 4))),
+  };
+  const child = spawn(process.execPath, [path.join(ROOT, "tools", "verify", "lane.mjs"), specFile], {
+    cwd: ROOT,
+    env,
+    stdio: "ignore",
+    detached: process.platform !== "win32",
+  });
+  const read = () => {
+    try {
+      return JSON.parse(fs.readFileSync(spec.out, "utf8"));
+    } catch {
+      return [];
+    }
+  };
+  const done = new Promise((resolve) => child.on("close", () => resolve(read())));
+  console.error(`\n== lane: ${spec.steps.map((step) => step.id).join(", ")} run beside the other checks (output in .cache/verify/lane.log)`);
+  const stop = () => {
+    if (child.exitCode !== null) return;
+    if (process.platform === "win32") spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+    else process.kill(-child.pid, "SIGKILL");
+  };
+  return { done, stop, log: spec.log };
+}
+
+async function main() {
   const started = Date.now();
   const options = parseArgs(process.argv.slice(2));
   if (options.error) return usage(options.error);
@@ -148,21 +197,37 @@ function main() {
   printPlan(plan, selected, notes, changes.mergeBase);
 
   const current = { head: head(ROOT), tree: treeHash(ROOT) };
-  const results = [];
+  const keepGoing = flags.has("--keep-going");
+  const inLane = laneIds(plan.steps, map.checks, { ci: Boolean(process.env.CI) });
+  const lane = startLane(plan.steps, inLane, map, keepGoing);
+  const byId = new Map();
   let stopped = false;
   for (const step of plan.steps) {
-    if (!step.cmd) results.push({ id: step.id, status: "skipped", ms: 0 });
+    if (inLane.has(step.id)) continue;
+    if (!step.cmd) byId.set(step.id, { id: step.id, status: "skipped", ms: 0 });
     else if (step.status === "not-run") {
       const owners = features.filter((f) => f.checks.includes(step.id)).map((f) => f.id);
       console.error(`\nNOT RUN: ${step.id} ${step.reason}${owners.length ? ` (${owners.join(", ")})` : ""}`);
-      results.push({ id: step.id, status: "not-run", ms: 0 });
-    } else if (stopped) results.push({ id: step.id, status: "skipped", ms: 0 });
+      byId.set(step.id, { id: step.id, status: "not-run", ms: 0 });
+    } else if (stopped) byId.set(step.id, { id: step.id, status: "skipped", ms: 0 });
     else {
       const result = runStep(step, { json, map });
-      results.push(result);
-      if (result.status === "failed" && !flags.has("--keep-going")) stopped = true;
+      byId.set(step.id, result);
+      if (result.status === "failed" && !keepGoing) stopped = true;
     }
   }
+  if (lane) {
+    if (stopped) lane.stop();
+    else console.error("\n== lane: waiting for it to finish");
+    const laneResults = await lane.done;
+    for (const result of laneResults) byId.set(result.id, result);
+    if (laneResults.some((result) => result.status === "failed")) {
+      const tail = fs.readFileSync(lane.log, "utf8").split(/\r?\n/).slice(-80).join("\n");
+      console.error(`\n== lane failed; the last lines of .cache/verify/lane.log:\n${tail}`);
+    }
+  }
+  // In the plan's order; a lane step stopped before it ran counts as skipped.
+  const results = plan.steps.map((step) => byId.get(step.id) ?? { id: step.id, status: "skipped", ms: 0 });
 
   const exit = exitCodeFor(results, { allowIncomplete: flags.has("--allow-incomplete") });
   console.error("\nverify summary");
@@ -174,4 +239,4 @@ function main() {
   return exit;
 }
 
-process.exitCode = main();
+process.exitCode = await main();

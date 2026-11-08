@@ -11,6 +11,9 @@ import { expect, test } from "./fixtures";
 
 const measures = (look: string) => ({ look, alphaMax: 0.4, minOpacity: 0.5 });
 
+// Read-only against the scratch server, so its tests spread over the workers (one server per worker, from beforeAll).
+test.describe.configure({ mode: "parallel" });
+
 let qa: Scratch;
 test.beforeAll(async () => {
   qa = await startScratch({ env: { DASHBOARD_DEBUG: "1" } });
