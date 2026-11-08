@@ -3,7 +3,7 @@
  * springs open for alerts (`MonitorProfile.island`). Absent = no island, so stored configs load
  * unchanged without a migration. Fields added later default to the look they replaced (a stored island without a
  * tint is black, without a placement an overlay); `ISLAND_DEFAULTS` is only for an island made new. See
- * docs/redesign/island/PLAN.md.
+ * _docs/redesign/island/PLAN.md.
  */
 import { FONT_IDS } from "@/lib/fonts";
 

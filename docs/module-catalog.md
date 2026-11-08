@@ -1,8 +1,7 @@
 # Widget (Module) Catalog
 
 Status: **reference** — the source of truth for what the studio's widget
-picker shows and what the kiosk can render. The design decisions live in
-`studio-redesign-zones-widgets.md`; this file is the plain index of the
+picker shows and what the kiosk can render: the plain index of the
 `modules/` registry (`src/modules/index.ts`).
 
 ## How the picker works
@@ -27,8 +26,7 @@ Every template widget is a component in `src/widgets/` drawn inside the shared
 shell and registered through `templateModule` (`src/widgets/registry/a.ts` –
 `e.ts`, one group per category family). The id is the template's name; the
 minimum footprint comes from its `meta.minSize`. All of them take the standard
-block and the Look keys (skin, variant, graph, meter, summary card), listed
-in [widget-settings.md](widget-settings.md); the options of each are in the
+block and the Look keys (skin, variant, graph, meter, summary card); the options of each are in the
 inspector's Show, Data and Behaviour tabs.
 
 | Category | Widgets (id · minimum) |
@@ -44,7 +42,7 @@ inspector's Show, Data and Behaviour tabs.
 | Generic | `SensorValue`, `SensorGroup`, `CustomGauge` (all 1×1), `Bluetooth` 2×1, `WebPage` 4×2 |
 | Streaming | `StreamDeck` 4×2 (min 1×1; the Elgato Stream Deck, `registry/stream-deck.ts`) |
 
-44 of these came from the widget handoff (`docs/redesign/widgets/`);
+44 of these came from the widget handoff;
 `Departures`, `Notifications`, `TextFile`, `Bluetooth`, `Timer`,
 `CodingAgents`, `WebPage` and `CustomGauge` were written for the plugin cards that had no template, in the same
 style. The Other sensors zone (below) draws one `SensorValue` card per unclaimed key. A template reads its sensors
@@ -62,7 +60,7 @@ reads.
 
 | Stored id | Template |
 |---|---|
-| `systemmodern` | `SystemOverview` ([system-widget.md](system-widget.md)) |
+| `systemmodern` | `SystemOverview` |
 | `spotifymodern`, `mediamodern` | `NowPlaying` (`source`) |
 | `steammodern` | `GameSpotlight` (composite) |
 | `hardwaremodern` | `SensorGroup` (auto), or `Thermals` for the temps view |
@@ -80,8 +78,7 @@ key.
 
 "Standard block" = what every widget adopts (preset / layout / surface /
 custom title / icon / accent / background image + use-as-background, size,
-spacing, type, border and effects, and the Look keys — see
-`widget-settings.md`), plus the widget's own options.
+spacing, type, border and effects, and the Look keys), plus the widget's own options.
 
 ## The widget shell
 
@@ -118,7 +115,7 @@ The whole library shares one design system, in `src/widgets/core/`:
   `effectiveSettings`. The studio's inspector renders the schema generically.
   Each template's own options sit after `STANDARD_SETTINGS` (preset / layout /
   surface / custom title / icon / accent / background image, size, spacing,
-  type, border and effects, Look); full reference in `widget-settings.md`.
+  type, border and effects, Look).
 - **No-data behavior.** A template whose sensors are all missing renders
   nothing (`templateModule` checks the prefixes), so the kiosk hides the zone
   and the studio says there is no live data yet; once a key exists the widget
@@ -247,15 +244,12 @@ The whole library shares one design system, in `src/widgets/core/`:
    stored settings to props. `src/widgets/registry.ts` collects the groups and
    `modules/index.ts` appends them to the registry — the studio Library, the
    kiosk, and the claimed-key rules pick them up from there.
-3. Add a test next to the registry group and typecheck, test and build (see
-   `development.md`); then look at it in `?widget-qa` (see
-   [architecture.md](architecture.md#qa-harness)) and in a real zone via the
-   kiosk.
+3. Add a test next to the registry group and typecheck, test and build (`npm run verify`); then look at it in
+   `?widget-qa` and in a real zone via the kiosk.
 
 A module outside the library (a plain `DashboardModule` with its own
 `render(sensors, settings)` returning a component) is still possible, but
 nothing in the repo is built that way any more: the shell is what gives a
 widget skins, variants and the standard look.
 
-For a template, the standard block and the Look keys come for free;
-`widget-settings.md` → "Adopting the standard block" has the details.
+For a template, the standard block and the Look keys come for free.

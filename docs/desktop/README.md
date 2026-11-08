@@ -2,7 +2,6 @@
 
 A Tauri 2 app that runs the dashboard server itself (`ips-server`, inside the app's process) and opens the
 studio in its own window. The kiosk page InfoPanel shows keeps working while the app sits in the tray.
-The design and decisions are in [TAURI_PLAN.md](TAURI_PLAN.md).
 
 ## Build
 
@@ -88,7 +87,7 @@ While the studio window is hidden to the tray or minimized, its webview is suspe
 Low memory target) after the page is flushed, and resumed before it shows again. Kiosk view on screen is never
 suspended. A window hidden to the tray for long enough (**Release the hidden studio**, 10 minutes by default) is
 destroyed after a flush, and rebuilt when the tray shows it. A minute after the visible studio loses focus, the shell's
-`studio-focus` event slows its animation (**Reduce studio animation when unfocused**). Why and how: [webview-performance.md](webview-performance.md).
+`studio-focus` event slows its animation (**Reduce studio animation when unfocused**).
 
 **Open the studio in** a browser instead (Edge in app mode, or the default browser) and the app runs no studio
 window at all: the tray, a second launch, Open the studio on launch and Settings' links open

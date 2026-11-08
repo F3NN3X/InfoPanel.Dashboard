@@ -6,7 +6,7 @@ import snapshot from "@/widgets/__fixtures__/snapshot.json";
  * Every data key a widget spec reads must exist in a real /api/sensors
  * snapshot, except vendor alternatives this machine doesn't have.
  */
-const SPECS = import.meta.glob<string>("/docs/redesign/widgets/docs/widgets/*.md", {
+const SPECS = import.meta.glob<string>("/tests/fixtures/widget-specs/*.md", {
   query: "?raw",
   import: "default",
   eager: true,

@@ -1,7 +1,7 @@
 /**
  * Finds free downloads for fonts a profile needs but this machine lacks.
  *
- * Sources (all keyless, see docs/infopanel-import/research-font-sources.md):
+ * Sources (all keyless, see _docs/infopanel-import/research-font-sources.md):
  * - Fontsource catalog (api.fontsource.org): every Google font plus ~120 other
  *   open-licensed families. Google families download complete from Google's
  *   own manifest (fonts.google.com/download/list, no CORS, so server side);

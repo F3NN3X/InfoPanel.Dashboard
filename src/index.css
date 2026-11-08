@@ -104,7 +104,7 @@
 }
 /* @generated:end alert-critical */
 
-/* Studio chrome tokens (docs/redesign/README.md §9), generated from the built-in Studio Look (D1), whose usage notes
+/* Studio chrome tokens (_docs/redesign/README.md §9), generated from the built-in Studio Look (D1), whose usage notes
    say what each is for. Fixed values: the dashboard theme (lib/theme.ts applyTheme) never writes these, so editing
    the theme recolours widgets on the canvas but not the studio itself.
    The tokens Settings and Help share (--ui-bg-app, -panel, -tile, -hover, --ui-border-subtle, -menu, -control, -edge,

@@ -1,4 +1,4 @@
-// The cards of the sample themes (docs/look-system/03-theme-packs-spec.md, "Worked examples"): level 1 only, so each is a
+// The cards of the sample themes (_docs/look-system/03-theme-packs-spec.md, "Worked examples"): level 1 only, so each is a
 // T2 material the registry's kinds already express. Frames, headers, ornaments and page layers are not here (P8 to P11).
 // Every edge is an inset shadow and no class adds a border, so a sample card keeps Classic's box (G2).
 import { cappedBlur } from "@/components/widget-style";

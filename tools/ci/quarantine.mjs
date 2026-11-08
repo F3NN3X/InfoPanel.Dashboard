@@ -1,4 +1,4 @@
-// Quarantine (docs/TESTING.md, "Quarantine"): tests/quarantine.json names test files held out of the gating runs while a
+// Quarantine (_docs/TESTING.md, "Quarantine"): tests/quarantine.json names test files held out of the gating runs while a
 // flaky one is fixed. Vitest (vite.config.ts) and Playwright (playwright.config.ts) leave them out; with QUARANTINE=only
 // they are the only ones that run. `node tools/ci/quarantine.mjs run` runs just those, advisory: it always exits 0.
 // Every entry needs a tracking issue, an owner and a deadline, so the list cannot become a graveyard (tests/tools/ci-quarantine.test.mjs).

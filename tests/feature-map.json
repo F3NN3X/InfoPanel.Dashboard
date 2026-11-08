@@ -25,7 +25,7 @@
       "fullCmd": "node tools/ci/flake-gate.mjs --unit",
       "files": ["tests/**/*.test.*"],
       "always": true,
-      "when": "the new-test gate: a Vitest file added or changed on this branch passes 10 shuffled runs (docs/TESTING.md); skipped when none changed"
+      "when": "the new-test gate: a Vitest file added or changed on this branch passes 10 shuffled runs (_docs/TESTING.md); skipped when none changed"
     },
     "build": { "cmd": "npm run build", "when": "entry points, Vite config, public assets, dependencies" },
     "budgets": { "cmd": "npm run perf:budgets", "needs": ["build"], "when": "the gzip and request budgets (tools/perf/budgets.json); gating" },
@@ -67,7 +67,7 @@
       "fullCmd": "node tools/ci/flake-gate.mjs --e2e",
       "files": ["tests/e2e/*.spec.ts", "tests/visual/one-editor/*.spec.ts"],
       "always": true,
-      "when": "the new-test gate: a Playwright spec added or changed on this branch passes --repeat-each 3 on half the cores, 1 to 4 workers (docs/TESTING.md); it has no `needs`: a changed spec's feature already plans the build and the server, and the full run has both; skipped when none changed"
+      "when": "the new-test gate: a Playwright spec added or changed on this branch passes --repeat-each 3 on half the cores, 1 to 4 workers (_docs/TESTING.md); it has no `needs`: a changed spec's feature already plans the build and the server, and the full run has both; skipped when none changed"
     },
     "look-visual": {
       "cmd": "npx playwright test --project=look-visual",
@@ -447,8 +447,7 @@
         "src/widgets/**",
         "src/assets/**",
         "src/lib/widget-icons.ts",
-        "docs/redesign/widgets/docs/widgets/*.md",
-        "docs/redesign/widgets/docs/.facts.json",
+        "tests/fixtures/widget-specs/*.md",
         "tools/qa/**",
         "tests/qa/**"
       ],
@@ -478,7 +477,7 @@
       ],
       "checks": ["typecheck", "unit", "build", "budgets", "ui-usage", "e2e", "overflow"],
       "report": ["npm run audit:views", "npm run qa:shots"],
-      "note": "The registry schema tests and key-audit read docs/redesign/widgets/docs/widgets/*.md and .facts.json: a change there is a test change."
+      "note": "The registry schema tests and key-audit read the widget specs in tests/fixtures/widget-specs/: a change there is a test change."
     },
     {
       "id": "components-ui",
@@ -771,7 +770,7 @@
       "tests": [],
       "checks": ["typecheck"],
       "report": ["npm run perf:kiosk", "npm run perf:studio", "npm run perf:compare"],
-      "note": "Never a gating check: run them by hand (docs/performance.md)."
+      "note": "Never a gating check: run them by hand (_docs/performance.md)."
     },
     {
       "id": "dev-tools",

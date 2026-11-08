@@ -1,5 +1,5 @@
 // Skin · default — Studio default: Geist UI, uppercase micro-header with accent icon, solid card.
-// Fonts to load: Geist, Geist Mono. Docs: docs/redesign/widgets/docs/skins/default.md
+// Fonts to load: Geist, Geist Mono. Docs: _docs/redesign/widgets/docs/skins/default.md
 import type { SkinPack } from "../types";
 
 export const defaultSkin: SkinPack = {

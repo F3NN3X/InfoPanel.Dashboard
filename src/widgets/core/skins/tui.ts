@@ -1,5 +1,5 @@
 // Skin · tui — btop-style terminal: inset box border with ┐title┌, mono, braille graphs, green→red block meters.
-// Fonts to load: JetBrains Mono. Docs: docs/redesign/widgets/docs/skins/tui.md
+// Fonts to load: JetBrains Mono. Docs: _docs/redesign/widgets/docs/skins/tui.md
 import type { SkinPack } from "../types";
 
 export const tuiSkin: SkinPack = {

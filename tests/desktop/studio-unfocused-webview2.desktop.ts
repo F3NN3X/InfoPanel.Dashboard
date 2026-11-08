@@ -4,7 +4,7 @@ import { appTree, processes } from "../../tools/perf/process-sampler.mjs";
 import { openDesign, RAF_INIT, summarize, writeResult } from "../perf/measure";
 import { prepareApp } from "./app";
 
-// The visible, unfocused studio in the real WebView2 (docs/desktop/webview-performance.md, "Overnight check" in
+// The visible, unfocused studio in the real WebView2 (_docs/desktop/webview-performance.md, "Overnight check" in
 // short): the debug build's Design view on the heavy profile, then a small window of our own takes the focus without
 // covering the studio, and the app's tree is sampled every minute for PERF_SAMPLER_MS (30 min by default): WebView2
 // renderer, GPU and the rest in cores and private MB, and the page's rAF callbacks a second.

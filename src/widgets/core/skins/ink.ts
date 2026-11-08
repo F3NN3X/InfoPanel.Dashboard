@@ -1,5 +1,5 @@
 // Skin · ink — Monochrome editorial: near-white accent, hairline meters, serif numerals, no fills.
-// Fonts to load: Instrument Serif. Docs: docs/redesign/widgets/docs/skins/ink.md
+// Fonts to load: Instrument Serif. Docs: _docs/redesign/widgets/docs/skins/ink.md
 import type { SkinPack } from "../types";
 
 export const inkSkin: SkinPack = {

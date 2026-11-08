@@ -6,7 +6,7 @@ import { settingKeys, type ModuleSetting, type ModuleSettings } from "@/modules/
 import { fixtureSensors } from "@/widgets/__fixtures__";
 import { GROUP_B } from "@/widgets/registry/b";
 
-const SPECS = import.meta.glob<string>("/docs/redesign/widgets/docs/widgets/*.md", { query: "?raw", import: "default", eager: true });
+const SPECS = import.meta.glob<string>("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true });
 
 /** The prop names of a spec's "Widget-specific" block: the leading word of each top-level comma-separated entry. */
 function specProps(id: string): string[] {

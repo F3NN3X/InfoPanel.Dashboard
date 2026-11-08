@@ -11,7 +11,7 @@ import { defaultOf, settingKeys, type ModuleSetting, type ModuleSettings } from 
 
 /**
  * The standard per-widget customization block. Every modern widget adopts
- * it (see `docs/widget-settings.md`) so users get the same options on
+ * it (see `_docs/widget-settings.md`) so users get the same options on
  * every widget, and a new widget gets them by spreading this array into
  * its `settings`:
  *

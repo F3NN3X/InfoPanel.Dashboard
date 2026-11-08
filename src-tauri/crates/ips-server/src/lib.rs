@@ -1,5 +1,5 @@
-// InfoPanel Studio's dashboard server, the port of the Node server it replaced (docs/server-contract.md is the spec,
-// docs/server-native.md the notes). `bind` takes the port and prints the start line; `Bound::serve` answers until its
+// InfoPanel Studio's dashboard server, the port of the Node server it replaced (_docs/server-contract.md is the spec,
+// _docs/server-native.md the notes). `bind` takes the port and prints the start line; `Bound::serve` answers until its
 // shutdown future resolves. Every request passes the request guard, then goes to the first route that matches its raw
 // pathname, in the Node server's order; anything that is not /api/ is the static build.
 

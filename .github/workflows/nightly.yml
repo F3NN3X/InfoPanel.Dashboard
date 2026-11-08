@@ -97,7 +97,7 @@ jobs:
       - run: npm run desktop:build
       - run: npx playwright install chromium
       # A check that needs something the runner doesn't have, or is local only (look-visual: this PC's text rendering,
-      # docs/TESTING.md), reports "not run" (exit 3), so incomplete is not a failure.
+      # _docs/TESTING.md), reports "not run" (exit 3), so incomplete is not a failure.
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/actionlint
@@ -106,7 +106,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-  # The perf suites measure and never gate (docs/performance.md). The JSON goes up as an artifact, and the table against
+  # The perf suites measure and never gate (_docs/performance.md). The JSON goes up as an artifact, and the table against
   # the previous nightly's artifact lands in the run summary.
   perf:
     needs: changes

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "pack.schema.json",
   "title": "Pack",
-  "description": "A theme pack's pack.json as built (docs/look-system/03-theme-packs-spec.md, Pack format): the data the gallery, the loader and the validator read. Files are named relative to the pack's assets folder. `ornament`, `edge` and `assets` are optional declarations the validator checks (an ornament at most 10 px, a chamfer at most 20 px, the asset list against the files).",
+  "description": "A theme pack's pack.json as built (_docs/look-system/03-theme-packs-spec.md, Pack format): the data the gallery, the loader and the validator read. Files are named relative to the pack's assets folder. `ornament`, `edge` and `assets` are optional declarations the validator checks (an ornament at most 10 px, a chamfer at most 20 px, the asset list against the files).",
   "type": "object",
   "required": ["id", "name", "version", "tags", "description", "modes", "fonts", "stage", "burnIn"],
   "additionalProperties": false,

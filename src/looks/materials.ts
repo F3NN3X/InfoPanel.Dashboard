@@ -1,4 +1,4 @@
-// The T2 material registry (docs/investigations/look-system.md section 9.3, D10): every card material under its stored
+// The T2 material registry (_docs/investigations/look-system.md section 9.3, D10): every card material under its stored
 // name, and the one resolver every consumer draws a card through. The 27 names stay valid ids (saved data).
 import type { CSSProperties } from "react";
 import { type ModernChrome, SCRIM } from "@/components/modern-chrome";

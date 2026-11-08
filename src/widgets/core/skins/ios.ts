@@ -1,5 +1,5 @@
 // Skin · ios — iOS 18 widget: solid card, bold rounded numerals, Activity-ring thickness.
-// Fonts to load: system fonts only. Docs: docs/redesign/widgets/docs/skins/ios.md
+// Fonts to load: system fonts only. Docs: _docs/redesign/widgets/docs/skins/ios.md
 import type { SkinPack } from "../types";
 
 export const iosSkin: SkinPack = {

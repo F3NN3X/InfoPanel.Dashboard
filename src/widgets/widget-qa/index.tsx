@@ -22,7 +22,7 @@ import { installDemoStreams } from "./demo-streams";
  * `module=` ids) at a set of spans and in each of its views, rendered through the kiosk's own `placementContent` from
  * fixture sensors and demo streams, grouped by category. One toolbar drives every placement and mirrors itself to the
  * URL (params in `./params.ts`); each widget links to itself alone and to its skin and surface galleries.
- * `window.__qaOverflow()` lists what pokes out of its zone or overlaps (see docs/redesign/phase9/qa.md).
+ * `window.__qaOverflow()` lists what pokes out of its zone or overlaps (see _docs/redesign/phase9/qa.md).
  */
 
 // Fixture data (the default) also gives the streaming widgets their OBS, chat, mixer, Stream Deck and agents demo data;

@@ -1,5 +1,5 @@
 // The audio visualiser engine's contracts: the styles, the look (Follow / Custom colours, shape,
-// motion, dynamics) and the per-frame input (docs/redesign/visualizer/PLAN.md §3.3–3.5).
+// motion, dynamics) and the per-frame input (_docs/redesign/visualizer/PLAN.md §3.3–3.5).
 
 /** What the engine draws. `scroll` is the level history, newest on the right. */
 export type VizStyle = "bars" | "mirror" | "wave" | "line" | "dots" | "radial" | "blob" | "scroll";

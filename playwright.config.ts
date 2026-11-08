@@ -1,11 +1,11 @@
 import { defineConfig } from "@playwright/test";
 import { playwrightScope, quarantinedFiles } from "./tools/ci/quarantine.mjs";
 
-// Specs held out of the gating runs (tests/quarantine.json, docs/TESTING.md); QUARANTINE=only runs just those.
+// Specs held out of the gating runs (tests/quarantine.json, _docs/TESTING.md); QUARANTINE=only runs just those.
 const quarantined: string[] = quarantinedFiles(process.cwd());
 const quarantineOnly = process.env.QUARANTINE === "only";
 
-// The e2e and perf harness (docs/performance.md, "The harness"). Every spec starts its own scratch server on a copy
+// The e2e and perf harness (_docs/performance.md, "The harness"). Every spec starts its own scratch server on a copy
 // of tests/fixtures/perf/data (tools/perf/scratch.mjs); none touches the real data folder. Vitest stays the unit runner.
 // The perf projects run one worker at a time (the npm scripts pass --workers=1) so runs don't share the CPU.
 // e2e runs on 2 workers in CI too: each spec has its own scratch server and port, and 2 fit a 4 vCPU runner.

@@ -1,5 +1,5 @@
 // Skin · macos — macOS Sonoma widget: vibrancy, 22px radius, accent title, rounded numerals, thick rings.
-// Fonts to load: system fonts only. Docs: docs/redesign/widgets/docs/skins/macos.md
+// Fonts to load: system fonts only. Docs: _docs/redesign/widgets/docs/skins/macos.md
 import type { SkinPack } from "../types";
 
 export const macosSkin: SkinPack = {

@@ -4,7 +4,7 @@ import { effectiveSettings, settingKeys, type SensorMap } from "@/modules/types"
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { GROUP_A } from "@/widgets/registry/a";
 
-const SPECS = import.meta.glob("/docs/redesign/widgets/docs/widgets/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+const SPECS = import.meta.glob("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 const specOf = (id: string): string => Object.entries(SPECS).find(([p]) => p.endsWith(`/${id}.md`))?.[1] ?? "";
 
 // Each spec prop and the settings that reach it: exactly one setting per prop (a flattened object or

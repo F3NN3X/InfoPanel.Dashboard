@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { trackedFiles } from "../tools/verify/git.mjs";
 import { claims, loadMap, matchesAny, matchesGlob } from "../tools/verify/map.mjs";
 
-// Keeps tests/feature-map.json honest (docs/TESTING.md, "Verify"): `npm run verify` is only as good as this map. Each
+// Keeps tests/feature-map.json honest (_docs/TESTING.md, "Verify"): `npm run verify` is only as good as this map. Each
 // failure says which file or glob is wrong and what to change, so the map can be fixed from the message alone.
 const ROOT = path.resolve(__dirname, "..");
 const map = loadMap(ROOT);

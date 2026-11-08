@@ -7,7 +7,7 @@ import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/module
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { GROUP_D } from "@/widgets/registry/d";
 
-const SPECS = import.meta.glob("/docs/redesign/widgets/docs/widgets/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+const SPECS = import.meta.glob("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 const specBlock = (id: string): string => {
   const raw = Object.entries(SPECS).find(([p]) => p.endsWith(`/${id}.md`))?.[1] ?? "";
   return /Widget-specific:\s*```\r?\n([\s\S]*?)```/.exec(raw)?.[1] ?? "";

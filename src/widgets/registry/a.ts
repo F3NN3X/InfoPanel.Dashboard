@@ -1,4 +1,4 @@
-// Template widgets, group A: system and hardware (see docs/redesign/phase9/brief-9.3c-templates.md).
+// Template widgets, group A: system and hardware (see _docs/redesign/phase9/brief-9.3c-templates.md).
 import type { DashboardModule } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";

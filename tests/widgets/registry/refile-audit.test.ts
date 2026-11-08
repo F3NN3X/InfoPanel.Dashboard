@@ -53,7 +53,7 @@ it("files every widget by the rules: no Content, Other or widget-name section, a
 
 // Style holds the general sections plus a widget's own colours: colour rows, and the few rows that choose how its
 // colours work. Anything else of its own (key gap, scrim, fader, glow) is content the widget draws, so it goes to
-// Show, Data or Behaviour, where people look for what is unique to the widget (docs/redesign/settings-audit.md).
+// Show, Data or Behaviour, where people look for what is unique to the widget (_docs/redesign/settings-audit.md).
 const COLOR_CHOICES = new Set(["unifiedColor", "heatRamp", "ramp", "neutral", "tint", "vizColorMode", "vizGradient", "nameColors"]);
 
 it("files a widget's own row in Style only when it is a colour or chooses its colours", () => {

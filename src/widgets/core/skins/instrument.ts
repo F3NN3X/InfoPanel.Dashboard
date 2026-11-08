@@ -1,5 +1,5 @@
 // Skin · instrument — Instrument rack (Widget Sampler): IBM Plex Sans/Mono, condensed Archivo numerals, colour only for state.
-// Fonts to load: IBM Plex Sans, IBM Plex Mono, Archivo. Docs: docs/redesign/widgets/docs/skins/instrument.md
+// Fonts to load: IBM Plex Sans, IBM Plex Mono, Archivo. Docs: _docs/redesign/widgets/docs/skins/instrument.md
 import type { SkinPack } from "../types";
 
 export const instrumentSkin: SkinPack = {

@@ -70,7 +70,7 @@ Known problems and fixes are in the Help article Common problems. Report bugs an
 
 - [Releases](https://github.com/F3NN3X/InfoPanel.Studio/releases) and the [changelog](CHANGELOG.md)
 - [Issues](https://github.com/F3NN3X/InfoPanel.Studio/issues)
-- Help is inside the app. The files in [docs/](docs/README.md) are for developers.
+- Help is inside the app. [docs/](docs/README.md) has the customization guide, the widget catalog and the security model.
 
 ## For developers
 
@@ -83,4 +83,4 @@ npm run serve
 
 This builds the web app, then runs the server (`ips-server`) on `http://127.0.0.1:3922`. The first run compiles the server. `npm run desktop:build` makes the installer.
 
-[docs/development.md](docs/development.md) covers the scripts, CI and releases, and [docs/TESTING.md](docs/TESTING.md) covers the tests and `npm run verify`. The [docs index](docs/README.md) lists the architecture, the server contract, the customization guide and the widget catalog.
+`npm test` runs the unit tests, and `npm run verify` runs the checks a change needs (`npm run verify:full` runs all of them). `npm run ship` lands a branch after a full local verify.

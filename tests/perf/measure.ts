@@ -4,7 +4,7 @@ import path from "node:path";
 import type { Browser, BrowserContext, CDPSession, Page } from "@playwright/test";
 import { DEFAULT_DATA_API } from "../e2e/fixtures";
 
-// Shared method of the perf specs (docs/performance.md, "The harness"). Each page measurement:
+// Shared method of the perf specs (_docs/performance.md, "The harness"). Each page measurement:
 // a fresh context, page load under a short trace (JS bytes, parse/compile time, first zone), a 5 s warm-up, then a
 // 10 s window of CDP Performance.getMetrics deltas, rAF callbacks per second and running animations.
 

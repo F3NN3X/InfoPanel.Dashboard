@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "look.schema.json",
   "title": "Look",
-  "description": "A Look: T0 to T3 values with modes, tags, fonts and corners (docs/investigations/look-system.md 9.6). Only the built-in Studio Look carries the studio block (D1).",
+  "description": "A Look: T0 to T3 values with modes, tags, fonts and corners (_docs/investigations/look-system.md 9.6). Only the built-in Studio Look carries the studio block (D1).",
   "type": "object",
   "required": ["schema", "id", "name", "description", "tags", "modes", "fonts", "radius", "t1"],
   "additionalProperties": false,

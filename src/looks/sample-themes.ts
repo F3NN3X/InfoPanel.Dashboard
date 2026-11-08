@@ -1,5 +1,5 @@
 // The sample themes' colours (T1 tokens, accent, text and status colours) and what each leaves out of its mockup
-// (docs/look-system/mockups/). The cards are in `sample-materials.ts`; this file is studio-only data (the Theme editor
+// (_docs/look-system/mockups/). The cards are in `sample-materials.ts`; this file is studio-only data (the Theme editor
 // loads it on demand), the kiosk reads the values the applied theme saved into the config. Names are working titles (G5).
 import type { PageBackground } from "@/lib/appearance";
 import type { Colours } from "@/lib/screen-templates/designs/ports";

@@ -3,7 +3,7 @@ import path from "node:path";
 import type { Page } from "@playwright/test";
 import { expect, manifest, test, watchErrors } from "./fixtures";
 
-// docs/desktop/webview-performance.md, "Hot and cold": the visualiser keeps moving after the studio was hidden and
+// _docs/desktop/webview-performance.md, "Hot and cold": the visualiser keeps moving after the studio was hidden and
 // its canvas remounted (Screens → Design), fed by the fake Data API's moving spectrum.
 
 const zone = manifest.zones.viz[1];

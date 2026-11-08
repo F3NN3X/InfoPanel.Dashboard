@@ -1,5 +1,5 @@
 // Skin · hud — Sci-fi HUD: accent grid, corner brackets, tracked caps, stepped graphs, segment meters.
-// Fonts to load: Geist Mono. Docs: docs/redesign/widgets/docs/skins/hud.md
+// Fonts to load: Geist Mono. Docs: _docs/redesign/widgets/docs/skins/hud.md
 import type { SkinPack } from "../types";
 
 export const hudSkin: SkinPack = {

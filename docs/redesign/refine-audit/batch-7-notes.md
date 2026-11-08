@@ -1,9 +1,0 @@
-# Batch 7: tooling, docs and honest closes
-
-1. **Budgets mapped** (`tests/feature-map.json`): `build` and `budgets` added to `widgets`, `components-ui`, `studio` and `gauges`; `layout-kiosk` and `page-model` already had them. Each checked with `node tools/verify.mjs --plan --feature <f>`. Verify is slower on widget, UI and Studio changes: it now builds and runs the budget check.
-2. **CHANGELOG**: one entry under `## [Unreleased]` for the refinement pass (Changed, Fixed).
-3. **WebPage Widget-QA demo**: `src/widgets/widget-qa/demo-settings.ts` now uses `/assets/qa/webpage.html`, a static page in `public/assets/qa/` (the build ships `public/` as-is, like the QA SVGs). Same origin, so the server's `frame-ancestors`/CSP rules allow it (`frame-src 'self'`, no `frame-ancestors` on non-editor pages); no network dependency. The page has inline style only and shows a green "Web Page demo" tile. `widget-qa-parity.spec.ts` covers WebPage and runs in verify.
-4. **b4 nit 1**: `design-left-panel.tsx` and `docs/settings-inventory.md` now say Settings › Studio › Canvas (Show grid, Show rulers, Default zoom) or › Panels (the rest), per `src/settings/model/search.ts`. The inventory's "Widget list" is now "Widget list density", its real label.
-5. **Ledger**: C-04, C-18, C-19 set to `wont_fix`; A-06 stays `partial`. Each has a `note` in `findings.json`; `findings.md` has no note column, so the lines are under "Closing notes" there, and the status legend lists `wont_fix`. `set-status.mjs` handles it; the only file that reads the ledger is the docs themselves (grep of tests, tools, src, .github found no consumer).
-   - B-12 (deferred, not a row): the Releases icon stays on the left, matching the other nav rows.
-6. **Budgets on Linux**: CI run 41517181275 read kiosk 273791 B (budget 273810, limit 274083) and studio 611611 B (budget 611540, limit 612151), so the budgets hold on Linux. Studio is 71 B over its budget but within the limit's tolerance; no change.
