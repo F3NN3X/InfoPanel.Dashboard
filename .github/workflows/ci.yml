@@ -1,9 +1,10 @@
 name: CI
 
 # PRs run the checks their change needs. `plan` asks tools/verify.mjs (tests/feature-map.json) which checks the changed
-# files call for and the jobs below run or skip accordingly; `ci-ok` is the one required status check. The browser
-# checks (e2e specs, overflow) are slow, so a PR runs only those `verify` maps to its files; the label ci:e2e runs them
-# all, ci:full runs every job. The release runs them before it publishes (release.yml) and the nightly every night. A
+# files call for and the jobs below run or skip accordingly; `ci-ok` sums them up (advisory: the merge gate is the
+# local-verify status `npm run ship` posts after a full local verify). The browser checks (e2e specs, one-editor,
+# overflow) and the spec gate run on a PR only with the label ci:e2e (or ci:full, which runs every job): ship ran them
+# locally, and the release runs them before it publishes (release.yml) and the nightly every night. A
 # push to main runs only when the dependencies or the Rust code change, and then only the jobs that save the Rust and npm caches (GitHub shares caches saved on main with
 # every PR): every change already passed this check in its PR.
 on:
@@ -201,9 +202,8 @@ jobs:
         run: cargo clippy -p ips-server -p ips-agent --all-targets -- -D warnings
         working-directory: src-tauri
 
-  # The browser checks the plan lists for the change (e2e specs, Edit v3 fixtures, the overflow probe), scoped as `verify`
-  # scopes them, or all of them with ci:e2e or ci:full: against the built pages (artifact from typecheck-build), in the
-  # shared action release.yml runs too.
+  # The browser checks (e2e specs, Edit v3 fixtures, the overflow probe), all of them, only with ci:e2e or ci:full (ship
+  # ran them locally): against the built pages (artifact from typecheck-build), in the shared action release.yml runs too.
   e2e:
     needs: [plan, typecheck-build]
     if: needs.plan.outputs.e2e == 'true'
@@ -244,8 +244,8 @@ jobs:
         with:
           commands: '["node tools/ci/quarantine.mjs run"]'
 
-  # The new-test gate for Playwright specs (tools/ci/flake-gate.mjs): the specs a branch adds or changes, repeated 3 times
-  # on half the runner's cores. Its own job: it must not share the e2e job's time or CPU (4 workers on 4 vCPUs starved the
+  # The new-test gate for Playwright specs (tools/ci/flake-gate.mjs), with ci:e2e: the specs a branch adds or changes,
+  # repeated 3 times on half the runner's cores. Its own job: it must not share the e2e job's time or CPU (4 workers on 4 vCPUs starved the
   # whole-page measure specs in run 42460790140).
   flake-e2e:
     needs: [plan, typecheck-build]
