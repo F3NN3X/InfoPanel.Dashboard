@@ -8,7 +8,7 @@ import type { ShellProps } from "@/widgets/kit";
 import Achievements, { meta as achievements } from "@/widgets/achievements/Achievements";
 import FpsMonitor, { meta as fps } from "@/widgets/FpsMonitor";
 import FramePacing, { meta as pacing } from "@/widgets/FramePacing";
-import GameSpotlight, { meta as spotlight } from "@/widgets/GameSpotlight";
+import GameSpotlight, { meta as spotlight } from "@/widgets/game-spotlight/GameSpotlight";
 import OsdStrip, { meta as osd } from "@/widgets/osd-strip/OsdStrip";
 import PlaytimeShare, { meta as playtime } from "@/widgets/PlaytimeShare";
 import SteamGame, { meta as game } from "@/widgets/steam-game/SteamGame";

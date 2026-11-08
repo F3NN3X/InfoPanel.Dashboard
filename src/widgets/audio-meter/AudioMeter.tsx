@@ -1,9 +1,9 @@
 import type { ModuleSettings } from "@/modules/types";
 import { useFastSensors } from "@/hooks/useSensors";
-import { AUDIO } from "./audio-device";
-import { Metric, Stat, Widget, roomy, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "./kit";
-import { audioIdsIn, pickedIds, readDevice, type AudioDevice, type FlowFilter } from "./audio-data";
-import { meta, AUDIO_WARN_DB, AUDIO_HOT_DB } from "./meta/AudioMeter";
+import { AUDIO } from "../audio-device";
+import { Metric, Stat, Widget, roomy, useFitRows, shell, fmt, Num, Spark, LedLadder, slideX, STATE, hue, useHistory, useMeterBallistics, clamp, type BallisticsPreset, type ShellProps } from "../kit";
+import { audioIdsIn, pickedIds, readDevice, type AudioDevice, type FlowFilter } from "../audio-data";
+import { meta, AUDIO_WARN_DB, AUDIO_HOT_DB } from "./meta";
 
 export { meta, AUDIO_WARN_DB, AUDIO_HOT_DB };
 

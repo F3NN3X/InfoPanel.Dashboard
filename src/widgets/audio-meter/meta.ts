@@ -1,4 +1,4 @@
-// AudioMeter's catalog entry, apart from its component so the registry can list it without loading the widget.
+// AudioMeter's catalog entry: pure data, so the registry and the generator read it without the component.
 import type { WidgetMeta } from "../core/types";
 
 /** The amber and hot zones' defaults in dBFS: the LED ladder's 72 % and 90 % of full scale (before config v8 fixed). */

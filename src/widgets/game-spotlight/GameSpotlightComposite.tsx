@@ -1,7 +1,7 @@
 // GameSpotlight's composite layout: everything the old Steam card showed in one card (banner and logo,
 // profile and status, level, session and playtime, library total, achievements, friends, news).
 import type { CSSProperties, ReactNode } from "react";
-import { Icon, Img, KenBurns, Logo, Num, clamp } from "./kit";
+import { Icon, Img, KenBurns, Logo, Num, clamp } from "../kit";
 
 export type CompositeVariant = "card" | "standard" | "compact" | "simple";
 

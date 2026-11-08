@@ -2,30 +2,23 @@
 import type { DashboardModule, ModuleSettings, PaletteRole } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
-import { boolSetting, colorSetting, enumSetting, listOf, numberOf, numberSetting, oneOf, splitKeys, textSetting, viewOnly, viewSetting, viewsExcept, type ColorEntry } from "../shared/settings-kit";
+import { colorSetting, listOf, numberOf, numberSetting, splitKeys, textSetting, viewOnly, viewSetting, type ColorEntry } from "../shared/settings-kit";
 import type { FpsMonitorProps } from "../FpsMonitor";
 import { meta as fpsMonitorMeta } from "../meta/FpsMonitor";
 import type { FramePacingProps } from "../FramePacing";
 import { meta as framePacingMeta } from "../meta/FramePacing";
 import { FPS_LOOK_SETTINGS, fpsLookProps, targetOf, targetSetting } from "../fps-settings";
 import { fpsIsland } from "../island/gaming";
-import type { GameSpotlightProps } from "../GameSpotlight";
-import { meta as gameSpotlightMeta } from "../meta/GameSpotlight";
-import { SPOTLIGHT_COMPOSITE_SETTINGS, SPOTLIGHT_LAYOUT_SETTING, compositeProps } from "../spotlight-settings";
 import type { PlaytimeShareProps } from "../PlaytimeShare";
 import { PALETTE, meta as playtimeShareMeta } from "../meta/PlaytimeShare";
 
 // Each component loads in its own chunk, the first time a zone draws it.
 const FpsMonitor = lazyWidget(() => import("../FpsMonitor"));
 const FramePacing = lazyWidget(() => import("../FramePacing"));
-const GameSpotlight = lazyWidget(() => import("../GameSpotlight"));
 const PlaytimeShare = lazyWidget(() => import("../PlaytimeShare"));
 
 /** The gauge and trend views read the metrics, sparkline and colours; the frame-time graph reads none of them. */
 const gaugeOnly = viewOnly(fpsMonitorMeta, "gauge", "trend");
-/** GameSpotlight layouts that draw their own fixed gradient instead of the scrim. */
-const FIXED_SCRIM = ["ticker", "poster"];
-const layoutIs = (...layouts: string[]) => viewOnly(gameSpotlightMeta, ...layouts);
 
 /** The slices follow the theme's Series 1 to 6. */
 const PLAYTIME_ROLES = ["s1", "s2", "s3", "s4", "s5", "s6"] as const satisfies readonly PaletteRole[];
@@ -55,29 +48,6 @@ export const GROUP_D: DashboardModule[] = [
     ],
     toProps: (s: ModuleSettings) => ({ target: targetOf(s.target), ...fpsLookProps(s) }),
     island: fpsIsland,
-  }),
-  templateModule<Pick<GameSpotlightProps, "layout" | "motion" | "scrim" | "music" | "progress" | "vizMode" | "showStats" | "showNews">>({
-    meta: gameSpotlightMeta,
-    Component: GameSpotlight,
-    settings: [
-      SPOTLIGHT_LAYOUT_SETTING,
-      ...SPOTLIGHT_COMPOSITE_SETTINGS.map(layoutIs("composite")),
-      layoutIs("combo")(enumSetting("music", "Music source", "media", [{ value: "media", label: "Media" }, { value: "spotify", label: "Spotify" }], { group: "Music card" })),
-      layoutIs("combo")(enumSetting("progress", "Music progress", "wave", [{ value: "wave", label: "Wave" }, { value: "visualizer", label: "Visualizer" }], { group: "Music card" })),
-      layoutIs("combo")(enumSetting("vizMode", "Visualizer mode", "bars", ["bars", "mirror", "wave", "dots", "line"].map((v) => ({ value: v, label: v[0].toUpperCase() + v.slice(1) })), { group: "Music card", visibleIf: (v) => v.progress === "visualizer" })),
-      layoutIs(...viewsExcept(gameSpotlightMeta, ...FIXED_SCRIM))(numberSetting("scrim", "Scrim darkness", 0.6, { min: 0, max: 1, step: 0.05, group: "Layout" })),
-      layoutIs(...viewsExcept(gameSpotlightMeta, "poster"))(boolSetting("motion", "Ken Burns motion", true, { group: "Dynamics", tab: "behaviour" })),
-    ],
-    toProps: (s) => ({
-      // The standard `layout` keeps its meaning; the template's own layout is stored as `spotlightLayout`.
-      layout: oneOf(s.spotlightLayout, ["hero", "poster", "logo", "ticker", "combo", "composite"]),
-      ...compositeProps(s),
-      motion: typeof s.motion === "boolean" ? s.motion : undefined,
-      scrim: numberOf(s.scrim),
-      music: oneOf(s.music, ["media", "spotify"]),
-      progress: oneOf(s.progress, ["wave", "visualizer"]),
-      vizMode: oneOf(s.vizMode, ["bars", "mirror", "wave", "dots", "line"]),
-    }),
   }),
   templateModule<Pick<FramePacingProps, "budgets" | "window">>({
     meta: framePacingMeta,
