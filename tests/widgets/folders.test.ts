@@ -1,0 +1,66 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { modules } from "@/modules";
+import { WIDGET_ORDER } from "@/widgets/order";
+import { FOLDER_WIDGETS } from "@/widgets/registry.generated";
+import { INSPECTOR_META } from "@/widgets/registry/inspector-meta";
+import { kebab, README_SECTIONS, readmeSections, widgetFolders } from "../../tools/widgets/generate.mjs";
+
+// Every widget folder (src/widgets/<kebab-id>/, one with a widget.ts) is complete, keeps the kiosk's laziness, and sits
+// beside the registry groups without a second copy of its id.
+const DIR = "src/widgets";
+const read = (rel: string) => readFileSync(rel, "utf8").replace(/\r\n/g, "\n");
+/** The `from "<spec>"` of each import line that brings in values (not `import type`). */
+const valueImports = (text: string) => [...text.matchAll(/^import (?!type\b)[^;]*?from "([^"]+)";/gm)].map((m) => m[1]);
+const folders = widgetFolders();
+
+describe("the widget folders", () => {
+  it("are the generated registry's widgets", () => {
+    expect(folders.length).toBeGreaterThan(0);
+    expect(FOLDER_WIDGETS.map((w) => kebab(w.meta.id)).sort()).toEqual(folders);
+  });
+
+  describe.each(FOLDER_WIDGETS.map((w) => [w.meta.id, w] as const))("%s", (id, w) => {
+    const folder = `${DIR}/${kebab(id)}`;
+
+    it("has meta, inspector, settings, render, migrations, a sample or an explicit none, and a README", () => {
+      expect(w.meta.id).toBe(id);
+      expect(w.inspector.header).toBeDefined();
+      expect(w.inspector.compact).toBeDefined();
+      expect(Array.isArray(w.settings)).toBe(true);
+      expect(typeof w.render.load).toBe("function");
+      expect(typeof w.render.toProps).toBe("function");
+      expect(w.migrations).toBeDefined();
+      const sample = w.sample;
+      expect(sample === "central" || typeof sample === "function" || (typeof sample === "object" && typeof sample.none === "string" && sample.none !== ""), "sample").toBe(true);
+      const sections = readmeSections(read(`${folder}/README.md`));
+      for (const title of README_SECTIONS) expect(sections[title], `README.md: ${title}`).toBeTruthy();
+    });
+
+    it("keeps its component out of the kiosk entry: meta.ts imports types only, widget.ts the component as a type only", () => {
+      expect(valueImports(read(`${folder}/meta.ts`))).toEqual([]);
+      const component = `./${id}`;
+      const widget = read(`${folder}/widget.ts`);
+      expect(valueImports(widget)).not.toContain(component);
+      for (const file of ["./controls", "./presets", "./README.md"]) expect(widget, file).not.toContain(`"${file}`);
+    });
+
+    it("has no INSPECTOR_META entry beside its own inspector", () => {
+      expect(INSPECTOR_META[id]).toBeUndefined();
+    });
+  });
+});
+
+describe("the registry, groups and folders side by side", () => {
+  it("lists every widget once, in order.ts's order", () => {
+    expect(WIDGET_ORDER).toHaveLength(69);
+    expect(modules.map((m) => m.id)).toEqual(WIDGET_ORDER);
+  });
+
+  it("carries each folder widget's inspector as INSPECTOR_META does for the group widgets", () => {
+    for (const w of FOLDER_WIDGETS) {
+      const mod = modules.find((m) => m.id === w.meta.id)!;
+      expect({ header: mod.header, compact: mod.compact, fmt: mod.fmt, thr: mod.thr }).toEqual({ header: w.inspector.header, compact: w.inspector.compact, fmt: w.inspector.fmt, thr: w.inspector.thr });
+    }
+  });
+});
