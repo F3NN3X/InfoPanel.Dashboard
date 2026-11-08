@@ -5,17 +5,17 @@ import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { toFlat } from "@/widgets/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
-import Achievements, { meta as achievements } from "@/widgets/Achievements";
+import Achievements, { meta as achievements } from "@/widgets/achievements/Achievements";
 import FpsMonitor, { meta as fps } from "@/widgets/FpsMonitor";
 import FramePacing, { meta as pacing } from "@/widgets/FramePacing";
 import GameSpotlight, { meta as spotlight } from "@/widgets/GameSpotlight";
-import OsdStrip, { meta as osd } from "@/widgets/OsdStrip";
+import OsdStrip, { meta as osd } from "@/widgets/osd-strip/OsdStrip";
 import PlaytimeShare, { meta as playtime } from "@/widgets/PlaytimeShare";
-import SteamGame, { meta as game } from "@/widgets/SteamGame";
-import SteamLibrary, { meta as library } from "@/widgets/SteamLibrary";
-import SteamNews, { meta as news } from "@/widgets/SteamNews";
+import SteamGame, { meta as game } from "@/widgets/steam-game/SteamGame";
+import SteamLibrary, { meta as library } from "@/widgets/steam-library/SteamLibrary";
+import SteamNews, { meta as news } from "@/widgets/steam-news/SteamNews";
 import SteamProfile, { meta as profile } from "@/widgets/steam-profile/SteamProfile";
-import SteamFriends, { meta as friends } from "@/widgets/SteamFriends";
+import SteamFriends, { meta as friends } from "@/widgets/steam-friends/SteamFriends";
 import { GROUP_D_IDS, groupOf } from "./group-of";
 
 const WIDGETS: [typeof fps, ComponentType<ShellProps>][] = [

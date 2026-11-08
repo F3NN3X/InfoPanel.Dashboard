@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { idleHeroPx, presetsThatFit, runningClockPx } from "@/widgets/Timer";
+import { idleHeroPx, presetsThatFit, runningClockPx } from "@/widgets/timer/Timer";
 
 describe("presetsThatFit", () => {
   it("shows all before the box is measured", () => {

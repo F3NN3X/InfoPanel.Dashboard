@@ -16,11 +16,6 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   KpiTiles: as("none", BOTH),
   Vitals: as("none", BOTH),
   // Group B: storage, network, info, generic
-  DriveSpace: yes(BOTH, { thr: ["full"] }),
-  NetworkThroughput: yes(CARD, { fmt: ["rateUnit"] }),
-  NetworkAdapters: yes(BOTH),
-  Timer: yes(NONE),
-  Countdown: yes(BOTH, { fmt: ["clock"] }),
   Weather: yes(CARD, { fmt: ["tempUnit"] }),
   Forecast: yes(BOTH, { fmt: ["tempUnit"] }),
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
@@ -35,18 +30,11 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group D: gaming
   FpsMonitor: yes(CARD),
   GameSpotlight: as("none", BOTH),
-  OsdStrip: as("none", BOTH),
   FramePacing: yes(BOTH),
   PlaytimeShare: yes(BOTH),
-  SteamFriends: yes(BOTH),
-  SteamGame: as("none", CARD),
-  Achievements: yes(CARD),
-  SteamLibrary: yes(CARD),
-  SteamNews: yes(BOTH),
   // Group E: the plain plugin cards
   StreamDeck: yes(BOTH),
   // History and analysis
-  FrameHistogram: yes(CARD),
   SessionStats: yes(CARD),
   ThresholdTimeline: yes(CARD, { thr: ["value"] }),
   // Stream audio: the server's audio control

@@ -6,7 +6,7 @@ import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { toFlat, toNames } from "@/widgets/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
 import BottleneckLens, { meta as bottleneck } from "@/widgets/bottleneck-lens/BottleneckLens";
-import FrameHistogram, { meta as histogram } from "@/widgets/FrameHistogram";
+import FrameHistogram, { meta as histogram } from "@/widgets/frame-histogram/FrameHistogram";
 import SessionStats, { meta as stats } from "@/widgets/SessionStats";
 import ThresholdTimeline, { meta as timeline } from "@/widgets/ThresholdTimeline";
 import { resolveRole } from "@/lib/infopanel/templates/roles";

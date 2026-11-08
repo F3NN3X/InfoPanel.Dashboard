@@ -1,50 +1,22 @@
 // Template widgets, group B: storage, network, info, generic (see _docs/redesign/phase9/brief-9.3c-templates.md).
-import { clockOf, decimalsOf, deviceOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
+import { decimalsOf, tempUnitOf, thresholdsOf } from "@/modules/setting-readers";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { templateModule } from "../module";
 import { lazyWidget } from "../lazy-widget";
 import * as M from "../meta";
-import { boolOf, boolSetting, colorSetting, dateSetting, deviceSetting, enumSetting, FINE_DECIMALS, formatSetting, iconsOf, numberOf, numberSetting, oneOf, pass, rateUnitOf, rateUnitSetting, sensorSetting, stringOf, textSetting, thresholdSetting, timeSetting, valueThresholds, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
-import { driveSpaceIsland, networkAdaptersIsland, networkThroughputIsland } from "../island/hardware";
+import { boolSetting, enumSetting, FINE_DECIMALS, formatSetting, iconsOf, numberOf, numberSetting, oneOf, pass, sensorSetting, textSetting, valueThresholds, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
 import { weatherIsland } from "../island/info";
-import { countdownIsland } from "../island/countdown";
-import { timerIsland } from "../island/timer";
-import type * as DriveSpace from "../DriveSpace";
-import type * as NetworkThroughput from "../NetworkThroughput";
-import type * as NetworkAdapters from "../NetworkAdapters";
-import type * as Timer from "../Timer";
-import type * as Countdown from "../Countdown";
-import { isDate, isTime } from "@/lib/countdown";
 import type * as Weather from "../Weather";
 import type * as Forecast from "../Forecast";
 import * as SensorValue from "../SensorValue";
 import * as CustomGauge from "../CustomGauge";
 
-/** "5, 15, 25" → [5, 15, 25]: whole minutes 1-1440, at most eight. */
-export const presetsOf = (v: unknown): number[] | undefined => {
-  const list = String(v ?? "")
-    .split(",")
-    .map((x) => Math.round(Number(x.trim())))
-    .filter((n) => Number.isFinite(n) && n >= 1 && n <= 1440)
-    .slice(0, 8);
-  return list.length ? list : undefined;
-};
 /** A number where blank = the widget's own default. */
 const optional = (key: string, label: string, group: string, hint?: string): ModuleSetting => textSetting(key, label, "", { group, hint });
 
 /** The stored numbers among `keys`, as props of the same name (blank or non-numeric = left out). */
 const numbersOf = <K extends string>(s: ModuleSettings, keys: readonly K[]): Partial<Record<K, number>> =>
   Object.fromEntries(keys.flatMap((k) => (numberOf(s[k]) === undefined ? [] : [[k, numberOf(s[k])]]))) as Partial<Record<K, number>>;
-
-const DRIVE_SETTINGS: ModuleSetting[] = [
-  viewSetting(M.DriveSpace, { group: "Drive" }),
-  deviceSetting("Drive", "drive", { group: "Drive", hint: "Pin one volume; Auto lists all" }),
-  enumSetting("sort", "Sort", "usage", [{ value: "usage", label: "By usage" }, { value: "name", label: "By name" }], { group: "Sorting", tab: "behaviour" }),
-  // Segments and Bars always colour by fullness.
-  viewOnly(M.DriveSpace, "list")(boolSetting("neutral", "Neutral below thresholds", false, { tab: "style", perWidget: true })),
-  thresholdSetting("full"),
-  textSetting("icons", "Drive icons", "", { group: "Drive", driveIcons: true, keywords: ["emblem", "image", "logo"], hint: "Your own image or an icon for each drive" }),
-];
 
 /** A stored number where 0 (and blank) = off / automatic. */
 const positiveOf = (v: unknown): number | undefined => numberOf(v) || undefined;
@@ -61,17 +33,6 @@ const SENSOR_VALUE_SETTINGS: ModuleSetting[] = [
   numberSetting("max", "Maximum", 0, { group: "Bar scale", tab: "data", hint: "0 = automatic", visibleIf: ranged }),
   FINE_DECIMALS,
   valueThresholds(),
-];
-
-/** NetworkThroughput's view and toggles, under the old Network widget's keys. */
-// The old `view` select (speeds / totals) only bundled these two switches; a stored `view` is ignored.
-const NETWORK_SETTINGS: ModuleSetting[] = [
-  { key: "showTotals", label: "Session totals", type: "boolean", default: true, group: "Traffic" },
-  { key: "sparkline", label: "Trend sparkline", type: "boolean", default: false, group: "Traffic" },
-  // The speeds follow the theme's Series 1 and 2 ("" = the widget's own colours).
-  colorSetting("downloadColor", "Download", { role: "s1", more: false }),
-  colorSetting("uploadColor", "Upload", { role: "s2", more: false }),
-  rateUnitSetting(),
 ];
 
 /** Weather's view and toggles, under the old Weather widget's keys. */
@@ -193,82 +154,6 @@ const unitsOf = (s: ModuleSettings): "C" | "F" => (tempUnitOf(s) === "f" ? "F" :
 const yrLocation = (group: string): ModuleSetting => ({ key: "location", label: "Location", type: "select", default: "", optionsFrom: "sources", sourcePlugin: "plugins.yr-weather-plugin.", group, tab: "data", hint: "Blank = the first Yr location" });
 
 export const GROUP_B: DashboardModule[] = [
-  templateModule({
-    meta: M.DriveSpace,
-    Component: lazyWidget(() => import("../DriveSpace")),
-    settings: DRIVE_SETTINGS,
-    toProps: (s): Partial<DriveSpace.DriveSpaceProps> => ({ view: oneOf(s.view, ["list", "segments", "bars"]), drive: deviceOf(s, "drive"), sort: oneOf(s.sort, ["usage", "name"]), ...thresholdsOf(s, "full", ["warn", "crit"]), neutral: boolOf(s.neutral), icons: stringOf(s.icons) }),
-    island: driveSpaceIsland,
-  }),
-  templateModule({
-    meta: M.NetworkThroughput,
-    Component: lazyWidget(() => import("../NetworkThroughput")),
-    settings: [
-      ...NETWORK_SETTINGS,
-      deviceSetting("Adapter", "adapter", { group: "Adapter" }),
-      enumSetting("chart", "Chart", "overlay", [{ value: "overlay", label: "Overlay" }, { value: "mirrored", label: "Mirrored" }], { group: "Traffic", visibleIf: (v) => Boolean(v.sparkline) }),
-    ],
-    toProps: (s) => ({
-      ...pass<Partial<NetworkThroughput.NetworkThroughputProps>>("chart", "showTotals", "sparkline", "downloadColor", "uploadColor")(s),
-      adapter: deviceOf(s, "adapter"),
-      rateUnit: rateUnitOf(s.rateUnit),
-    }),
-    island: networkThroughputIsland,
-  }),
-  templateModule({
-    meta: M.NetworkAdapters,
-    Component: lazyWidget(() => import("../NetworkAdapters")),
-    settings: [
-      boolSetting("showDown", "Show adapters that are down", false, { group: "Adapters" }),
-      enumSetting("showIpv6", "IPv6 count", "auto", [{ value: "auto", label: "Large sizes" }, { value: "show", label: "Show" }, { value: "hide", label: "Hide" }], { group: "Addresses" }),
-      boolSetting("hideIp", "Blur addresses", false, { group: "Addresses", hint: "Privacy: addresses stay blurred" }),
-    ],
-    toProps: (s): Partial<NetworkAdapters.NetworkAdaptersProps> => ({ ...pass<Partial<NetworkAdapters.NetworkAdaptersProps>>("showDown", "hideIp")(s), showIpv6: s.showIpv6 === "show" ? true : s.showIpv6 === "hide" ? false : undefined }),
-    island: networkAdaptersIsland,
-  }),
-  templateModule({
-    meta: M.Timer,
-    Component: lazyWidget(() => import("../Timer")),
-    settings: [
-      textSetting("presets", "Presets (minutes)", "5, 15, 25", { group: "Presets", hint: "The buttons, comma separated" }),
-      boolSetting("pomodoro", "Pomodoro button", false, { group: "Pomodoro", hint: "Focus and break rounds until stopped" }),
-      numberSetting("focusMin", "Focus (min)", 25, { min: 5, max: 90, step: 5, group: "Pomodoro", visibleIf: (v) => v.pomodoro === true }),
-      numberSetting("breakMin", "Break (min)", 5, { min: 1, max: 30, step: 1, group: "Pomodoro", visibleIf: (v) => v.pomodoro === true }),
-    ],
-    toProps: (s): Partial<Timer.TimerProps> => ({
-      presets: presetsOf(s.presets),
-      pomodoro: boolOf(s.pomodoro),
-      focusMin: numberOf(s.focusMin),
-      breakMin: numberOf(s.breakMin),
-    }),
-    island: timerIsland,
-  }),
-  templateModule({
-    meta: M.Countdown,
-    Component: lazyWidget(() => import("../Countdown")),
-    settings: [
-      viewSetting(M.Countdown, { group: "Event" }),
-      textSetting("eventName", "Event name", "", { group: "Event", hint: "Empty = no title line" }),
-      dateSetting("date", "Date", "", { group: "Event", tab: "data" }),
-      timeSetting("time", "Time of day", "", { group: "Event", tab: "data", hint: "Empty = an all-day event" }),
-      enumSetting("count", "Count", "auto", [{ value: "auto", label: "Auto" }, { value: "until", label: "Until" }, { value: "since", label: "Since" }], { group: "Counting", tab: "data", hint: "Auto counts up an hour after the start (the rest of the day when all-day)" }),
-      enumSetting("breakdown", "Breakdown", "auto", [{ value: "auto", label: "Auto" }, { value: "days", label: "Days" }, { value: "years", label: "Years" }, { value: "live", label: "Live" }], { group: "Counting", tab: "data", hint: "Live adds seconds" }),
-      boolSetting("showDate", "Show the date", true, { group: "Event" }),
-      formatSetting("clock"),
-    ],
-    // A malformed date or time reads as unset.
-    toProps: (s): Partial<Countdown.CountdownProps> => ({
-      view: oneOf(s.view, ["inline", "tiles", "big"]),
-      eventName: stringOf(s.eventName),
-      date: isDate(s.date) ? s.date : undefined,
-      time: isTime(s.time) ? s.time : undefined,
-      count: oneOf(s.count, ["auto", "until", "since"]),
-      breakdown: oneOf(s.breakdown, ["auto", "days", "years", "live"]),
-      showDate: boolOf(s.showDate),
-      clock: clockOf(s),
-    }),
-    island: countdownIsland,
-  }),
   templateModule({
     meta: M.Weather,
     Component: lazyWidget(() => import("../Weather")),
