@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { settingKeys, type ModuleSetting, type ModuleSettings } from "@/modules/types";
 import { fixtureSensors } from "@/widgets/__fixtures__";
-import { modules } from "@/modules";
+import { GROUP_B_IDS, groupOf } from "./group-of";
 
-// Group B as the registry lists it, after group A's 17 (StatusBar is a folder widget, src/widgets/status-bar/).
-const GROUP_B = modules.slice(17, 33);
+// Group B as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_B = groupOf(GROUP_B_IDS);
 
 const SPECS = import.meta.glob<string>("/tests/fixtures/widget-specs/*.md", { query: "?raw", import: "default", eager: true });
 

@@ -5,7 +5,7 @@ import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import type { ShellProps, WidgetMeta } from "@/widgets/core/types";
 import { toFlat } from "@/widgets/data-adapter";
-import { modules } from "@/modules";
+import { GROUP_A_IDS, groupOf } from "./group-of";
 import * as SystemOverview from "@/widgets/SystemOverview";
 import * as MenuBar from "@/widgets/MenuBar";
 import * as KpiTiles from "@/widgets/KpiTiles";
@@ -24,8 +24,8 @@ import * as Thermals from "@/widgets/Thermals";
 import * as PowerDraw from "@/widgets/PowerDraw";
 import * as Fans from "@/widgets/Fans";
 
-// Group A as the registry lists it, its first 17 (GpuRings is a folder widget, src/widgets/gpu-rings/).
-const GROUP_A = modules.slice(0, 17);
+// Group A as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_A = groupOf(GROUP_A_IDS);
 
 interface Entry {
   meta: WidgetMeta;

@@ -10,11 +10,11 @@ import NowPlaying, { meta as nowPlaying } from "@/widgets/now-playing/NowPlaying
 import Visualizer, { meta as visualizer } from "@/widgets/Visualizer";
 import VolumeMixer, { meta as volumeMixer } from "@/widgets/VolumeMixer";
 import WaveLink, { meta as waveLink } from "@/widgets/WaveLink";
-import { modules } from "@/modules";
+import { GROUP_C_IDS, groupOf } from "./group-of";
 import type { ShellProps } from "@/widgets/kit";
 
-// Group C as the registry lists it, after groups A and B (NowPlaying is a folder widget, src/widgets/now-playing/).
-const GROUP_C = modules.slice(33, 39);
+// Group C as the registry lists it, wherever each widget lives (group file or folder).
+const GROUP_C = groupOf(GROUP_C_IDS);
 
 // WaveLink reads the shared Wave Link client, not sensor keys: give it a connected one.
 vi.mock("@/lib/wavelink", async (orig) => ({ ...(await orig<typeof import("@/lib/wavelink")>()), ...(await import("@/widgets/__fixtures__/wavelink")).wavelinkMock() }));
