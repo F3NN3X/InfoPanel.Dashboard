@@ -190,6 +190,11 @@ export const thresholdSetting = (q: ThresholdQuantity, extra: Partial<ModuleSett
   ...extra,
 });
 
+/** Decimals with 3 and 4 kept for a single reading (SPEC §6.2; Sensor Value and Sensor Group). */
+export const FINE_DECIMALS = formatSetting("decimals", { options: ["auto", "0", "1", "2", "3", "4"].map((value) => ({ value, label: value === "auto" ? "Auto" : value })) });
+/** A sensor's own thresholds: off until set (blank was off), unless the theme sets the Value levels. */
+export const valueThresholds = (extra: Partial<ModuleSetting> = {}): ModuleSetting => thresholdSetting("value", { default: "off", defaultY: "off", ...extra });
+
 /** The device a widget reads (`device`; absent / "auto" = Auto, SPEC §4.5), found in the live keys. On the Data tab. */
 export const deviceSetting = (label: string, from: DeviceKind, extra: Extra = {}): ModuleSetting => ({ key: "device", label, type: "select", default: "auto", optionsFrom: from, ...extra });
 

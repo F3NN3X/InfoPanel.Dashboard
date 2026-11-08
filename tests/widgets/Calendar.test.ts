@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { drawsOwnTile } from "@/widgets/Calendar";
+import { drawsOwnTile } from "@/widgets/calendar/Calendar";
 
 describe("drawsOwnTile", () => {
   it("is the 2x2 only", () => {

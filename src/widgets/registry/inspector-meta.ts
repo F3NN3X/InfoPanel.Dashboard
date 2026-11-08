@@ -13,28 +13,17 @@ const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta,
 /** Every group widget, by id; a folder widget (`src/widgets/<kebab-id>/widget.ts`) carries its own `inspector`. */
 export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group A: system and hardware
-  SystemOverview: as("title-only", DENSE, { fmt: ["tempUnit", "decimals"], thr: ["load", "temp", "full"] }),
   KpiTiles: as("none", BOTH),
   Vitals: as("none", BOTH),
-  // The unit and decimals of its temperatures.
-  CpuMonitor: yes(CARD, { fmt: ["tempUnit", "decimals"], thr: ["load"] }),
-  CoreHeatmap: yes(DENSE),
-  GpuMonitor: yes(CARD, { thr: ["temp"] }),
   // Group B: storage, network, info, generic
   DriveSpace: yes(BOTH, { thr: ["full"] }),
-  StorageHealth: yes(CARD),
-  DiskIO: yes(BOTH),
   NetworkThroughput: yes(CARD, { fmt: ["rateUnit"] }),
   NetworkAdapters: yes(BOTH),
-  Clock: as("title-only", DENSE, { fmt: ["clock"] }),
   Timer: yes(NONE),
   Countdown: yes(BOTH, { fmt: ["clock"] }),
-  CodingAgents: yes(BOTH),
-  Calendar: as("none", CARD),
   Weather: yes(CARD, { fmt: ["tempUnit"] }),
   Forecast: yes(BOTH, { fmt: ["tempUnit"] }),
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
-  SensorGroup: yes(BOTH, { fmt: ["tempUnit", "decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
   // Group C: media / audio
   // Its amber and hot zones are the Audio level threshold (config v8).

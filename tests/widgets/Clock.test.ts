@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DATE_EM, datePx, roomyTimePx, timePx } from "@/widgets/Clock";
+import { DATE_EM, datePx, roomyTimePx, timePx } from "@/widgets/clock/Clock";
 
 describe("timePx", () => {
   it("holds a tier's size below lg", () => {

@@ -1,0 +1,139 @@
+import type { ModuleSettings } from "@/modules/types";
+import { roomy, TickBar, StatGrid, Widget, hue, shell, get, num, fmt, fmtGB, gbStat, unitStat, fmtRate, diskShort, firstDisk, Metric, Ring, Spark, Stat, Bar, Num, useHistory, useSkin, tone, Empty, LegendRow, hw, type ShellProps } from "../kit";
+import { meta } from "./meta";
+
+export { meta };
+
+export interface StorageHealthProps extends ShellProps {
+  look?: ModuleSettings;
+  /** Sensor slug, e.g. "kingston_sfyrd2000g"; default = first detected. */
+  disk?: string;
+}
+
+/** Read and write history. Two braille text graphs cannot share a box, so under braille they stack below the legend. */
+function RateGraph({ rH, wH, rd, wr, capped }: { rH: number[]; wH: number[]; rd: number; wr: number; capped: boolean }) {
+  // At 4x4 the graph keeps a band of the card, so the SMART block below has room.
+  const cap = capped ? "max-h-24 min-h-16" : "";
+  const marks = capped ? "last" : undefined;
+  const legend = (
+    <>
+      <LegendRow color="var(--w-accent)" label="read" value={fmtRate(rd)} className="text-micro" />
+      <LegendRow color={hue(70)} label="write" value={fmtRate(wr)} className="text-micro" />
+    </>
+  );
+  if (useSkin().graph === "braille")
+    return (
+      <div className={cap ? `flex min-h-0 flex-1 flex-col gap-1 ${cap}` : "flex min-h-0 flex-1 flex-col gap-1"}>
+        <div className="grid grid-cols-2 gap-3">{legend}</div>
+        <Spark values={rH} min={0} className="min-h-0 flex-1" />
+        <Spark values={wH} min={0} color={hue(70)} className="min-h-0 flex-1" />
+      </div>
+    );
+  // Capped: the lines come first and the legend sits right under them, so a flat series (all at the floor) still reads with its legend.
+  const graph = (
+    <div className="relative min-h-0 flex-1">
+      <Spark values={rH} min={0} marks={marks} format={fmtRate} className="absolute inset-0 h-full" />
+      <Spark values={wH} min={0} fill={false} color={hue(70)} marks={marks} className="absolute inset-0 h-full" />
+    </div>
+  );
+  return (
+    <div className={cap ? `flex min-h-0 flex-1 flex-col gap-1 ${cap}` : "flex min-h-0 flex-1 flex-col gap-1"}>
+      {!capped && <div className="grid grid-cols-2 gap-3">{legend}</div>}
+      {graph}
+      {capped && <div className="grid grid-cols-2 gap-3">{legend}</div>}
+    </div>
+  );
+}
+
+export default function StorageHealth(p: StorageHealthProps) {
+  const d = p.data;
+  const disks = hw(d).disks;
+  const id = p.disk ?? firstDisk(disks);
+  const k = (s: string) => num(get(d, `libre.${id}_${s}`));
+  const pick = (...ks: string[]) => ks.map(k).find(Number.isFinite);
+  const life = k("life"),
+    temp = pick("composite_temperature", "temperature", "temperature__2") ?? NaN;
+  const warnT = pick("warning_temperature") ?? 70,
+    critT = pick("critical_temperature") ?? 85;
+  const rd = k("read_rate"),
+    wr = k("write_rate");
+  const rH = useHistory(rd),
+    wH = useHistory(wr);
+  if (!id)
+    return (
+      <Widget {...shell(p)} title="SSD" icon="health_metrics">
+        <Empty />
+      </Widget>
+    );
+  const lifeT = life < 20 ? "crit" : life < 50 ? "warn" : "ok";
+  const name = p.title ?? diskShort(id, get(d, `libre.${id}_volumes`));
+  return (
+    <Widget
+      {...shell(p)}
+      title={`${name} · ${fmtGB(k("total_space"))}`}
+      icon="health_metrics"
+      compact={{ label: name, value: life, unit: "%", sub: `${fmt(temp, 0)}°C · ${fmtRate(rd + wr)}`, pct: life, kind: "ring", t: lifeT }}
+      right={<span className="tabular-nums" style={{ color: tone(temp, warnT, critT) === "ok" ? "var(--w-fg)" : "#fbbf24" }}>{fmt(temp, 0)}°C</span>}
+    >
+      {({ size, w, h }) => {
+        const room = roomy(w, h);
+        return size === "xs" ? (
+          <Metric label="Health" value={life} unit="%" scale="lg" t={lifeT} sub={`${fmt(temp, 0)} °C`} className="h-full justify-center" />
+        ) : size === "sm" ? (
+          <div className="flex h-full items-center gap-3">
+            <Ring value={life} t={lifeT} className="h-full max-h-28">
+              <Num className="text-xl font-semibold">
+                {fmt(life, 0)}
+                <span className="text-xs text-[color:var(--w-muted)]">%</span>
+              </Num>
+              <span className="text-micro text-[color:var(--w-faint)]">life</span>
+            </Ring>
+            <div className="grid min-w-0 flex-1 gap-2">
+              <Stat label="Read" value={fmtRate(rd)} />
+              <Stat label="Write" value={fmtRate(wr)} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex h-full flex-col gap-3">
+            <div className="flex items-end gap-5">
+              <Metric value={life} unit="%" scale={size === "lg" ? "xl" : "lg"} sub="Drive life" t={lifeT} />
+              <div className="grid flex-1 grid-cols-3 gap-3">
+                <Stat label="Read" value={fmtRate(rd)} />
+                <Stat label="Write" value={fmtRate(wr)} />
+                <Stat label="Activity" {...unitStat(k("total_activity"), "%")} />
+              </div>
+            </div>
+            <RateGraph rH={rH} wH={wH} rd={rd} wr={wr} capped={room} />
+            {room && Number.isFinite(temp) && (
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between text-micro text-[color:var(--w-muted)]">
+                  <span>Temperature {fmt(temp, 0)} °C</span>
+                  <span className="tabular-nums">warn {fmt(warnT, 0)} · crit {fmt(critT, 0)}</span>
+                </div>
+                <TickBar value={temp} max={Math.ceil(critT * 1.15)} ticks={[warnT, critT]} t={tone(temp, warnT, critT)} />
+              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between text-micro text-[color:var(--w-muted)]">
+                <span>{fmtGB(k("free_space"))} free</span>
+                <span className="tabular-nums">{fmt(k("used_space"), 0)}% used</span>
+              </div>
+              <Bar value={k("used_space")} className="h-1.5" />
+            </div>
+            {(size === "lg" || room) && (
+              <StatGrid
+                cols={4}
+                items={[
+                  { label: "Written", ...gbStat(k("data_written")) },
+                  { label: "Read total", ...gbStat(k("data_read")) },
+                  { label: "Power-on", ...unitStat(k("power_on_hours"), "h") },
+                  { label: Number.isFinite(k("available_spare")) ? "Spare" : "Power cycles", ...(Number.isFinite(k("available_spare")) ? unitStat(k("available_spare"), "%") : { value: fmt(k("power_on_count")) }) },
+                ]}
+              />
+            )}
+          </div>
+        );
+      }}
+    </Widget>
+  );
+}

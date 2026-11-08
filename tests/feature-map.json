@@ -334,14 +334,13 @@
         "src-tauri/crates/ips-agent/**",
         "src-tauri/src/agents.rs",
         "src/lib/agents.ts",
-        "src/widgets/CodingAgents/**",
-        "src/widgets/CodingAgents.tsx"
+        "src/widgets/coding-agents/*.tsx"
       ],
       "tests": [
         "tests/server/server.test.mjs",
         "tests/server/harness.mjs",
         "tests/lib/agents.test.ts",
-        "tests/widgets/CodingAgents/**",
+        "tests/widgets/coding-agents/**",
         "tests/fixtures/parity/agent*.json",
         "tests/fixtures/parity/claude-sessions.json"
       ],
@@ -453,7 +452,7 @@
         "docs/module-catalog.md",
         "tests/qa/**"
       ],
-      "exclude": ["src/widgets/CodingAgents/**", "src/widgets/CodingAgents.tsx"],
+      "exclude": ["src/widgets/coding-agents/*.tsx"],
       "tests": [
         "tests/widgets/*.test.*",
         "tests/widgets/registry/**",
