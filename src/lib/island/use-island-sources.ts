@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useSensors, useSensorsConnected } from "@/hooks/useSensors";
 import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import type { Data } from "@/widgets/core/types";
 import type { BusClock, IslandBus } from "./bus";
 import { applyUpdate, feedReads, runDataFeeds, type IslandFeed } from "./sources";

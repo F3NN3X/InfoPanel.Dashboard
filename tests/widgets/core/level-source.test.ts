@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { levelFrame, meterZones, sameFrame } from "@/widgets/core/level-source";
-import { levelContainerOf } from "@/widgets/audio-data";
+import { levelContainerOf } from "@/widgets/shared/audio-data";
 
 describe("levelFrame", () => {
   it("turns % of full scale into dBFS per channel", () => {

@@ -7,8 +7,8 @@ import { SILENCE_DB, gainToDb } from "@/lib/audio/decibels";
 import { createFrameEmitter } from "@/lib/audio/frame-source";
 import { sensorStore } from "@/lib/sensor-store";
 import type { FrameSource, MeterFrame, MeterZone } from "@/lib/audio/types";
-import { toFlat, type FlatData } from "../data-adapter";
-import { AUDIO } from "../audio-device";
+import { toFlat, type FlatData } from "../shared/data-adapter";
+import { AUDIO } from "../shared/audio-device";
 import { get, num } from "../kit";
 
 /** A frame of one level per channel, each in % of full scale (linear amplitude); nothing readable = silence. */

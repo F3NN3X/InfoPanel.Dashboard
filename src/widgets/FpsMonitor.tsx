@@ -1,5 +1,5 @@
 import { Widget, shell, get, num, fmt, has, clamp, Metric, Ring, Spark, Stat, Chip, Num, ToneCue, hue, useHistory, frameSample, frameBudgets, frameTimeTop, clampSpikes, Icon, TONES, type ShellProps, type Tier, type Tone } from "./kit";
-import { fpsSubLine } from "./fps-line";
+import { fpsSubLine } from "./shared/fps-line";
 import { meta } from "./meta/FpsMonitor";
 
 export { meta };

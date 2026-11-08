@@ -4,7 +4,7 @@
 import type { DataSourceDef, SourceNotice } from "@/lib/island/sources";
 import type { Data } from "../core/types";
 import { get, has, num, rows } from "../core/data";
-import { widgetImage } from "../data-adapter";
+import { widgetImage } from "../shared/data-adapter";
 import { boolSetting, numberSetting } from "../shared/settings-kit";
 
 const RTSS = "plugins.InfoPanel.RTSS.rtss.";

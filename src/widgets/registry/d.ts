@@ -7,7 +7,7 @@ import type { FpsMonitorProps } from "../FpsMonitor";
 import { meta as fpsMonitorMeta } from "../meta/FpsMonitor";
 import type { FramePacingProps } from "../FramePacing";
 import { meta as framePacingMeta } from "../meta/FramePacing";
-import { FPS_LOOK_SETTINGS, fpsLookProps, targetOf, targetSetting } from "../fps-settings";
+import { FPS_LOOK_SETTINGS, fpsLookProps, targetOf, targetSetting } from "../shared/fps-settings";
 import { fpsIsland } from "../island/gaming";
 
 // Each component loads in its own chunk, the first time a zone draws it.

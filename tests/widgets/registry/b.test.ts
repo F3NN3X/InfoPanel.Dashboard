@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import type { WidgetMeta } from "@/widgets/core/types";
 import * as DriveSpace from "@/widgets/drive-space/DriveSpace";
 import * as StorageHealth from "@/widgets/storage-health/StorageHealth";

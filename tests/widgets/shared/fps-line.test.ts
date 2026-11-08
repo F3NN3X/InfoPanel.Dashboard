@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fpsSubLine } from "@/widgets/fps-line";
+import { fpsSubLine } from "@/widgets/shared/fps-line";
 
 describe("fpsSubLine", () => {
   it("joins the 1% low and the frame time", () => {

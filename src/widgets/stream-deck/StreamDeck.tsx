@@ -4,7 +4,7 @@ import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import type { ModuleSettings } from "@/modules/types";
 import { chromeOf } from "@/modules/standard-settings";
 import { Widget, shell, Icon, Empty, usePane, accentVars, type ShellProps } from "../kit";
-import { ReadOnly } from "../ReadOnly";
+import { ReadOnly } from "../shared/ReadOnly";
 import { resolveAccent, skinContext } from "../core/look";
 import type { SkinContext } from "../core/types";
 import { fitKeys, HOLD_MS, keyWindows, MIN_TOUCH_KEY, PAGE_ROW, pageText, SLOP_PX, swipeOf, titlePx, WINDOW_COLS, WINDOW_MIN_KEY, WINDOW_ROWS } from "./layout";

@@ -1,6 +1,6 @@
 import { Empty, fillRows, fitRows, roomy, Widget, shell, get, has, useIpTag, type ShellProps } from "../kit";
 import { meta } from "./meta";
-import { FRIEND_COLORS, friendsOf, friendStatus, type Friend, type FriendSort, type FriendStatus } from "../friends-data";
+import { FRIEND_COLORS, friendsOf, friendStatus, type Friend, type FriendSort, type FriendStatus } from "../shared/friends-data";
 
 export { meta, FRIEND_COLORS, friendsOf, friendStatus, type Friend, type FriendSort, type FriendStatus };
 

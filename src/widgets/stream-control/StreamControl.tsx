@@ -3,7 +3,7 @@ import { obsAct, obsRefusal } from "@/lib/obs-control";
 import { READ_ONLY_HINT } from "@/lib/write-refusal";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, fmt, clamp, Icon, Chip, Dot, Num, Spark, Empty, useHistory, hue, STATE, type ShellProps } from "../kit";
-import { ReadOnly } from "../ReadOnly";
+import { ReadOnly } from "../shared/ReadOnly";
 import { clock, GAP, planTiles } from "./layout";
 import { useExtras, useInStudio, useNow } from "../time-hooks";
 import { meta } from "./meta";

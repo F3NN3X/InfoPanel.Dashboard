@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { Widget, shell, get, num, fmt, has, Img, Bar, Stat, GlassPill, Icon, type ShellProps } from "../kit";
-import { widgetImage } from "../data-adapter";
+import { widgetImage } from "../shared/data-adapter";
 import { hoursText } from "../game-spotlight/GameSpotlight";
 import { meta } from "./meta";
 

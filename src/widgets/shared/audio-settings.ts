@@ -3,7 +3,7 @@
 import type { BallisticsPreset } from "@/lib/audio/ballistics";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import type { WaveLinkProps } from "../wave-link/WaveLink";
-import { flowFilterOf } from "../audio-data";
+import { flowFilterOf } from "./audio-data";
 import { MIXER_LOOK, type MixerLook } from "../core/mixer-look";
 import type { WidgetMeta } from "../core/types";
 import { meta as waveLinkMeta } from "../wave-link/meta";

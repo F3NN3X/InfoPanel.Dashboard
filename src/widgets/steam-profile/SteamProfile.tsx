@@ -1,5 +1,5 @@
 import { roomy, Widget, shell, get, rows, has, Img, Dot, Stat, Chip, type ShellProps } from "../kit";
-import { widgetImage } from "../data-adapter";
+import { widgetImage } from "../shared/data-adapter";
 import { meta } from "./meta";
 
 export { meta };

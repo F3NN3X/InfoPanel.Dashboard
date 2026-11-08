@@ -111,7 +111,7 @@ The whole library shares one design system, in `src/widgets/core/`:
   an untinted surface); weather tints from the current condition; Game
   Spotlight uses the game banner as the background.
 - **Data adapter.** A template reads `Record<string, string>`; the module
-  factory builds it from the sensor map (`toFlat`, `src/widgets/data-adapter.ts`)
+  factory builds it from the sensor map (`toFlat`, `src/widgets/shared/data-adapter.ts`)
   on the page's one shared stream. Sensor display names come with it (`toNames`),
   so auto-discovered rows are labelled by the sensor, not its key.
 - **Options.** Every module declares a `settings` schema

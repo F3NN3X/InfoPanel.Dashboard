@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { audioIds, audioIdsIn, flowFilterOf, flowOf, loudestId, pickedIds, readDevice, volumeFlowOf, volumePicked } from "@/widgets/audio-data";
-import { toFlat } from "@/widgets/data-adapter";
+import { audioIds, audioIdsIn, flowFilterOf, flowOf, loudestId, pickedIds, readDevice, volumeFlowOf, volumePicked } from "@/widgets/shared/audio-data";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 
 const GUID = "cffd42bd-62a0-43d7-98d5-8b227c5ac3ce";

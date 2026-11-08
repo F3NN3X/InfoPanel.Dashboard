@@ -1,6 +1,6 @@
 // The hardware readings of the Data API (`libre.*` and `hwinfo.*`), found without a fixed key list:
 // SensorGroup lists them, Thermals draws the temperatures as gauges.
-import { get, num, pretty, sensorLabel, type Data } from "./kit";
+import { get, num, pretty, sensorLabel, type Data } from "../kit";
 
 export type ReadingKind = "temp" | "fan" | "power" | "other";
 

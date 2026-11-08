@@ -2,7 +2,7 @@ import { useContext, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
 import type { ModuleSettings } from "@/modules/types";
 import { isImageUrl } from "@/lib/image";
-import { widgetImage } from "./data-adapter";
+import { widgetImage } from "./shared/data-adapter";
 import { Unit, IpTagCtx, Widget, Empty, shell, get, num, fmt, has, Metric, Ring, Spark, Bar, Num, useHistory, useIpTag, tone, TONES, type ShellProps } from "./kit";
 import { fitFont, ringFont, textEm, valueFont } from "./core/fit";
 import { meta } from "./meta/SensorValue";

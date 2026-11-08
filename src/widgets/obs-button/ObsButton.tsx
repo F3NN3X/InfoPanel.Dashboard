@@ -1,7 +1,7 @@
 import { obsAct, obsRefusal } from "@/lib/obs-control";
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, ButtonTile, STATE, type ShellProps } from "../kit";
-import { ReadOnly } from "../ReadOnly";
+import { ReadOnly } from "../shared/ReadOnly";
 import { useExtras } from "../time-hooks";
 import { meta } from "./meta";
 

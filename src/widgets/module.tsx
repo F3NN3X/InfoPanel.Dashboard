@@ -10,7 +10,7 @@ import { effectiveSettings, type DashboardModule, type ModuleSetting, type Modul
 import { ensureSkinFonts } from "./core/fonts";
 import { SKINS, skinOfLook } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
-import { toFlat, toNames } from "./data-adapter";
+import { toFlat, toNames } from "./shared/data-adapter";
 import { preloadOf } from "./lazy-widget";
 
 export interface TemplateOptions<P extends object> {

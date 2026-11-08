@@ -1,5 +1,5 @@
 // Steam Friends' table, read apart from the widget: the island reads it from the kiosk entry.
-import { rows } from "./kit";
+import { rows } from "../kit";
 
 export type FriendStatus = "ingame" | "online" | "away" | "busy" | "offline";
 export type FriendSort = "status" | "name" | "plugin";

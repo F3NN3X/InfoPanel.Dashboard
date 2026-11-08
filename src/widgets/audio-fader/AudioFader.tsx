@@ -4,7 +4,7 @@ import { Widget, shell, fmt, clamp, roomy, Icon, Num, Empty, hue, type ShellProp
 import { findChannel, iconOf } from "../stream-mixer/channels";
 import { setVolume, toggleMute } from "../stream-mixer/control";
 import { MixFader, type FaderMode } from "../stream-mixer/Fader";
-import { ReadOnly } from "../ReadOnly";
+import { ReadOnly } from "../shared/ReadOnly";
 import { meta } from "./meta";
 
 export { meta };

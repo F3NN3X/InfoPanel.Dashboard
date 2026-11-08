@@ -1,7 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
 import { alignOf } from "@/modules/setting-readers";
 import { bodyGap, fillRows, roomy, clamp, ChannelBar, ChannelRow, useFitRows, Widget, shell, get, num, fmt, Num, Ring, Icon, Dot, Chip, STATE, type ShellProps } from "../kit";
-import { inFlow, levelContainerOf, volumeFlowOf, volumePicked, type FlowFilter } from "../audio-data";
+import { inFlow, levelContainerOf, volumeFlowOf, volumePicked, type FlowFilter } from "../shared/audio-data";
 import type { MixerLook } from "../core/mixer-look";
 import { useDeviceLevel } from "../core/level-source";
 import { MixerViewBody, PERCENT, fitMixer, toneOf, type StripChannel } from "../core/mixer-views";

@@ -382,8 +382,8 @@
         "src/lib/clock-format.ts",
         "src/lib/weather-days.ts",
         "src/lib/weather-icons.ts",
-        "src/widgets/data-adapter.ts",
-        "src/widgets/hardware-readings.ts"
+        "src/widgets/shared/data-adapter.ts",
+        "src/widgets/shared/hardware-readings.ts"
       ],
       "tests": [
         "tests/lib/sensor-store.test.ts",
@@ -408,8 +408,8 @@
         "tests/lib/clock-format.test.ts",
         "tests/lib/weather-days.test.ts",
         "tests/lib/weather-icons.test.ts",
-        "tests/widgets/data-adapter.test.ts",
-        "tests/widgets/hardware-readings.test.ts"
+        "tests/widgets/shared/data-adapter.test.ts",
+        "tests/widgets/shared/hardware-readings.test.ts"
       ],
       "checks": ["typecheck", "unit"]
     },
@@ -424,8 +424,8 @@
         "src/lib/performance.ts",
         "src/lib/curves.ts",
         "src/lib/audio/**",
-        "src/widgets/audio-data.ts",
-        "src/widgets/audio-device.ts"
+        "src/widgets/shared/audio-data.ts",
+        "src/widgets/shared/audio-device.ts"
       ],
       "tests": [
         "tests/lib/ticker.test.ts",
@@ -433,7 +433,7 @@
         "tests/lib/timer.test.ts",
         "tests/lib/performance.test.ts",
         "tests/lib/audio/**",
-        "tests/widgets/audio-data.test.ts"
+        "tests/widgets/shared/audio-data.test.ts"
       ],
       "checks": ["typecheck", "unit"],
       "note": "Widely imported: `vitest related` on ticker.ts pulls in about half the suite. That is expected."
@@ -459,16 +459,21 @@
         "tests/widgets/core/**",
         "tests/widgets/island/**",
         "tests/widgets/now-playing/**",
-        "tests/widgets/DayPlanner/**",
-        "tests/widgets/RadialClock/**",
-        "tests/widgets/OnAir/**",
-        "tests/widgets/StreamMixer/**",
-        "tests/widgets/StreamControl/**",
-        "tests/widgets/StreamDeck/**",
+        "tests/widgets/calendar/**",
+        "tests/widgets/clock/**",
+        "tests/widgets/timer/**",
+        "tests/widgets/web-page/**",
+        "tests/widgets/drive-space/**",
+        "tests/widgets/day-planner/**",
+        "tests/widgets/radial-clock-stack/**",
+        "tests/widgets/on-air-beacon/**",
+        "tests/widgets/stream-mixer/**",
+        "tests/widgets/stream-control/**",
+        "tests/widgets/stream-deck/**",
         "tests/widgets/widget-qa/**",
         "tests/tools/qa/**",
         "tests/visual/look/**",
-        "tests/widgets/StreamChat/**",
+        "tests/widgets/stream-chat/**",
         "tests/widgets/status-bar/**",
         "tests/widgets/shared/**",
         "tests/widgets/weather-fx/**",

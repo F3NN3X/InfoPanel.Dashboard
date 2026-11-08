@@ -6,7 +6,7 @@ import { audioRefusal, type AudioState } from "@/lib/audio-control";
 import type { ModuleSettings, SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { lcdAppearanceFor } from "@/widgets/core/mixer-views";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import { sensorStore } from "@/lib/sensor-store";
 import type { ShellProps } from "@/widgets/kit";
 import { mixerLookOf } from "@/widgets/shared/audio-settings";

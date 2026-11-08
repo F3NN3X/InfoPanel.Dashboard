@@ -1,7 +1,7 @@
 // OSD Strip: an in-game overlay strip. What the registry needs; the component is its own chunk.
 import type { ModuleSettings } from "@/modules/types";
 import { BOTH, defineWidget } from "../define";
-import { targetOf, targetSetting } from "../fps-settings";
+import { targetOf, targetSetting } from "../shared/fps-settings";
 import { enumSetting, listOf, oneOf, splitKeys } from "../shared/settings-kit";
 import { meta } from "./meta";
 import type { OsdCell, OsdStripProps } from "./OsdStrip";

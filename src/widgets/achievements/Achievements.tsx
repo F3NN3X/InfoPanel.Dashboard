@@ -1,5 +1,5 @@
 import { Widget, shell, get, num, fmt, has, roomy, Ring, RING_TEXT, Img, Icon, useSkin, numFont, type ShellProps } from "../kit";
-import { widgetImage } from "../data-adapter";
+import { widgetImage } from "../shared/data-adapter";
 import { meta } from "./meta";
 
 export { meta };

@@ -3,7 +3,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
 import { fixtureSensors } from "@/widgets/__fixtures__";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
 import Bluetooth, { meta as bluetooth } from "@/widgets/bluetooth/Bluetooth";
 import Departures, { meta as departures } from "@/widgets/departures/Departures";

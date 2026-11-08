@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { SensorMap } from "@/modules/types";
-import { toFlat } from "@/widgets/data-adapter";
+import { toFlat } from "@/widgets/shared/data-adapter";
 import { diskMetric, filterDisks, formatTemp, MBPS, netMetric, pickAdapter, pickDisk, rateTop, readAdapters, readAdaptersFlat, readCpuFlat, readSystem, readSystemFlat } from "@/lib/system-metrics";
 import { fixtureSensors } from "@/widgets/__fixtures__";
 
@@ -275,7 +275,8 @@ describe("readSystemFlat", () => {
   });
 
   it("memoises per data identity", () => {
-    expect(readSystemFlat(flat)).toBe(f);
+    const first = readSystemFlat(flat);
+    expect(readSystemFlat(flat)).toBe(first);
   });
 
   it("takes hardware and drive names from the sensor names when given", () => {
