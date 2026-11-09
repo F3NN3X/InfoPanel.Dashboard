@@ -15,6 +15,7 @@ import { normalizeIsland, type IslandConfig } from "./island/config";
 import { usesSampleCards, userLookIds } from "@/looks/sample-cards";
 import { normalizePerformance, type ScreenPerformance } from "./performance";
 import type { LegacyDashboardFields } from "./screen-look-migrate";
+import { namesMergedWidget } from "./merged-widget-ids";
 import {
   normalizePanelPlacement,
   normalizePanelPresets,
@@ -650,6 +651,8 @@ export const isCurrentConfig = (c: Pick<StoredConfig, "version">): boolean => ty
  * still hold the merged id, and this build no longer registers it.
  */
 async function withMergedWidgets(config: DashboardConfig): Promise<DashboardConfig> {
+  // Nothing to map (almost always): no request for the table's chunk.
+  if (!namesMergedWidget(config.profiles)) return config;
   const { migrateMergedWidgetsV19 } = await import("./settings-migrate.v19");
   const profiles = config.profiles.map(migrateMergedWidgetsV19);
   return profiles.every((p, i) => p === config.profiles[i]) ? config : { ...config, profiles };

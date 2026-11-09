@@ -11,6 +11,7 @@ import { SCREEN_TEMPLATES } from "@/lib/screen-templates/catalog";
 import { instantiate } from "@/lib/screen-templates/instantiate";
 import { REFERENCE } from "@/lib/screen-templates/kit";
 import holo from "@/looks/packs/holo/template";
+import { MERGED_WIDGET_IDS, namesMergedWidget } from "@/lib/merged-widget-ids";
 import { migrateMergedWidgetsV19, migratePlacementV19, WIDGET_MERGES } from "@/lib/settings-migrate.v19";
 import { modules } from "@/modules";
 import type { ModuleSettings } from "@/modules/types";
@@ -276,6 +277,22 @@ describe("v19: the version", () => {
   });
 });
 
+describe("v19: the gate in front of the merge table", () => {
+  it("names exactly the table's merged-away ids, each once", () => {
+    expect([...MERGED_WIDGET_IDS].sort()).toEqual(WIDGET_MERGES.map((m) => m.from).sort());
+    expect(new Set(MERGED_WIDGET_IDS).size).toBe(MERGED_WIDGET_IDS.length);
+  });
+
+  it("finds a merged-away id as a zone's module or an inline canvas's widget, and nothing in a config without one", () => {
+    for (const id of MERGED_WIDGET_IDS) {
+      expect(namesMergedWidget([screen("s", [zone("a", id)])]), id).toBe(true);
+      expect(namesMergedWidget([screen("s", [zone("c", "infopanel", { canvas: { items: [{ kind: "Image", $: { widget: { module: id } } }] } })])]), `canvas ${id}`).toBe(true);
+    }
+    expect(namesMergedWidget([screen("s", [zone("a", "Weather", { settings: { view: "forecast" } }), zone("b", "GpuMonitor"), zone("c", "FpsMonitor")])])).toBe(false);
+    expect(namesMergedWidget(undefined)).toBe(false);
+  });
+});
+
 describe("v19: the merge table", () => {
   it("maps each merged-away id to a registered survivor and one of its views, and no merged-away id is registered", () => {
     for (const m of WIDGET_MERGES) {
@@ -288,7 +305,7 @@ describe("v19: the merge table", () => {
   });
 
   it("leaves no merged-away id in the built-in screen templates", () => {
-    const merged = new Set(WIDGET_MERGES.map((m) => m.from));
+    const merged = new Set<string>(WIDGET_MERGES.map((m) => m.from));
     for (const t of SCREEN_TEMPLATES)
       for (const v of t.variants ?? [undefined])
         for (const s of [...Object.values(REFERENCE), t.size]) {

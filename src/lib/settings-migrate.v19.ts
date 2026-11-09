@@ -2,10 +2,11 @@
 // survivor in the matching view, its settings mapped. In a module of its own so only an older config's load, and an
 // imported file's, carries it (config-upgrade.ts); the Widget QA page reads the table to draw the merged-away ids.
 import type { ModuleSettings } from "@/modules/types";
+import type { MergedWidgetId } from "./merged-widget-ids";
 
 /** One merge: the merged-away id, the survivor and the view it becomes, and its stored settings as the survivor's. */
 export interface WidgetMerge {
-  from: string;
+  from: MergedWidgetId;
   /** The merged-away widget's name, which the Widget QA page titles its frames with. */
   name: string;
   to: string;
