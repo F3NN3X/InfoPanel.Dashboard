@@ -79,6 +79,8 @@ export interface ModuleSetting {
   keyY?: string;
   /** The default of `keyY` (unset: `default`). */
   defaultY?: ModuleSettingValue;
+  /** A text row holding a place list as JSON text (a recipe's `place-list` option): edited as places, with place search. */
+  places?: true;
   /** For type "thresholds": the quantity (`theme-model.ts` `QUANTITIES`). */
   quantity?: ThresholdQuantity;
   /** Extra search terms (the settings search also matches label, key and options). */
