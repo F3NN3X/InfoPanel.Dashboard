@@ -12,14 +12,6 @@ export const isRecipeId = (id: unknown): id is string => typeof id === "string" 
 
 const RecipeWidget = lazyWidget(() => import("./RecipeWidget"));
 const made = new Map<string, DashboardModule>();
-/** Each loaded recipe's keys per placement (`reads.ts`, set by the store when the recipe has loaded). */
-const reads = new Map<string, (saved: ModuleSettings | undefined) => string[]>();
-
-/**
- * What a recipe's placements read from now on: its keys once loaded (`[]` for one that is missing or refused, so the empty
- * card draws without data; none forgets them). Until then a placement reads every key, and its next tick narrows the subscription.
- */
-export const learnReads = (id: string, keys?: (saved: ModuleSettings | undefined) => string[]): void => void (keys ? reads.set(id, keys) : reads.delete(id));
 
 /** The module that draws a recipe placement, or undefined for an id that is not a recipe's. One per id. */
 export function recipeModule(id: string): DashboardModule | undefined {
@@ -27,8 +19,18 @@ export function recipeModule(id: string): DashboardModule | undefined {
   let mod = made.get(id);
   if (!mod) {
     const meta = { id, name: id.slice(7), category: "Recipes", icon: "dashboard", prefixes: [], defaultSize: [3, 2] as [number, number], minSize: [1, 1] as [number, number], description: "" };
-    mod = templateModule({ meta, Component: RecipeWidget, settings: [], toProps: (_look, saved) => ({ recipe: id, saved }), readsFor: (saved) => reads.get(id)?.(saved) });
+    mod = templateModule({ meta, Component: RecipeWidget, settings: [], toProps: (_look, saved) => ({ recipe: id, saved }) });
     made.set(id, mod);
   }
   return mod;
+}
+
+/**
+ * What a recipe's placements read from now on (`DashboardModule.readsFor`, set by the store when the recipe has loaded): its keys,
+ * `[]` for one that is missing or refused (so the empty card draws without data), none to forget them. Until then a placement reads
+ * every key, and its next tick narrows the subscription.
+ */
+export function learnReads(id: string, keys?: (saved: ModuleSettings | undefined) => string[]): void {
+  const mod = recipeModule(id);
+  if (mod) mod.readsFor = keys;
 }
