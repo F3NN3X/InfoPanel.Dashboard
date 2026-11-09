@@ -15,7 +15,9 @@ export function pickModules(all: DashboardModule[], templates: DashboardModule[]
 export function mergedModules(templates: DashboardModule[]): DashboardModule[] {
   return WIDGET_MERGES.flatMap((m) => {
     const to = templates.find((t) => t.id === m.to);
-    return to ? [{ ...to, id: m.from, title: m.name, views: undefined, viewKey: undefined }] : [];
+    // the view's own minimum where it has one (Frame Pacing's 2x1 against FPS Monitor's 1x1), so no frame below it appears
+    const min = to?.views?.find((v) => v.id === m.view)?.minSize;
+    return to ? [{ ...to, id: m.from, title: m.name, views: undefined, viewKey: undefined, ...(min ? { minCols: min[0], minRows: min[1] } : {}) }] : [];
   });
 }
 

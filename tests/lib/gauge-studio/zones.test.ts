@@ -53,9 +53,16 @@ describe("widget rings", () => {
   const on = { profileId: "p", pageId: "pg", screen: "Perf heavy", page: "Main" };
   const zone = (module: string, settings?: Placement["settings"]): Placement => ({ id: "z", module, colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, visible: true, settings });
 
-  it("counts the rings a GPU Rings widget draws and what they read", () => {
+  it("counts the rings a stored GPU Rings widget draws and what they read", () => {
     expect(ringsOf(zone("GpuRings"), on)).toMatchObject({ name: "GPU Rings", count: 2, reads: "VRAM, Load" });
     expect(ringsOf(zone("GpuRings", { outer: "power", inner: "fan" }), on)?.reads).toBe("Power, Fan");
+  });
+
+  it("counts the rings of GPU Monitor's rings view (the GPU Rings widget since config v19), and none in its monitor view", () => {
+    expect(ringsOf(zone("GpuMonitor", { view: "rings" }), on)).toMatchObject({ name: "GPU Rings", count: 2, reads: "VRAM, Load" });
+    expect(ringsOf(zone("GpuMonitor", { view: "rings", outer: "power", inner: "fan", title: "Card" }), on)).toMatchObject({ name: "Card", reads: "Power, Fan" });
+    expect(ringsOf(zone("GpuMonitor"), on)).toBeNull();
+    expect(ringsOf(zone("GpuMonitor", { view: "monitor", outer: "power" }), on)).toBeNull();
   });
 
   it("counts a System overview's section rings, at most three and never VRAM", () => {

@@ -2,7 +2,7 @@
 // whether it draws a header, what it draws in small zones, the units and thresholds it renders (its schema has
 // one Units & format / Thresholds row each; checked against what each renderer draws) and its look subset.
 import type { CompactShape, DashboardModule, ModuleSetting } from "@/modules/types";
-import { BOTH, CARD, NONE } from "../define";
+import { CARD, NONE } from "../define";
 
 export type InspectorMeta = Required<Pick<DashboardModule, "header" | "compact">> &
   Pick<DashboardModule, "fmt" | "thr" | "styleSubset" | "noData" | "byView">;
@@ -14,9 +14,6 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   // Group B: storage, network, info, generic
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
-  // Group D: gaming
-  FpsMonitor: yes(CARD),
-  FramePacing: yes(BOTH),
 };
 
 /**

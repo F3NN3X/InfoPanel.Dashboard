@@ -3,7 +3,6 @@
 // generator turns that into each folder widget's place, so the kiosk entry carries three numbers, not the list.
 import { isDeviceKind, type DashboardModule } from "@/modules/types";
 import { GROUP_B } from "./registry/b";
-import { GROUP_D } from "./registry/d";
 import { fitSettings, INSPECTOR_META } from "./registry/inspector-meta";
 import { folderModule } from "./folder-module";
 import { FOLDER_SLOTS, FOLDER_WIDGETS } from "./registry.generated";
@@ -14,7 +13,7 @@ const deviceKindOf = (m: DashboardModule): DashboardModule["deviceKind"] => {
   return isDeviceKind(from) ? from : undefined;
 };
 
-const GROUPS: DashboardModule[] = [...GROUP_B, ...GROUP_D];
+const GROUPS: DashboardModule[] = [...GROUP_B];
 
 /** The group widgets with their `INSPECTOR_META` entry, and each folder widget inserted at its place (in ascending order). */
 const ALL = FOLDER_WIDGETS.reduce(

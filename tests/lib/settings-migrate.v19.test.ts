@@ -1,14 +1,16 @@
 // Config v19 (the widget merges, _docs/widgets/MERGES.md): a merged-away widget's placement becomes its survivor in the
 // matching view (M1: Forecast is Weather's forecast view; M3: Threshold Timeline is Session Stats' lanes view; M5: Vitals is
-// KPI Tiles' cards view). Each case loads a config through `upgradeConfig` as the app does, or an outside file through
+// KPI Tiles' cards view; M2: GPU Rings is GPU Monitor's rings view; M4: Frame Pacing is FPS Monitor's pacing view). Each case loads a config through `upgradeConfig` as the app does, or an outside file through
 // `readImportedConfig`. What a migrated zone draws is tests/widgets/weather/forecast-view.test.tsx,
-// tests/widgets/session-stats/lanes-view.test.tsx and tests/widgets/kpi-tiles/cards-view.test.tsx.
+// tests/widgets/session-stats/lanes-view.test.tsx, tests/widgets/kpi-tiles/cards-view.test.tsx,
+// tests/widgets/gpu-monitor/rings-view.test.tsx and tests/widgets/fps-monitor/pacing-view.test.tsx.
 import { describe, expect, it } from "vitest";
 import { upgradeConfig } from "@/lib/config-upgrade";
-import { CONFIG_VERSION, readConfig, readImportedConfig, type DashboardConfig, type StoredConfig } from "@/lib/layout";
+import { CONFIG_VERSION, mergeConfig, readConfig, readImportedConfig, type DashboardConfig, type StoredConfig } from "@/lib/layout";
 import { SCREEN_TEMPLATES } from "@/lib/screen-templates/catalog";
 import { instantiate } from "@/lib/screen-templates/instantiate";
 import { REFERENCE } from "@/lib/screen-templates/kit";
+import holo from "@/looks/packs/holo/template";
 import { migrateMergedWidgetsV19, migratePlacementV19, WIDGET_MERGES } from "@/lib/settings-migrate.v19";
 import { modules } from "@/modules";
 import type { ModuleSettings } from "@/modules/types";
@@ -149,6 +151,110 @@ describe("v19: a Vitals zone is KPI Tiles' cards view (M5)", () => {
       const z = zone("k", "KpiTiles", settings ? { settings } : {});
       expect(zones(upgradeConfig(stored(18, [screen("s", [z])])))[0], JSON.stringify(settings)).toEqual(z);
     }
+  });
+});
+
+describe("v19: a GPU Rings zone is GPU Monitor's rings view (M2)", () => {
+  it("one with no settings of its own gets the view and nothing else (no default differs)", () => {
+    expect(zones(upgradeConfig(stored(18, [screen("s", [zone("g", "GpuRings")])])))[0]).toEqual(zone("g", "GpuMonitor", { settings: { view: "rings" } }));
+  });
+
+  it("keeps its rings, colours, card and every other key, and the zone's id, box, flags, follow, lock and name", () => {
+    const settings = { outer: "load", inner: "fan", outerColor: "#ff0000", innerColor: "#00ff00", device: "nvidia_geforce_rtx_5090", compact: "dense", accent: "#00ff00", label: "Card" };
+    const extra = { colStart: 3, rowStart: 2, colSpan: 3, rowSpan: 2, visible: false, design: { header: true }, follow: { colors: false, palette: true }, locked: true, name: "Rings" };
+    const out = zones(upgradeConfig(stored(18, [screen("s", [zone("g", "GpuRings", { ...extra, settings })])])))[0];
+    expect(out).toEqual({ ...zone("g", "GpuMonitor", extra), settings: { ...settings, view: "rings" } });
+  });
+
+  it("a GPU Rings from before v7 goes through the older steps first (its `gpu` key), then becomes the view", () => {
+    const out = zones(upgradeConfig(stored(6, [screen("s", [zone("g", "GpuRings", { settings: { gpu: "nvidia_x", outerColor: "#ff0000" } })])])))[0];
+    expect(out).toMatchObject({ module: "GpuMonitor", settings: { device: "nvidia_x", outerColor: "#ff0000", view: "rings" } });
+    expect(out.settings).not.toHaveProperty("gpu");
+  });
+
+  it("maps an inline canvas's Studio widget and an imported file", async () => {
+    const canvas = { items: [{ kind: "Image", $: { widget: { module: "GpuRings", settings: { outer: "power" } } } }] };
+    const out = upgradeConfig(stored(18, [screen("s", [zone("c", "infopanel", { canvas })])]));
+    expect((zones(out)[0].canvas as unknown as { items: { $: { widget: unknown } }[] }).items[0].$.widget).toEqual({ module: "GpuMonitor", settings: { outer: "power", view: "rings" } });
+    const imported = await readImportedConfig(stored(CONFIG_VERSION, [screen("s", [zone("g", "GpuRings", { settings: { inner: "vram" } })])]));
+    expect(zones(imported)[0]).toMatchObject({ module: "GpuMonitor", settings: { inner: "vram", view: "rings" } });
+  });
+
+  it("leaves an existing GPU Monitor zone in its own view", () => {
+    for (const settings of [undefined, { "warn.temp": 70 }, { view: "monitor", device: "nvidia_x" }, { view: "rings", outer: "load" }]) {
+      const z = zone("m", "GpuMonitor", settings ? { settings } : {});
+      expect(zones(upgradeConfig(stored(18, [screen("s", [z])])))[0], JSON.stringify(settings)).toEqual(z);
+    }
+  });
+});
+
+describe("v19: a Frame Pacing zone is FPS Monitor's pacing view (M4)", () => {
+  it("one with no settings of its own gets the view and nothing else (no default differs)", () => {
+    expect(zones(upgradeConfig(stored(18, [screen("s", [zone("f", "FramePacing")])])))[0]).toEqual(zone("f", "FpsMonitor", { settings: { view: "pacing" } }));
+  });
+
+  it("keeps its budget lines, samples, island send and every other key, and the zone's id, box, flags, follow, lock and name", () => {
+    const settings = { budgets: "144, 30", window: 60, island: true, islandStart: true, compact: "dense", accent: "#ff0000" };
+    const extra = { colStart: 5, rowStart: 3, colSpan: 8, rowSpan: 4, visible: true, design: { header: false }, follow: { format: true }, locked: true, name: "Pacing" };
+    const out = zones(upgradeConfig(stored(18, [screen("s", [zone("f", "FramePacing", { ...extra, settings })])])))[0];
+    expect(out).toEqual({ ...zone("f", "FpsMonitor", extra), settings: { ...settings, view: "pacing" } });
+  });
+
+  it("maps an inline canvas's Studio widget and an imported file", async () => {
+    const canvas = { items: [{ kind: "Group", DisplayItems: [{ kind: "Image", $: { widget: { module: "FramePacing", settings: { window: 90 } } } }] }] };
+    const out = upgradeConfig(stored(18, [screen("s", [zone("c", "infopanel", { canvas })])]));
+    const items = (zones(out)[0].canvas as unknown as { items: { DisplayItems: { $: { widget: unknown } }[] }[] }).items;
+    expect(items[0].DisplayItems[0].$.widget).toEqual({ module: "FpsMonitor", settings: { window: 90, view: "pacing" } });
+    const imported = await readImportedConfig({ profiles: [screen("s", [zone("f", "FramePacing", { settings: { budgets: "75" } })])] } as unknown as StoredConfig);
+    expect(zones(imported)[0]).toMatchObject({ module: "FpsMonitor", settings: { budgets: "75", view: "pacing" } });
+  });
+
+  it("leaves an existing FPS Monitor zone in its own view", () => {
+    for (const settings of [undefined, { target: 144 }, { view: "gauge", sparkline: false }, { view: "trend", sparkline: true, ringColor: "#ff0000" }, { view: "pacing", budgets: "60" }]) {
+      const z = zone("p", "FpsMonitor", settings ? { settings } : {});
+      expect(zones(upgradeConfig(stored(18, [screen("s", [z])])))[0], JSON.stringify(settings)).toEqual(z);
+    }
+  });
+});
+
+describe("v19: screen and pack templates", () => {
+  it("Gaming and Hardware draw GPU Monitor's rings view and FPS Monitor's pacing view (proved equal to the old ids migrated when the templates changed)", () => {
+    const find = (id: string) => SCREEN_TEMPLATES.find((t) => t.id === id)!;
+    for (const id of ["gaming", "hardware"]) {
+      const { profile } = instantiate(find(id), { name: id, width: 1920, height: 1080 });
+      const placements = profile.pages.flatMap((pg) => pg.placements);
+      expect(placements.some((p) => p.module === "GpuMonitor" && p.settings?.view === "rings"), id).toBe(true);
+      if (id === "gaming") expect(placements.some((p) => p.module === "FpsMonitor" && p.settings?.view === "pacing")).toBe(true);
+    }
+  });
+
+  it("the Holo pack's template uses the surviving ids in their views", () => {
+    const placed = instantiate(holo[0], { name: "h", width: 1920, height: 1080 }).profile.pages.flatMap((pg) => pg.placements);
+    expect(placed.map((p) => p.module)).not.toContain("GpuRings");
+    expect(placed.map((p) => p.module)).not.toContain("FramePacing");
+    expect(placed.find((p) => p.settings?.view === "pacing")?.module).toBe("FpsMonitor");
+    expect(placed.find((p) => p.settings?.view === "rings")?.module).toBe("GpuMonitor");
+  });
+});
+
+describe("v19: a config already at v19 that still holds a merged-away id", () => {
+  // A dev build saved v19 before M2 and M4 landed: upgradeConfig never runs for it, so its read does the mapping.
+  it("reading it maps the zones, keeps its other zones untouched, and a second read is identical", async () => {
+    const config = stored(CONFIG_VERSION, [screen("s", [zone("g", "GpuRings", { settings: { outer: "load" } }), zone("f", "FramePacing", { settings: { window: 60 } }), zone("w", "Weather", { settings: { view: "forecast" } }), zone("c", "Clock")])]);
+    const out = await readConfig(config);
+    expect(zones(out).map((z) => [z.module, z.settings])).toEqual([
+      ["GpuMonitor", { outer: "load", view: "rings" }],
+      ["FpsMonitor", { window: 60, view: "pacing" }],
+      ["Weather", { view: "forecast" }],
+      ["Clock", undefined],
+    ]);
+    expect(out.version).toBe(CONFIG_VERSION);
+    expect(await readConfig(JSON.parse(JSON.stringify(out)) as StoredConfig)).toEqual(out);
+  });
+
+  it("a current config without a merged-away id reads as before", async () => {
+    const config = stored(CONFIG_VERSION, [screen("s", [zone("g", "GpuMonitor", { settings: { view: "rings" } })])]);
+    expect(await readConfig(config)).toEqual(mergeConfig(config));
   });
 });
 

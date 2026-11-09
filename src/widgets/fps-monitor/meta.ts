@@ -1,4 +1,4 @@
-// FpsMonitor's catalog entry, apart from its component so the registry can list it without loading the widget.
+// FpsMonitor's catalog entry: pure data, so the registry and the generator read it without the component.
 import type { WidgetMeta } from "../core/types";
 
 export const meta: WidgetMeta = {
@@ -17,5 +17,17 @@ export const meta: WidgetMeta = {
     { id: "frametime", name: "Frame-time graph", applies: {} },
     { id: "gauge", name: "Gauge", blurb: "Frame rate on a ring with 1% low", tags: "ring dial", applies: { sparkline: false } },
     { id: "trend", name: "Trend", blurb: "Frame rate ring with a trend sparkline", tags: "ring sparkline history", applies: { sparkline: true } },
+    // The Frame Pacing widget until config v19: added at its size and found by its words. It draws "No game running" with any
+    // sensor present (no prefixes of its own), as that widget did, and reads RTSS only.
+    {
+      id: "pacing",
+      name: "Frame pacing",
+      blurb: "Frame-time graph with budget lines",
+      tags: "stutter fps frametime budget",
+      defaultSize: [4, 2],
+      minSize: [2, 1],
+      applies: {},
+      prefixes: [],
+    },
   ],
 };

@@ -1,6 +1,7 @@
-import { Widget, shell, get, num, fmt, has, clamp, Metric, Ring, Spark, Stat, Chip, Num, ToneCue, hue, useHistory, frameSample, frameBudgets, frameTimeTop, clampSpikes, Icon, TONES, type ShellProps, type Tier, type Tone } from "./kit";
-import { fpsSubLine } from "./shared/fps-line";
-import { meta } from "./meta/FpsMonitor";
+import { Widget, shell, get, num, fmt, has, clamp, Metric, Ring, Spark, Stat, Chip, Num, ToneCue, hue, useHistory, frameSample, frameBudgets, frameTimeTop, clampSpikes, Icon, TONES, type ShellProps, type Tier, type Tone } from "../kit";
+import { fpsSubLine } from "../shared/fps-line";
+import FramePacing, { type FramePacingProps } from "./FramePacing";
+import { meta } from "./meta";
 
 export { meta };
 
@@ -173,7 +174,17 @@ export function GaugeView({ idle, size, w, h, fps, low, low01, ft, hz, maxFps, t
   );
 }
 
-export default function FpsMonitor(p: FpsMonitorProps) {
+/** The views: the frame-time graph (the default), `gauge`, `trend` and `pacing` (the Frame Pacing widget until config v19). */
+export type FpsMonitorView = "gauge" | "trend" | "pacing";
+
+/** Each view's props: the pacing view reads the budget lines and the samples kept. */
+export type FpsMonitorWidgetProps = Omit<FpsMonitorProps, "view"> & Pick<FramePacingProps, "budgets" | "window"> & { view?: FpsMonitorView };
+
+export default function FpsMonitor(p: FpsMonitorWidgetProps) {
+  return p.view === "pacing" ? <FramePacing {...p} /> : <Fps {...(p as FpsMonitorProps)} />;
+}
+
+function Fps(p: FpsMonitorProps) {
   const d = p.data;
   // RTSS first, then the PresentMon plugin's key (and its alternative names).
   const k: Lookup = (...ids) => ids.flatMap((id) => [get(d, RTSS + id), get(d, PRESENTMON + id)]).find(has) ?? "";

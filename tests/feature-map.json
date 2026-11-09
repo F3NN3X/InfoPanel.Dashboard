@@ -479,6 +479,8 @@
         "tests/widgets/weather/**",
         "tests/widgets/session-stats/**",
         "tests/widgets/kpi-tiles/**",
+        "tests/widgets/gpu-monitor/**",
+        "tests/widgets/fps-monitor/**",
         "tests/widgets/weather-fx/**",
         "tests/e2e/kiosk-renders.spec.ts",
         "tests/e2e/streaming-widgets-fit.spec.ts",

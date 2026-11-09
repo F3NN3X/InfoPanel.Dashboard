@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STANDARD_SETTINGS } from "@/modules/standard-settings";
-import { effectiveSettings, settingKeys, type SensorMap } from "@/modules/types";
+import { effectiveSettings, settingKeys, type ModuleSettings, type SensorMap } from "@/modules/types";
 import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { GROUP_A_IDS, groupOf } from "./group-of";
 
@@ -25,8 +25,7 @@ const MANIFEST: Record<string, Record<string, string[]>> = {
   Uptime: { showSeconds: ["showSeconds"] },
   CpuMonitor: { cpu: ["device"], coreView: ["coreView"], coreMetric: ["coreMetric"], heatRamp: ["heatRamp"], warn: ["warn.load"], crit: ["crit.load"] },
   CoreHeatmap: { shape: ["shape"], ramp: ["ramp"], metric: ["metric"], showValues: ["showValues"], history: ["history"] },
-  GpuRings: { outer: ["outer"], inner: ["inner"], colors: ["outerColor", "innerColor"] },
-  GpuMonitor: { gpu: ["device"], warnTemp: ["warn.temp"], critTemp: ["crit.temp"] },
+  GpuMonitor: { gpu: ["device"], warnTemp: ["warn.temp"], critTemp: ["crit.temp"], outer: ["outer"], inner: ["inner"], colors: ["outerColor", "innerColor"] },
   MemoryUsage: { warn: ["warn.load"], crit: ["crit.load"] },
   Thermals: { sortBy: ["sortBy"], warn: ["warn.temp"], crit: ["crit.temp"], max: ["max"] },
   PowerDraw: { budget: ["budget"] },
@@ -35,10 +34,12 @@ const MANIFEST: Record<string, Record<string, string[]>> = {
 // Template props beyond the spec block that the inspector also reaches, or spec words that are not props.
 const EXTRA: Record<string, Record<string, string[]>> = {
   CoreHeatmap: { cpu: ["device"], hotOutline: ["hotOutline"] },
-  GpuRings: { gpu: ["device"] },
   ServiceHealth: { layout: ["healthLayout"] },
   Thermals: { view: ["view"], discover: ["discover"], showFans: ["showFans"], fanColor: ["fanColor"], tempUnit: ["tempUnit"] },
 };
+
+// The GPU Rings widget's spec still names the rings view's props (config v19), which GpuMonitor's rows carry.
+const MERGED_SPECS: Record<string, string[]> = { GpuMonitor: ["GpuRings"] };
 
 const SENSORS = (snapshot as unknown as { sensors: SensorMap }).sensors;
 const STANDARD_KEYS = new Set(STANDARD_SETTINGS.map((s) => s.key));
@@ -53,7 +54,7 @@ describe("group A inspector schema", () => {
       const keys = settings.flatMap(settingKeys);
       const own = settings.slice(STANDARD_SETTINGS.length);
 
-      const block = /Widget-specific:\s*```\n([\s\S]*?)```/.exec(specOf(id))?.[1] ?? "";
+      const block = [id, ...(MERGED_SPECS[id] ?? [])].map((spec) => /Widget-specific:\s*```\n([\s\S]*?)```/.exec(specOf(spec))?.[1] ?? "").join("\n");
       for (const p of Object.keys(props)) expect(block, `${p} is in the spec of ${id}`).toContain(p);
 
       for (const [prop, via] of Object.entries({ ...props, ...EXTRA[id] })) for (const k of via) expect(keys.filter((x) => x === k), `${prop} via ${k}`).toHaveLength(1);
@@ -68,6 +69,22 @@ describe("group A inspector schema", () => {
       expect(mod.render(SENSORS, effectiveSettings(mod, {}))).toBeTruthy();
     });
   }
+
+  it("GpuMonitor's rings view renders from its defaults, and shows the rings rows where the monitor view shows the Temperature levels", () => {
+    const mod = GROUP_A.find((m) => m.id === "GpuMonitor")!;
+    const rings = effectiveSettings(mod, { view: "rings" });
+    expect(mod.render(SENSORS, rings)).toBeTruthy();
+    const shown = (v: ModuleSettings) => (mod.settings ?? []).filter((d) => !d.visibleIf || d.visibleIf({ ...effectiveSettings(mod, {}), ...v })).flatMap(settingKeys);
+    for (const k of ["outer", "inner", "outerColor", "innerColor"]) {
+      expect(shown({ view: "rings" }), k).toContain(k);
+      expect(shown({}), k).not.toContain(k);
+    }
+    for (const k of ["warn.temp", "crit.temp"]) {
+      expect(shown({}), k).toContain(k);
+      expect(shown({ view: "rings" }), k).not.toContain(k);
+    }
+    expect(shown({ view: "rings" })).toContain("device");
+  });
 
   it("maps stored settings onto props", () => {
     const get = (id: string) => GROUP_A.find((m) => m.id === id)!;

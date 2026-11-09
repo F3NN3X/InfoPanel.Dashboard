@@ -1,8 +1,7 @@
+// GPU Monitor's rings view: VRAM, core load and temperature as stacked rings, drawn as the GPU Rings widget drew them before
+// it merged into GPU Monitor (config v19).
 import type { ModuleSettings } from "@/modules/types";
 import { Widget, shell, get, num, fmt, roomy, pretty, useSkin, numFont, hue, hw, RingStack, RING_TEXT, LegendRow, useIpTag, type ShellProps } from "../kit";
-import { meta } from "./meta";
-
-export { meta };
 
 type Ring = "vram" | "load" | "power" | "fan";
 

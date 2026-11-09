@@ -19,9 +19,10 @@ import { ProfilePage } from "./profile-page";
 export const THUMB_W = 480;
 export const THUMB_H = 300;
 
-const zone = (id: string, module: string, colStart: number, rowStart: number, colSpan: number, rowSpan: number): Placement => ({
+const zone = (id: string, module: string, colStart: number, rowStart: number, colSpan: number, rowSpan: number, settings?: Placement["settings"]): Placement => ({
   id,
   module,
+  ...(settings ? { settings } : {}),
   colStart,
   rowStart,
   colSpan,
@@ -30,7 +31,7 @@ const zone = (id: string, module: string, colStart: number, rowStart: number, co
 });
 
 /** The three widgets every thumbnail shows: a CPU card with its graph, a clock and the GPU rings. */
-const ZONES: readonly Placement[] = [zone("thumb-cpu", "CpuMonitor", 1, 1, 2, 2), zone("thumb-clock", "Clock", 3, 1, 1, 1), zone("thumb-gpu", "GpuRings", 3, 2, 1, 1)];
+const ZONES: readonly Placement[] = [zone("thumb-cpu", "CpuMonitor", 1, 1, 2, 2), zone("thumb-clock", "Clock", 3, 1, 1, 1), zone("thumb-gpu", "GpuMonitor", 3, 2, 1, 1, { view: "rings" })];
 
 /** The small screen a preset is drawn on. */
 export function thumbProfile(preset: AppearancePreset): MonitorProfile {

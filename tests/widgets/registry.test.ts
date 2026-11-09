@@ -6,12 +6,16 @@ import { renderModule } from "@/widgets/test-render";
 // misses renders through its empty stand-in, so "renders without throwing" would pass on empty markup: these must draw
 // their fixture data. They are the folder widgets (`src/widgets/<kebab-id>/`), which no registry group loads.
 const DRAWS: Record<string, string> = {
-  GpuRings: "RTX 5090",
   NowPlaying: "Sample Track",
   StatusBar: "°C",
 };
 
 describe("the registry's widgets in Vitest", () => {
+  // The GPU Rings widget's check, kept for the view it became (config v19).
+  it("GpuMonitor's rings view draws its fixture data", () => {
+    expect(renderModule(modules.find((m) => m.id === "GpuMonitor")!, { view: "rings" })).toContain("RTX 5090");
+  });
+
   it.each(Object.entries(DRAWS))("%s draws its fixture data", (id, shows) => {
     const mod = modules.find((m) => m.id === id);
     expect(mod, id).toBeDefined();

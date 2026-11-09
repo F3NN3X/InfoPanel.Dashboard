@@ -1,7 +1,6 @@
-import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, ThresholdLine, ChartAxis, ChartYAxis, Num, type ShellProps } from "./kit";
-import { meta } from "./meta/FramePacing";
-
-export { meta };
+// FPS Monitor's pacing view: the frame-time graph with budget lines, drawn as the Frame Pacing widget drew it before it
+// merged into FPS Monitor (config v19). RTSS only, as it was.
+import { Widget, shell, get, num, fmt, useHistory, frameSample, frameBudgets, frameTimeTop, sparkY, Spark, ThresholdLine, ChartAxis, ChartYAxis, Num, type ShellProps } from "../kit";
 
 export interface FramePacingProps extends ShellProps {
   /** Budget lines in Hz; default = [refresh rate, 60]. */

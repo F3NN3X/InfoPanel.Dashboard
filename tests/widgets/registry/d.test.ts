@@ -6,8 +6,7 @@ import snapshot from "@/widgets/__fixtures__/snapshot.json";
 import { toFlat } from "@/widgets/shared/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
 import Achievements, { meta as achievements } from "@/widgets/achievements/Achievements";
-import FpsMonitor, { meta as fps } from "@/widgets/FpsMonitor";
-import FramePacing, { meta as pacing } from "@/widgets/FramePacing";
+import FpsMonitor, { meta as fps } from "@/widgets/fps-monitor/FpsMonitor";
 import GameSpotlight, { meta as spotlight } from "@/widgets/game-spotlight/GameSpotlight";
 import OsdStrip, { meta as osd } from "@/widgets/osd-strip/OsdStrip";
 import PlaytimeShare, { meta as playtime } from "@/widgets/playtime-share/PlaytimeShare";
@@ -22,7 +21,6 @@ const WIDGETS: [typeof fps, ComponentType<ShellProps>][] = [
   [fps, FpsMonitor],
   [spotlight, GameSpotlight],
   [osd, OsdStrip],
-  [pacing, FramePacing],
   [playtime, PlaytimeShare],
   [profile, SteamProfile],
   [friends, SteamFriends],
@@ -39,7 +37,15 @@ const DATA = toFlat((snapshot as unknown as { sensors: SensorMap }).sensors);
 const ABSENT_FROM_SNAPSHOT: string[] = [];
 
 describe("registry group D", () => {
-  it("lists the eleven gaming widgets in order", () => {
+  // The Frame Pacing widget's render check, kept for the view it became (config v19).
+  it("FpsMonitor's pacing view (the Frame Pacing widget) renders a live value, the extremes and the empty state", () => {
+    const view = "pacing" as never;
+    expect(renderToString(createElement(FpsMonitor as ComponentType<ShellProps>, { data: DATA, size: "md", view } as never))).toMatch(/\d/);
+    expect(renderToString(createElement(FpsMonitor as ComponentType<ShellProps>, { data: DATA, size: "xs", variant: "studio", skin: "tui", view } as never)).length).toBeGreaterThan(0);
+    expect(renderToString(createElement(FpsMonitor as ComponentType<ShellProps>, { data: {}, view } as never)).length).toBeGreaterThan(0);
+  });
+
+  it("lists the ten gaming widgets in order", () => {
     expect(GROUP_D.map((m) => m.id)).toEqual(WIDGETS.map(([m]) => m.id));
   });
 

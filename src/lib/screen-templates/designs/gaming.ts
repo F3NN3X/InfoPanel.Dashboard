@@ -3,6 +3,8 @@ import { zone, type ScreenTemplate } from "../kit";
 
 const fps = { view: "gauge", sparkline: false };
 const spotlight = { spotlightLayout: "hero" };
+const pacing = { view: "pacing" };
+const rings = { view: "rings" };
 
 export const GAMING: ScreenTemplate = {
   id: "gaming",
@@ -30,12 +32,12 @@ export const GAMING: ScreenTemplate = {
       pages: [
         [
           zone("FpsMonitor", [1, 1, 2, 2], fps),
-          zone("FramePacing", [3, 1, 4, 2]),
+          zone("FpsMonitor", [3, 1, 4, 2], pacing),
           zone("GameSpotlight", [7, 1, 4, 2], spotlight),
           zone("SteamFriends", [11, 1, 2, 2]),
         ],
         [
-          zone("GpuRings", [1, 1, 3, 2]),
+          zone("GpuMonitor", [1, 1, 3, 2], rings),
           zone("GpuMonitor", [4, 1, 3, 2]),
           zone("CpuMonitor", [7, 1, 3, 2]),
           zone("Thermals", [10, 1, 3, 2]),
@@ -49,14 +51,14 @@ export const GAMING: ScreenTemplate = {
         [
           zone("OsdStrip", [1, 1, 12, 1]),
           zone("FpsMonitor", [1, 2, 3, 5], fps),
-          zone("FramePacing", [4, 2, 4, 5]),
+          zone("FpsMonitor", [4, 2, 4, 5], pacing),
           zone("GameSpotlight", [8, 2, 3, 5], spotlight),
           zone("SteamFriends", [11, 2, 2, 5]),
         ],
         [
           zone("GpuMonitor", [1, 1, 4, 6]),
           zone("CpuMonitor", [5, 1, 4, 6]),
-          zone("GpuRings", [9, 1, 4, 3]),
+          zone("GpuMonitor", [9, 1, 4, 3], rings),
           zone("Thermals", [9, 4, 4, 3]),
         ],
       ],
@@ -68,14 +70,14 @@ export const GAMING: ScreenTemplate = {
         [
           zone("OsdStrip", [1, 1, 12, 2]),
           zone("FpsMonitor", [1, 3, 4, 4], fps),
-          zone("FramePacing", [5, 3, 8, 4]),
+          zone("FpsMonitor", [5, 3, 8, 4], pacing),
           zone("GameSpotlight", [1, 7, 8, 4], spotlight),
           zone("SteamFriends", [9, 7, 4, 4]),
         ],
         [
           zone("GpuMonitor", [1, 1, 6, 5]),
           zone("CpuMonitor", [7, 1, 6, 5]),
-          zone("GpuRings", [1, 6, 4, 5]),
+          zone("GpuMonitor", [1, 6, 4, 5], rings),
           zone("Thermals", [5, 6, 4, 5]),
           zone("PowerDraw", [9, 6, 4, 5]),
         ],
@@ -88,14 +90,14 @@ export const GAMING: ScreenTemplate = {
         [
           zone("OsdStrip", [1, 1, 6, 1]),
           zone("FpsMonitor", [1, 2, 6, 3], fps),
-          zone("FramePacing", [1, 5, 6, 3]),
+          zone("FpsMonitor", [1, 5, 6, 3], pacing),
           zone("GameSpotlight", [1, 8, 6, 3], spotlight),
           zone("SteamFriends", [1, 11, 6, 2]),
         ],
         [
           zone("GpuMonitor", [1, 1, 6, 4]),
           zone("CpuMonitor", [1, 5, 6, 4]),
-          zone("GpuRings", [1, 9, 3, 4]),
+          zone("GpuMonitor", [1, 9, 3, 4], rings),
           zone("Thermals", [4, 9, 3, 4]),
         ],
       ],

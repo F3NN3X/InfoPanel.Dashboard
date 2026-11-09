@@ -86,15 +86,20 @@ describe("firstSentence", () => {
 describe("searchItems", () => {
   it("needs every word and ranks name matches first", () => {
     const hits = names(searchItems(catalog.widget, "gpu vram"));
-    expect(hits.slice(0, 2).sort()).toEqual(["GPU Monitor", "GPU Rings"]);
+    expect(hits[0]).toBe("GPU Monitor");
     expect(hits).toContain("System Overview");
+  });
+
+  it("finds the views that were widgets of their own through their widget (config v19)", () => {
+    expect(names(searchItems(catalog.widget, "gpu rings"))[0]).toBe("GPU Monitor");
+    expect(names(searchItems(catalog.widget, "frame pacing"))[0]).toBe("FPS Monitor");
   });
 
   it("matches tags and keeps catalog order within a rank", () => {
     const hits = searchItems(catalog.widget, "temp").map((i) => i.id);
-    expect(hits).toEqual(expect.arrayContaining(["Thermals", "CpuMonitor", "GpuRings", "GpuMonitor", "StorageHealth", "Weather"]));
-    const ranked = hits.filter((id) => ["CpuMonitor", "GpuRings", "GpuMonitor"].includes(id));
-    expect(ranked).toEqual(["CpuMonitor", "GpuRings", "GpuMonitor"]);
+    expect(hits).toEqual(expect.arrayContaining(["Thermals", "CpuMonitor", "GpuMonitor", "StorageHealth", "Weather"]));
+    const ranked = hits.filter((id) => ["CpuMonitor", "GpuMonitor"].includes(id));
+    expect(ranked).toEqual(["CpuMonitor", "GpuMonitor"]);
   });
 
   it("finds nothing for nonsense", () => {

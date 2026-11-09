@@ -215,7 +215,7 @@ function buildConfig({ backgroundSrc }) {
           zone(HEAVY_ZONES.statusBar, "StatusBar", 1, 1, 12, 1, { settings: { view: "edge", left: "logo", center: "date,time", right: "cpu,gpu,ram,weather" } }),
           zone(HEAVY_ZONES.overview, "SystemOverview", 1, 2, 4, 5, { settings: { sections: "cpu,gpu,ram", ring: "ring", coreView: "heatmap", sparkline: true } }),
           zone(HEAVY_ZONES.heatmap, "CoreHeatmap", 5, 2, 2, 3, { settings: { shape: "grid", metric: "load" } }),
-          zone(HEAVY_ZONES.rings, "GpuRings", 5, 5, 2, 2, { settings: { outer: "vram", inner: "load" } }),
+          zone(HEAVY_ZONES.rings, "GpuMonitor", 5, 5, 2, 2, { settings: { outer: "vram", inner: "load", view: "rings" } }),
           zone(HEAVY_ZONES.audio, "AudioMeter", 7, 2, 2, 2),
           zone(HEAVY_ZONES.weather, "Weather", 7, 4, 2, 3, { settings: { fxOn: true, fxPreview: "rain", tint: true } }),
           ...gauges.placements,

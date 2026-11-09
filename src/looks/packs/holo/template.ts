@@ -9,11 +9,11 @@ const cluster: ShapeLayout = {
   pages: [
     [
       zone("FpsMonitor", [5, 2, 4, 4], { view: "gauge", sparkline: false }),
-      zone("FramePacing", [5, 1, 4, 1]),
+      zone("FpsMonitor", [5, 1, 4, 1], { view: "pacing" }),
       zone("GpuMonitor", [1, 1, 4, 3]),
       zone("CpuMonitor", [9, 1, 4, 3]),
       zone("Thermals", [1, 4, 4, 3]),
-      zone("GpuRings", [9, 4, 4, 3]),
+      zone("GpuMonitor", [9, 4, 4, 3], { view: "rings" }),
     ],
   ],
 };

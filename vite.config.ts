@@ -32,7 +32,7 @@ const loadWidgetsInTests = (): Plugin => ({
   transform(code, id) {
     const file = id.replace(/\\/g, "/");
     if (file.endsWith("/src/widgets/registry.ts")) return `${code}\nawait (await import("@/widgets/lazy-widget")).loadAll(TEMPLATE_MODULES.filter((m) => FOLDER_WIDGETS.some((w) => w.meta.id === m.id)));\n`;
-    if (!/\/src\/widgets\/registry\/(b|d)\.ts$/.test(file)) return;
+    if (!/\/src\/widgets\/registry\/b\.ts$/.test(file)) return;
     const group = /^export const (GROUP_\w+|TIME_WIDGETS)\b/m.exec(code)?.[1];
     return group ? `${code}\nawait (await import("@/widgets/lazy-widget")).loadAll(${group});\n` : undefined;
   },
