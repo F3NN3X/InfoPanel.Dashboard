@@ -1,7 +1,7 @@
 import type { ModuleSettings } from "@/modules/types";
 
 /**
- * The presets a user saved for a widget (`config.widgetPresets`, config v20): its view, its settings and the size it opens at.
+ * The presets a user saved for a widget (`config.widgetPresets`, config v19): its view, its settings and the size it opens at.
  * A flat list in save order, each entry naming its widget; the built-in ones live in the widget folders (`presets.ts`).
  */
 export interface UserWidgetPreset {
