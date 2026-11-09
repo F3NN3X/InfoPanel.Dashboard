@@ -1,13 +1,16 @@
 // The user-widget routes over a real socket (/api/widgets, /api/widgets/<key>/<file>), as routes_packs.rs does for packs: a
 // server on a free port with a temp data folder, and raw HTTP/1.1 requests. A package is files in DATA_DIR/widgets/<key>/; the
 // checks here are an import's structure and its manifest (sizes and SHA-256), the round trip, path safety (every spelling of a
-// way out of the folder), the caps, the types and headers, and the write guards.
+// way out of the folder), the caps, the types and headers, and the write guards; and (Phase 6a) publisher signatures: a code widget
+// signed with the TEST-ONLY key (tests/fixtures/widgets/) is taken only once that key is trusted through the store the Settings
+// window's commands write, is checked again on every read, and no HTTP request adds or removes a key.
 
 use std::path::PathBuf;
 use std::time::Duration;
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
+use ips_server::widget_keys::KeyStore;
 use ips_server::widgets::sha256_hex;
 use ips_server::{bind_with_home, ServerConfig};
 use serde_json::{json, Value};
@@ -25,6 +28,11 @@ struct Server {
 impl Server {
     fn widgets(&self) -> PathBuf {
         self.dir.path().join("data").join("widgets")
+    }
+
+    /// The publisher keys of this server's data folder, as the Settings window's commands reach them.
+    fn keys(&self) -> KeyStore {
+        KeyStore::new(&self.dir.path().join("data"))
     }
 
     async fn stop(mut self) {
@@ -178,7 +186,8 @@ async fn an_import_is_stored_listed_and_served_byte_for_byte() {
     assert_eq!(items[0]["version"], "1.0.0");
     assert_eq!(items[0]["size"].as_u64(), Some(files.iter().map(|(_, b)| b.len() as u64).sum()));
     assert_eq!(items[0]["origin"], "import", "a file import is the default");
-    assert_eq!(items[0].as_object().unwrap().len(), 6, "id, kind, name, version, size and origin only");
+    assert_eq!(items[0]["trust"], "unsigned", "a recipe without a signature");
+    assert_eq!(items[0].as_object().unwrap().len(), 7, "id, kind, name, version, size, origin and trust only");
     assert!(s.widgets().read_dir().unwrap().all(|e| !e.unwrap().file_name().to_string_lossy().starts_with(".import-")), "no temp folder left");
     // a second import replaces the package whole
     let next = package_with("recipe:mine", "1.1.0", &[]);
@@ -490,6 +499,160 @@ async fn a_package_is_removed_by_its_key_from_this_computer_only() {
     assert!(!s.widgets().join("recipe.mine").exists());
     assert_eq!(send(s.port, "PUT", "/api/widgets", &WRITE, "").await.status, 405);
     assert_eq!(send(s.port, "POST", "/api/widgets/recipe.mine/recipe.json", &WRITE, "").await.status, 405);
+    s.stop().await;
+}
+
+fn fixtures() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets")
+}
+
+/// A fixture package's files (signed with the TEST-ONLY publisher key), the manifest first.
+fn fixture(name: &str) -> Vec<(String, Vec<u8>)> {
+    let root = fixtures().join(name);
+    let mut files: Vec<(String, Vec<u8>)> = std::fs::read_dir(&root).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).map(|p| (p.clone(), std::fs::read(root.join(&p)).unwrap())).collect();
+    files.sort_by_key(|(p, _)| p != "manifest.json");
+    files
+}
+
+fn test_key() -> String {
+    std::fs::read_to_string(fixtures().join("TEST-ONLY-publisher.pub")).unwrap()
+}
+
+fn edit_manifest(files: &[(String, Vec<u8>)], edit: impl Fn(&mut Value)) -> Vec<(String, Vec<u8>)> {
+    let mut out = files.to_vec();
+    let mut manifest: Value = serde_json::from_slice(&out[0].1).unwrap();
+    edit(&mut manifest);
+    out[0].1 = serde_json::to_vec_pretty(&manifest).unwrap();
+    out
+}
+
+#[tokio::test]
+async fn a_signed_code_widget_is_taken_only_with_a_trusted_key_and_checked_on_every_read() {
+    let s = start().await;
+    let clock = fixture("ext.test.clock");
+    let import = |files: Vec<(String, Vec<u8>)>| {
+        let port = s.port;
+        async move { send(port, "POST", "/api/widgets", &WRITE, &import_body(&files)).await }
+    };
+    let unknown = import(clock.clone()).await;
+    assert_eq!((unknown.status, unknown.text()), (400, "refused: signed with a key this app does not trust (FD89B8C08B250DF6)".into()), "an unknown key");
+    assert_eq!(get(s.port, "/api/widgets").await.text(), "[]");
+
+    // The Settings window's path: the app's command writes the store (src-tauri/src/commands.rs `trust_widget_key`).
+    // A key that holds another publisher's name signs nothing for `test`.
+    s.keys().add_user("Elsewhere", &test_key(), &["acme".into()]).unwrap();
+    let elsewhere = import(clock.clone()).await;
+    assert_eq!((elsewhere.status, elsewhere.text()), (400, "refused: signed with a key (FD89B8C08B250DF6) that does not sign for the publisher test".into()), "the signer does not hold the publisher");
+    s.keys().remove("FD89B8C08B250DF6").unwrap();
+    s.keys().add_user("Test publisher", &test_key(), &["test".into()]).unwrap();
+    let good = import(clock.clone()).await;
+    assert_eq!(good.status, 200, "{}", good.text());
+    let stored: Value = serde_json::from_slice(&good.body).unwrap();
+    assert_eq!((stored["id"].as_str(), stored["kind"].as_str(), stored["trust"].as_str()), (Some("ext:test.clock"), Some("code"), Some("user:Test publisher")));
+    assert!(s.widgets().join("ext.test.clock").is_dir());
+    let items = list(&get(s.port, "/api/widgets").await);
+    assert_eq!((items[0]["id"].as_str(), items[0]["trust"].as_str()), (Some("ext:test.clock"), Some("user:Test publisher")));
+    let bundle = get(s.port, "/api/widgets/ext.test.clock/widget.js").await;
+    assert_eq!((bundle.status, bundle.header("content-type")), (200, Some("text/javascript; charset=utf-8")));
+    assert_eq!(bundle.header("content-security-policy"), Some("default-src 'none'; sandbox"), "stored and served as data only: 6a runs nothing");
+    assert_eq!(bundle.body, clock[1].1);
+
+    let mut tampered = clock.clone();
+    tampered[1].1.extend_from_slice(b"\nfetch('https://evil.example')");
+    let reply = import(tampered).await;
+    assert_eq!((reply.status, reply.text()), (400, "widget.js is not the file the manifest lists (size or SHA-256)".into()), "a tampered file");
+    let reply = import(edit_manifest(&clock, |m| m["name"] = json!("Another clock"))).await;
+    assert_eq!((reply.status, reply.text()), (400, "refused: the signature does not match the package".into()), "a changed manifest field");
+    let reply = import(edit_manifest(&clock, |m| {
+        m.as_object_mut().unwrap().remove("signature");
+    }))
+    .await;
+    assert_eq!((reply.status, reply.text()), (400, "refused: a code widget must be signed, and this one is not".into()), "a missing signature");
+    let reply = import(edit_manifest(&clock, |m| m["signature"] = json!({ "minisign": "untrusted comment: x\nAAAA\ntrusted comment: y\nAAAA" }))).await;
+    assert_eq!((reply.status, reply.text()), (400, "refused: the signature is not a minisign signature".into()), "a bad signature");
+    // a signed recipe is taken like any recipe once its key is trusted
+    let recipe = import(fixture("recipe.signed")).await;
+    assert_eq!((recipe.status, serde_json::from_slice::<Value>(&recipe.body).unwrap()["trust"].as_str().map(str::to_string)), (200, Some("user:Test publisher".into())));
+
+    // A file on disk changed after the import is refused on the next read; so is everything the key signed once it is removed.
+    let fp = s.keys().list()[2].id.clone();
+    s.keys().remove(&fp).unwrap();
+    let items = list(&get(s.port, "/api/widgets").await);
+    assert!(items.iter().all(|i| i["trust"].as_str().unwrap().starts_with("refused:signed with a key this app does not trust")), "{items:?}");
+    let refused = get(s.port, "/api/widgets/ext.test.clock/widget.js").await;
+    assert_eq!(refused.status, 403);
+    assert!(refused.text().starts_with("refused:"));
+    assert_eq!(get(s.port, "/api/widgets/recipe.signed/recipe.json").await.status, 403);
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn a_signed_package_is_replaced_only_by_the_same_key() {
+    let s = start().await;
+    let clock = fixture("ext.test.clock");
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await.status, 200);
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await.status, 200, "the same key replaces its own package");
+    // Another key that now holds `test` (the first one removed in Settings, this one added for the name) cannot take it over.
+    let fp = s.keys().list()[2].id.clone();
+    s.keys().remove(&fp).unwrap();
+    let other = std::fs::read_to_string(fixtures().join("TEST-ONLY-other.pub")).unwrap();
+    s.keys().add_user("Other", &other, &["test".into()]).unwrap();
+    let takeover = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("other-signer/ext.test.clock"))).await;
+    assert_eq!((takeover.status, takeover.text()), (409, "ext:test.clock is installed, signed with the key FD89B8C08B250DF6: only that key may replace it (remove it first to install this one)".into()));
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["version"], "1.0.0", "the installed package is untouched");
+    let other_fp = s.keys().list()[2].id.clone();
+    s.keys().remove(&other_fp).unwrap();
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    // The signed recipe, then an unsigned recipe of the same id (a builder save, or someone else's file): refused.
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("recipe.signed"))).await.status, 200);
+    let unsigned = package_with("recipe:signed", "2.0.0", &[]);
+    let reply = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await;
+    assert_eq!((reply.status, reply.text()), (409, "recipe:signed is installed, signed with the key FD89B8C08B250DF6: only that key may replace it (remove it first to install this one)".into()));
+    // Once its key is removed, the stored package no longer verifies: nothing replaces it until it is removed.
+    s.keys().remove("FD89B8C08B250DF6").unwrap();
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await.status, 409);
+    assert_eq!(send(s.port, "DELETE", "/api/widgets/recipe.signed", &WRITE, "").await.status, 204);
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await.status, 200, "after a remove");
+    assert_eq!(list(&get(s.port, "/api/widgets").await).iter().find(|i| i["id"] == "recipe:signed").unwrap()["version"], "2.0.0");
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn publisher_keys_are_read_over_http_and_never_written() {
+    let s = start().await;
+    let keys = || async { serde_json::from_slice::<Value>(&get(s.port, "/api/widget-keys").await.body).unwrap()["keys"].clone() };
+    let before = keys().await;
+    assert_eq!((before[0]["id"].as_str(), before[0]["state"].as_str(), &before[0]["fingerprint"]), (Some("owner"), Some("not-set-up"), &Value::Null), "the owner slot ships empty");
+    assert_eq!((before[1]["id"].as_str(), before[1]["state"].as_str()), (Some("themely"), Some("not-available")), "the Themely slot is disabled");
+    assert_eq!(before.as_array().unwrap().len(), 2);
+    let body = json!({ "name": "Mine", "key": test_key() }).to_string();
+    let port = format!("127.0.0.1:{}", s.port);
+    let origin = format!("http://{port}");
+    // The studio page (same origin, every write marker), the kiosk (a plain request), a rebound host. The refusal does not look at
+    // the caller at all, so another device (which this socket test cannot be) gets it too.
+    let callers: [(&str, Vec<(&str, &str)>); 3] = [
+        ("the studio page", vec![("Content-Type", "application/json"), ("Origin", origin.as_str()), ("Sec-Fetch-Site", "same-origin"), ("X-Dashboard-Config", "1"), ("X-Dashboard-Widget", "1")]),
+        ("the kiosk", vec![("Content-Type", "application/json")]),
+        ("a rebound host", vec![("Host", "evil.example"), ("Content-Type", "application/json")]),
+    ];
+    for (who, headers) in &callers {
+        for method in ["POST", "PUT", "PATCH", "DELETE"] {
+            let reply = send(s.port, method, "/api/widget-keys", headers, &body).await;
+            assert!(matches!(reply.status, 403 | 421), "{who} {method}: {} {}", reply.status, reply.text());
+        }
+    }
+    assert_eq!(send(s.port, "POST", "/api/widget-keys", &callers[0].1, &body).await.text(), "publisher keys are added and removed in the app's Settings window only");
+    assert_eq!(keys().await, before, "no key was added");
+    assert!(!s.dir.path().join("data").join("widget-keys.json").exists(), "nothing was written");
+    // the settings path adds and removes one, and the read shows it
+    s.keys().add_user("Mine", &test_key(), &["test".into()]).unwrap();
+    let after = keys().await;
+    assert_eq!((after[2]["name"].as_str(), after[2]["kind"].as_str(), after[2]["fingerprint"].as_str()), (Some("Mine"), Some("user"), Some("FD89B8C08B250DF6")));
+    assert_eq!(after[2]["publishers"], json!(["test"]));
+    assert_eq!(before[0]["publishers"], json!(["infopanel", "infopanel-studio"]), "the owner's publisher names are fixed");
+    s.keys().remove("FD89B8C08B250DF6").unwrap();
+    assert_eq!(keys().await, before);
     s.stop().await;
 }
 

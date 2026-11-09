@@ -1,4 +1,4 @@
-export type SectionId = "general" | "server" | "connections" | "agents" | "touch" | "updates" | "diagnostics" | "logs" | "about" | "changelog";
+export type SectionId = "general" | "server" | "connections" | "agents" | "touch" | "updates" | "publishers" | "diagnostics" | "logs" | "about" | "changelog";
 
 /** Whether `value` names a settings section. */
 export const isSectionId = (value: string): value is SectionId => Object.hasOwn(SECTION_NAMES, value);
@@ -10,6 +10,7 @@ export const SECTION_NAMES: Record<SectionId, string> = {
   agents: "Coding agents",
   touch: "Touch",
   updates: "Updates",
+  publishers: "Widget publishers",
   diagnostics: "Diagnostics",
   logs: "Logs",
   about: "About",
@@ -90,6 +91,7 @@ export const SEARCH_INDEX: SearchEntry[] = [
   { row: "check-updates", label: "Check for updates at startup", section: "updates" },
   { row: "channel", label: "Release channel", section: "updates" },
   { row: "auto-download", label: "Download in the background", section: "updates" },
+  { row: "add-publisher-key", label: "Trust a widget publisher's key", section: "publishers" },
   { row: "debug", label: "Debug mode", section: "diagnostics" },
   { row: "diag-table", label: "Diagnostics / memory", section: "diagnostics" },
   { row: "diag-actions", label: "Open DevTools", section: "diagnostics" },

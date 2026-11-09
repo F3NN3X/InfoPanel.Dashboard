@@ -1,0 +1,30 @@
+{
+  "about": "FORMAT.md §17: a manifest, its canonical bytes as UTF-8 text, and their SHA-256. Checked by ips-server's widget_sign.rs and tests/tools/widgets/minisign.test.mjs.",
+  "manifest": {
+    "signature": {
+      "minisign": "dropped"
+    },
+    "version": "1.2.3-beta.1",
+    "kind": "code",
+    "id": "ext:acme.cpu-card",
+    "format": 1,
+    "publisher": "acme",
+    "entry": "widget.js",
+    "name": "Café \"card\" ✓ 🌡",
+    "author": "Ünïcode\tTab\\Back/slash \u0001   ",
+    "files": [
+      {
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "path": "widget.js",
+        "bytes": 1234
+      },
+      {
+        "path": "images/logo.png",
+        "bytes": 0,
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      }
+    ]
+  },
+  "canonical": "infopanel-studio widget package 1\n{\"author\":\"Ünïcode\\tTab\\\\Back/slash \\u0001   \",\"entry\":\"widget.js\",\"files\":[{\"bytes\":1234,\"path\":\"widget.js\",\"sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\"},{\"bytes\":0,\"path\":\"images/logo.png\",\"sha256\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"}],\"format\":1,\"id\":\"ext:acme.cpu-card\",\"kind\":\"code\",\"name\":\"Café \\\"card\\\" ✓ 🌡\",\"publisher\":\"acme\",\"version\":\"1.2.3-beta.1\"}",
+  "sha256": "c423f439d0560cdaf99f51ae845e0feb5e9e2e9b1bc9fcade51e8993fc53bec3"
+}

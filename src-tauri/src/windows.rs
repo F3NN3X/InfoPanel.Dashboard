@@ -342,12 +342,13 @@ pub const SETTINGS_EVENT: &str = "settings-section";
 pub const HELP_EVENT: &str = "help-open";
 
 /// The App sections, all the rescue page has (`SectionId` in src/settings/model/search.ts).
-const SETTINGS_SECTIONS: [&str; 9] = [
+const SETTINGS_SECTIONS: [&str; 10] = [
     "general",
     "server",
     "agents",
     "touch",
     "updates",
+    "publishers",
     "diagnostics",
     "logs",
     "about",

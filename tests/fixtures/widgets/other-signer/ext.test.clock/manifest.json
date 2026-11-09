@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "kind": "code",
+  "id": "ext:test.clock",
+  "version": "1.0.1",
+  "author": "TEST-ONLY publisher",
+  "name": "Test clock",
+  "publisher": "test",
+  "entry": "widget.js",
+  "files": [
+    {
+      "path": "widget.js",
+      "bytes": 145,
+      "sha256": "93ff25f4534b781cb9dcaad3fbd95a19be422c356e9b11364d80fe7e454d0238"
+    }
+  ],
+  "signature": {
+    "minisign": "untrusted comment: signature from minisign secret key 592FA2AF238880F7\nRUT3gIgjr6IvWWWTRYJnocLl1fff8gFdWUibq+zhX9Dcy2T+HHj7G5TxRFhhR7g0wOhf6BD5qGHs0/izGI5LzwPpWTBdPvrwDAM=\ntrusted comment: ext:test.clock 1.0.1\nuae79J1aabM1UhHT0SlifU33gE8Tm6SrU40hpBZUW5Rv7zOUSo+FKxVoPhyAl/zEezLNr8kwFVc/Yj7AY+MdCA==\n"
+  }
+}

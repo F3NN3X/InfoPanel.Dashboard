@@ -14,3 +14,5 @@ tools/parity/*.mjs text eol=lf
 .githooks/* text eol=lf
 # The recipe fixture packages are hashed byte for byte by their manifests (tools/widgets/recipe-fixtures.mjs): never converted.
 tests/fixtures/recipes/** -text
+# The signed widget fixtures are hashed and signed byte for byte (Phase 6a; FORMAT.md §17): never converted.
+tests/fixtures/widgets/** -text

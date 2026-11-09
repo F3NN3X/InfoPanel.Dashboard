@@ -65,6 +65,10 @@ fn main() {
         "touch_calibrate",
         "touch_identify",
         "touch_cancel",
+        "widget_keys",
+        "trust_widget_key",
+        "remove_widget_key",
+        "restore_widget_key",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))
         .expect("failed to run the Tauri build script");
