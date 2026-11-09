@@ -10,7 +10,7 @@ import manifestSchema from "./manifest.schema.json";
 import { isFollow } from "./follow";
 import { cellBasePx, TEXT_FLOOR } from "./metrics";
 import recipeSchema from "./recipe.schema.json";
-import { BLOCK_TYPES, type Binding, type Block, type Cells, type Condition, DEVICE_ID, DEVICE_KINDS, type Manifest, OPTION_TYPES, type PackageFile, type Recipe, type RecipeOption, WEATHER_PLACE_FIELDS } from "./types";
+import { BLOCK_TYPES, type Binding, type Block, type Cells, type Condition, DEVICE_ID, DEVICE_KINDS, type Manifest, OPTION_TYPES, type PackageFile, RECIPE_FORMAT, type Recipe, type RecipeOption, WEATHER_PLACE_FIELDS } from "./types";
 
 export interface RecipeIssue {
   rule: string;
@@ -38,6 +38,8 @@ export const OPTIONS_MAX = 24;
 export const PRESETS_MAX = 16;
 /** A Repeat shows at most this many items, and a place list holds at most this many places. */
 export const ITEMS_MAX = 12;
+/** A label's line holds at most this many parts (format 2). */
+export const PARTS_MAX = 8;
 
 /** The package's files by path; anything else is refused. */
 export const PACKAGE_PATH = /^(manifest\.json|recipe\.json|images\/[a-z0-9][a-z0-9-]{0,63}\.(png|jpg|webp))$/;
@@ -122,8 +124,17 @@ function validate(files: readonly PackageFile[]): RecipeIssue[] {
   if (recipe === undefined) add("schema", "recipe.json", "recipe.json is missing or is not JSON");
   if (manifest === undefined || recipe === undefined) return out;
 
-  for (const [file, value] of [["manifest.json", manifest], ["recipe.json", recipe]] as const) for (const m of jsonShapeIssues(value)) add("json-shape", file, m);
-  if (out.some((i) => i.rule === "json-shape")) return out;
+  // a recipe of a format this build does not know yet is a newer build's to read: said as such, before its new keys read as errors
+  const format = (recipe as { format?: unknown } | null)?.format;
+  if (typeof format === "number" && format > RECIPE_FORMAT) {
+    add("format", "recipe.json", `made with a newer InfoPanel Studio (recipe format ${format}); update to show it`);
+    return out;
+  }
+  // too deep a tree is the depth rule's to say, in blocks, before the JSON guard says it in values
+  const deep = tooDeep((recipe as { root?: unknown } | null)?.root);
+  if (deep) add("depth", "recipe.json", `${deep}: blocks nest ${DEPTH_MAX + 1} deep, at most ${DEPTH_MAX}`);
+  for (const [file, value] of [["manifest.json", manifest], ["recipe.json", recipe]] as const) for (const m of jsonShapeIssues(value)) if (!deep || !/nested deeper/.test(m)) add("json-shape", file, m);
+  if (out.some((i) => i.rule === "json-shape" || i.rule === "depth")) return out;
 
   // the schemas
   const manifestErrors = schemaErrors(manifest, manifestSchema as Record<string, unknown>, manifestSchema as Record<string, unknown>);
@@ -146,6 +157,19 @@ function validate(files: readonly PackageFile[]): RecipeIssue[] {
   manifestRules(m, r, files, add);
   recipeRules(r, files, add);
   return out;
+}
+
+/** Where a tree as written first nests deeper than `DEPTH_MAX` blocks (the root card is 1), or undefined. Reads no deeper than that. */
+function tooDeep(block: unknown, at = "$.root", depth = 1): string | undefined {
+  if (!block || typeof block !== "object") return undefined;
+  if (depth > DEPTH_MAX) return at;
+  const children = (block as { children?: unknown }).children;
+  if (!Array.isArray(children)) return undefined;
+  for (let k = 0; k < children.length; k++) {
+    const found = tooDeep(children[k], `${at}.children[${k}]`, depth + 1);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 /** Every string of parsed JSON with its path. */
@@ -246,6 +270,8 @@ function recipeRules(r: Recipe, files: readonly PackageFile[], add: Add): void {
   };
   walk(r.root, "$.root", 1, undefined);
   if (count > BLOCKS_MAX) add("size", R, `${count} blocks, at most ${BLOCKS_MAX}`);
+  // format 1 is what an older build reads: a recipe using a key it has not got says format 2, so that build can say why it won't draw it
+  if (r.format === 1) for (const at of format2Keys(r.root)) add("format", R, `${at}: parts need recipe format 2`);
 
   // the text floor at every size the recipe allows
   floorRules(r, add);
@@ -358,13 +384,22 @@ function blockRules(b: Block, at: string, repeat: string | undefined, options: M
   }
   if ("bind" in b && b.bind) bind(b.bind, `${at}.bind`);
   if (b.type === "card" && b.subtitle) bind(b.subtitle, `${at}.subtitle`);
-  if (b.type === "label" && b.text === undefined && b.bind === undefined) add("binding", R, `${at}: a label needs its text or its data`);
+  if (b.type === "label" && b.text === undefined && b.bind === undefined && b.parts === undefined) add("binding", R, `${at}: a label needs its text or its data`);
+  if (b.type === "label" && b.parts) {
+    if (b.text !== undefined || b.bind !== undefined) add("block", R, `${at}: a label of parts has no text or data beside them`);
+    if (b.parts.length > PARTS_MAX) add("size", R, `${at}: ${b.parts.length} parts, at most ${PARTS_MAX}`);
+    b.parts.forEach((part, k) => {
+      if ("text" in part === "bind" in part) add("block", R, `${at}.parts[${k}]: a part is text or data, one of them`);
+      else if ("text" in part && Object.keys(part).length > 1) add("block", R, `${at}.parts[${k}]: decimals and a unit belong to a part of data`);
+      if ("bind" in part) bind(part.bind, `${at}.parts[${k}].bind`);
+    });
+  }
   if (b.type === "heatmap") {
     if (!b.cells && !b.bind) add("binding", R, `${at}: a heatmap needs its cells or a field of numbers`);
     b.cells?.forEach((c, k) => bind(c, `${at}.cells[${k}]`));
   }
   if (b.type === "repeat") {
-    if (options.get(b.over)?.type !== "place-list") add("repeat", R, `${at}: over ${b.over} is not a place-list option`);
+    if (options.get(b.over)?.type !== "place-list") add("repeat", R, `${at}: runs over option ${b.over}, which is not a place list`);
     if (b.max !== undefined && !isFollow(b.max) && !(Number.isInteger(b.max) && b.max >= 1 && b.max <= ITEMS_MAX)) add("repeat", R, `${at}: most shown ${b.max}, a whole number from 1 to ${ITEMS_MAX}`);
     if (b.hours !== undefined && !isFollow(b.hours) && !(Number.isInteger(b.hours) && b.hours >= 1 && b.hours <= HOURS_MAX)) add("repeat", R, `${at}: hours ${b.hours}, a whole number from 1 to ${HOURS_MAX}`);
   }
@@ -415,17 +450,24 @@ function followRules(b: Block, at: string, options: Map<string, RecipeOption>, a
       continue;
     }
     if (v.map) {
-      if (o.type !== "select") add("follow", R, `${at}.${key}: a map reads a select's choices; ${v.option} is a ${o.type}`);
+      if (o.type !== "select") add("follow", R, `${at}.${key}: a map reads a select's choices; option ${v.option} is a ${o.type}`);
       for (const [choice, x] of Object.entries(v.map)) {
-        if (o.type === "select" && !(o.options ?? []).some((c) => c.value === choice)) add("follow", R, `${at}.${key}: ${choice.slice(0, 20)} is not a choice of ${v.option}`);
+        if (o.type === "select" && !(o.options ?? []).some((c) => c.value === choice)) add("follow", R, `${at}.${key}: ${choice.slice(0, 20)} is not a choice of option ${v.option}`);
         if (!fits(x)) add("follow", R, `${at}.${key}: ${choice.slice(0, 20)} maps to ${String(x).slice(0, 20)}, not ${what}`);
       }
     } else if (spec.values) {
-      if (o.type !== "select") add("follow", R, `${at}.${key}: follows ${v.option}, a ${o.type}; a select's choices (or a map) give ${what}`);
-      else for (const c of o.options ?? []) if (!fits(c.value)) add("follow", R, `${at}.${key}: ${v.option}'s choice ${c.value.slice(0, 20)} is not ${what} (map it)`);
-    } else if (o.type !== "number") add("follow", R, `${at}.${key}: follows ${v.option}, a ${o.type}; a number option (or a select with a map) gives ${what}`);
-    else if (o.min === undefined || o.max === undefined || !fits(o.min) || !fits(o.max) || (o.step !== undefined && !Number.isInteger(o.step))) add("follow", R, `${at}.${key}: ${v.option}'s range is ${o.min ?? "-"} to ${o.max ?? "-"}; it needs whole steps inside ${what}`);
+      if (o.type !== "select") add("follow", R, `${at}.${key}: follows option ${v.option}, a ${o.type}; a select's choices (or a map) give ${what}`);
+      else for (const c of o.options ?? []) if (!fits(c.value)) add("follow", R, `${at}.${key}: option ${v.option} has the choice ${c.value.slice(0, 20)}, not ${what} (map it)`);
+    } else if (o.type !== "number") add("follow", R, `${at}.${key}: follows option ${v.option}, a ${o.type}; a number option (or a select with a map) gives ${what}`);
+    else if (o.min === undefined || o.max === undefined || !fits(o.min) || !fits(o.max) || (o.step !== undefined && !Number.isInteger(o.step))) add("follow", R, `${at}.${key}: option ${v.option} goes from ${o.min ?? "-"} to ${o.max ?? "-"}; it needs whole steps inside ${what}`);
   }
+}
+
+/** Where a tree uses a key format 1 has not got (a label's parts). */
+export function format2Keys(block: Block, at = "$.root", out: string[] = []): string[] {
+  if (block.type === "label" && block.parts) out.push(`${at}.parts`);
+  childrenOf(block).forEach((c, k) => format2Keys(c, `${at}.children[${k}]`, out));
+  return out;
 }
 
 /** Whether a condition's size part lets a block show in a zone of `cells` (its option part is a person's choice, so it does not count). */

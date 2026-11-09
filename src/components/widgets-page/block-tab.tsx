@@ -2,21 +2,19 @@
 // Repeat item's field) and "Let people pick …", its range, its colour from the theme (accent, a series or the thresholds), what
 // its type has (a ring's centre value and thickness, a Repeat's list and direction, a row's direction), when it shows, and its
 // share of its row. Every change is one edit of the recipe (one undo step).
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Copy, Trash2 } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { Segmented } from "@/components/ui/segmented";
 import { Toggle } from "@/components/ui/toggle";
-import { useDataModel } from "@/lib/use-data-model";
-import { DataPicker } from "@/components/studio/inspector/data-picker";
 import type { Data } from "@/widgets/core/types";
 import { isFollow, oneOf, wholeIn } from "@/widgets/recipe/follow";
-import { expandKey } from "@/widgets/recipe/reads";
 import { DEFAULT_SCALE } from "@/widgets/recipe/validate";
-import { type Binding, type Block, type Cells, type Follows, type Recipe, type RecipeColour, type RecipeDeviceKind, WEATHER_PLACE_FIELDS } from "@/widgets/recipe/types";
-import { BLOCK_LABEL, blockAt, deviceOfKey, followable, followOf, layerName, pickBinding, pickedOption, pickWhat, repeatAbove, unpickBinding, updateBlock, valueText, type Path } from "./builder-model";
+import type { Block, BlockType, Cells, Follows, Recipe, RecipeColour, RecipeDeviceKind } from "@/widgets/recipe/types";
+import { BLOCK_LABEL, blockAt, followable, followOf, layerName, setRecipeSize, updateBlock, valueText, type Path } from "./builder-model";
 import { BlockIcon } from "./block-icons";
-import { Field, Heading, NumberInput, Select, TextInput } from "./fields";
+import { DataRow, HeatmapCells, LabelText } from "./data-rows";
+import { Field, Heading, NumberInput, Select, Slider, TextInput } from "./fields";
 
 export interface BlockTabProps {
   recipe: Recipe;
@@ -34,11 +32,22 @@ export interface BlockTabProps {
   onImage: (file: File) => void;
 }
 
-const COLOURS = [
-  { value: "accent", label: "Accent" },
-  { value: "series", label: "Series" },
-  { value: "thresholds", label: "Thresholds" },
-] as const;
+/**
+ * The colours a block's Colour row offers: the ones its renderer draws (B13). A heatmap colours its cells by their level on its own
+ * scale, or in a series' tints: it has no use for thresholds, and its scale is what "Accent" would draw.
+ */
+export function colourKinds(type: BlockType): readonly { value: "accent" | "series" | "thresholds"; label: string }[] {
+  if (type === "heatmap")
+    return [
+      { value: "accent", label: "Heat" },
+      { value: "series", label: "Series" },
+    ];
+  return [
+    { value: "accent", label: "Accent" },
+    { value: "series", label: "Series" },
+    { value: "thresholds", label: "Thresholds" },
+  ];
+}
 
 const RANGED = new Set(["ring", "gauge", "bar", "sparkline", "heatmap"]);
 const SIZE_OPTIONS = ["", "1", "2", "3", "4", "5", "6"];
@@ -107,57 +116,6 @@ function FollowRows<T extends string | number>({ label, recipe, value, words, ra
   );
 }
 
-/** The reading a binding shows on the stage, and where it comes from. */
-function bindingInfo(recipe: Recipe, b: Binding, data: Data, names: Record<string, string> | undefined): { name: string; from?: string; value: string } {
-  if ("field" in b) return { name: `Each place's ${b.field}`, value: "" };
-  const option = pickedOption(recipe, b);
-  const values = Object.fromEntries(recipe.options.map((o) => [o.key, o.default]));
-  const key = "option" in b ? String(option?.default ?? "") : (expandKey(recipe, b.sensor, values, data).key ?? b.sensor);
-  const raw = data[key];
-  const value = typeof raw === "object" && raw ? raw.value : (raw ?? "–");
-  return { name: names?.[key] ?? key, from: option ? `from option “${option.label}”` : undefined, value: String(value) };
-}
-
-function DataRow({ recipe, path, block, props }: { recipe: Recipe; path: Path; block: Block; props: BlockTabProps }) {
-  const [open, setOpen] = useState(false);
-  const model = useDataModel();
-  const bind = "bind" in block ? block.bind : block.type === "card" ? block.subtitle : undefined;
-  const inRepeat = !!repeatAbove(recipe, path);
-  const what = pickWhat(recipe, path, props.devices);
-  const picked = !!pickedOption(recipe, bind);
-  const set = (next: Binding | undefined) => props.onChange(updateBlock(recipe, path, block.type === "card" ? { subtitle: next } : { bind: next }));
-  // a key of a device the recipe already lets people pick names that option, so the block follows the pick
-  const choose = (key: string) => {
-    const device = deviceOfKey(key, props.devices);
-    const option = device && recipe.options.find((o) => o.type === "device" && o.kind === device.kind);
-    set({ sensor: option && device ? `libre.{${option.key}}_${key.slice(`libre.${device.id}_`.length)}` : key });
-  };
-  if (inRepeat && (!bind || "field" in bind))
-    return (
-      <Field label="Field">
-        <Select label="Field" value={bind && "field" in bind ? bind.field : "temp"} options={WEATHER_PLACE_FIELDS.map((f) => ({ value: f, label: f }))} onChange={(f) => set({ field: f })} />
-      </Field>
-    );
-  const info = bind ? bindingInfo(recipe, bind, props.data, props.names) : undefined;
-  return (
-    <>
-      <button type="button" onClick={() => setOpen(true)} aria-label="Change the data" className="flex w-full items-center gap-3 rounded-ui-lg border border-ui-subtle bg-ui-app px-3 py-2.5 text-left hover:border-ui-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ui-accent">
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-body text-ui-1">{info?.name ?? "No data yet"}</span>
-          <span className="block truncate font-ui-mono text-micro text-ui-3">{info?.from ?? (bind && "sensor" in bind ? bind.sensor : "Pick a sensor")}</span>
-        </span>
-        <span className="shrink-0 font-ui-mono text-body text-ui-1">{info?.value}</span>
-      </button>
-      {what && (
-        <Field label={`Let people pick ${what}`}>
-          <Toggle label={`Let people pick ${what}`} checked={picked} onChange={(on) => props.onChange(on ? pickBinding(recipe, path, props.devices) : unpickBinding(recipe, path, props.data))} />
-        </Field>
-      )}
-      <DataPicker open={open} onOpenChange={setOpen} title={`Data for ${layerName(recipe, block)}`} points={model.points} mode="item" bound={new Set()} onToggle={(p) => choose(p.key)} onOpenExplorer={props.onOpenSources} />
-    </>
-  );
-}
-
 function ColourRow({ recipe, path, block, onChange }: { recipe: Recipe; path: Path; block: Block & { color?: RecipeColour; thresholds?: { warn: number; crit: number } }; onChange: (r: Recipe) => void }) {
   const colour = block.color ?? "accent";
   const kind = colour.startsWith("series-") ? "series" : (colour as "accent" | "thresholds");
@@ -167,7 +125,7 @@ function ColourRow({ recipe, path, block, onChange }: { recipe: Recipe; path: Pa
       <Field label="Colour">
         <Segmented
           label="Colour"
-          options={[...COLOURS]}
+          options={[...colourKinds(block.type)]}
           value={kind}
           onChange={(v) => set(v === "series" ? { color: "series-1", thresholds: undefined } : v === "thresholds" ? { color: v, thresholds: block.thresholds ?? { warn: 70, crit: 90 } } : { color: v, thresholds: undefined })}
         />
@@ -248,9 +206,9 @@ function WhenRows({ recipe, path, block, onChange }: { recipe: Recipe; path: Pat
 function SizeRows({ recipe, onChange }: { recipe: Recipe; onChange: (r: Recipe) => void }) {
   const row = (label: string, key: "min" | "max" | "default") => (
     <Field label={label}>
-      <NumberInput label={`${label} columns`} value={recipe.size[key][0]} min={1} max={12} onChange={(v) => onChange({ ...recipe, size: { ...recipe.size, [key]: [v ?? 1, recipe.size[key][1]] } })} width={56} />
+      <NumberInput label={`${label} columns`} value={recipe.size[key][0]} min={1} max={12} onChange={(v) => onChange(setRecipeSize(recipe, key, [v ?? 1, recipe.size[key][1]]))} width={56} />
       <span className="text-ui-3">×</span>
-      <NumberInput label={`${label} rows`} value={recipe.size[key][1]} min={1} max={12} onChange={(v) => onChange({ ...recipe, size: { ...recipe.size, [key]: [recipe.size[key][0], v ?? 1] } })} width={56} />
+      <NumberInput label={`${label} rows`} value={recipe.size[key][1]} min={1} max={12} onChange={(v) => onChange(setRecipeSize(recipe, key, [recipe.size[key][0], v ?? 1]))} width={56} />
     </Field>
   );
   return (
@@ -270,7 +228,8 @@ export function BlockTab(props: BlockTabProps) {
   const set = (patch: Record<string, unknown>) => onChange(updateBlock(recipe, path, patch));
   const parent = path.length ? layerName(recipe, blockAt(recipe, path.slice(0, -1))!) : undefined;
   const raw = block as unknown as Record<string, unknown>;
-  const bound = "bind" in block || block.type === "card";
+  const bound = block.type !== "label" && block.type !== "heatmap" && ("bind" in block || block.type === "card");
+  const rows = { recipe, path, onChange, data: props.data, names: props.names, devices: props.devices, onOpenSources: props.onOpenSources };
   return (
     <div className="flex flex-col gap-2 p-4">
       <div className="mb-1 flex items-center gap-3">
@@ -337,20 +296,12 @@ export function BlockTab(props: BlockTabProps) {
         bound && (
           <>
             <Heading>{block.type === "card" ? "Sub-title" : "Data"}</Heading>
-            <DataRow recipe={recipe} path={path} block={block} props={props} />
+            <DataRow block={block} props={rows} />
           </>
         )
       )}
-      {block.type === "label" && !block.bind && (
-        <Field label="Text">
-          <TextInput label="Text" value={block.text ?? ""} onChange={(v) => set({ text: v.slice(0, 80) || undefined })} />
-        </Field>
-      )}
-      {block.type === "label" && block.text !== undefined && repeatAbove(recipe, path) && (
-        <Field label="Text from each place">
-          <Toggle label="Text from each place" checked={false} onChange={() => set({ text: undefined, bind: { field: "name" } })} />
-        </Field>
-      )}
+      {block.type === "label" && <LabelText key={path.join(".")} block={block} props={rows} />}
+      {block.type === "heatmap" && <HeatmapCells block={block} props={rows} />}
       {RANGED.has(block.type) && (
         <Field label="Range">
           <NumberInput label="Range from" value={raw.min as number | undefined} onChange={(v) => set({ min: v })} />
@@ -365,7 +316,7 @@ export function BlockTab(props: BlockTabProps) {
             <Toggle label="Value in the centre" checked={block.center !== false} onChange={(v) => set({ center: v ? undefined : false })} />
           </Field>
           <Field label="Thickness">
-            <input aria-label="Thickness" type="range" min={2} max={24} value={block.thickness ?? 8} onChange={(e) => set({ thickness: Number(e.target.value) })} className="w-[110px] accent-ui-strong-text" />
+            <Slider label="Thickness" min={2} max={24} value={block.thickness ?? 8} onChange={(v) => set({ thickness: v })} className="w-[110px] accent-ui-strong-text" />
             <span className="w-10 text-right font-ui-mono text-body text-ui-2">{block.thickness ?? 8} %</span>
           </Field>
         </>

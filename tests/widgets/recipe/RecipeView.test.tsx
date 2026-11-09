@@ -134,3 +134,36 @@ describe("RecipeView", () => {
     expect(html).toContain("–");
   });
 });
+
+describe("RecipeView, Phase A", () => {
+  it("draws a label's parts as one line: each reading with its decimals and unit, the text between (G4)", () => {
+    const html = draw(fixtureRecipe("weather-places"));
+    for (const line of ["6° / 1°", "7° / 3°", "17° / 9°"]) expect(html).toContain(line);
+    // a reading that is not there yet is a dash, without its unit
+    const r = fixtureRecipe("weather-places");
+    r.root.children.push({ type: "label", parts: [{ text: "Load " }, { bind: { sensor: "libre.cpu_total" }, decimals: 0 }] });
+    expect(draw(r, undefined, { data: { "libre.cpu_total": "41.6 %" }, sample: false })).toContain("Load 42%");
+    expect(draw(r, undefined, { data: {}, sample: false })).toContain("Load –<");
+  });
+
+  it("a nested card draws its sub-title after its title (B4)", () => {
+    const r = fixtureRecipe("cpu-card");
+    r.root.children = [{ type: "card", title: "Readings", subtitle: { option: "load" }, children: [{ type: "label", text: "x" }] }];
+    const html = draw(r, undefined, { names: { "libre.amd_ryzen_9_9950x3d_cpu_total": "AMD Ryzen 9 9950X3D CPU Total" } });
+    expect(html).toMatch(/Readings<\/span><span data-recipe-subtitle="" [^>]*>Ryzen 9 9950X3D</);
+  });
+
+  it("a bar in a series colour draws that colour, not the accent (B3)", () => {
+    const r = fixtureRecipe("cpu-card");
+    r.root.children = [{ type: "bar", bind: { option: "load" }, color: "series-3" }];
+    expect(draw(r, undefined, { t3: { "series-3": "#12ab34" } })).toContain("background:#12ab34");
+    r.root.children = [{ type: "bar", bind: { option: "load" }, color: "series-3", style: "segments" }];
+    expect(draw(r, undefined, { t3: { "series-3": "#12ab34" } })).toContain("background:#12ab34");
+  });
+
+  it("a draft's picture draws from the page before the server has it (B5)", () => {
+    const html = draw(fixtureRecipe("gpu-card"), undefined, { images: { "images/logo.png": "blob:http://x/1" } });
+    expect(html).toContain('src="blob:http://x/1"');
+    expect(draw(fixtureRecipe("gpu-card"))).toContain('src="/api/widgets/recipe.gpu-card/images/logo.png"');
+  });
+});

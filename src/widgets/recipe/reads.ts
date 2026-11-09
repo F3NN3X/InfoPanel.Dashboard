@@ -20,6 +20,7 @@ export function boundSensors(recipe: Recipe): string[] {
   const walk = (b: Block) => {
     if ("bind" in b) add(b.bind);
     if ("cells" in b) for (const c of b.cells ?? []) add(c);
+    if (b.type === "label") for (const p of b.parts ?? []) if ("bind" in p) add(p.bind);
     if ("children" in b) for (const c of b.children) walk(c);
   };
   add(recipe.root.subtitle);

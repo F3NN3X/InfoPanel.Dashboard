@@ -1,7 +1,9 @@
 // The recipe builder (Phase 5b, screenshots 04-08): Layers and "Add a block" on the left, the stage at a chosen zone size in the
 // middle ("Preview in <theme>", Live data or Sample, the validation line), the inspector's Block, Options and Presets tabs on the
 // right. The page holds each open recipe's history (undo, redo) so its tabs keep their own; Save stores it through /api/widgets.
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+// Layers moves a block into, out of and between containers by drag or Alt+arrows (Phase A, G1); a field's draft shows on the stage
+// while it is typed and is one undo step when it commits (G5); the validation line lists every problem in plain words (G6).
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent } from "react";
 import { ChevronRight, CircleAlert, CircleCheck, Link2, MonitorUp, Pencil, Redo2, Save, Undo2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -19,11 +21,13 @@ import { SAMPLE_THEMES } from "@/looks/sample-themes";
 import type { Data } from "@/widgets/core/types";
 import type { Cells, PackageFile, Recipe } from "@/widgets/recipe/types";
 import { toFlat, toNames } from "@/widgets/shared/data-adapter";
-import { ADD_ORDER, addBlock, BLOCK_LABEL, blockAt, devicesIn, duplicateBlock, flatten, isBound, layerName, moveBlock, presetValues, recipeIssues, removeBlock, updateBlock, validationLine, type Path } from "./builder-model";
+import { ADD_ORDER, addBlock, BLOCK_LABEL, blockAt, devicesIn, duplicateBlock, flatten, isBound, keyMove, layerName, moveBlock, moveRefusal, presetValues, recipeIssues, removeBlock, stepBlock, updateBlock, validationLine, withFormat, type Path } from "./builder-model";
 import { BlockIcon } from "./block-icons";
 import { BlockTab } from "./block-tab";
+import { type Typing, TypingContext } from "./fields";
 import type { History } from "./history";
 import { OptionsTab } from "./options-tab";
+import { type PlainIssue, plainIssue, plainIssues } from "./plain-issues";
 import { PresetsTab } from "./presets-tab";
 import { RecipePreview, zonePx } from "./recipe-preview";
 import { isUnsaved } from "./widgets-model";
@@ -74,45 +78,143 @@ function savedChip(d: Draft): { text: string; tone: "neutral" | "warn" } {
   return isUnsaved(d) ? { text: "Unsaved changes", tone: "warn" } : { text: "Recipe · saved", tone: "neutral" };
 }
 
-function Layers({ recipe, path, onSelect, onRemove, onMove }: { recipe: Recipe; path: Path; onSelect: (p: number[]) => void; onRemove: (p: number[]) => void; onMove: (p: number[], by: -1 | 1) => void }) {
+type Where = "above" | "below" | "inside";
+/** Where a drop on a row puts the block: into the container (at its end), else before or after the row in its parent. */
+const dropPlace = (at: number[], where: Where, size: number): { toParent: number[]; index: number } =>
+  where === "inside" ? { toParent: at, index: size } : { toParent: at.slice(0, -1), index: at[at.length - 1] + (where === "below" ? 1 : 0) };
+const indentOf = (depth: number): number => 10 + Math.min(depth, 4) * 16;
+
+interface LayersProps {
+  recipe: Recipe;
+  path: Path;
+  onSelect: (p: number[]) => void;
+  onRemove: (p: number[]) => void;
+  /** Alt+↑/↓: one place among its siblings. */
+  onStep: (p: number[], by: -1 | 1) => void;
+  /** A drop, or Alt+← / Alt+→ (`moveBlock`). */
+  onMove: (from: number[], toParent: number[], index: number) => void;
+}
+
+/**
+ * Layers (G1): a row drags (the Edit page's tree: a 2 px line between rows, an outline on a container's middle) into, out of and
+ * between Rows, Cards and Repeats; a drop the validator would refuse is refused, its reason at the drop line. Alt+← takes a block
+ * out of its container, Alt+→ into the container just above it, Alt+↑/↓ moves it among its siblings.
+ */
+function Layers({ recipe, path, onSelect, onRemove, onStep, onMove }: LayersProps) {
   const rows = flatten(recipe);
+  const [dragging, setDragging] = useState<number[] | null>(null);
+  const [drop, setDrop] = useState<{ at: string; where: Where; depth: number; why?: string } | null>(null);
+  const [why, setWhy] = useState<string | null>(null);
+  const whereOf = (e: DragEvent, at: number[], container: boolean): Where => {
+    if (!at.length) return "inside";
+    const r = e.currentTarget.getBoundingClientRect();
+    const f = r.height ? (e.clientY - r.top) / r.height : 0.5;
+    return container ? (f < 0.25 ? "above" : f > 0.75 ? "below" : "inside") : f < 0.5 ? "above" : "below";
+  };
+  const placeOn = (e: DragEvent, at: number[], block: (typeof rows)[number]["block"]) => {
+    const container = "children" in block;
+    const where = whereOf(e, at, container);
+    const place = dropPlace(at, where, container ? block.children.length : 0);
+    return { where, place, why: dragging ? moveRefusal(recipe, dragging, place.toParent) : undefined };
+  };
+  const end = () => {
+    setDragging(null);
+    setDrop(null);
+  };
   return (
-    <ul aria-label="Layers" className="flex flex-col gap-0.5">
-      {rows.map(({ block, path: at, depth }) => {
-        const selected = at.join(".") === path.join(".");
-        return (
-          <li key={at.join(".") || "root"}>
-            <button
-              type="button"
-              aria-current={selected || undefined}
-              data-layer={at.join(".")}
-              onClick={() => onSelect(at)}
-              onKeyDown={(e) => {
-                if ((e.key === "Delete" || e.key === "Backspace") && at.length) {
+    <>
+      <ul aria-label="Layers" className="flex flex-col gap-0.5" onDragLeave={(e) => e.currentTarget === e.target && setDrop(null)}>
+        {rows.map(({ block, path: at, depth }) => {
+          const key = at.join(".");
+          const selected = key === path.join(".");
+          const mark = drop?.at === key ? drop : null;
+          return (
+            <li key={key || "root"} className="relative">
+              <button
+                type="button"
+                aria-current={selected || undefined}
+                aria-keyshortcuts="Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight"
+                data-layer={key}
+                data-drop={mark ? (mark.why ? "refused" : mark.where) : undefined}
+                draggable={at.length > 0}
+                onDragStart={(e) => {
+                  setDragging(at);
+                  setWhy(null);
+                  onSelect(at);
+                  e.dataTransfer.setData("text/plain", "recipe-layer");
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                // a refused drop fires no drop event (the browser cancels it): its reason stays under Layers
+                onDragEnd={() => {
+                  if (drop?.why) setWhy(drop.why);
+                  end();
+                }}
+                onDragOver={(e) => {
+                  if (!dragging) return;
                   e.preventDefault();
-                  onRemove(at);
-                }
-                if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+                  const { where, why: refused } = placeOn(e, at, block);
+                  e.dataTransfer.dropEffect = refused ? "none" : "move";
+                  setDrop({ at: key, where, depth: where === "inside" ? depth + 1 : depth, why: refused });
+                }}
+                onDrop={(e) => {
+                  if (!dragging) return;
                   e.preventDefault();
-                  onMove(at, e.key === "ArrowUp" ? -1 : 1);
-                }
-              }}
-              className={cn(
-                "flex h-[34px] w-full items-center gap-2.5 rounded-ui-md pr-2 text-left text-body focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
-                selected ? "bg-ui-active text-ui-1" : "text-ui-2 hover:bg-ui-raised hover:text-ui-1",
+                  const { place, why: refused } = placeOn(e, at, block);
+                  const from = dragging;
+                  end();
+                  if (refused) setWhy(refused);
+                  else onMove(from, place.toParent, place.index);
+                }}
+                onClick={() => onSelect(at)}
+                onKeyDown={(e) => {
+                  if ((e.key === "Delete" || e.key === "Backspace") && at.length) {
+                    e.preventDefault();
+                    onRemove(at);
+                  }
+                  if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+                    e.preventDefault();
+                    setWhy(null);
+                    onStep(at, e.key === "ArrowUp" ? -1 : 1);
+                  }
+                  if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+                    e.preventDefault();
+                    const to = keyMove(recipe, at, e.key === "ArrowLeft" ? "out" : "in");
+                    setWhy("why" in to ? to.why : null);
+                    if (!("why" in to)) onMove(at, to.toParent, to.index);
+                  }
+                }}
+                className={cn(
+                  "flex h-[34px] w-full items-center gap-2.5 rounded-ui-md pr-2 text-left text-body focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ui-accent",
+                  selected ? "bg-ui-active text-ui-1" : "text-ui-2 hover:bg-ui-raised hover:text-ui-1",
+                  mark?.where === "inside" && (mark.why ? "outline outline-1 -outline-offset-1 outline-ui-warn" : "outline outline-1 -outline-offset-1 outline-ui-accent"),
+                  dragging?.join(".") === key && "opacity-50",
+                )}
+                style={{ paddingLeft: indentOf(depth) }}
+              >
+                <span className={cn("shrink-0", selected ? "text-ui-accent-icon" : "text-ui-3")}>
+                  <BlockIcon block={block} className="h-3.5 w-3.5" />
+                </span>
+                <span className="min-w-0 flex-1 truncate">{layerName(recipe, block)}</span>
+                {isBound(block) && <Link2 className="h-3.5 w-3.5 shrink-0 text-ui-hint" strokeWidth={1.5} aria-label="Bound to data" />}
+              </button>
+              {mark && mark.where !== "inside" && (
+                <span aria-hidden className={cn("pointer-events-none absolute right-0 z-10 h-[2px]", mark.why ? "bg-ui-warn" : "bg-ui-accent", mark.where === "above" ? "-top-px" : "-bottom-px")} style={{ left: indentOf(mark.depth) }} />
               )}
-              style={{ paddingLeft: 10 + Math.min(depth, 4) * 16 }}
-            >
-              <span className={cn("shrink-0", selected ? "text-ui-accent-icon" : "text-ui-3")}>
-                <BlockIcon block={block} className="h-3.5 w-3.5" />
-              </span>
-              <span className="min-w-0 flex-1 truncate">{layerName(recipe, block)}</span>
-              {isBound(block) && <Link2 className="h-3.5 w-3.5 shrink-0 text-ui-hint" strokeWidth={1.5} aria-label="Bound to data" />}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
+              {mark?.why && (
+                <span data-drop-why="" className={cn("pointer-events-none absolute right-1 z-20 max-w-[200px] rounded-[4px] border border-ui-warn bg-ui-panel px-1.5 py-0.5 text-micro leading-tight text-ui-warn", mark.where === "above" ? "bottom-full mb-0.5" : "top-full mt-0.5")}>
+                  {mark.why}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {why && (
+        <p role="status" data-move-why="" className="mt-1 px-2 text-micro leading-snug text-ui-warn">
+          {why}
+        </p>
+      )}
+    </>
   );
 }
 
@@ -120,8 +222,16 @@ function Layers({ recipe, path, onSelect, onRemove, onMove }: { recipe: Recipe; 
 /** The room the selection's name tag takes beside its block, in the zone's px (11 px text, its padding and gap). */
 const TAG_ROOM = 24;
 
+/**
+ * Where the selection's name tag goes: under the block where there is room above `floor` (the weather credit line's top, else the
+ * zone's bottom), else over the block, else inside its top corner. Never over the credit line (B12), which sits right under a Repeat
+ * that fills the card.
+ */
+export const tagPlace = (box: { y: number; h: number }, floor: number): "under" | "over" | "inside" => (floor - (box.y + box.h) >= TAG_ROOM ? "under" : box.y >= TAG_ROOM ? "over" : "inside");
+const TAG_CLASS = { under: "left-0 top-full mt-1", over: "left-0 bottom-full mb-1", inside: "left-1 top-1" } as const;
+
 function Selection({ zone, path, recipe, tick }: { zone: HTMLElement | null; path: Path; recipe: Recipe; tick: unknown }) {
-  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number; zoneH: number } | null>(null);
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number; floor: number } | null>(null);
   useLayoutEffect(() => {
     const at = path.join(".");
     const el = at ? zone?.querySelector<HTMLElement>(`[data-recipe-path="${at}"]`) : zone?.querySelector<HTMLElement>("[data-part='card']");
@@ -129,13 +239,12 @@ function Selection({ zone, path, recipe, tick }: { zone: HTMLElement | null; pat
     const z = zone.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     const scale = z.width / zone.offsetWidth || 1;
-    setBox({ x: (r.left - z.left) / scale, y: (r.top - z.top) / scale, w: r.width / scale, h: r.height / scale, zoneH: zone.offsetHeight });
+    const credit = zone.querySelector<HTMLElement>("[data-recipe-attribution], [data-recipe-sample]")?.getBoundingClientRect();
+    setBox({ x: (r.left - z.left) / scale, y: (r.top - z.top) / scale, w: r.width / scale, h: r.height / scale, floor: credit ? (credit.top - z.top) / scale : zone.offsetHeight });
   }, [zone, path.join("."), tick]);
   const b = blockAt(recipe, path);
   if (!box || !b || !path.length) return null;
-  // the name tag goes under the block where the zone has room for it, else over it, else inside its corner: never over what is
-  // drawn under the blocks (the weather credit line sits right under a Repeat that fills the card)
-  const tag = box.zoneH - (box.y + box.h) >= TAG_ROOM ? "left-0 top-full mt-1" : box.y >= TAG_ROOM ? "left-0 bottom-full mb-1" : "left-1 top-1";
+  const tag = TAG_CLASS[tagPlace(box, box.floor)];
   return (
     <div aria-hidden className="pointer-events-none absolute z-10" style={{ left: box.x - 3, top: box.y - 3, width: box.w + 6, height: box.h + 6 }}>
       <div className="h-full w-full rounded-[6px] border-2 border-ui-accent" />
@@ -145,7 +254,33 @@ function Selection({ zone, path, recipe, tick }: { zone: HTMLElement | null; pat
 }
 
 export function Builder(p: BuilderProps) {
-  const recipe = p.active.history.present;
+  const present = p.active.history.present;
+  // a field's draft while it is typed (G5): drawn on the stage and in the inspector, no undo step until it commits
+  const [preview, setPreview] = useState<Recipe | null>(null);
+  const recipe = preview ?? present;
+  useEffect(() => setPreview(null), [present]);
+  const previewing = useRef(false);
+  /** Every edit of the recipe, with the format its keys need: one undo step, or while a field is typed its preview. */
+  const edit = (r: Recipe, images?: PackageFile[]) => {
+    const next = withFormat(r);
+    if (previewing.current) return setPreview(next);
+    setPreview(null);
+    p.onEdit(next, images);
+  };
+  const typing = useMemo<Typing>(
+    () => ({
+      preview: (run) => {
+        previewing.current = true;
+        try {
+          run();
+        } finally {
+          previewing.current = false;
+        }
+      },
+      cancel: () => setPreview(null),
+    }),
+    [],
+  );
   const [path, setPath] = useState<number[]>([]);
   const [tab, setTab] = useState<Tab>("block");
   const [size, setSize] = useState<Cells>(recipe.size.default);
@@ -188,6 +323,14 @@ export function Builder(p: BuilderProps) {
   const devices = useMemo(() => devicesIn({ ...sampleData, ...liveData }), [sampleData, liveData]);
   const issues = useMemo(() => recipeIssues(recipe, p.active.images), [recipe, p.active.images]);
   const line = validationLine(recipe, issues);
+  const problems = plainIssues(recipe, issues);
+  const first = problems[0]?.text;
+  const floorIssue = issues.find((i) => i.rule === "text-floor");
+  /** A problem clicked: its block selected in its tab, or the Options or Presets tab. */
+  const goTo = (x: PlainIssue) => {
+    if (x.path) setPath(x.path);
+    setTab(x.tab);
+  };
   const chip = savedChip(p.active);
   const sizes = stageSizes(recipe, size);
   // the stage shows the picked preset (its values change in the Presets tab), else the options' defaults
@@ -214,24 +357,31 @@ export function Builder(p: BuilderProps) {
   const firstSensor = Object.keys(live ? liveData : sampleData).find((k) => k.endsWith("_cpu_total")) ?? Object.keys(liveData)[0] ?? "libre.cpu_total";
   const add = (type: (typeof ADD_ORDER)[number]) => {
     const r = addBlock(recipe, path, type, firstSensor);
-    p.onEdit(r.recipe);
+    edit(r.recipe);
     setPath(r.path);
     setTab("block");
   };
   const remove = (at: number[]) => {
     const r = removeBlock(recipe, at);
-    p.onEdit(r.recipe);
+    edit(r.recipe);
     setPath(r.path);
   };
   const duplicate = (at: number[]) => {
     const r = duplicateBlock(recipe, at);
-    p.onEdit(r.recipe);
+    edit(r.recipe);
     setPath(r.path);
   };
   keys.current.duplicate = () => path.length > 0 && duplicate(path);
-  const move = (at: number[], by: -1 | 1) => {
-    const r = moveBlock(recipe, at, by);
-    p.onEdit(r.recipe);
+  // after a move by keyboard the moved row keeps the focus, at its new place
+  const refocus = useRef(false);
+  useEffect(() => {
+    if (!refocus.current) return;
+    refocus.current = false;
+    document.querySelector<HTMLElement>(`[data-layer="${path.join(".")}"]`)?.focus();
+  }, [path]);
+  const moved = (r: { recipe: Recipe; path: number[] }) => {
+    if (r.recipe !== recipe) edit(r.recipe);
+    refocus.current = true;
     setPath(r.path);
   };
   const pickPreset = (id: string) => {
@@ -246,7 +396,7 @@ export function Builder(p: BuilderProps) {
       const path2 = `images/${stem}.${ext}`;
       const images = [...p.active.images.filter((f) => f.path !== path2), { path: path2, bytes: new Uint8Array(buf) }];
       const used = new Set(flatten(recipe).flatMap(({ block }) => (block.type === "image" ? [block.file] : [])));
-      p.onEdit(blockAt(recipe, path)?.type === "image" ? updateBlock(recipe, path, { file: path2 }) : recipe, images.filter((f) => used.has(f.path) || f.path === path2));
+      edit(blockAt(recipe, path)?.type === "image" ? updateBlock(recipe, path, { file: path2 }) : recipe, images.filter((f) => used.has(f.path) || f.path === path2));
     });
   };
   const { w, h } = zonePx(size);
@@ -267,7 +417,7 @@ export function Builder(p: BuilderProps) {
               onChange={(e) => setName(e.target.value.slice(0, 60))}
               onBlur={() => {
                 const next = name?.trim();
-                if (next && next !== recipe.name) p.onEdit({ ...recipe, name: next, root: recipe.root.title === recipe.name ? { ...recipe.root, title: next } : recipe.root });
+                if (next && next !== recipe.name) edit({ ...recipe, name: next, root: recipe.root.title === recipe.name ? { ...recipe.root, title: next } : recipe.root });
                 setName(null);
               }}
               onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
@@ -288,19 +438,19 @@ export function Builder(p: BuilderProps) {
           <Redo2 className="h-4 w-4" />
         </IconButton>
         <span aria-hidden className="h-5 w-px bg-ui-subtle" />
-        <Button variant="ghost" icon={<Upload strokeWidth={1.5} />} onClick={p.onExport} disabled={!line.ok} title={line.ok ? undefined : line.first}>
+        <Button variant="ghost" icon={<Upload strokeWidth={1.5} />} onClick={p.onExport} disabled={p.saving || !line.ok} title={line.ok ? "Saves it, then writes the package file" : first}>
           Export
         </Button>
         {p.onSaveCopy ? (
-          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSaveCopy} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? "It is signed: only its publisher's key may replace it, so the edit is saved as a new recipe" : line.first}>
+          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSaveCopy} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? "It is signed: only its publisher's key may replace it, so the edit is saved as a new recipe" : first}>
             Save as a copy
           </Button>
         ) : (
-          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSave} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? undefined : line.first}>
+          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSave} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? undefined : first}>
             Save
           </Button>
         )}
-        <Button variant="primary" icon={<MonitorUp strokeWidth={1.5} />} onClick={() => p.onAddToScreen(preset)} disabled={p.saving || !line.ok} title={line.ok ? "Saves it, then adds it to the screen in Edit" : line.first}>
+        <Button variant="primary" icon={<MonitorUp strokeWidth={1.5} />} onClick={() => p.onAddToScreen(preset)} disabled={p.saving || !line.ok} title={line.ok ? "Saves it, then adds it to the screen in Edit" : first}>
           Add to a screen
         </Button>
       </PageBar>
@@ -308,7 +458,7 @@ export function Builder(p: BuilderProps) {
         <aside aria-label="Layers and blocks" className="flex w-[256px] shrink-0 flex-col gap-4 overflow-y-auto border-r border-ui-subtle bg-ui-chrome p-3">
           <div>
             <h2 className="mb-2 px-2 text-caption text-ui-3">Layers</h2>
-            <Layers recipe={recipe} path={path} onSelect={(at) => (setPath(at), setTab("block"))} onRemove={remove} onMove={move} />
+            <Layers recipe={recipe} path={path} onSelect={(at) => (setPath(at), setTab("block"))} onRemove={remove} onStep={(at, by) => moved(stepBlock(recipe, at, by))} onMove={(from, to, index) => moved(moveBlock(recipe, from, to, index))} />
           </div>
           <div>
             <h2 className="mb-2 px-2 text-caption text-ui-3">Add a block</h2>
@@ -360,6 +510,7 @@ export function Builder(p: BuilderProps) {
             <div ref={zoneHost}>
               <RecipePreview
                 recipe={recipe}
+                images={p.active.images}
                 values={shownValues}
                 cells={size}
                 sample={!live}
@@ -373,10 +524,29 @@ export function Builder(p: BuilderProps) {
             </div>
           </div>
           <div role="status" data-validation="" className="flex items-center gap-2 text-caption">
-            {line.ok ? <CircleCheck className="h-4 w-4 text-ui-ok" strokeWidth={1.5} aria-hidden /> : <CircleAlert className="h-4 w-4 text-ui-warn" strokeWidth={1.5} aria-hidden />}
-            <span className="text-ui-2">{line.ok ? line.summary : line.first}</span>
-            <span className={cn("ml-auto", issues.some((i) => i.rule === "text-floor") ? "text-ui-warn" : "text-ui-3")}>{line.floor}</span>
+            {line.ok ? <CircleCheck className="h-4 w-4 shrink-0 text-ui-ok" strokeWidth={1.5} aria-hidden /> : <CircleAlert className="h-4 w-4 shrink-0 text-ui-warn" strokeWidth={1.5} aria-hidden />}
+            {line.ok ? (
+              <span className="text-ui-2">{line.summary}</span>
+            ) : problems.length === 1 ? (
+              <button type="button" data-problem="0" onClick={() => goTo(problems[0])} className="min-w-0 truncate text-left text-ui-2 underline-offset-2 hover:text-ui-1 hover:underline">
+                {first}
+              </button>
+            ) : (
+              <span className="text-ui-2">{problems.length} problems</span>
+            )}
+            <span className={cn("ml-auto shrink-0", floorIssue ? "text-ui-warn" : "text-ui-3")}>{floorIssue ? plainIssue(recipe, floorIssue).text : line.floor}</span>
           </div>
+          {problems.length > 1 && (
+            <ul aria-label="Problems" data-problems="" className="-mt-1 flex max-h-[30%] shrink-0 flex-col gap-0.5 overflow-y-auto text-caption">
+              {problems.map((x, k) => (
+                <li key={x.text}>
+                  <button type="button" data-problem={k} onClick={() => goTo(x)} className="w-full truncate rounded-ui-sm px-6 py-0.5 text-left text-ui-2 hover:bg-ui-raised hover:text-ui-1">
+                    {x.text}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </main>
         <aside aria-label="Inspector" className="flex w-[320px] shrink-0 flex-col overflow-y-auto border-l border-ui-subtle bg-ui-chrome">
           <Tabs
@@ -390,9 +560,11 @@ export function Builder(p: BuilderProps) {
               { value: "presets", label: "Presets" },
             ]}
           />
-          {tab === "block" && <BlockTab recipe={recipe} path={path} onChange={(r) => p.onEdit(r)} onRemove={() => remove(path)} onDuplicate={() => duplicate(path)} data={data} names={live ? names : undefined} devices={devices} onOpenSources={p.onOpenSources} onImage={onImage} />}
-          {tab === "options" && <OptionsTab recipe={recipe} onChange={(r) => p.onEdit(r)} />}
-          {tab === "presets" && <PresetsTab recipe={recipe} onChange={(r) => p.onEdit(r)} current={preset} onPick={pickPreset} values={shownValues} size={size} />}
+          <TypingContext.Provider value={typing}>
+            {tab === "block" && <BlockTab recipe={recipe} path={path} onChange={(r) => edit(r)} onRemove={() => remove(path)} onDuplicate={() => duplicate(path)} data={data} names={live ? names : undefined} devices={devices} onOpenSources={p.onOpenSources} onImage={onImage} />}
+            {tab === "options" && <OptionsTab recipe={recipe} onChange={(r) => edit(r)} data={{ ...sampleData, ...liveData }} />}
+            {tab === "presets" && <PresetsTab recipe={recipe} onChange={(r) => edit(r)} current={preset} onPick={pickPreset} values={shownValues} size={size} />}
+          </TypingContext.Provider>
         </aside>
       </div>
     </div>

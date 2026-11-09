@@ -2,7 +2,7 @@
 // It goes through one template module (the shell, the zone's look, the theme, a pack's T3 values) whose component reads the
 // recipe from context, so a draft that changes on every edit needs no module of its own. A zone is drawn at its size on the
 // validator's nominal grid (`metrics.ts`), so what the stage shows at 2×2 is what the floor was checked at, then scaled to its box.
-import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, type CSSProperties, type ReactNode } from "react";
 import { tokenScope } from "@/components/widget-style";
 import { useSensors } from "@/hooks/useSensors";
 import { resolveWith, type Appearance } from "@/lib/style-resolve";
@@ -11,14 +11,23 @@ import type { ModuleSettings } from "@/modules/types";
 import { NOMINAL_CELL } from "@/widgets/recipe/metrics";
 import { recipeReads } from "@/widgets/recipe/reads";
 import RecipeView, { type RecipeViewProps } from "@/widgets/recipe/RecipeView";
-import type { Cells, Recipe } from "@/widgets/recipe/types";
+import type { Cells, PackageFile, Recipe } from "@/widgets/recipe/types";
 import { templateModule } from "@/widgets/module";
 
-const Draft = createContext<{ recipe: Recipe; sample: boolean } | null>(null);
+const Draft = createContext<{ recipe: Recipe; sample: boolean; images?: Readonly<Record<string, string>> } | null>(null);
 
 function DraftRecipe(p: Omit<RecipeViewProps, "recipe">) {
   const draft = useContext(Draft)!;
-  return <RecipeView {...p} recipe={draft.recipe} sample={draft.sample} />;
+  return <RecipeView {...p} recipe={draft.recipe} sample={draft.sample} images={draft.images} />;
+}
+
+const MIME: Readonly<Record<string, string>> = { png: "image/png", jpg: "image/jpeg", webp: "image/webp" };
+
+/** A draft's pictures as object URLs by package path (B5: the server has none of them before a save), revoked when they change. */
+function useImageUrls(images: readonly PackageFile[] | undefined): Readonly<Record<string, string>> | undefined {
+  const urls = useMemo(() => (images?.length ? Object.fromEntries(images.map((f) => [f.path, URL.createObjectURL(new Blob([f.bytes as BlobPart], { type: MIME[f.path.split(".").pop()!] }))])) : undefined), [images]);
+  useEffect(() => () => Object.values(urls ?? {}).forEach((u) => URL.revokeObjectURL(u)), [urls]);
+  return urls;
 }
 
 const meta = { id: "recipe:draft", name: "Recipe", category: "Recipes", icon: "dashboard", prefixes: [], defaultSize: [3, 2] as Cells, minSize: [1, 1] as Cells, description: "" };
@@ -53,6 +62,8 @@ export interface RecipePreviewProps {
   maxScale?: number;
   /** Drawn over the zone, in its own px (the stage's selection). */
   overlay?: ReactNode;
+  /** A draft's pictures (its package's `images/`), drawn before the server has them. */
+  images?: readonly PackageFile[];
 }
 
 /**
@@ -65,7 +76,8 @@ function useReadings(sample: boolean, recipe: Recipe, own: ModuleSettings) {
   return useSensors(sample ? [] : null);
 }
 
-export function RecipePreview({ recipe, values, cells, sample, appearance, pageStyle, lookId, fit, maxScale = 1, overlay }: RecipePreviewProps) {
+export function RecipePreview({ recipe, values, cells, sample, appearance, pageStyle, lookId, fit, maxScale = 1, overlay, images }: RecipePreviewProps) {
+  const urls = useImageUrls(images);
   const own: ModuleSettings = { ...storedValues(recipe, values ?? {}), ...(lookId ? { lookId } : {}) };
   const sensors = useReadings(sample, recipe, own);
   const settings = resolveWith(appearance, own, undefined, undefined, draftModule.settings) ?? own;
@@ -75,7 +87,7 @@ export function RecipePreview({ recipe, values, cells, sample, appearance, pageS
   return (
     <div className="relative shrink-0" style={{ width: w * scale, height: h * scale }}>
       <div data-recipe-zone="" className="absolute left-0 top-0 origin-top-left text-foreground" style={{ ...pageStyle, ...scope, width: w, height: h, transform: `scale(${scale})` }}>
-        <Draft.Provider value={{ recipe, sample }}>{draftModule.render(sensors, settings)}</Draft.Provider>
+        <Draft.Provider value={{ recipe, sample, images: urls }}>{draftModule.render(sensors, settings)}</Draft.Provider>
         {overlay}
       </div>
     </div>

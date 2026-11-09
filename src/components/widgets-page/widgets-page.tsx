@@ -32,6 +32,7 @@ import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
 import { listUserWidgets, loadRecipe, readPackage, removeWidget, storePackage } from "@/widgets/recipe/store";
 import type { PackageFile, Recipe } from "@/widgets/recipe/types";
 import { checkPackage } from "@/widgets/recipe/validate";
+import type { Manifest } from "@/widgets/recipe/types";
 import { toFlat } from "@/widgets/shared/data-adapter";
 import { blockCount, duplicateRecipe, newRecipe, nextVersion, presetValues, recipeIdFor, valueText, withSample } from "./builder-model";
 import type { Draft } from "./builder";
@@ -101,11 +102,27 @@ const settingsOf = (id: string) => modules.find((m) => m.id === id)?.settings ??
 /** A widget package file's name for a recipe. */
 const fileName = (r: Recipe): string => `${r.id.slice(7)}-${r.version}.widget.zip`;
 
+/** Whether two manifests list the same files, byte for byte (each file's path and SHA-256). */
+export const sameFiles = (a: Pick<Manifest, "files"> | undefined, b: Pick<Manifest, "files"> | undefined): boolean => {
+  const list = (m: typeof a) => JSON.stringify((m?.files ?? []).map((f) => `${f.path} ${f.sha256}`).sort());
+  return !!a && !!b && list(a) === list(b);
+};
+
+/** An import that would replace a stored recipe, waiting for the person's answer (B8). */
+interface Replacing {
+  id: string;
+  file: string;
+  files: PackageFile[];
+  stored: { name: string; version: string; yours: boolean };
+  incoming: { name: string; version: string };
+}
+
 export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit, onOpenSources, home }: WidgetsPageProps) {
   const presetMap = useWidgetPresets();
   const [user, setUser] = useState<UserWidget[]>([]);
   const [notice, setNotice] = useState<string>();
   const [importError, setImportError] = useState<{ file: string; lines: string[] } | null>(null);
+  const [replacing, setReplacing] = useState<Replacing | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<WidgetFilter>("all");
   const [allBuiltIns, setAllBuiltIns] = useState(false);
@@ -192,7 +209,18 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
 
   /* ───────── import and export ───────── */
 
+  /** Stores an imported package (a replaced one keeps its origin: the server's word). */
+  const storeImport = async (file: string, files: PackageFile[], name: string, id: string) => {
+    const why = await storePackage(files, "import");
+    if (why) return setImportError({ file, lines: [why] });
+    setImportError(null);
+    toast(`Imported ${name}`);
+    await refresh(id);
+  };
+  // B8: an import over a recipe the server holds asks first, showing both versions. The same files again change nothing; a signed
+  // package of the stored version with other files is refused (a signed package changes its version when its files change).
   const importFile = async (file: File) => {
+    setReplacing(null);
     try {
       const { files, skipped } = await importPackage(new Uint8Array(await file.arrayBuffer()));
       const checked = await checkPackage({ files });
@@ -201,11 +229,19 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
         setImportError({ file: file.name, lines: [...errors.slice(0, 6).map((i) => `${i.file ? `${i.file}: ` : ""}${i.message}`), ...(skipped.length ? [`Left out, not part of a widget package: ${skipped.slice(0, 4).join(", ")}`] : [])] });
         return;
       }
-      const why = await storePackage(files, "import");
-      if (why) return setImportError({ file: file.name, lines: [why] });
+      const r = checked.recipe;
+      const stored = user.find((w) => w.id === r.id);
+      if (!stored) return void (await storeImport(file.name, files, r.name, r.id));
+      const old = (await readPackage(r.id)).files.find((f) => f.path === "manifest.json");
+      const oldManifest = old && (JSON.parse(new TextDecoder().decode(old.bytes)) as Manifest);
+      if (sameFiles(oldManifest, checked.manifest)) {
+        setImportError(null);
+        return toast(`${stored.name} ${stored.version} is installed already, with the same files`);
+      }
+      if ((stored.signed || checked.manifest?.signature) && stored.version === r.version)
+        return setImportError({ file: file.name, lines: [`${stored.name} ${stored.version} is installed, and one of the two is signed: a package of the same version with other files is refused. A signed package changes its version when its files change.`] });
       setImportError(null);
-      toast(`Imported ${checked.recipe.name}`);
-      await refresh(checked.recipe.id);
+      setReplacing({ id: r.id, file: file.name, files, stored: { name: stored.name, version: stored.version, yours: stored.yours }, incoming: { name: r.name, version: r.version } });
     } catch (e) {
       setImportError({ file: file.name, lines: [`It is not a widget package (.zip): ${(e as Error).message}`] });
     }
@@ -295,7 +331,12 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
           onSave={() => void save()}
           onSaveCopy={signedStored ? () => void saveCopy() : undefined}
           saving={saving}
-          onExport={() => void packageOf(withSample(draft.history.present, liveData), draft.images).then((files) => download(fileName(draft.history.present), exportPackage(files), "application/zip"))}
+          onExport={() =>
+            // B7: the file is what the server holds, under the version it holds it at, so an edit is saved first (as Add does)
+            void save().then(async (r) => {
+              if (r) await exportStored(r.id, r);
+            })
+          }
           onAddToScreen={(presetId) =>
             void save().then((r) => {
               if (r) addRecipe(r, presetId);
@@ -420,6 +461,32 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
                   {d.history.present.name}
                 </Button>
               ))}
+            </div>
+          )}
+          {replacing && (
+            <div role="alertdialog" aria-label="Replace a widget" data-import-replace="" className="mx-7 mt-5 flex flex-wrap items-center gap-3 rounded-ui-lg border border-ui-warn/40 bg-ui-warn/10 px-4 py-3 text-caption text-ui-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-body text-ui-1">Replace {replacing.stored.name} with the file's?</p>
+                <p className="mt-1">
+                  Installed: {replacing.stored.name} {replacing.stored.version}
+                  {replacing.stored.yours ? " (yours)" : ""} · In {replacing.file}: {replacing.incoming.name} {replacing.incoming.version}
+                </p>
+                <p className="mt-0.5 text-ui-3">Screens using it draw the file's version; it stays {replacing.stored.yours ? "in Yours" : "in Imported"}.</p>
+              </div>
+              <Button small onClick={() => setReplacing(null)}>
+                Keep the installed one
+              </Button>
+              <Button
+                small
+                variant="primary"
+                onClick={() => {
+                  const r = replacing;
+                  setReplacing(null);
+                  void storeImport(r.file, r.files, r.incoming.name, r.id);
+                }}
+              >
+                Replace
+              </Button>
             </div>
           )}
           {importError && (

@@ -816,8 +816,11 @@ with the same access as a built-in widget, so it loads only when signed by a key
 trust](#code-widgets-and-trust)). Both appear in Add after the built-in widgets and have presets like any other.
 
 **Import and Export.** **Import** takes a widget package, a `.zip` of at most 512 KB. The studio checks it before storing
-anything; a refused package is listed with the file and the reason in plain words. **Export**, in a widget's details or in the
-builder, writes `<name>-<version>.widget.zip`.
+anything; a refused package is listed with the file and the reason in plain words. A package whose widget is already installed
+asks first, showing the installed version and the file's (**Replace** or **Keep the installed one**); the same files again change
+nothing, and a signed package is never replaced by one of the same version with other files. A replaced recipe stays where it
+was (in **Yours** when you made it). **Export**, in a widget's details or in the builder, writes `<name>-<version>.widget.zip`;
+in the builder it saves your edits first, so the file is always the version the server holds.
 
 **New widget** opens the builder on a blank recipe. A built-in's details also have **Duplicate as a recipe** for CPU Monitor,
 GPU Monitor, Sensor and Weather; the other built-ins draw things blocks cannot (lists with as many rows as the data has,
@@ -827,17 +830,36 @@ controls, the clock, audio streams), and the button says why it is disabled.
 
 - A recipe is a card of blocks: Ring, Gauge, Bar, Sparkline, Value, Label, Weather icon, Image, Heatmap, Row and Repeat (up to
   64 blocks, six levels deep). The name is edited in the bar at the top; **Undo** and **Redo** (`Ctrl+Z`, `Ctrl+Shift+Z`)
-  step through edits, and every open recipe keeps its own history.
+  step through edits, and every open recipe keeps its own history. A text or number field counts as one edit when you leave it
+  or press **Enter** (the preview follows as you type; **Esc** puts the value back), and a slider drag is one edit.
+- In **Layers**, drag a block into a Row, a Card or a Repeat (onto the middle of its row), out of one, or between rows (a line
+  shows where it lands). On the keyboard, **Alt+←** takes the selected block out of its container, **Alt+→** puts it into the
+  Row, Card or Repeat just above it, and **Alt+↑** / **Alt+↓** move it among its neighbours. A move the recipe can't hold (a
+  Repeat inside a Repeat, more than six levels, a place's reading outside its Repeat) is refused, and the reason shows where you
+  dropped it.
 - Above the preview, **Size** switches between the sizes the recipe supports, **Preview in** draws it in another look, and
   **Data** switches between **Live data** and **Sample** values.
 - The inspector's **Block** tab sets what the selected block reads (a sensor, or a device such as a CPU or GPU), its colour
-  (accent, a series, or by thresholds), when it shows (always, or when an option has a value) and the smallest size it is
-  drawn at. **Let people pick** turns a binding into an option.
+  (accent, a series, or by thresholds; a Heatmap's own heat scale or a series), when it shows (always, or when an option has a
+  value) and the smallest size it is drawn at. **Let people pick** turns a binding into an option. A card's **Opens at** size is
+  also its default preset's, so **Add to a screen** places it at that size.
+- A **Label**'s **Text** is **Typed** or **From data**: a sensor, an option people set (a text option, for instance) or, inside a
+  Repeat, a field of each place. From data it is a line of parts shown as chips: **Add a part** adds typed text or another
+  reading, each reading with its own unit and decimals, and the chips drag to reorder ("6° / 1°" is the high, " / " and the low).
+- A **Heatmap** lists its **Cells**, one reading each: **Add a cell** opens the data picker (tick several at once), × removes one
+  and the rows drag to reorder. Inside a Repeat it draws a field of numbers of each place instead.
 - **Options** are what people can change when they add the widget, shown in its Content tab: a toggle, a choice, a number, a
-  text, a sensor, a place list or a device (up to 24). **Presets** are named sets of options and a size (up to 16).
-- The bar says whether the recipe is valid and, if not, the first problem. **Save** stores it on the server, **Add to a screen**
-  saves it and puts it on the screen, and **Export** writes the package. A recipe signed by someone else cannot be replaced
-  by a save, only copied with **Save as a copy**.
+  text, a sensor, a place list or a device (up to 24). A device option's **Kind** (CPU, GPU, Drive, Network adapter) changes what
+  every block that follows it reads at once: each reading moves to the new kind's reading of the same sort (load, temperature,
+  clock, power), and the ones with no match are listed so you can pick them again. That is how a GPU card is made from a CPU
+  card. **Presets** are named sets of options and a size (up to 16).
+- The line under the preview says whether the recipe is valid. When it is not, it lists every problem in plain words, each
+  naming its block as Layers does; click one to select that block (or open the Options or Presets tab). **Save** stores it on
+  the server, **Add to a screen** saves it and puts it on the screen, and **Export** saves it and writes the package. A recipe
+  signed by someone else cannot be replaced by a save, only copied with **Save as a copy**.
+- A recipe that uses a label of parts is saved as recipe format 2. An older Studio draws it as "Widget not available" (a recipe
+  without parts stays format 1 and draws everywhere); this one says "made with a newer InfoPanel Studio; update to show it"
+  for a recipe of a format newer than it reads.
 
 **Weather by place.** A recipe can show the weather for places people choose, with no plugin: a **Repeat** block over a place
 list, with a Weather icon and values bound to each place's temperature, wind, precipitation and so on. In the widget's Content

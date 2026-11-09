@@ -23,6 +23,8 @@ export interface RecipeViewProps extends ShellProps {
   saved?: ModuleSettings;
   /** Draw the recipe's sample readings instead of the live ones (the builder's Sample, tests). */
   sample?: boolean;
+  /** Pictures by package path that the server has not got yet (a builder draft's, as object URLs). */
+  images?: Readonly<Record<string, string>>;
 }
 
 interface Ctx {
@@ -40,6 +42,7 @@ interface Ctx {
   saved?: ModuleSettings;
   /** The recipe's sample data is drawn (the builder's Sample, tests), not the live readings. */
   sample?: boolean;
+  images?: Readonly<Record<string, string>>;
 }
 
 const RecipeCtx = createContext<Ctx | null>(null);
@@ -101,6 +104,15 @@ function inkOf(c: RecipeColour | undefined, value: number, thresholds: Ranged["t
   return { t: "ok" };
 }
 
+/** A card's sub-title: the reading's name, else the device a key named (a device option), else the value itself. */
+function subtitleOf(b: Binding | undefined, ctx: Ctx): string | undefined {
+  const sub = b ? read(b, ctx) : undefined;
+  const found = sub?.key ? hw({ [sub.key]: "" }) : undefined;
+  const device = sub?.device ?? found?.cpu ?? found?.gpu;
+  const named = sub?.key && ctx.names?.[sub.key] ? ctx.names[sub.key] : device ? pretty(device) : undefined;
+  return named ? shortLabel(named).model || named : sub && sub.raw !== "" && sub.raw !== undefined ? String(sub.raw) : undefined;
+}
+
 const decimalsOf = (v: number, own: number | undefined): number => own ?? (Math.abs(v) < 10 ? 1 : 0);
 const shown = (r: Reading, decimals?: number): string => (Number.isFinite(r.value) && (typeof r.raw === "number" || /^-?\d/.test(String(r.raw).trim())) ? fmt(r.value, decimalsOf(r.value, decimals)) : r.raw === undefined || r.raw === "" ? "–" : String(r.raw));
 
@@ -159,9 +171,15 @@ function BlockView({ b, path }: { b: Block; path: string }): ReactNode {
 
 function NestedCard({ b, path }: { b: Extract<Block, { type: "card" }>; path: string }) {
   const ctx = useCtx();
+  const subtitle = subtitleOf(b.subtitle, ctx);
   return (
     <div className="flex h-full w-full min-h-0 flex-col gap-1 rounded-lg p-2" style={{ background: "var(--w-track)" }}>
-      {b.title && <span className="truncate text-[color:var(--w-muted)]" style={{ fontSize: textPx(0.85, ctx.w, ctx.h) }}>{b.title}</span>}
+      {(b.title || subtitle) && (
+        <span className="flex min-w-0 items-baseline gap-[0.4em] text-[color:var(--w-muted)]" style={{ fontSize: textPx(0.85, ctx.w, ctx.h) }}>
+          {b.title && <span className="shrink-0 truncate">{b.title}</span>}
+          {subtitle && <span data-recipe-subtitle="" className="min-w-0 truncate text-[color:var(--w-faint)]">{subtitle}</span>}
+        </span>
+      )}
       <div className="min-h-0 flex-1">
         <Blocks blocks={b.children} path={path} />
       </div>
@@ -198,7 +216,7 @@ function BarView({ b }: { b: Extract<Block, { type: "bar" }> }) {
   const ink = inkOf(b.color, r.value, b.thresholds, ctx);
   return (
     <div className="flex w-full items-center">
-      <Bar value={r.value - min} max={max - min} t={ink.t} style={b.style ?? "bar"} className="h-2" />
+      <Bar value={r.value - min} max={max - min} t={ink.t} color={ink.color} style={b.style ?? "bar"} className="h-2" />
     </div>
   );
 }
@@ -248,9 +266,23 @@ function useFitPx(want: number, text: unknown) {
   return [ref, px] as const;
 }
 
+/** A label's line: its parts in order (a reading with its decimals and its unit, else the reading's), else its text, else its reading. */
+function labelText(b: Extract<Block, { type: "label" }>, read1: (bind: Binding) => Reading): string {
+  if (b.parts)
+    return b.parts
+      .map((p) => {
+        if ("text" in p) return p.text;
+        const r = read1(p.bind);
+        const value = shown(r, p.decimals);
+        return value === "–" ? value : `${value}${p.unit ?? r.unit}`;
+      })
+      .join("");
+  return b.text ?? (b.bind ? shown(read1(b.bind)) : "–");
+}
+
 function LabelView({ b }: { b: Extract<Block, { type: "label" }> }) {
   const ctx = useCtx();
-  const text = b.text ?? shown(read(b.bind, ctx));
+  const text = labelText(b, (bind) => read(bind, ctx));
   const color = b.tone === "muted" ? "var(--w-muted)" : b.tone === "accent" ? "var(--w-accent)" : "var(--w-fg)";
   const [ref, px] = useFitPx(textPx(b.scale ?? 0.85, ctx.w, ctx.h), text);
   return (
@@ -273,7 +305,7 @@ function WeatherView({ b }: { b: Extract<Block, { type: "weather-icon" }> }) {
 
 function ImageView({ b }: { b: Extract<Block, { type: "image" }> }) {
   const ctx = useCtx();
-  return <img src={`/api/widgets/${keyOf(ctx.recipe.id)}/${b.file}`} alt={b.alt ?? ""} className="h-full w-full min-h-0" style={{ objectFit: b.fit ?? "contain" }} />;
+  return <img src={ctx.images?.[b.file] ?? `/api/widgets/${keyOf(ctx.recipe.id)}/${b.file}`} alt={b.alt ?? ""} className="h-full w-full min-h-0" style={{ objectFit: b.fit ?? "contain" }} />;
 }
 
 function HeatmapView({ b }: { b: Extract<Block, { type: "heatmap" }> }) {
@@ -374,13 +406,8 @@ export default function RecipeView(p: RecipeViewProps) {
   const data = p.sample ? Object.fromEntries(Object.entries(recipe.sample.sensors).map(([k, v]) => [k, String(v)])) : p.data;
   const values = optionValues(recipe, p.saved);
   const root = recipe.root;
-  const base: Omit<Ctx, "w" | "h"> = { recipe, data, names: p.names, values, t3: p.t3, saved: p.saved, sample: p.sample };
-  const sub = root.subtitle ? read(root.subtitle, { ...base, w: 0, h: 0 }) : undefined;
-  // the reading's name, else the device a key named (a device option), else the value itself
-  const found = sub?.key ? hw({ [sub.key]: "" }) : undefined;
-  const device = sub?.device ?? found?.cpu ?? found?.gpu;
-  const named = sub?.key && p.names?.[sub.key] ? p.names[sub.key] : device ? pretty(device) : undefined;
-  const subtitle = named ? shortLabel(named).model || named : sub && sub.raw !== "" && sub.raw !== undefined ? String(sub.raw) : undefined;
+  const base: Omit<Ctx, "w" | "h"> = { recipe, data, names: p.names, values, t3: p.t3, saved: p.saved, sample: p.sample, images: p.images };
+  const subtitle = subtitleOf(root.subtitle, { ...base, w: 0, h: 0 });
   return (
     <Widget {...shell(p)} title={p.title ?? root.title ?? recipe.name} icon={root.icon ?? recipe.icon ?? "dashboard"} design={null} right={subtitle ? <span className="truncate text-[color:var(--w-muted)]">{subtitle}</span> : undefined}>
       {({ w, h, outerW, outerH }) =>
