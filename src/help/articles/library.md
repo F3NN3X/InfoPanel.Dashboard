@@ -3,7 +3,7 @@ id: library
 title: Library
 icon: perm_media
 related: [assets, gauges, import, themes]
-verified: 1.3.0-beta.36
+verified: 1.3.1-beta.8
 ---
 
 Everything you can reuse is here, yours and the built-in ones: Widget styles, Panels, gauges, images, videos, fonts, components, InfoPanel profiles, screen templates and InfoPanel templates. Gauges are built and edited in their own view, **Gauges** on the rail. Themes, saved themes and colors are in **Theme** (see [Themes](themes)), and the island's theme in the island settings (see [Dynamic Island and alerts](island-alerts)); the sidebar ends with a row, **Themes, saved themes and colors are in Theme →**, that opens Theme.
@@ -27,6 +27,10 @@ Every image or video you upload is in My library, wherever you uploaded it: Add 
 A component is a piece of a page you saved to reuse: a few items, a group, an element such as a Row or Drives, or on a screen's page widgets too. Save one in Edit with **Save to Library** on a screen's page (see [The studio](studio)) or on an InfoPanel profile (see [InfoPanel profiles in Edit](infopanel-editor)). **Components** lists them with a thumbnail of each. A component isn't a profile, so it doesn't appear under InfoPanel profiles or in Screens.
 
 Drag a component onto the screen to get an InfoPanel group of its own, or onto an imported profile's page to merge its items there. **Place on this page** does the first in the free cell that draws it largest. Each placement counts as a copy, so the component shows as used, and removing it from the Library never deletes a file a placed copy still draws.
+
+## Widget presets
+
+A widget preset you saved with **Save as preset** in a widget's inspector is listed under **Widget presets**, with the widget it belongs to and its size. Select it to see its settings; it can be applied to the selected widgets of that kind, renamed, duplicated and deleted, each one undo step. It is also a row of that widget in Add. See [Layouts and presets](presets#widget-presets).
 
 ## Styles
 

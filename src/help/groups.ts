@@ -3,7 +3,7 @@ export const HELP_GROUPS: { label: string; articles: string[] }[] = [
   { label: "Start here", articles: ["welcome", "quickstart", "concepts"] },
   {
     label: "Build",
-    articles: ["studio", "profiles", "zones", "widgets", "panels", "panel-widgets", "presets", "library"],
+    articles: ["studio", "profiles", "zones", "widgets", "widgets-page", "panels", "panel-widgets", "presets", "library"],
   },
   { label: "Style", articles: ["themes", "widget-settings", "background", "custom-css", "island-alerts"] },
   { label: "Data", articles: ["sensors", "connections", "streaming", "agents"] },

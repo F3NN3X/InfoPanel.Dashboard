@@ -3,7 +3,7 @@ id: widget-settings
 title: Widget settings
 icon: tune
 related: [themes, widgets, custom-css]
-verified: 1.3.0-beta.36
+verified: 1.3.1-beta.8
 ---
 
 Every widget and panel has the same four tabs, filed by the question they answer.
@@ -18,6 +18,8 @@ Every widget and panel has the same four tabs, filed by the question they answer
 Widget-specific sections come first in each tab, shared ones after. With nothing selected, the inspector shows the **Page** you are on: its name and icon, the sections it customizes, **Show on kiosks now**, and links to the screen's layout, Theme and behavior. Theme lists the same sections in one ordered column.
 
 Every Style section has a chip that says where its value comes from: **From ‹screen›**, **From theme**, **Changed here**, **Built-in** or **Locked** (see [Themes](themes#fine-tune)). Editing a row changes the section here. Click the chip, or the links under the rows, to **Reset to inherited**, **Change here** or open the level it comes from. With a section focused, Backspace resets it.
+
+A widget with presets also has a **Preset** row at the top of the inspector, under its place; it picks a view and its settings in one step (see [Layouts and presets](presets#widget-presets)).
 
 ## Finding a setting
 

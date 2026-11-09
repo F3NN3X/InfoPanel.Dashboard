@@ -3,7 +3,7 @@ id: glossary
 title: Glossary
 icon: menu_book
 related: [concepts]
-verified: 1.3.0-beta.36
+verified: 1.3.1-beta.8
 ---
 
 The words this app uses, in one place.
@@ -19,6 +19,8 @@ The words this app uses, in one place.
 | Max FPS | The most times a second the kiosk redraws its animations, 60 by default |
 | Motion | Whether the kiosk animates: System, Reduce or Full |
 | Native | Drawn as a dashboard widget that follows the theme |
+| Preset | A named view of one widget, with its size and settings; saved ones are in Library › Widget presets |
+| Recipe | A widget you build from Studio's blocks on the Widgets page; it holds no code |
 | Panel | A widget composed of panel widgets in a Stack, Grid or Overlay |
 | Screen | A design for one display size, with its own grid (called a profile in files and in InfoPanel) |
 | Widget style | How widgets are drawn (the skin in saved files); pick one on the theme card, or per widget in Edit |

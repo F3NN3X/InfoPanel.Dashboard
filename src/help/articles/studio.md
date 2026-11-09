@@ -3,7 +3,7 @@ id: studio
 title: The studio
 icon: space_dashboard
 related: [zones, widget-settings, shortcuts]
-verified: 1.3.0-beta.36
+verified: 1.3.1-beta.8
 ---
 
 The editor window: a sidebar of views on the left, the work area in the middle, and an inspector for settings in Edit.
@@ -13,9 +13,10 @@ The editor window: a sidebar of views on the left, the work area in the middle, 
 | View | What it holds |
 |---|---|
 | **Screens** | Your screens: which one opens, sizes, pages, rotation and each screen's own frame rate. **New** opens the New page, where you start from Blank or a template. See [Screens and the grid](profiles). |
-| **Edit** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets** (the widgets, InfoPanel's items and elements, as tiles), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
+| **Edit** | The canvas, the page tabs and the inspector, for a grid screen or an InfoPanel profile. The left panel switches between **Layers** (every part of the page in one tree, see [Layers](studio#layers)) and **Add** (see [Add](studio#add)), which has tabs for **Widgets**, **Items** (InfoPanel's items and Studio's elements, where the page takes them), **Panels** (yours and the presets) and **Layouts** (starters). See [InfoPanel profiles in Edit](infopanel-editor) for profiles. |
 | **Theme** | One editor for the theme at every level: Browse themes, its quick changes, your saved themes and colors. See [Themes](themes). |
 | **Library** | Your Styles, Panels, gauges, media, fonts and canvases. See [Library](library). |
+| **Widgets** | Every widget, your recipe widgets and imported ones, and the builder. See [The Widgets page](widgets-page). |
 | **Gauges** | Browse, edit and build gauges. See [Gauges](gauges). |
 | **Alerts & Island** | Alert rules, defaults and history, and the Dynamic Island. See [Dynamic Island and alerts](island-alerts). |
 | **Data sources** | Every data point the Data API publishes, with a chart of the last minute, what uses it, and display names. See [Sensors and the Data API](sensors). |
@@ -116,13 +117,14 @@ Esc — Clear the selection
 
 ## Add
 
-**Add** shows what you can put on the page as tiles, three to a row, each with an icon and a name. A widget's tile has its size at the top left.
+**Add** shows what you can put on the page as rows, each with an icon, a name and one line of what it is. Its tabs are **Widgets**, **Items** (when the page takes InfoPanel items), **Panels** and **Layouts**.
 
-- **Show** picks **All**, **Widgets** or **InfoPanel items**. Widgets come first, then InfoPanel items, then elements. The chips under it narrow the list to one category, and the search covers everything.
-- **Recently used**, at the top, holds the last four things you added, widgets and items alike. It hides while you search or pick a chip.
-- Rest the pointer on a tile, or move to it with the arrow keys, and a card opens beside the panel after a moment: a preview, what it is, and its size. Scrolling, leaving the list or `Esc` closes it.
-- Click a tile or press `Enter` to add it. A widget takes the first free cells. An InfoPanel item or element goes in the middle of the page, on the cells, into the selected group if there is one. An item that reads a sensor asks for it next.
-- Drag a tile onto the canvas to put it where you drop it. Hold `Alt` as you drop an item to place it to the pixel. A widget dropped where it has no free cells isn't added, and a message says "No free cells here."
+- On **Widgets**, the chips under the tabs narrow the list to one category, and the search covers every tab. **Items** has its own chips: InfoPanel's groups and Studio's elements. Your recipe and code widgets (see [The Widgets page](widgets-page)) are listed after the built-in ones.
+- **Recently used**, at the top, holds the last four things you added. It hides while you search.
+- A widget with presets shows **N presets** on its row. Click it to list them, then click one to add it or drag it onto the canvas (see [Layouts and presets](presets#widget-presets)). Presets you saved are in the list too.
+- Rest the pointer on a row, or move to it with the arrow keys, and a card opens beside the panel after a moment: a preview, what it is, and its size. Scrolling, leaving the list or `Esc` closes it.
+- Click a row or press `Enter` to add it. A widget takes the first free cells, or fills the selected blank zone. An InfoPanel item or element goes in the middle of the page, on the cells, into the selected group if there is one. An item that reads a sensor asks for it next.
+- Drag a row onto the canvas to put it where you drop it. Hold `Alt` as you drop an item to place it to the pixel. A widget dropped where it has no free cells isn't added, and a message says "No free cells here."
 - `/` opens Add from anywhere in Edit and puts the cursor in its search.
 - A message at the top of the canvas says what you added, with **Undo**.
 - **Panels** and **Layouts** keep their lists. On an imported InfoPanel profile **Layouts** is greyed out. A layout adds Studio panel areas, and an imported profile keeps the layout it came with from InfoPanel.

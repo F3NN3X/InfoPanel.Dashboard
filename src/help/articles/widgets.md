@@ -2,8 +2,8 @@
 id: widgets
 title: Widgets
 icon: widgets
-related: [widget-settings, sensors, panels]
-verified: 1.3.0-beta.36
+related: [widgets-page, presets, widget-settings, sensors, panels]
+verified: 1.3.1-beta.8
 ---
 
 Ready-made modules that read sensors and adapt to their size.
@@ -12,9 +12,23 @@ Ready-made modules that read sensors and adapt to their size.
 
 :::generated widgets.table
 
-To browse them, open the **Add** tab in Edit's left panel. On the **Widgets** tab the chips are All, System, Hardware, Storage, Network, Media, Audio, Info, Gaming and Generic. Rest the pointer on a tile for a card with a preview and what the widget does (see [Add](studio#add)). Panels and layout starters have their own tabs.
+To browse them, open **Add** in Edit's left panel. On the **Widgets** tab each widget is one row, and the chips are All, System, Hardware, Storage, Network, Media, Audio, Info, Gaming and Generic. Rest the pointer on a row for a card with a preview and what the widget does (see [Add](studio#add)). Panels and layout starters have their own tabs. Recipe and code widgets you added on the [Widgets page](widgets-page) are listed after the built-in ones.
 
-On an InfoPanel profile, **Add** lists the widgets first, then InfoPanel's items, and a widget goes on the canvas at any place and size.
+Where the page takes InfoPanel items, as on an InfoPanel profile, Add has an **Items** tab for InfoPanel's items and Studio's elements, and a widget goes on the canvas at any place and size.
+
+## Views and presets
+
+Several widgets draw more than one view of the same data, and a view comes with a size and a few settings that suit it. These are the widget's **presets**: a row in Add that shows "N presets" opens them, and you can add one straight from the list. A placed widget shows the same presets as the **Preset** row at the top of its inspector. If you change a setting a preset sets, the row reads **Custom**. See [Layouts and presets](presets#widget-presets) for saving your own.
+
+A few widgets that used to be separate are now views of another widget. A screen saved with the old one opens as the new one, in the matching view, with its settings kept.
+
+| Was | Is now |
+|---|---|
+| Forecast | **Weather**, the Forecast preset |
+| Threshold Timeline | **Session Stats**, the Threshold timeline preset |
+| Vitals | **KPI Tiles**, the Vitals preset |
+| GPU Rings | **GPU Monitor**, the Rings preset |
+| Frame Pacing | **FPS Monitor**, the Frame pacing preset |
 
 ## Adapting to size
 
@@ -51,17 +65,18 @@ Three more views are ready-made, and each one is also listed in **Add** as its o
 
 They are built from items you can use in your own bars: CPU ring, GPU ring, CPU double ring, GPU double ring, FPS, frame time, and the CPU, GPU and FPS lines. The CPU and GPU are found by role, so they work on any PC. **FPS** reads the RTSS or PresentMon plugin; with no game running it shows a dash, and the FPS line leaves itself out. When the widget is narrow, the bar drops the least important item first (the frame time, the time, the FPS, then the GPU) and never overlaps. The sizes follow the widget's height, so they suit a strip of 12 × 1 and similar. Choosing a preset in the **View** control changes the frame only; add the preset from **Add** to get its items.
 
-## Tint
+## Weather
 
-The Weather widget can tint its surface from the current conditions. Find it in **Style › Widget colors**.
+The Weather widget reads the weather plugins (Yr or OpenWeatherMap). It has six presets: Full, Now, Forecast, Minimal, Glance and Week. It can tint its surface from the current conditions; find that in **Style › Widget colors**.
+
+A recipe widget can show the weather for places you choose, with no plugin. That is [weather by place](widgets-page#weather-by-place).
 
 ## History and analysis
 
-Four widgets look back or give a verdict, which InfoPanel's own items can't do.
+Three widgets look back or give a verdict, which InfoPanel's own items can't do.
 
 - **Bottleneck Lens** names what holds a game back: CPU-bound, GPU-bound, VRAM full, thermal throttling, power limited or balanced. The reason sits under it, for example "GPU 98 % · CPU busiest core 61 %". A new verdict has to last 5 seconds before it replaces the old one; change that under **Behavior › Verdict**. With no game running it says Idle.
 - **Frame Histogram** counts frame times over the last minute and marks the 1% and 0.1% lows. The dashed guides are 60 and 120 fps. Bars to the right of a guide are frames that missed it.
-- **Session Stats** shows min, average, max and the time above a level for up to six sensors. In the studio, **Reset** in the widget's header starts the counts again.
-- **Threshold Timeline** draws one lane per sensor, green, amber or red by its thresholds, over the last few minutes.
+- **Session Stats** shows min, average, max and the time above a level for up to six sensors. In the studio, **Reset** in the widget's header starts the counts again. Its **Threshold timeline** preset (the old Threshold Timeline widget) draws one lane per sensor instead, green, amber or red by its thresholds, over the last few minutes.
 
-All four pick their sensors themselves, so they work when you drop them. Pick other sensors under **Data**. The history lives in the page: a reload starts it again, and nothing is saved.
+All three pick their sensors themselves, so they work when you drop them. Pick other sensors under **Data**. The history lives in the page: a reload starts it again, and nothing is saved.
