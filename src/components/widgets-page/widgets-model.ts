@@ -1,0 +1,108 @@
+// The Widgets page as data (Phase 5b): the user widgets the server holds, split into Yours (saved from the builder on this
+// studio) and Imported (from a file, later Themely), the built-ins after them, the filters and the search, where each widget is
+// placed, and the trust a widget is shown with. Pure but for the one stored list of the ids saved here.
+import type { DashboardConfig } from "@/lib/layout";
+import type { Recipe } from "@/widgets/recipe/types";
+import type { RecipeIssue } from "@/widgets/recipe/validate";
+
+/**
+ * Who stands behind a widget, the detail pane's box. A recipe holds no code (the only state that is live in 5b); the two code
+ * widget states render from the dev fixtures (`src/dev/fixtures/widgets.ts`) until Phase 6 brings signed code widgets.
+ */
+export type Trust = { kind: "recipe" } | { kind: "owner" } | { kind: "user-key"; signer: string; trusted: string };
+
+/** A user widget on the page: a recipe from the server, or a fixture code widget (dev builds only). */
+export interface UserWidget {
+  id: string;
+  name: string;
+  kind: "recipe" | "code";
+  /** Saved from the builder on this studio. */
+  yours: boolean;
+  recipe?: Recipe;
+  /** The validator's word on it: a refused one is listed, greyed, with its first error. */
+  issues: RecipeIssue[];
+  trust: Trust;
+  /** The card's line ("Made in Studio · ring, three values"). */
+  blurb: string;
+  version: string;
+  /** Bytes on the server (`GET /api/widgets` `size`). */
+  bytes: number;
+  /** A fixture's own preview, presets and options (code widgets have no recipe to read them from). */
+  fixture?: { preview: string; presets: string[]; options: [string, string][] };
+}
+
+export type WidgetFilter = "all" | "recipes" | "code" | "yours";
+
+/** The ids of the recipes saved from the builder here (Yours); every other user widget is Imported. */
+export const YOURS_KEY = "studio.widgets.yours";
+
+export function readYours(): Set<string> {
+  try {
+    const raw: unknown = JSON.parse(localStorage.getItem(YOURS_KEY) ?? "[]");
+    return new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function markYours(id: string, yours = true): void {
+  const all = readYours();
+  if (yours) all.add(id);
+  else all.delete(id);
+  try {
+    localStorage.setItem(YOURS_KEY, JSON.stringify([...all]));
+  } catch {
+    // a private window: Yours lasts for the session's list only
+  }
+}
+
+/** Whether a widget passes the filter and the search (its name, case-insensitive). */
+export function shown(w: Pick<UserWidget, "kind" | "yours" | "name">, filter: WidgetFilter, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (q && !w.name.toLowerCase().includes(q)) return false;
+  return filter === "all" || (filter === "recipes" && w.kind === "recipe") || (filter === "code" && w.kind === "code") || (filter === "yours" && w.yours);
+}
+
+/** The filter chips' counts: every widget, the built-ins counted in All only. */
+export function counts(user: readonly UserWidget[], builtIns: number): Record<WidgetFilter, number> {
+  return {
+    all: user.length + builtIns,
+    recipes: user.filter((w) => w.kind === "recipe").length,
+    code: user.filter((w) => w.kind === "code").length,
+    yours: user.filter((w) => w.yours).length,
+  };
+}
+
+/** Where a widget is placed: each screen and page that has a zone of it. */
+export interface Use {
+  profileId: string;
+  profile: string;
+  pageId: string;
+  page: string;
+  zoneId: string;
+}
+
+export function usesOf(config: DashboardConfig, id: string): Use[] {
+  return config.profiles.flatMap((p) =>
+    p.pages.flatMap((pg) => pg.placements.filter((z) => z.module === id).map((z) => ({ profileId: p.id, profile: p.name, pageId: pg.id, page: pg.name, zoneId: z.id }))),
+  );
+}
+
+/** The screens a widget is on, by name, once each ("Perf heavy, Desk bar"); "Not used yet" for none. */
+export function screensLine(uses: readonly Use[]): string {
+  const names = [...new Set(uses.map((u) => u.profile))];
+  return names.length ? names.join(", ") : "Not used yet";
+}
+
+/** The card's chip: "On 2 screens", none when it is on none. */
+export function onScreensChip(uses: readonly Use[]): string | undefined {
+  const n = new Set(uses.map((u) => u.profile)).size;
+  return n ? `On ${n} screen${n === 1 ? "" : "s"}` : undefined;
+}
+
+/** What the detail pane says of a recipe under its name ("Recipe · made in Studio · 7 blocks"). */
+export function kindLine(w: UserWidget, blocks?: number): string {
+  if (w.kind === "code") return `Code widget · v${w.version} · ${Math.max(1, Math.round(w.bytes / 1000))} KB`;
+  const from = w.yours ? "made in Studio" : "imported file";
+  return `Recipe · ${from}${blocks !== undefined ? ` · ${blocks} blocks` : ""}`;
+}
