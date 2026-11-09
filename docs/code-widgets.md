@@ -73,6 +73,13 @@ A code widget must be signed with a minisign key (Ed25519). The signature covers
    node tools/widgets/sign.mjs my-widget --key my-widgets.key --password-env MINISIGN_PASSWORD
    ```
    It lists the files with their hashes and adds the signature. Sign again after any change: one changed byte refuses the package.
+3. To sign every package in a folder at once, and only those that changed:
+   ```
+   node tools/widgets/sign-all.mjs my-widgets/ --key my-widgets.key --publisher my-name
+   ```
+   It skips packages whose signature still verifies and whose files are unchanged, asks for the key's password once (or reads
+   `MINISIGN_PASSWORD`), refuses a code widget of a publisher your key does not sign for, and checks every new signature with
+   your public key. `--check` signs nothing and exits 1 while anything needs signing; `--force` signs everything again.
 
 ## The publisher rule
 
