@@ -237,7 +237,7 @@ export interface DashboardModule {
 export type ViewInspector = Partial<Pick<DashboardModule, "header" | "compact" | "fmt" | "thr" | "styleSubset" | "noData">>;
 
 /** The view a zone shows: its stored view key, else the widget's first view (undefined for a widget without views). */
-export const viewOf =(mod: DashboardModule, saved: ModuleSettings | undefined): WidgetView | undefined => {
+export const viewOf = (mod: DashboardModule, saved: ModuleSettings | undefined): WidgetView | undefined => {
   const id = saved?.[mod.viewKey ?? "view"] ?? mod.views?.[0]?.id;
   return mod.views?.find((v) => v.id === id);
 };
