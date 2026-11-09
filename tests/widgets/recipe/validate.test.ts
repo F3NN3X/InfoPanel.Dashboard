@@ -264,3 +264,57 @@ describe("validateRecipe", () => {
     }
   });
 });
+
+describe("label parts and format 2 (Phase A, G4)", () => {
+  const weather = (edit: (r: Recipe) => void) => variant("weather-places", edit);
+  /** Weather · places' "High / low" label, a line of three parts. */
+  const highLow = (r: Recipe) => (rootOf(r).children[0] as Extract<Block, { type: "repeat" }>).children.find((b) => b.name === "High / low") as Extract<Block, { type: "label" }>;
+  const caption = (r: Recipe) => rootOf(r).children.find((b) => b.type === "label") as Extract<Block, { type: "label" }>;
+
+  it("the Weather · places fixture is format 2 for its parts, and passes", async () => {
+    const r = fixtureRecipe("weather-places");
+    expect(r.format).toBe(2);
+    expect(highLow(r).parts).toEqual([{ bind: { field: "high" }, decimals: 0, unit: "°" }, { text: " / " }, { bind: { field: "low" }, decimals: 0, unit: "°" }]);
+    expect(errors(await weather(() => {}))).toEqual([]);
+  });
+
+  it("format: parts need format 2; format 1 without them stays as it was; a newer format says so and nothing else", async () => {
+    expect(errors(await weather((r) => (r.format = 1)))).toEqual(["format"]);
+    expect(errors(await cpu((r) => (r.format = 2)))).toEqual([]);
+    const newer = validateRecipe({ files: await weather((r) => Object.assign(r, { format: 3, sizes: "new key" })) });
+    expect(newer).toEqual([{ rule: "format", severity: "error", file: "recipe.json", message: "made with a newer InfoPanel Studio (recipe format 3); update to show it" }]);
+    expect(errors(await cpu((r) => Object.assign(r, { format: 0 })))).toEqual(["schema"]);
+  });
+
+  it("parts: each one text or data, the bounds of each, at most eight, nothing beside them", async () => {
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "" })))).toEqual(["schema"]);
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "x".repeat(41) })))).toEqual(["schema"]);
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "x".repeat(40) })))).toEqual([]);
+    expect(errors(await weather((r) => Object.assign(highLow(r).parts![0], { decimals: 5 })))).toEqual(["schema"]);
+    expect(errors(await weather((r) => Object.assign(highLow(r).parts![0], { unit: "123456789" })))).toEqual(["schema"]);
+    expect(errors(await weather((r) => (highLow(r).parts = [])))).toEqual(["schema"]);
+    expect(errors(await weather((r) => (highLow(r).parts = Array.from({ length: 9 }, () => ({ text: "x" })))))).toEqual(["size"]);
+    expect(errors(await weather((r) => (highLow(r).parts = Array.from({ length: 8 }, () => ({ text: "x" })))))).toEqual([]);
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "/", bind: { field: "low" } } as never)))).toEqual(["block"]);
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "/", unit: "°" } as never)))).toEqual(["block"]);
+    expect(errors(await weather((r) => (highLow(r).text = "x")))).toEqual(["block"]);
+  });
+
+  it("parts: each binding names something there, and the url and attribution rules read each text part", async () => {
+    expect(errors(await weather((r) => (highLow(r).parts![0] = { bind: { field: "humidity" } })))).toEqual(["binding"]);
+    expect(errors(await weather((r) => (highLow(r).parts![0] = { bind: { option: "nope" } })))).toEqual(["binding"]);
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "https://x.io" })))).toEqual(["url"]);
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "<b>" })))).toContain("schema");
+    expect(errors(await weather((r) => (highLow(r).parts![1] = { text: "Weather data by me" })))).toEqual(["attribution"]);
+    // outside a Repeat a field is no binding
+    expect(errors(await weather((r) => rootOf(r).children.push({ type: "label", parts: [{ bind: { field: "temp" } }] })))).toEqual(["binding"]);
+    expect(errors(await weather((r) => rootOf(r).children.push({ type: "label", parts: [{ text: "Now " }, { bind: { option: "hours" }, unit: " h" }] })))).toEqual([]);
+    expect(caption(fixtureRecipe("weather-places"))).toBeUndefined();
+  });
+
+  it("depth: too deep a tree is the depth rule's, in blocks, before the JSON guard (B10)", async () => {
+    const nest = (n: number): Block => (n === 0 ? { type: "label", text: "x" } : { type: "row", children: [nest(n - 1)] });
+    const issues = validateRecipe({ files: await cpu((r) => (rootOf(r).children = [nest(8)])) });
+    expect(issues.map((i) => [i.rule, i.message])).toEqual([["depth", "$.root.children[0].children[0].children[0].children[0].children[0].children[0]: blocks nest 7 deep, at most 6"]]);
+  });
+});

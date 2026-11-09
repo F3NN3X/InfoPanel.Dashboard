@@ -118,6 +118,8 @@ export interface BarProps {
   style?: string;
   /** Cells of the segments / blocks styles (default 24 / 14). */
   segments?: number;
+  /** A fill of its own (a recipe's series colour) in place of the tone's. */
+  color?: string;
 }
 /** A ring's stroke never draws thinner than this on screen, so a small ring keeps a line you can see. */
 const RING_MIN_PX = 6;
@@ -212,21 +214,21 @@ export function Bar(p: BarProps & { ipKey?: string }) {
 /** The colour of a bar or ring in a tone: a pack that sets its own `ok` draws it for ok instead of the accent (L58). */
 const toneInk = (sk: Partial<SkinContext>, t: Tone): string => (t === "ok" && sk.packOk ? "var(--w-ok)" : TONES[t]);
 
-function BarBase({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-[color:var(--w-track)]", style: meterStyle, segments }: BarProps) {
+function BarBase({ value, max = 100, t = "ok", className = "h-1.5", track = "bg-[color:var(--w-track)]", style: meterStyle, segments, color }: BarProps) {
   const sk = useSkin();
   const m = meterStyle ?? sk.meter ?? "bar";
   const pct = clamp((value / max) * 100);
   // Smooth graph updates: glide linearly over about one sample interval instead of easing.
   const glide = sk.smooth ? { transition: `transform ${GLIDE_MS}ms linear` } : null;
   // `bar-fill` paints the ok tone of the line, square and pill bars; warn and crit keep their own colours
-  const ink = t === "ok" && sk.barFill ? sk.barFill : toneInk(sk, t);
+  const ink = color ?? (t === "ok" && sk.barFill ? sk.barFill : toneInk(sk, t));
   if (m === "segments" || m === "blocks") {
     const n = segments ?? (m === "blocks" ? 14 : 24),
       lit = Math.round((pct / 100) * n);
     return (
       <div data-part="bar" className={cn("flex w-full gap-[2px]", className)}>
         {Array.from({ length: n }, (_, i) => (
-          <span key={i} className="min-w-0 flex-1 rounded-[1px]" style={{ background: i < lit ? (m === "blocks" ? blockColor(i, n) : toneInk(sk, t)) : "var(--w-track)" }} />
+          <span key={i} className="min-w-0 flex-1 rounded-[1px]" style={{ background: i < lit ? (m === "blocks" ? blockColor(i, n) : (color ?? toneInk(sk, t))) : "var(--w-track)" }} />
         ))}
       </div>
     );

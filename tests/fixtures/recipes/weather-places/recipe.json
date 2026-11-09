@@ -1,5 +1,5 @@
 {
-  "format": 1,
+  "format": 2,
   "id": "recipe:weather-places",
   "name": "Weather · places",
   "version": "1.0.0",
@@ -263,30 +263,30 @@
             }
           },
           {
-            "type": "value",
-            "name": "High",
-            "bind": {
-              "field": "high"
-            },
-            "unit": "°",
-            "decimals": 0,
+            "type": "label",
+            "name": "High / low",
+            "parts": [
+              {
+                "bind": {
+                  "field": "high"
+                },
+                "decimals": 0,
+                "unit": "°"
+              },
+              {
+                "text": " / "
+              },
+              {
+                "bind": {
+                  "field": "low"
+                },
+                "decimals": 0,
+                "unit": "°"
+              }
+            ],
             "scale": 0.7,
-            "grow": 0.8,
-            "when": {
-              "option": "layout",
-              "is": "list"
-            }
-          },
-          {
-            "type": "value",
-            "name": "Low",
-            "bind": {
-              "field": "low"
-            },
-            "unit": "°",
-            "decimals": 0,
-            "scale": 0.7,
-            "grow": 0.8,
+            "tone": "muted",
+            "grow": 1.4,
             "when": {
               "option": "layout",
               "is": "list"

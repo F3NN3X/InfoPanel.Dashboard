@@ -4,8 +4,12 @@
 // value is a number, a word, a sensor key, an option key or a field of a Repeat's data source; an image is a file of the package.
 import type { WidgetPreset } from "../define";
 
-/** The recipe format this build reads (`recipe.json`'s `format`). */
-export const RECIPE_FORMAT = 1;
+/**
+ * The newest recipe format this build reads (`recipe.json`'s `format`); it reads every one before it too. Format 2 adds keys format 1
+ * has not got (a label's `parts`); a recipe that uses none of them is written as format 1, so an older build still draws it.
+ */
+export const RECIPE_FORMAT = 2;
+export type RecipeFormat = 1 | 2;
 
 /** The fixed list of blocks (the builder's "Add a block"). */
 export const BLOCK_TYPES = ["card", "row", "repeat", "ring", "gauge", "bar", "sparkline", "value", "label", "weather-icon", "image", "heatmap"] as const;
@@ -133,10 +137,14 @@ export interface ValueBlock extends BlockBase {
   color?: RecipeColour;
   thresholds?: { warn: number; crit: number };
 }
+/** One piece of a label's line (format 2): typed text, or a reading with its own decimals and unit ("6°", " / ", "1°"). */
+export type LabelPart = { text: string } | { bind: Binding; decimals?: number; unit?: string };
 export interface LabelBlock extends BlockBase {
   type: "label";
   text?: string;
   bind?: Binding;
+  /** The line made of several pieces, in order (format 2). */
+  parts?: LabelPart[];
   scale?: number;
   tone?: "fg" | "muted" | "accent";
 }
@@ -215,7 +223,7 @@ export interface RecipeSample {
 }
 
 export interface Recipe {
-  format: 1;
+  format: RecipeFormat;
   /** `recipe:<id>` (Gate 0 answer 5). */
   id: string;
   name: string;
