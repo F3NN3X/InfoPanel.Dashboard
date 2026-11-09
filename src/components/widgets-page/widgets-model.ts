@@ -31,6 +31,9 @@ export interface UserWidget {
   fixture?: { preview: string; presets: string[]; options: [string, string][] };
 }
 
+/** Whether an open recipe has what is not on the server: never saved, or changed since it was. */
+export const isUnsaved = (d: { stored?: Recipe; history: { present: Recipe } }): boolean => !d.stored || JSON.stringify(d.stored) !== JSON.stringify(d.history.present);
+
 export type WidgetFilter = "all" | "recipes" | "code" | "yours";
 
 /** Whether a widget passes the filter and the search (its name, case-insensitive). */

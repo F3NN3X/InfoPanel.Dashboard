@@ -26,6 +26,7 @@ import type { History } from "./history";
 import { OptionsTab } from "./options-tab";
 import { PresetsTab } from "./presets-tab";
 import { RecipePreview, zonePx } from "./recipe-preview";
+import { isUnsaved } from "./widgets-model";
 
 /** An open recipe: its history, its images and what is stored (undefined: never saved). */
 export interface Draft {
@@ -68,7 +69,7 @@ export function stageSizes(recipe: Recipe, shown?: Cells): Cells[] {
 /** The draft's state line: what saving means now. */
 function savedChip(d: Draft): { text: string; tone: "neutral" | "warn" } {
   if (!d.stored) return { text: "Not saved yet", tone: "warn" };
-  return JSON.stringify(d.stored) === JSON.stringify(d.history.present) ? { text: "Recipe · saved", tone: "neutral" } : { text: "Unsaved changes", tone: "warn" };
+  return isUnsaved(d) ? { text: "Unsaved changes", tone: "warn" } : { text: "Recipe · saved", tone: "neutral" };
 }
 
 function Layers({ recipe, path, onSelect, onRemove, onMove }: { recipe: Recipe; path: Path; onSelect: (p: number[]) => void; onRemove: (p: number[]) => void; onMove: (p: number[], by: -1 | 1) => void }) {

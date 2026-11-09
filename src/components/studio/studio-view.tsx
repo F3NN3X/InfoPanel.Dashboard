@@ -397,8 +397,11 @@ function StudioViewBody({
     },
     onSelectProfile: selectProfile,
   });
+  /** The sidebar's Widgets picked again while it shows: back to the page's browse, out of the builder. */
+  const [widgetsHome, setWidgetsHome] = useState(0);
   const onRail = (item: RailItem) => {
     setNewPage(null);
+    if (item === "widgets" && showWidgets) setWidgetsHome((n) => n + 1);
     ui.onRail(item);
   };
   /** Items the editor opens with selected (the Library's "uses"). */
@@ -1159,7 +1162,7 @@ function StudioViewBody({
 
   const widgetsEl = showWidgets && (
     <Suspense fallback={<PageLoading title="Widgets" />}>
-      <WidgetsPage bridge={libraryBridge} appearance={appearance} pageStyle={{ ...themeScope, fontFamily: pageFont }} onShowEdit={() => ui.setMode("design")} onOpenSources={() => ui.setMode("sources")} />
+      <WidgetsPage bridge={libraryBridge} appearance={appearance} pageStyle={{ ...themeScope, fontFamily: pageFont }} onShowEdit={() => ui.setMode("design")} onOpenSources={() => ui.setMode("sources")} home={widgetsHome} />
     </Suspense>
   );
 

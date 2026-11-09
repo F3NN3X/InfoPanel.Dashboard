@@ -36,7 +36,7 @@ import { START, whyNoStart } from "./start-points";
 import { storedValues } from "./recipe-preview";
 import { WidgetDetail, type WidgetDetailProps } from "./widget-detail";
 import { WidgetsBrowse, type BuiltInEntry } from "./widgets-browse";
-import { counts, kindLine, screensLine, shown, usesOf, type UserWidget, type WidgetFilter } from "./widgets-model";
+import { counts, isUnsaved, kindLine, screensLine, shown, usesOf, type UserWidget, type WidgetFilter } from "./widgets-model";
 
 /** The builder comes with its first open. */
 const Builder = lazy(() => import("./builder").then((m) => ({ default: m.Builder })));
@@ -55,6 +55,8 @@ export interface WidgetsPageProps {
   /** Edit, after Add to a screen. */
   onShowEdit: () => void;
   onOpenSources: () => void;
+  /** Bumped when the sidebar's Widgets is picked again: the page goes back to browse (open recipes stay open). */
+  home?: number;
 }
 
 /** A recipe's card line: its description's first words. */
@@ -68,7 +70,7 @@ const settingsOf = (id: string) => modules.find((m) => m.id === id)?.settings ??
 /** A widget package file's name for a recipe. */
 const fileName = (r: Recipe): string => `${r.id.slice(7)}-${r.version}.widget.zip`;
 
-export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit, onOpenSources }: WidgetsPageProps) {
+export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit, onOpenSources, home }: WidgetsPageProps) {
   const presetMap = useWidgetPresets();
   const [user, setUser] = useState<UserWidget[]>([]);
   const [notice, setNotice] = useState<string>();
@@ -172,6 +174,12 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
     open(w.recipe, files.filter((f) => f.path.startsWith("images/")), w.recipe);
   };
   const draft = drafts.find((d) => d.key === active) ?? null;
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) first.current = false;
+    else setActive(null);
+  }, [home]);
+  const unsaved = drafts.filter(isUnsaved);
   const setDraft = (next: Draft) => setDrafts((list) => list.map((d) => (d.key === next.key ? next : d)));
   const save = async (): Promise<Recipe | undefined> => {
     if (!draft) return;
@@ -303,6 +311,16 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
       </PageBar>
       <div className="relative flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
+          {unsaved.length > 0 && (
+            <div data-unsaved-recipes className="mx-7 mt-5 flex flex-wrap items-center gap-2 rounded-ui-lg border border-ui-warn/40 bg-ui-warn/10 px-4 py-2.5 text-caption text-ui-2">
+              <span className="mr-1">Open in the builder, not saved:</span>
+              {unsaved.map((d) => (
+                <Button key={d.key} small onClick={() => setActive(d.key)}>
+                  {d.history.present.name}
+                </Button>
+              ))}
+            </div>
+          )}
           {importError && (
             <div role="alert" className="mx-7 mt-5 flex gap-3 rounded-ui-lg border border-ui-danger/40 bg-ui-danger/10 px-4 py-3 text-caption text-ui-2">
               <div className="min-w-0 flex-1">

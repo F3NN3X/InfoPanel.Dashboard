@@ -30,6 +30,9 @@ test("Build a recipe, save it, add it to a screen: the kiosk draws it", async ({
   // the server records it as made in Studio (Yours), whichever browser asks
   expect(await (await fetch(`${scratch.base}/api/widgets`)).json()).toEqual([expect.objectContaining({ id: "recipe:test-card", origin: "studio" })]);
 
+  // the sidebar's Widgets goes back to browse, where the saved recipe is a card; a double-click opens it again
+  await page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: "Widgets", exact: true }).click();
+  await page.locator('[data-widget-card="recipe:test-card"]').dblclick();
   await page.getByRole("button", { name: "Add to a screen" }).click();
   await expect(page.getByText("Added Test card to Desk").first()).toBeVisible();
   await page.keyboard.press("Control+s");
