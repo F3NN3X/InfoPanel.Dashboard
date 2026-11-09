@@ -4,7 +4,7 @@ import { tempUnitOf } from "@/modules/setting-readers";
 import type { ModuleSetting, ModuleSettings } from "@/modules/types";
 import { BOTH, CARD, defineWidget } from "../define";
 import { weatherIsland } from "../island/info";
-import { enumSetting, formatSetting, iconsOf, numberOf, oneOf, pass, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
+import { boolSetting, enumSetting, formatSetting, iconsOf, numberOf, oneOf, pass, viewOnly, viewsExcept, viewSetting } from "../shared/settings-kit";
 import { meta } from "./meta";
 import type { WeatherProps } from "./Weather";
 
@@ -83,6 +83,13 @@ const WEATHER_ROWS: ModuleSetting[] = [
   { key: "fxOpacity", label: "Strength", type: "number", default: 100, min: 20, max: 100, step: 10, group: "Background", perWidget: true, visibleIf: (v) => v.fxOn === true },
   { key: "fxPreview", label: "Show", type: "select", default: "auto", options: [{ value: "auto", label: "Live condition" }, { value: "clear", label: "Clear" }, { value: "cloudy", label: "Cloudy" }, { value: "rain", label: "Rain" }, { value: "snow", label: "Snow" }, { value: "hail", label: "Hail" }, { value: "thunder", label: "Thunder" }, { value: "fog", label: "Fog" }], group: "Background", perWidget: true, visibleIf: (v) => v.fxOn === true },
 ];
+/**
+ * The Forecast view without weather data but with other sensors: hidden (Weather's way), or its empty card (the Forecast
+ * widget's, so config v19 turns it on for a migrated Forecast zone). It switches the view's gate (`prefixesWhen`, meta.ts).
+ */
+const EMPTY_CARD = viewOnly(meta, "forecast")(
+  boolSetting("emptyCard", "Empty card without weather data", false, { group: "Display", hint: "Off hides the zone until the weather plugin reports; on draws the card, empty, once any sensor does" })
+);
 /** The views that draw the stats, feels-like and forecast strip toggles (Glance and Week have their own layout). */
 const togglesShown = viewOnly(meta, "full", "now", "minimal");
 /** The Forecast view is the Forecast widget: no tint, background or provider of its own. */
@@ -129,6 +136,7 @@ export default defineWidget({
   inspector: { header: "yes", compact: CARD, fmt: ["tempUnit"], byView: { forecast: { compact: BOTH } } },
   settings: [
     ...WEATHER_ROWS.map(WEATHER_GATE),
+    EMPTY_CARD,
     notForecast(enumSetting("provider", "Provider", "auto", [{ value: "auto", label: "Auto" }, { value: "yr", label: "Yr" }, { value: "owm", label: "OpenWeatherMap" }], { group: "Source", tab: "data" })),
     // The Forecast view reads Yr whatever the provider.
     { ...yrLocation, visibleIf: (v) => v.view === "forecast" || v.provider !== "owm" },

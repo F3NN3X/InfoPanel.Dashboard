@@ -62,12 +62,15 @@ describe("placementPrefixes", () => {
     expect(placementPrefixes(place({ module: "DayPlanner" }))).toEqual(["plugins.yr-weather-plugin."]);
   });
 
-  it("subscribes a zone to its view's own prefixes where the view has them: Weather's forecast view reads every stream, as the Forecast widget did", () => {
+  it("subscribes a zone to its view's own prefixes where the view has them: Weather's forecast view with Empty card on reads every stream, as the Forecast widget did", () => {
     const weather = ["plugins.yr-weather-plugin.", "plugins.weather-plugin."];
     expect(placementPrefixes(place({ module: "Weather" }))).toEqual(weather);
     expect(placementPrefixes(place({ module: "Weather", settings: { view: "now" } }))).toEqual(weather);
-    expect(placementPrefixes(place({ module: "Weather", settings: { view: "forecast" } }))).toBeNull();
-    expect(quietPrefix(place({ module: "Weather", settings: { view: "forecast" } }))).toBe("plugins.audio-level-meter.");
+    expect(placementPrefixes(place({ module: "Weather", settings: { view: "forecast" } }))).toEqual(weather);
+    expect(placementPrefixes(place({ module: "Weather", settings: { view: "forecast", emptyCard: true } }))).toBeNull();
+    expect(placementPrefixes(place({ module: "Weather", settings: { view: "now", emptyCard: true } }))).toEqual(weather);
+    expect(quietPrefix(place({ module: "Weather", settings: { view: "forecast", emptyCard: true } }))).toBe("plugins.audio-level-meter.");
+    expect(quietPrefix(place({ module: "Weather", settings: { view: "forecast" } }))).toBeUndefined();
     expect(quietPrefix(place({ module: "Weather" }))).toBeUndefined();
   });
 

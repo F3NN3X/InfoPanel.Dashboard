@@ -15,13 +15,15 @@ tint itself from the condition, draw an animated background and send the conditi
 The Yr plugin, `plugins.yr-weather-plugin.<location>.*`: `temp`, `feels_like`, `weather_icon`, `weather_desc`, `name`,
 `wind_speed`, `wind_deg`, `wind_gust`, `humidity`, `pressure`, `clouds`, `rain`, `snow`, `last_refreshed` and the
 `forecast` table (date, condition, high / low, rain, wind). The OpenWeatherMap plugin, `plugins.weather-plugin.weather.*`,
-with the same names. The Forecast view reads only the Yr `forecast` table, and draws (empty) once any sensor exists, as the
-Forecast widget did.
+with the same names. The Forecast view reads only the Yr `forecast` table; with Empty card on it draws (empty) once any sensor exists,
+as the Forecast widget did.
 
 ## Options
 
 - **Preset** (the view) and its toggles: **Stats row**, **Feels-like**, **Forecast strip**.
 - **Forecast days**: 1-7; 0 = as many as fit in the Forecast view (5 in the others).
+- **Empty card without weather data** (Forecast view): off hides the zone until the weather plugin reports; on draws the
+  card, empty, once any sensor does, as the Forecast widget did (config v19 turns it on for a migrated Forecast zone).
 - **Tint from conditions**, and the **Animated background** with its intensity, particles, speed, wind, lightning,
   clouds, strength and preview (not in the Forecast view).
 - **Icon set** (app icons or Meteocons) with the Meteocons style and animation.

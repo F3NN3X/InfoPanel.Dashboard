@@ -69,6 +69,17 @@ describe("Weather's forecast view draws a migrated Forecast zone as the Forecast
     }
   });
 
+  it("keeps an existing Weather zone in the forecast view hidden without weather data, as on main (Empty card off)", () => {
+    for (const settings of [{ view: "forecast" }, { view: "forecast", forecastDays: 3 }, { view: "forecast", emptyCard: false }] as ModuleSettings[]) {
+      expect(WEATHER.render(NO_WEATHER, settings), JSON.stringify(settings)).toBeNull();
+      expect(html(WEATHER.render(ALL, settings))).not.toBeNull();
+    }
+    // the migrated zone stores Empty card on, so it draws the Forecast widget's empty card
+    const migrated = migratePlacementV19({ module: "Forecast", settings: {} as ModuleSettings }).settings!;
+    expect(migrated.emptyCard).toBe(true);
+    expect(html(WEATHER.render(NO_WEATHER, migrated))).toEqual(html(FORECAST.render(NO_WEATHER, {})));
+  });
+
   it("draws nothing with no sensors at all, as before", () => {
     expect(both({}, {})).toEqual({ before: null, after: null });
   });

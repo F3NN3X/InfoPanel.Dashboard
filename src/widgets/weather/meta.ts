@@ -16,9 +16,9 @@ export const meta: WidgetMeta = {
   views: [
     { id: "full", name: "Full", applies: { showForecast: true, showStats: true, showFeels: true } },
     { id: "now", name: "Now", blurb: "Current conditions with wind and humidity", tags: "current today", applies: { showForecast: false, showStats: true, showFeels: true } },
-    // The Forecast widget until config v19: found by its words, and it gates on any key as that widget did (no prefixes
-    // of its own).
-    { id: "forecast", name: "Forecast", blurb: "Conditions now and the days ahead", tags: "week days outlook multi-day highs lows", applies: { showForecast: true, showStats: false, showFeels: false }, prefixes: [] },
+    // The Forecast widget until config v19: found by its words. With Empty card on (what a migrated
+    // Forecast zone stores) it gates on any key as that widget did; off, on the weather plugins as the rest of Weather.
+    { id: "forecast", name: "Forecast", blurb: "Conditions now and the days ahead", tags: "week days outlook multi-day highs lows", applies: { showForecast: true, showStats: false, showFeels: false }, prefixes: [], prefixesWhen: "emptyCard" },
     { id: "minimal", name: "Minimal", blurb: "Temperature and conditions only", tags: "simple small", applies: { showForecast: false, showStats: false, showFeels: false } },
     { id: "glance", name: "Glance", blurb: "Big icon, temperature and place", tags: "icon big", defaultSize: [3, 2], applies: { showForecast: false, showStats: false, showFeels: false } },
     { id: "week", name: "Week", blurb: "Today and the next days", tags: "days outlook forecast", defaultSize: [5, 2], applies: { showForecast: true, showStats: false, showFeels: false } },

@@ -16,8 +16,8 @@ const screen = (id: string, placements: unknown[], pages = [{ id: "main", name: 
 const stored = (version: number, profiles: unknown[]): StoredConfig => JSON.parse(JSON.stringify({ version, activeProfile: "auto", profiles })) as StoredConfig;
 const zones = (c: DashboardConfig, i = 0, page = 0) => c.profiles[i].pages[page].placements;
 
-/** What the forecast view brings, so the View row reads Forecast and not Custom. */
-const VIEW = { view: "forecast", showForecast: true, showStats: false, showFeels: false };
+/** What the forecast view brings, so the View row reads Forecast and not Custom, and the Forecast widget's empty card. */
+const VIEW = { view: "forecast", showForecast: true, showStats: false, showFeels: false, emptyCard: true };
 
 describe("v19: a Forecast zone is Weather's forecast view", () => {
   it("one that stored no days fits as many as the zone holds (forecastDays 0), not Weather's 5", () => {

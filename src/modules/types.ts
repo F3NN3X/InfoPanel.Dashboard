@@ -243,11 +243,13 @@ export const viewOf = (mod: DashboardModule, saved: ModuleSettings | undefined):
 };
 
 /**
- * The prefixes a zone gates on and subscribes to: its view's own where the view has them (`WidgetView.prefixes`), else
- * the module's and what it reads; `null` = every key (a widget that reads all, or a view with no prefixes of its own).
+ * The prefixes a zone gates on and subscribes to: its view's own where the view has them (`WidgetView.prefixes`, while
+ * its `prefixesWhen` setting is on), else the module's and what it reads; `null` = every key (a widget that reads all,
+ * or a view with no prefixes of its own).
  */
 export function placementReads(mod: DashboardModule, saved: ModuleSettings | undefined): string[] | null {
-  const own = viewOf(mod, saved)?.prefixes;
+  const view = viewOf(mod, saved);
+  const own = view?.prefixesWhen && saved?.[view.prefixesWhen] !== true ? undefined : view?.prefixes;
   if (!own) return mod.readsAll ? null : [...mod.prefixes, ...(mod.reads ?? [])];
   const all = [...own, ...(mod.reads ?? [])];
   return all.length > 0 ? all : null;

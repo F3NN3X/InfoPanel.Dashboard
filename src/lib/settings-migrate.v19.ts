@@ -19,12 +19,13 @@ export interface WidgetMerge {
 /** The approved merges, one row each (MERGES.md M1, ...). */
 export const WIDGET_MERGES: readonly WidgetMerge[] = [
   // M1: Forecast is Weather's forecast view. Its `days` (0 = as many as fit, the default) is Weather's `forecastDays`,
-  // whose own default is 5: a Forecast that stored none gets 0.
+  // whose own default is 5: a Forecast that stored none gets 0. Empty card on keeps its empty card (Forecast drew it once
+  // any sensor reported; Weather's view hides without weather data).
   {
     from: "Forecast",
     to: "Weather",
     view: "forecast",
-    settings: ({ days, ...s }) => ({ ...s, view: "forecast", showForecast: true, showStats: false, showFeels: false, forecastDays: days ?? 0 }),
+    settings: ({ days, ...s }) => ({ ...s, view: "forecast", showForecast: true, showStats: false, showFeels: false, forecastDays: days ?? 0, emptyCard: true }),
   },
 ];
 

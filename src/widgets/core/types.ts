@@ -104,6 +104,8 @@ export interface WidgetView {
    * widget's.
    */
   prefixes?: string[];
+  /** A boolean setting the view's own prefixes wait for: off, the zone keeps the widget's (Weather's `emptyCard`). */
+  prefixesWhen?: string;
 }
 
 /** Skin token keys; all optional. */
