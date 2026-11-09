@@ -10,11 +10,11 @@
   "files": [
     {
       "path": "widget.js",
-      "bytes": 1125,
-      "sha256": "bb64e258715b59c4af21b7a1495e549d623d36c81c8d4a9d5183f6c2f65ea72c"
+      "bytes": 1368,
+      "sha256": "9aead9e3f0d61b011824d7859ca5d9fcd47c5eb90f0047c79fc0bd98c04d0686"
     }
   ],
   "signature": {
-    "minisign": "untrusted comment: signature from minisign secret key A993D81C89F8D8C1\nRUTB2PiJHNiTqYsYXaedYXL4pIulwX64X5egpqLa/BBTDLAfFcyyiBYRLcFYW69zn22Z34k5zPE+beA65FkB1DSH3+wvnmjTQw0=\ntrusted comment: ext:test.example 1.0.0\ngS80g3B0JSheXgk+OajG0o2146VCBdo89QOivqAf9MFVPemRBEcYkn0YV0HHmSft32pUKhSeMEV+egoQTYxoAw==\n"
+    "minisign": "untrusted comment: signature from minisign secret key 345BEEA66DE248DB\nRUTbSOJtpu5bNAqvGeEP465F1U4eTpbzR3f/gN08X213Dh7l5iFtHR7yld7vKBKUghcDp9/hZDOi6Sa7/XfShyOFF8JD0fxuDQI=\ntrusted comment: ext:test.example 1.0.0\n/qeuCPwqGaH84VHZ4SLP1kUpI961eTJtzpVpbNadMYcCQiVmQxngllLzJPBfOegq+QZeMkXqOrNzLUUbpwUlDw==\n"
   }
 }

@@ -57,15 +57,15 @@ describe("loading a code widget", () => {
       expect(imports).toEqual([`/api/widgets/ext.test.example/widget.js?sha256=${HASH}`]);
     }
     const mod = recipeModule(ID)!;
-    expect(mod.readsFor?.(undefined)).toEqual(["system.cpu."]);
+    expect(mod.readsFor?.(undefined)).toEqual(["system.cpu.", "libre."]);
     expect(mod.settings?.map((s) => s.key)).toEqual(expect.arrayContaining(["label", "crash"]));
   });
 
   it.each([
     ["a tampered file", "refused:widget.js is not the file the manifest lists (size or SHA-256)"],
-    ["an untrusted key", "refused:signed with a key this app does not trust (A993D81C89F8D8C1)"],
-    ["a revoked key", "refused:signed with a revoked key (A993D81C89F8D8C1)"],
-    ["a wrong publisher", "refused:signed with a key (A993D81C89F8D8C1) that does not sign for the publisher acme"],
+    ["an untrusted key", "refused:signed with a key this app does not trust (345BEEA66DE248DB)"],
+    ["a revoked key", "refused:signed with a revoked key (345BEEA66DE248DB)"],
+    ["a wrong publisher", "refused:signed with a key (345BEEA66DE248DB) that does not sign for the publisher acme"],
     ["an unsigned or unknown state", "unsigned"],
   ])("refuses %s and imports nothing", async (_, trust) => {
     const imports = serve({ trust });

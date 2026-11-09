@@ -10,7 +10,8 @@ export default function widget(sdk) {
     name: "CPU ring (example)",
     description: "CPU load as a ring: the example code widget.",
     icon: "memory",
-    reads: ["system.cpu."],
+    // the CPU's total load: Studio's own reading, or LibreHardwareMonitor's
+    reads: ["system.cpu.", "libre."],
     defaultSize: [2, 2],
     settings: [
       { type: "text", key: "label", label: "Label", default: "CPU" },
@@ -18,7 +19,8 @@ export default function widget(sdk) {
     ],
     render: ({ sensors, settings }) => {
       if (settings.crash) throw new Error("the example was asked to throw");
-      const load = sensors["system.cpu.load"];
+      const key = "system.cpu.load" in sensors ? "system.cpu.load" : Object.keys(sensors).find((k) => k.startsWith("libre.") && k.endsWith("_cpu_total"));
+      const load = key ? sensors[key] : undefined;
       const value = load?.value ?? 0;
       return (
         <div data-example-widget="" style={{ height: "100%", display: "grid", placeItems: "center" }}>

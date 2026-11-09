@@ -83,7 +83,7 @@ export async function checkCode(id: string): Promise<CodeState> {
   try {
     const { list, off } = await freshList();
     const item = list.find((w) => w.id === id);
-    if (!item) return off ? { why: "Third-party code widgets are switched off", off: true } : { why: `${id} is not on this server` };
+    if (!item) return off ? { why: "Third-party code widgets are switched off", off: true } : { why: `${id} is not on this server, or its files are not the ones its manifest lists` };
     if (item.off) return { why: "This widget is turned off on the Widgets page", off: true };
     if (item.trust.startsWith("refused:")) return { why: `Refused: ${item.trust.slice(8)}` };
     if (!LOADS.test(item.trust)) return { why: "It is not signed by a key this app trusts" };

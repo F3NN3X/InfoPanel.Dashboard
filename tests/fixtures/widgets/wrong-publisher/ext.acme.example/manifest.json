@@ -10,11 +10,11 @@
   "files": [
     {
       "path": "widget.js",
-      "bytes": 1125,
-      "sha256": "bb64e258715b59c4af21b7a1495e549d623d36c81c8d4a9d5183f6c2f65ea72c"
+      "bytes": 1368,
+      "sha256": "9aead9e3f0d61b011824d7859ca5d9fcd47c5eb90f0047c79fc0bd98c04d0686"
     }
   ],
   "signature": {
-    "minisign": "untrusted comment: signature from minisign secret key A993D81C89F8D8C1\nRUTB2PiJHNiTqVAoOSGdUfAqDYfSgALdTyVb//2dQTPoe9VE0jIxPrO2g5CAbWZLUXCZZIivK2VzQF2s2LsnBc0Yxhm3hphlQwc=\ntrusted comment: ext:acme.example 1.0.0\nogECctOylO/6c3M7OO+Fni/4SixrMbWOlaeTNnNuuOEeiLxAEip8KpMQiNlUz4P5qSe9FSzFOyNEu9NnwecqCg==\n"
+    "minisign": "untrusted comment: signature from minisign secret key 345BEEA66DE248DB\nRUTbSOJtpu5bNALO4oam0pFb1YK8Ck1bv7ZFaJrPQuJ2PZbFTZ2b6ebT1ZoD3wmanI59H6M1ukLgJ+5peXt2gt7lcCtHs8YR4Qw=\ntrusted comment: ext:acme.example 1.0.0\nXXg/kfpLbsI3BKeJIdVBNw8ax6sq0dvvQB7hmVfN+cmeR2ao9+4KQJNFjl24n/M5WCpgRcLHxuuxNmwdrvzGAA==\n"
   }
 }

@@ -612,7 +612,7 @@ async fn the_example_code_widget_verifies_for_its_publisher_only() {
     let good = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("ext.test.example"))).await;
     assert_eq!(good.status, 200, "{}", good.text());
     let wrong = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("wrong-publisher/ext.acme.example"))).await;
-    assert_eq!((wrong.status, wrong.text()), (400, "refused: signed with a key (A993D81C89F8D8C1) that does not sign for the publisher acme".into()), "a wrong publisher");
+    assert_eq!((wrong.status, wrong.text()), (400, "refused: signed with a key (345BEEA66DE248DB) that does not sign for the publisher acme".into()), "a wrong publisher");
     s.stop().await;
 }
 

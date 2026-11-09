@@ -57,7 +57,7 @@ describe("a code widget on a screen", () => {
 
   it("draws the not-available card with the reason for a refused widget, and imports nothing", async () => {
     const imported = vi.fn();
-    vi.stubGlobal("fetch", async () => new Response(JSON.stringify([{ id: "ext:test.example", kind: "code", name: "x", version: "1", trust: "refused:signed with a revoked key (A993D81C89F8D8C1)" }])));
+    vi.stubGlobal("fetch", async () => new Response(JSON.stringify([{ id: "ext:test.example", kind: "code", name: "x", version: "1", trust: "refused:signed with a revoked key (345BEEA66DE248DB)" }])));
     setImportBundle(imported);
     const { container } = render(<Placed code="ext:test.example" />);
     await waitFor(() => expect(container.textContent).toContain("Widget not available"));
