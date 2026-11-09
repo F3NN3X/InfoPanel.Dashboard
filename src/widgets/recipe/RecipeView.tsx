@@ -6,7 +6,7 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { weatherKind } from "@/lib/weather-icons";
 import type { ModuleSettings } from "@/modules/types";
-import { Bar, Empty, fmt, get, heat, hue, num, Num, pretty, Ring, shell, shortLabel, Spark, TONES, tone, useHistory, Widget, WeatherGlyph, type ShellProps, type Tone } from "../kit";
+import { Bar, Empty, fmt, get, heat, hue, hw, num, Num, pretty, Ring, shell, shortLabel, Spark, TONES, tone, useHistory, Widget, WeatherGlyph, type ShellProps, type Tone } from "../kit";
 import { cellsOf, textPx } from "./metrics";
 import { expandKey } from "./reads";
 import { keyOf } from "./store";
@@ -309,7 +309,9 @@ export default function RecipeView(p: RecipeViewProps) {
   const base: Omit<Ctx, "w" | "h"> = { recipe, data, names: p.names, values, t3: p.t3, saved: p.saved };
   const sub = root.subtitle ? read(root.subtitle, { ...base, w: 0, h: 0 }) : undefined;
   // the reading's name, else the device a key named (a device option), else the value itself
-  const named = sub?.key && p.names?.[sub.key] ? p.names[sub.key] : sub?.device ? pretty(sub.device) : undefined;
+  const found = sub?.key ? hw({ [sub.key]: "" }) : undefined;
+  const device = sub?.device ?? found?.cpu ?? found?.gpu;
+  const named = sub?.key && p.names?.[sub.key] ? p.names[sub.key] : device ? pretty(device) : undefined;
   const subtitle = named ? shortLabel(named).model || named : sub && sub.raw !== "" && sub.raw !== undefined ? String(sub.raw) : undefined;
   return (
     <Widget {...shell(p)} title={p.title ?? root.title ?? recipe.name} icon={root.icon ?? recipe.icon ?? "dashboard"} design={null} right={subtitle ? <span className="truncate text-[color:var(--w-muted)]">{subtitle}</span> : undefined}>

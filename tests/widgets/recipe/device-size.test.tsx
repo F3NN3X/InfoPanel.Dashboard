@@ -53,6 +53,12 @@ describe("device options", () => {
     expect(draw({ cpu: "gone" })).not.toContain(">64<");
   });
 
+  it("names the device in the header from a plain key too, when no reading name is known", () => {
+    const recipe = fixtureRecipe("cpu-card");
+    recipe.root.subtitle = { sensor: "libre.amd_ryzen_9_9950x3d_cpu_total" };
+    expect(renderToStaticMarkup(<RecipeView data={{ "libre.amd_ryzen_9_9950x3d_cpu_total": "64 %" }} recipe={recipe} />)).toContain("Ryzen 9 9950X3D");
+  });
+
   it("expands a key per placement, and the data gate reads the picked device's key, else the part before it", () => {
     const recipe = fixtureRecipe("cpu-card");
     byDevice(recipe);
