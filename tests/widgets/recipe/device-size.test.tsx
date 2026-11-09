@@ -110,3 +110,30 @@ describe("size conditions", () => {
     expect(errors(await variant("cpu-card", (r) => (oneByOne(r), (topRow(r).when = { size: { max: [3, 3] } }))))).toEqual(["text-floor"]);
   });
 });
+
+describe("options in the Content tab", () => {
+  it("are the recipe's options as rows after the standard ones, a device as its kind's picker, a place list left to 5c", async () => {
+    const { learnSettings, recipeSettings } = await import("@/widgets/recipe/settings");
+    const { recipeModule } = await import("@/widgets/recipe/resolve");
+    const recipe = fixtureRecipe("cpu-card");
+    byDevice(recipe);
+    expect(recipeSettings(recipe).map((s) => [s.key, s.type, s.default])).toEqual([
+      ["cpu", "select", "auto"],
+      ["load", "sensor", "libre.amd_ryzen_9_9950x3d_cpu_total"],
+      ["temp", "sensor", "libre.amd_ryzen_9_9950x3d_core__tctl_tdie"],
+      ["showClock", "boolean", true],
+      ["showValues", "boolean", true],
+      ["showHistory", "boolean", true],
+      ["showCores", "boolean", false],
+    ]);
+    expect(recipeSettings(recipe)[0]).toMatchObject({ optionsFrom: "cpu", tab: "show" });
+    expect(recipeSettings(fixtureRecipe("weather-places")).map((s) => s.key)).toEqual(["units", "hours", "layout"]);
+    const mod = recipeModule("recipe:settings-test")!;
+    const standard = mod.settings!.length;
+    learnSettings(mod, recipe);
+    learnSettings(mod, recipe);
+    expect(mod.settings!.length).toBe(standard + 7);
+    learnSettings(mod);
+    expect(mod.settings!.length).toBe(standard);
+  });
+});
