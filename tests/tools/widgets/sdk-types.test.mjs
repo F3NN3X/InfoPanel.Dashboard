@@ -1,6 +1,6 @@
 // The widget SDK's .d.ts (public/widget-sdk/, written by tools/widgets/sdk-types.mjs) stays in step with the types it is made from:
 // its header lists every source file with the hash of its text, so a change to any of them without writing the file again fails
-// here, without running TypeScript (the generator itself checks that the file compiles before it writes it).
+// here, without running TypeScript (the generator itself checks that the file compiles before it writes it, used as a bundle uses it).
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { listedSources, OUT, sourceHash } from "../../../tools/widgets/sdk-types.mjs";
@@ -8,12 +8,16 @@ import { listedSources, OUT, sourceHash } from "../../../tools/widgets/sdk-types
 const text = readFileSync(new URL(`../../../${OUT}`, import.meta.url), "utf8");
 
 describe("widget SDK types", () => {
-  it("name the SDK entry and the widget definition among their sources", () => {
+  it("name the SDK entry and declare the bundle's contract (Phase 6b: its own types, not the app's internals)", () => {
     const paths = listedSources(text).map((s) => s.path);
     expect(paths).toContain("src/widgets/sdk.ts");
-    expect(paths).toContain("src/widgets/define.ts");
-    expect(paths).toContain("src/widgets/core/primitives.tsx");
     expect(text).toContain('declare module "infopanel-studio/widget-sdk"');
+    for (const name of ["defineWidget", "WidgetBundle", "WidgetSdk", "CodeWidgetDefinition", "CodeWidgetProps"]) expect(text).toContain(name);
+    expect(paths.filter((p) => p !== "src/widgets/sdk.ts"), "the SDK names no internal module").toEqual([]);
+  });
+
+  it("stay a small download (6a Q1: under 60 KB)", () => {
+    expect(Buffer.byteLength(text)).toBeLessThan(60_000);
   });
 
   it("were written from the sources as they are now (else: node tools/widgets/sdk-types.mjs)", () => {
