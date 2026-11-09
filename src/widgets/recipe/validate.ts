@@ -9,7 +9,7 @@ import { STANDARD_KEYS } from "@/modules/standard-settings";
 import manifestSchema from "./manifest.schema.json";
 import { cellBasePx, TEXT_FLOOR } from "./metrics";
 import recipeSchema from "./recipe.schema.json";
-import { BLOCK_TYPES, type Binding, type Block, type Manifest, OPTION_TYPES, type PackageFile, type Recipe, type RecipeOption, WEATHER_PLACE_FIELDS } from "./types";
+import { BLOCK_TYPES, type Binding, type Block, type Cells, type Condition, DEVICE_ID, DEVICE_KINDS, type Manifest, OPTION_TYPES, type PackageFile, type Recipe, type RecipeOption, WEATHER_PLACE_FIELDS } from "./types";
 
 export interface RecipeIssue {
   rule: string;
@@ -42,6 +42,8 @@ export const ITEMS_MAX = 12;
 export const PACKAGE_PATH = /^(manifest\.json|recipe\.json|images\/[a-z0-9][a-z0-9-]{0,63}\.(png|jpg|webp))$/;
 /** A sensor key: a dotted name of plain characters. */
 export const SENSOR_KEY = /^[A-Za-z0-9][\w.:#-]{0,199}$/;
+/** A device option named in a sensor key (`libre.{cpu}_cpu_total`). */
+export const DEVICE_SLOT = /\{([a-z][A-Za-z0-9]{0,31})\}/g;
 /** Keys a placement stores beside the options (the recipe's version) and so no option may take. */
 const RESERVED_KEYS = new Set(["recipeVersion", "view"]);
 /** What reads as an address or code wherever it stands. */
@@ -279,6 +281,8 @@ function optionValueIssue(o: RecipeOption, v: unknown): string | undefined {
       return typeof v === "string" && (o.options ?? []).some((x) => x.value === v) ? undefined : `${String(v)} is not one of its choices`;
     case "sensor":
       return v === "" || (typeof v === "string" && SENSOR_KEY.test(v) && v.includes(".")) ? undefined : "is a sensor key";
+    case "device":
+      return typeof v === "string" && DEVICE_ID.test(v) ? undefined : "is auto or a device id";
     case "color":
       return v === "" || (typeof v === "string" && HEX.test(v)) ? undefined : "is a #rgb or #rrggbb colour";
     case "date":
@@ -294,16 +298,23 @@ function optionDefaultIssue(o: RecipeOption): string | undefined {
   if (!(OPTION_TYPES as readonly string[]).includes(o.type)) return `${o.type} is not an option type`;
   if (o.options && o.type !== "select") return "only a select has choices";
   if (o.type === "select" && !o.options?.length) return "a select needs its choices";
+  if (o.type === "device" && !(DEVICE_KINDS as readonly string[]).includes(String(o.kind))) return `a device option names its kind (${DEVICE_KINDS.join(", ")})`;
+  if (o.kind !== undefined && o.type !== "device") return "only a device option has a kind";
   const why = optionValueIssue(o, o.default);
   return why && `default ${why}`;
 }
 
 /** Why a binding names nothing there, or undefined. */
 function bindingIssue(b: Binding, repeat: string | undefined, options: Map<string, RecipeOption>): string | undefined {
-  if ("sensor" in b) return SENSOR_KEY.test(b.sensor) && b.sensor.includes(".") ? undefined : `sensor ${b.sensor.slice(0, 40)} is not a sensor key`;
+  if ("sensor" in b) {
+    for (const [, key] of b.sensor.matchAll(DEVICE_SLOT)) if (options.get(key)?.type !== "device") return `sensor ${b.sensor.slice(0, 40)} names {${key}}, which is not a device option`;
+    const plain = b.sensor.replace(DEVICE_SLOT, "x");
+    return SENSOR_KEY.test(plain) && plain.includes(".") ? undefined : `sensor ${b.sensor.slice(0, 40)} is not a sensor key`;
+  }
   if ("option" in b) {
     const o = options.get(b.option);
     if (!o) return `option ${b.option} is not one of the recipe's options`;
+    if (o.type === "device") return `option ${b.option} is a device, which a sensor key names in braces`;
     return o.type === "place-list" ? `option ${b.option} is a place list, which a Repeat runs over` : undefined;
   }
   if (!repeat) return `field ${b.field} is read only inside a Repeat`;
@@ -326,8 +337,14 @@ function blockRules(b: Block, at: string, repeat: string | undefined, options: M
   if (typeof raw.min === "number" && typeof raw.max === "number" && raw.min >= raw.max) add("block", R, `${at}: min ${raw.min} is not under max ${raw.max}`);
   if (raw.color === "thresholds" && raw.thresholds === undefined) add("block", R, `${at}: colour by thresholds needs its thresholds`);
   if (b.when) {
-    if (!options.has(b.when.option)) add("binding", R, `${at}.when: option ${b.when.option} is not one of the recipe's options`);
-    if (b.when.is === undefined && b.when.not === undefined) add("block", R, `${at}.when: says neither is nor not`);
+    const { option, is, not, size } = b.when;
+    if (option !== undefined && !options.has(option)) add("binding", R, `${at}.when: option ${option} is not one of the recipe's options`);
+    if (option !== undefined && is === undefined && not === undefined) add("block", R, `${at}.when: says neither is nor not`);
+    if (option === undefined && (is !== undefined || not !== undefined)) add("block", R, `${at}.when: says is or not of no option`);
+    if (option === undefined && !size) add("block", R, `${at}.when: names neither an option nor a size`);
+    const cells = [size?.min, size?.max].filter((c): c is Cells => !!c);
+    if (cells.some((c) => c.length !== 2 || !c.every(Number.isInteger))) add("block", R, `${at}.when.size: a size is two whole numbers of cells`);
+    else if (size?.min && size.max && (size.min[0] > size.max[0] || size.min[1] > size.max[1])) add("block", R, `${at}.when.size: min ${size.min.join("x")} is larger than max ${size.max.join("x")}`);
   }
   if ("bind" in b && b.bind) bind(b.bind, `${at}.bind`);
   if (b.type === "card" && b.subtitle) bind(b.subtitle, `${at}.subtitle`);
@@ -347,12 +364,19 @@ function blockRules(b: Block, at: string, repeat: string | undefined, options: M
   }
 }
 
-/** The text blocks with their size (the default where they name none): what the floor applies to. */
-function textBlocks(root: Block, out: { at: string; scale: number }[] = [], at = "$.root"): { at: string; scale: number }[] {
+/** Whether a condition's size part lets a block show in a zone of `cells` (its option part is a person's choice, so it does not count). */
+export const sizeHolds = (when: Condition | undefined, cells: Cells): boolean => {
+  const { min, max } = when?.size ?? {};
+  return (!min || (cells[0] >= min[0] && cells[1] >= min[1])) && (!max || (cells[0] <= max[0] && cells[1] <= max[1]));
+};
+
+/** The text blocks with their size (the default where they name none) and the size conditions on their way down: what the floor applies to. */
+function textBlocks(root: Block, out: { at: string; scale: number; when: Condition[] }[] = [], at = "$.root", when: Condition[] = []): { at: string; scale: number; when: Condition[] }[] {
   const own = (root as { scale?: number }).scale ?? DEFAULT_SCALE[root.type];
   const text = root.type === "value" || root.type === "label" || ((root.type === "ring" || root.type === "gauge") && root.center !== false);
-  if (text && own !== undefined) out.push({ at, scale: own });
-  childrenOf(root).forEach((c, k) => textBlocks(c, out, `${at}.children[${k}]`));
+  const path = root.when?.size ? [...when, root.when] : when;
+  if (text && own !== undefined) out.push({ at, scale: own, when: path });
+  childrenOf(root).forEach((c, k) => textBlocks(c, out, `${at}.children[${k}]`, path));
   return out;
 }
 
@@ -361,7 +385,8 @@ function floorRules(r: Recipe, add: Add): void {
   const sizes: [number, number][] = [];
   for (let c = min[0]; c <= max[0]; c++) for (let h = min[1]; h <= max[1]; h++) sizes.push([c, h]);
   for (const t of textBlocks(r.root)) {
-    const under = sizes.find(([c, h]) => cellBasePx(c, h) * t.scale < TEXT_FLOOR);
+    // a text a size condition hides at a size is not drawn there
+    const under = sizes.find(([c, h]) => t.when.every((w) => sizeHolds(w, [c, h])) && cellBasePx(c, h) * t.scale < TEXT_FLOOR);
     if (under) add("text-floor", "recipe.json", `${t.at}: text is ${(cellBasePx(...under) * t.scale).toFixed(1)} px at ${under.join("x")}, under ${TEXT_FLOOR} px (raise its scale or the recipe's smallest size)`);
   }
 }

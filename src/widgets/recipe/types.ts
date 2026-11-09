@@ -11,17 +11,29 @@ export const RECIPE_FORMAT = 1;
 export const BLOCK_TYPES = ["card", "row", "repeat", "ring", "gauge", "bar", "sparkline", "value", "label", "weather-icon", "image", "heatmap"] as const;
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
-/** Where a block's value comes from: a sensor key, an option's value (a `sensor` option's key is read in turn), or a field of the item a Repeat draws. */
+/**
+ * Where a block's value comes from: a sensor key, an option's value (a `sensor` option's key is read in turn), or a field of the item a
+ * Repeat draws. A sensor key may name a `device` option in braces (`libre.{cpu}_cpu_total`): the device the placement picked, Auto the
+ * first of its kind the data has, so one recipe reads whichever CPU or GPU a person picks.
+ */
 export type Binding = { sensor: string } | { option: string } | { field: string };
 
 /** A colour from the theme: its accent, one of its six series, or the status colours by the block's thresholds. */
 export type RecipeColour = "accent" | "series-1" | "series-2" | "series-3" | "series-4" | "series-5" | "series-6" | "thresholds";
 
-/** Shown only while an option holds (`is`) or does not hold (`not`) a value: how a preset turns parts of a recipe off. */
+/** A zone size in grid cells, `[columns, rows]`. */
+export type Cells = [number, number];
+
+/**
+ * Shown only while an option holds (`is`) or does not hold (`not`) a value, and only at the zone sizes `size` allows (both when
+ * both are given): how a preset turns parts of a recipe off, and how a part leaves a size too small for its text. A size is read in
+ * the validator's nominal cells (`metrics.ts`), from the box the card has.
+ */
 export interface Condition {
-  option: string;
+  option?: string;
   is?: string | number | boolean;
   not?: string | number | boolean;
+  size?: { min?: Cells; max?: Cells };
 }
 
 interface BlockBase {
@@ -145,9 +157,15 @@ export interface Place {
   lon: number;
 }
 
-/** The `ModuleSetting` types a recipe option may take, and `place-list`. */
-export const OPTION_TYPES = ["text", "number", "select", "boolean", "color", "sensor", "date", "time", "place-list"] as const;
+/** The `ModuleSetting` types a recipe option may take, `place-list`, and `device` (a CPU, GPU, drive or adapter, Auto by default). */
+export const OPTION_TYPES = ["text", "number", "select", "boolean", "color", "sensor", "date", "time", "place-list", "device"] as const;
 export type OptionType = (typeof OPTION_TYPES)[number];
+
+/** The device kinds a `device` option picks from: the ones the Data API's keys name by a device id (`hw` in widgets/core/data.ts). */
+export const DEVICE_KINDS = ["cpu", "gpu", "disk", "adapter"] as const;
+export type RecipeDeviceKind = (typeof DEVICE_KINDS)[number];
+/** A device option's value: `auto`, or a device id as the keys hold it (`amd_ryzen_9_9950x3d`). */
+export const DEVICE_ID = /^(auto|[a-z0-9][a-z0-9_]{0,79})$/;
 
 /** What people can change when they add the widget (its Content tab). */
 export interface RecipeOption {
@@ -161,6 +179,8 @@ export interface RecipeOption {
   step?: number;
   hint?: string;
   group?: string;
+  /** A `device` option's kind. */
+  kind?: RecipeDeviceKind;
 }
 
 /** The fields a Weather-by-place item has (5c fills them; 5a's sample items use the same names). */
@@ -184,7 +204,7 @@ export interface Recipe {
   description?: string;
   icon?: string;
   category?: string;
-  size: { min: [number, number]; max: [number, number]; default: [number, number] };
+  size: { min: Cells; max: Cells; default: Cells };
   options: RecipeOption[];
   /** The Phase 4 shape: settings are option values; exactly one is the default. */
   presets: WidgetPreset[];

@@ -2,7 +2,7 @@ import { lazy, Suspense, type ReactElement, type ReactNode } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { Popover } from "@base-ui/react/popover";
 import { Tooltip } from "@base-ui/react/tooltip";
-import { Bell, ChevronRight, CircleHelp, Gauge, Images, Keyboard, LayoutGrid, Palette, PanelLeft, Pencil, Radio, Search, Settings, type LucideIcon } from "lucide-react";
+import { Bell, Blocks, ChevronRight, CircleHelp, Gauge, Images, Keyboard, LayoutGrid, Palette, PanelLeft, Pencil, Radio, Search, Settings, type LucideIcon } from "lucide-react";
 import { CONTROL_MOTION, FOCUS_RING } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { StatusDot } from "@/components/ui/status-chip";
@@ -33,6 +33,7 @@ const RAIL_MAX = 960;
 const VIEWS: readonly { id: RailItem; label: string; icon: LucideIcon }[] = [
   { id: "theme", label: "Theme", icon: Palette },
   { id: "library", label: "Library", icon: Images },
+  { id: "widgets", label: "Widgets", icon: Blocks },
   { id: "gauges", label: "Gauges", icon: Gauge },
   { id: "alerts", label: "Alerts & Island", icon: Bell },
   { id: "data", label: "Data sources", icon: Radio },

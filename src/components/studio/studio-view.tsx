@@ -133,6 +133,8 @@ const LibraryPage = lazy(() => import("@/components/library/library-page"));
 const ThemeEditor = lazy(() => import("./theme-editor").then((m) => ({ default: m.ThemeEditor })));
 /** The Gauges view (A7), loaded when the rail first opens it. */
 const GaugesPage = lazy(() => import("@/components/gauges/gauges-page"));
+/** The Widgets page and its builder (Phase 5b), loaded when the rail first opens it. */
+const WidgetsPage = lazy(() => import("@/components/widgets-page/widgets-page"));
 
 interface StudioViewProps {
   config: DashboardConfig;
@@ -304,7 +306,7 @@ function StudioViewBody({
   /** Sensor names for widget names (toolbar crumb, palette). */
   const catalog = useSensorCatalog();
   const dataPoints = useDataModel().points;
-  const { studioLayout, showSources, showLibrary, showGauges, showTheme, showAlerts, showScreens, fullPage } = ui;
+  const { studioLayout, showSources, showLibrary, showWidgets, showGauges, showTheme, showAlerts, showScreens, fullPage } = ui;
   // A phone's sheet lifts the bottom toolbar, and the toasts over it, by its height.
   const barBottom = studioLayout.mode === "sheet" ? Math.min(studioLayout.sheet.height, sheetHeight("half", studioLayout.sheet.area, true)) + 8 : undefined;
   const phone = isPhone(windowWidth);
@@ -312,6 +314,8 @@ function StudioViewBody({
     ? "data"
     : showLibrary
       ? "library"
+      : showWidgets
+        ? "widgets"
       : showGauges
         ? "gauges"
         : showTheme
@@ -393,8 +397,11 @@ function StudioViewBody({
     },
     onSelectProfile: selectProfile,
   });
+  /** The sidebar's Widgets picked again while it shows: back to the page's browse, out of the builder. */
+  const [widgetsHome, setWidgetsHome] = useState(0);
   const onRail = (item: RailItem) => {
     setNewPage(null);
+    if (item === "widgets" && showWidgets) setWidgetsHome((n) => n + 1);
     ui.onRail(item);
   };
   /** Items the editor opens with selected (the Library's "uses"). */
@@ -1153,6 +1160,12 @@ function StudioViewBody({
     </Suspense>
   );
 
+  const widgetsEl = showWidgets && (
+    <Suspense fallback={<PageLoading title="Widgets" />}>
+      <WidgetsPage bridge={libraryBridge} appearance={appearance} pageStyle={{ ...themeScope, fontFamily: pageFont }} onShowEdit={() => ui.setMode("design")} onOpenSources={() => ui.setMode("sources")} home={widgetsHome} />
+    </Suspense>
+  );
+
   const gaugesEl = showGauges && (
     <Suspense fallback={<PageLoading title="Gauges" />}>
       <GaugesPage
@@ -1315,7 +1328,7 @@ function StudioViewBody({
         <StudioShell
           layout={studioLayout}
           drawer={!fullPage && (ui.leftOpen ? leftPanelEl : leftStripEl)}
-          main={newPageEl || alertsEl || screensEl || gaugesEl || themeEl || libraryEl || mainEl}
+          main={newPageEl || alertsEl || screensEl || widgetsEl || gaugesEl || themeEl || libraryEl || mainEl}
           bar={bar}
           inspector={fullPage ? null : inspectorAside}
         />

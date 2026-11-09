@@ -177,7 +177,8 @@ async fn an_import_is_stored_listed_and_served_byte_for_byte() {
     assert_eq!(items[0]["name"], "Mine");
     assert_eq!(items[0]["version"], "1.0.0");
     assert_eq!(items[0]["size"].as_u64(), Some(files.iter().map(|(_, b)| b.len() as u64).sum()));
-    assert_eq!(items[0].as_object().unwrap().len(), 5, "id, kind, name, version and size only");
+    assert_eq!(items[0]["origin"], "import", "a file import is the default");
+    assert_eq!(items[0].as_object().unwrap().len(), 6, "id, kind, name, version, size and origin only");
     assert!(s.widgets().read_dir().unwrap().all(|e| !e.unwrap().file_name().to_string_lossy().starts_with(".import-")), "no temp folder left");
     // a second import replaces the package whole
     let next = package_with("recipe:mine", "1.1.0", &[]);
@@ -186,6 +187,43 @@ async fn an_import_is_stored_listed_and_served_byte_for_byte() {
     assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["version"], "1.1.0");
     let names: Vec<String> = s.widgets().read_dir().unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
     assert_eq!(names, ["recipe.mine"], "no set-aside folder left");
+    s.stop().await;
+}
+
+fn import_with_origin(files: &[(String, Vec<u8>)], origin: &str) -> String {
+    let mut body: Value = serde_json::from_str(&import_body(files)).unwrap();
+    body["origin"] = json!(origin);
+    body.to_string()
+}
+
+#[tokio::test]
+async fn the_server_records_where_a_package_came_from_outside_the_package() {
+    let s = start().await;
+    let files = package("recipe:mine");
+    // the builder's save
+    let saved = send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&files, "studio")).await;
+    assert_eq!(saved.status, 200, "{}", saved.text());
+    assert_eq!(serde_json::from_slice::<Value>(&saved.body).unwrap()["origin"], "studio");
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["origin"], "studio");
+    assert_eq!(std::fs::read_to_string(s.widgets().join("recipe.mine/.origin")).unwrap(), "studio");
+    // the sidecar is never a package file: not served, and every file the manifest lists comes back byte for byte
+    assert_eq!(get(s.port, "/api/widgets/recipe.mine/.origin").await.status, 404);
+    for (path, bytes) in &files {
+        assert_eq!(&get(s.port, &format!("/api/widgets/recipe.mine/{path}")).await.body, bytes, "{path}");
+    }
+    // the same bytes imported from a file: the package is the same, its origin is the import's
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&files, "import")).await.status, 200);
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["origin"], "import");
+    for (path, bytes) in &files {
+        assert_eq!(&get(s.port, &format!("/api/widgets/recipe.mine/{path}")).await.body, bytes, "{path}");
+    }
+    // a package without the sidecar (stored before origins) is an import; an unknown origin is refused
+    std::fs::remove_file(s.widgets().join("recipe.mine/.origin")).unwrap();
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["origin"], "import");
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&files, "themely")).await.status, 400);
+    // a sidecar folder, not a file, is a stray name: the folder is not a package
+    std::fs::create_dir(s.widgets().join("recipe.mine/.origin")).unwrap();
+    assert_eq!(get(s.port, "/api/widgets").await.text(), "[]");
     s.stop().await;
 }
 

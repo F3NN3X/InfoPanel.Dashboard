@@ -38,7 +38,7 @@ describe("the sidebar", () => {
       />,
     );
     const nav = within(screen.getByRole("navigation", { name: "Studio views" }));
-    expect(nav.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Screens", "Edit Desk", "Theme", "Library", "Gauges", "Alerts & Island", "Data sources"]);
+    expect(nav.getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual(["Screens", "Edit Desk", "Theme", "Library", "Widgets", "Gauges", "Alerts & Island", "Data sources"]);
   });
 
   it("has Edit on the phone's bar too", () => {

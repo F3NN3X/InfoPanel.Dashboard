@@ -66,9 +66,19 @@
     },
     "condition": {
       "type": "object",
-      "required": ["option"],
+      "minProperties": 1,
       "additionalProperties": false,
-      "properties": { "option": { "$ref": "#/$defs/key" }, "is": { "type": ["string", "number", "boolean"] }, "not": { "type": ["string", "number", "boolean"] } }
+      "properties": {
+        "option": { "$ref": "#/$defs/key" },
+        "is": { "type": ["string", "number", "boolean"] },
+        "not": { "type": ["string", "number", "boolean"] },
+        "size": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": { "min": { "$ref": "#/$defs/cells" }, "max": { "$ref": "#/$defs/cells" } }
+        }
+      }
     },
     "place": {
       "type": "object",
@@ -87,7 +97,8 @@
       "properties": {
         "key": { "$ref": "#/$defs/key" },
         "label": { "type": "string", "pattern": "^[^<>]{1,40}$" },
-        "type": { "enum": ["text", "number", "select", "boolean", "color", "sensor", "date", "time", "place-list"] },
+        "type": { "enum": ["text", "number", "select", "boolean", "color", "sensor", "date", "time", "place-list", "device"] },
+        "kind": { "enum": ["cpu", "gpu", "disk", "adapter"] },
         "default": { "type": ["string", "number", "boolean", "array"], "items": { "$ref": "#/$defs/place" } },
         "options": {
           "type": "array",

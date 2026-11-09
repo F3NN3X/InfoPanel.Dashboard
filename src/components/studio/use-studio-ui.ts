@@ -20,6 +20,10 @@ import { pageSize, useStudioLayout } from "./use-studio-layout";
 
 const ALERTS_TABS: readonly AlertsTab[] = ["rules", "island", "defaults", "history"];
 
+/** `?fixture=widgets/<state>` (dev and fixtures builds: the Widgets page's trust states, src/dev/fixtures/widgets.ts) opens on Widgets. */
+const FIXTURE_VIEW: StudioMode =
+  (import.meta.env.DEV || import.meta.env.VITE_DEV_FIXTURES === "1") && typeof window !== "undefined" && /^widgets\//.test(new URLSearchParams(window.location.search).get("fixture") ?? "") ? "widgets" : "screens";
+
 /**
  * The studio's view state, apart from the selection: the open view (the
  * rail's, plus Screens), Design's left panel, the dock layout and zoom,
@@ -33,10 +37,11 @@ export function useStudioUi(
   windowWidth: number
 ) {
   const toast = useToast();
-  // The Studio opens on Screens: pick the screen and page, then design it.
-  const [mode, setMode] = useState<StudioMode>("screens");
+  // The Studio opens on Screens: pick the screen and page, then design it (a Widgets dev fixture opens on Widgets).
+  const [mode, setMode] = useState<StudioMode>(FIXTURE_VIEW);
   const showSources = mode === "sources";
   const showLibrary = mode === "library";
+  const showWidgets = mode === "widgets";
   const showGauges = mode === "gauges";
   const showTheme = mode === "theme";
   const showAlerts = mode === "alerts";
@@ -211,8 +216,9 @@ export function useStudioUi(
         else setMode("library");
         break;
       }
+      case "widgets":
       case "gauges":
-        setMode("gauges");
+        setMode(target.view);
         break;
       // The old InfoPanel view (one-editor SPEC §4.1): a profile opens in Edit, else Screens shows the InfoPanel ones.
       case "infopanel":
@@ -252,6 +258,7 @@ export function useStudioUi(
     setMode,
     showSources,
     showLibrary,
+    showWidgets,
     showGauges,
     showTheme,
     showAlerts,

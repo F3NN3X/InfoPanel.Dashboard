@@ -1,9 +1,11 @@
 // User widgets on the server (`/api/widgets`, src-tauri/crates/ips-server/src/widgets.rs): DATA_DIR/widgets/<key>/, one folder
 // per package, `<key>` the id with its namespace's colon as a dot (`recipe:cpu-card` is `recipe.cpu-card`, safe in a route and a
 // folder name). Read here, checked by the validator every time (the bytes on disk are never trusted), and cached per id. The
-// kiosk reaches this only through the recipe chunk; the studio through the Add panel's list and the import.
+// kiosk reaches this only through the recipe chunk; the studio through the Add panel's list and the import. A loaded recipe gives
+// its module what its placements read (`reads.ts`) and its options as Content tab rows (`settings.ts`).
 import { recipeReads } from "./reads";
-import { isRecipeId, learnReads } from "./resolve";
+import { isRecipeId, learnReads, recipeModule } from "./resolve";
+import { learnSettings } from "./settings";
 import type { Manifest, PackageFile, Recipe } from "./types";
 import { checkPackage, jsonOf, type RecipeIssue } from "./validate";
 
@@ -14,6 +16,9 @@ const WRITE = { "Content-Type": "application/json", "X-Dashboard-Widget": "1" };
 /** A package's folder and route name: its id with the namespace's colon as a dot. */
 export const keyOf = (id: string): string => id.replace(":", ".");
 
+/** Where a package came from, as the server recorded it: saved from the studio's builder, or imported from a file. */
+export type WidgetOrigin = "studio" | "import";
+
 /** What `GET /api/widgets` says of a package. */
 export interface UserWidgetInfo {
   id: string;
@@ -21,6 +26,7 @@ export interface UserWidgetInfo {
   name: string;
   version: string;
   size: number;
+  origin: WidgetOrigin;
 }
 
 /** A loaded recipe: drawn when `recipe` is set; `off` when the server has user widgets switched off. */
@@ -37,7 +43,7 @@ export async function listUserWidgets(): Promise<{ list: UserWidgetInfo[]; off: 
     const off = res.headers.get("X-User-Widgets") === "off";
     const raw: unknown = res.ok ? await res.json() : [];
     const list = Array.isArray(raw)
-      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0 }] : []))
+      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0, origin: w.origin === "studio" ? "studio" : "import" }] : []))
       : [];
     return { list, off };
   } catch {
@@ -80,6 +86,8 @@ export function loadRecipe(id: string): Promise<LoadedRecipe> {
       .catch((e: Error): LoadedRecipe => ({ issues: [{ rule: "internal", severity: "error", file: "", message: e.message }] }))
       .then((loaded) => {
         if (!loaded.off) learnReads(id, loaded.recipe ? recipeReads(loaded.recipe) : () => []);
+        const mod = recipeModule(id);
+        if (mod) learnSettings(mod, loaded.recipe);
         return loaded;
       });
     cache.set(id, hit);
@@ -91,6 +99,8 @@ export function loadRecipe(id: string): Promise<LoadedRecipe> {
 export const forgetRecipe = (id: string): void => {
   cache.delete(id);
   learnReads(id);
+  const mod = recipeModule(id);
+  if (mod) learnSettings(mod);
 };
 
 const base64 = (bytes: Uint8Array): string => {
@@ -99,12 +109,13 @@ const base64 = (bytes: Uint8Array): string => {
   return btoa(s);
 };
 
-/** Stores a package the validator passed, then reads it back through the route and validates it again. Undefined when it is stored and loads; else why not. */
-export async function storePackage(files: readonly PackageFile[]): Promise<string | undefined> {
+/** Stores a package the validator passed, then reads it back through the route and validates it again. Undefined when it is stored and loads; else why not.
+ * `origin` is what the server records beside it (the builder's save is "studio"). */
+export async function storePackage(files: readonly PackageFile[], origin: WidgetOrigin = "import"): Promise<string | undefined> {
   const checked = await checkPackage({ files });
   if (!checked.recipe) return checked.issues.find((i) => i.severity === "error")?.message ?? "the package has errors";
   const id = checked.recipe.id;
-  const res = await fetch(ROUTE, { method: "POST", headers: WRITE, body: JSON.stringify({ files: files.map((f) => ({ path: f.path, data: base64(f.bytes) })) }) });
+  const res = await fetch(ROUTE, { method: "POST", headers: WRITE, body: JSON.stringify({ files: files.map((f) => ({ path: f.path, data: base64(f.bytes) })), origin }) });
   if (!res.ok) return (await res.text()) || `the server refused the package (${res.status})`;
   forgetRecipe(id);
   const back = await loadRecipe(id);

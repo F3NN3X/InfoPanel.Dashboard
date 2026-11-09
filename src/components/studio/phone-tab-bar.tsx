@@ -1,5 +1,5 @@
 import { Menu } from "@base-ui/react/menu";
-import { Bell, CircleHelp, Database, Ellipsis, Gauge, Images, LayoutDashboard, Monitor, Palette, Settings, type LucideIcon } from "lucide-react";
+import { Bell, Blocks, CircleHelp, Database, Ellipsis, Gauge, Images, LayoutDashboard, Monitor, Palette, Settings, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RailItem } from "./studio-nav";
 
@@ -13,6 +13,7 @@ const TABS: { id: RailItem; label: string; icon: LucideIcon }[] = [
 /** What More holds, in order; Help opens its window, so it is not a view. */
 const MORE: { id: RailItem | "help"; label: string; icon: LucideIcon }[] = [
   { id: "screens", label: "Screens", icon: Monitor },
+  { id: "widgets", label: "Widgets", icon: Blocks },
   { id: "gauges", label: "Gauges", icon: Gauge },
   { id: "data", label: "Data sources", icon: Database },
   { id: "alerts", label: "Alerts & Island", icon: Bell },
@@ -34,7 +35,7 @@ const POPUP =
 const ITEM =
   "flex h-11 cursor-default items-center gap-2.5 rounded-md px-2.5 outline-none select-none data-highlighted:bg-ui-active data-highlighted:text-ui-1 data-highlighted:shadow-[inset_2px_0_0_var(--ui-accent)] data-[active]:text-ui-1";
 
-/** The phone's rail: a 52 px bottom bar, Edit · Theme · Library · More (Screens, Gauges, Data sources, Alerts & Island, Settings, Help). */
+/** The phone's rail: a 52 px bottom bar, Edit · Theme · Library · More (Screens, Widgets, Gauges, Data sources, Alerts & Island, Settings, Help). */
 export function PhoneTabBar({ active, onSelect, onHelp }: PhoneTabBarProps) {
   const inMore = MORE.some((m) => m.id === active);
   return (

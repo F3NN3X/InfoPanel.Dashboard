@@ -15,3 +15,10 @@ export const textPx = (scale: number, w: number, h: number): number => Math.max(
 
 /** The base text size of a zone of `cols` x `rows` nominal cells. */
 export const cellBasePx = (cols: number, rows: number): number => basePx(cols * NOMINAL_CELL.w, rows * NOMINAL_CELL.h);
+
+/**
+ * A card's content box in nominal cells, for a `when` size condition: the size the validator would have checked for it. Undefined
+ * while the box is not measured (a first frame, a server render): a size condition holds then.
+ */
+export const cellsOf = (w: number, h: number): [number, number] | undefined =>
+  w > 0 && h > 0 ? [Math.max(1, Math.round(w / NOMINAL_CELL.w)), Math.max(1, Math.round(h / NOMINAL_CELL.h))] : undefined;

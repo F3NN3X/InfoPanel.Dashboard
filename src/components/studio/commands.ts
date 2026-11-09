@@ -125,6 +125,7 @@ export type Drawer = "add" | "layers";
 const DESTINATIONS: { id: string; label: string; target: NavTarget; hint?: string }[] = [
   { id: "design", label: "Edit", target: { view: "design" }, hint: "the canvas: screens and InfoPanel profiles" },
   { id: "library", label: "Library", target: { view: "library" }, hint: "themes, styles, panels, media, fonts, canvases" },
+  { id: "widgets", label: "Widgets", target: { view: "widgets" }, hint: "your recipe widgets, imports and the builder" },
   { id: "gauges", label: "Gauges", target: { view: "gauges" }, hint: "build and edit gauges" },
   { id: "infopanel", label: "InfoPanel profiles", target: { view: "infopanel" }, hint: "Screens, filtered to InfoPanel" },
   { id: "data", label: "Data", target: { view: "data" }, hint: "sources, points, display names" },

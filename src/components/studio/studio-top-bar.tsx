@@ -16,7 +16,7 @@ import { WindowControls } from "./window-controls";
 import { KEYS } from "./use-studio-shortcuts";
 
 /** Every view but Design is a full page of its own: the rail's (Sources is Data) and Screens. */
-export type StudioMode = "design" | "sources" | "library" | "gauges" | "theme" | "alerts" | "screens";
+export type StudioMode = "design" | "sources" | "library" | "widgets" | "gauges" | "theme" | "alerts" | "screens";
 
 export interface StudioTopBarProps {
   profiles: MonitorProfile[];

@@ -10,8 +10,13 @@
 // A package's key is its id with the namespace's colon as a dot (`recipe:cpu-card` is `recipe.cpu-card`), safe in a route and a
 // folder name (Gate 0 answer 5). Code widgets (`ext:<publisher>.<id>`, kind `code`) are refused until 6a adds their signatures.
 //
-// GET /api/widgets                 list: id, kind, name, version and size of each package (`X-User-Widgets: off` when switched off)
-// POST /api/widgets                import: `{ "files": [{ "path", "data" (base64) }] }`, replaces the package of that id
+// GET /api/widgets                 list: id, kind, name, version, size and origin of each package (`X-User-Widgets: off` when off)
+// POST /api/widgets                import: `{ "files": [{ "path", "data" (base64) }], "origin"?: "studio" | "import" }`, replaces
+//                                  the package of that id
+//
+// Where a package came from (Phase 5b: the Widgets page's Yours and Imported) is the server's word, not the package's: the
+// studio's builder saves with `origin: "studio"`, a file import is `"import"` (the default). It is kept in `.origin` beside the
+// package's files, outside the manifest and its hashes: never a package file, never served, so an export leaves it out.
 // GET/HEAD /api/widgets/<key>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing
 // DELETE /api/widgets/<key>        remove a package
 //
@@ -46,6 +51,9 @@ const IMPORT_BODY_MAX: usize = (PACKAGE_MAX_BYTES as usize) * 4 / 3 + 64 * 1024;
 const MANIFEST: &str = "manifest.json";
 const RECIPE: &str = "recipe.json";
 const IMAGES: &str = "images";
+/// The sidecar the server writes beside a package's files: where it came from, one of `ORIGINS`.
+const ORIGIN: &str = ".origin";
+const ORIGINS: [&str; 2] = ["studio", "import"];
 /// The start of a folder an import writes into; a leftover is swept at start.
 const TEMP_PREFIX: &str = ".import-";
 /// The start of a replaced package set aside as `.import-old-<key>-<uuid>`; the sweep puts it back when the package's own folder is gone.
@@ -261,7 +269,7 @@ impl Widgets {
 
     /// Stores a checked import under the write lock: written beside its place under a name no key has, then moved in, so a
     /// half-written package is never a package; a replaced one is set aside until the new one is in place.
-    fn store(&self, key: &str, files: &Files) -> std::io::Result<Result<(), Refused>> {
+    fn store(&self, key: &str, files: &Files, origin: &str) -> std::io::Result<Result<(), Refused>> {
         let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
         let others: Vec<u64> = listed(self).into_iter().filter(|(other, _)| other != key).map(|(_, (_, bytes))| bytes).collect();
         if others.len() + 1 > WIDGETS_MAX {
@@ -280,6 +288,7 @@ impl Widgets {
                 }
                 std::fs::write(target, bytes)?;
             }
+            std::fs::write(temp.join(ORIGIN), origin)?;
             let dest = self.dir.join(key);
             let aside = self.dir.join(format!("{ASIDE_PREFIX}{key}-{}", uuid::Uuid::new_v4()));
             let had = std::fs::symlink_metadata(&dest).is_ok();
@@ -376,7 +385,7 @@ fn read_files(root: &Path) -> Option<Files> {
         for entry in entries.filter_map(Result::ok) {
             let meta = std::fs::symlink_metadata(entry.path()).ok()?;
             let name = entry.file_name().to_string_lossy().into_owned();
-            if meta.is_dir() && prefix.is_empty() && name == IMAGES {
+            if prefix.is_empty() && ((meta.is_dir() && name == IMAGES) || (meta.is_file() && name == ORIGIN)) {
                 continue;
             }
             let path = format!("{prefix}{name}");
@@ -394,6 +403,12 @@ fn measured(root: &Path, key: &str) -> Option<(Listed, u64)> {
     let files = read_files(root)?;
     let listed = checked_files(&files, Some(key)).ok()?;
     Some((listed, files.iter().map(|(_, b)| b.len() as u64).sum()))
+}
+
+/// Where the package in `root` came from: its `.origin`, else `import` (a package from before origins, or one put there by hand).
+fn origin_of(root: &Path) -> &'static str {
+    let found = std::fs::read_to_string(root.join(ORIGIN)).unwrap_or_default();
+    ORIGINS.into_iter().find(|o| *o == found.trim()).unwrap_or("import")
 }
 
 /// The packages in the widgets folder that may be served, by key, with their manifest's word and size, sorted.
@@ -425,7 +440,10 @@ fn handle_list(app: &App) -> Response<Body> {
     let widgets = &app.widgets;
     let items: Vec<Value> = listed(widgets)
         .into_iter()
-        .map(|(_, (l, size))| json!({ "id": l.id, "kind": l.kind, "name": l.name, "version": l.version, "size": size }))
+        .map(|(key, (l, size))| {
+            let origin = widgets.package_dir(&key).map_or("import", |root| origin_of(&root));
+            json!({ "id": l.id, "kind": l.kind, "name": l.name, "version": l.version, "size": size, "origin": origin })
+        })
         .collect();
     let reply = http::json(200, &Value::Array(items));
     if widgets.enabled { reply } else { off(reply) }
@@ -465,17 +483,24 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
     let Ok(body) = serde_json::from_str::<Value>(&text) else {
         return Ok(http::text(400, "the body is not JSON"));
     };
+    let origin = match body.get("origin") {
+        None => "import",
+        Some(v) => match ORIGINS.into_iter().find(|o| v.as_str() == Some(*o)) {
+            Some(o) => o,
+            None => return Ok(http::text(400, "origin is \"studio\" or \"import\"")),
+        },
+    };
     let checked = decoded(&body).and_then(|files| checked_files(&files, None).map(|l| (files, l)));
     let (files, listed) = match checked {
         Ok(done) => done,
         Err(Refused(status, message)) => return Ok(http::text(status, message)),
     };
     let key = key_of(&listed.id).unwrap_or_default();
-    if let Err(Refused(status, message)) = widgets.store(&key, &files)? {
+    if let Err(Refused(status, message)) = widgets.store(&key, &files, origin)? {
         return Ok(http::text(status, message));
     }
     let size: u64 = files.iter().map(|(_, b)| b.len() as u64).sum();
-    Ok(http::json(200, &json!({ "id": listed.id, "kind": listed.kind, "name": listed.name, "version": listed.version, "size": size })))
+    Ok(http::json(200, &json!({ "id": listed.id, "kind": listed.kind, "name": listed.name, "version": listed.version, "size": size, "origin": origin })))
 }
 
 fn handle_delete(app: &App, req: &Req, key: &str) -> std::io::Result<Response<Body>> {
@@ -619,11 +644,11 @@ mod tests {
             let stored = std::thread::scope(|scope| {
                 let x = scope.spawn(|| {
                     gate.wait();
-                    widgets.store("recipe.a", &a).unwrap().is_ok()
+                    widgets.store("recipe.a", &a, "import").unwrap().is_ok()
                 });
                 let y = scope.spawn(|| {
                     gate.wait();
-                    widgets.store("recipe.b", &b).unwrap().is_ok()
+                    widgets.store("recipe.b", &b, "import").unwrap().is_ok()
                 });
                 [x.join().unwrap(), y.join().unwrap()]
             });
