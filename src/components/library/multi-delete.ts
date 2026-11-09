@@ -6,9 +6,10 @@
  */
 import type { DashboardConfig } from "@/lib/layout";
 import type { LibraryItem } from "@/lib/library";
-import { CONFIG_PANEL, CONFIG_STYLE, isBuiltinItem } from "@/lib/my-library/config-items";
+import { CONFIG_PANEL, CONFIG_STYLE, CONFIG_WPRESET, isBuiltinItem } from "@/lib/my-library/config-items";
 import { hashOf } from "@/lib/my-library/model";
 import { deleteStylePreset } from "@/lib/style-presets";
+import { deleteWidgetPreset } from "@/lib/widget-presets-edit";
 import { deletePanelPreset } from "@/components/studio/panel-preset-actions";
 import { nextSelection } from "@/components/studio/selection";
 import { FILE_KINDS } from "./remove-item";
@@ -54,15 +55,16 @@ export function planDelete(items: readonly LibraryItem[], used: ReadonlySet<stri
   return plan;
 }
 
-/** Whether the item is a saved Style or panel: kept in the config rather than on the server. */
-export const isSavedInConfig = (item: Pick<LibraryItem, "id">): boolean => [CONFIG_PANEL, CONFIG_STYLE].some((p) => item.id.startsWith(p));
+/** Whether the item is a saved Style, widget preset or panel: kept in the config rather than on the server. */
+export const isSavedInConfig = (item: Pick<LibraryItem, "id">): boolean => [CONFIG_PANEL, CONFIG_STYLE, CONFIG_WPRESET].some((p) => item.id.startsWith(p));
 
-/** The config without the saved Styles and panels among `items` (anything else is left alone). */
+/** The config without the saved Styles, widget presets and panels among `items` (anything else is left alone). */
 export function deleteConfigItems(config: DashboardConfig, items: readonly LibraryItem[]): DashboardConfig {
   return items.reduce((c, item) => {
     const id = (item.data as { id: string }).id;
     if (item.id.startsWith(CONFIG_STYLE)) return deleteStylePreset(c, id);
     if (item.id.startsWith(CONFIG_PANEL)) return deletePanelPreset(c, id);
+    if (item.id.startsWith(CONFIG_WPRESET)) return deleteWidgetPreset(c, id);
     return c;
   }, config);
 }

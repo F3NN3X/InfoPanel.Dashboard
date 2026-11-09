@@ -5,10 +5,8 @@ import { readConfigText } from "@/components/studio/config-file";
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { defaultConfig, mergeConfig, type DashboardConfig } from "@/lib/layout";
 import { normalizeWidgetPresets } from "@/lib/widget-presets-guard";
+import { deleteWidgetPreset, duplicateWidgetPreset, renameWidgetPreset, saveWidgetPreset } from "@/lib/widget-presets-edit";
 import {
-  deleteWidgetPreset,
-  renameWidgetPreset,
-  saveWidgetPreset,
   WIDGET_PRESET_CAPS,
   widgetPresetsOf,
   type UserWidgetPreset,
@@ -84,6 +82,17 @@ describe("editing the saved list", () => {
     c = deleteWidgetPreset(c, "a");
     expect(c.widgetPresets?.map((p) => p.id)).toEqual(["b"]);
     expect(deleteWidgetPreset(c, "b").widgetPresets).toBeUndefined();
+  });
+
+  it("duplicates after the original as a copy with its own id and settings, and is a no-op for an unknown id or a full list", () => {
+    const c = base([preset("a"), preset("b")]);
+    const next = duplicateWidgetPreset(c, "a", "a2", "2026-02-01T00:00:00.000Z");
+    expect(next.widgetPresets?.map((p) => [p.id, p.name])).toEqual([["a", "Preset a"], ["a2", "Preset a copy"], ["b", "Preset b"]]);
+    expect(next.widgetPresets?.[1].settings).not.toBe(c.widgetPresets?.[0].settings);
+    expect(next.widgetPresets?.[1].created).toBe("2026-02-01T00:00:00.000Z");
+    expect(duplicateWidgetPreset(c, "gone", "x", "")).toBe(c);
+    const full = base(Array.from({ length: WIDGET_PRESET_CAPS.total }, (_, i) => preset(`p${i}`)));
+    expect(duplicateWidgetPreset(full, "p0", "x", "")).toBe(full);
   });
 
   it("refuses a save past the total cap, leaving the config as it was", () => {

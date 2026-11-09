@@ -28,7 +28,7 @@ import type { StoredItem } from "@/lib/infopanel/import/stored";
 import { applyPlacements } from "@/lib/page-model/placements-adapter";
 import { sampleLayout } from "@/lib/sample-layout";
 import { updateStylePreset } from "@/lib/style-presets";
-import { deleteWidgetPreset, renameWidgetPreset, saveWidgetPreset, type UserWidgetPreset } from "@/lib/widget-presets";
+import type { UserWidgetPreset } from "@/lib/widget-presets";
 import type { ModuleSettings } from "@/modules/types";
 import * as actions from "./studio-actions";
 import { arrangeZones, type ArrangeOp } from "./zone-arrange";
@@ -466,9 +466,11 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     }));
 
   /** The widget presets of the Preset row (`config.widgetPresets`); each is one undo step. */
-  const saveUserWidgetPreset = (preset: UserWidgetPreset) => setConfig((c) => saveWidgetPreset(c, preset));
-  const renameUserWidgetPreset = (id: string, name: string) => setConfig((c) => renameWidgetPreset(c, id, name));
-  const deleteUserWidgetPreset = (id: string) => setConfig((c) => deleteWidgetPreset(c, id));
+  const editPresets = (fn: (edits: typeof import("@/lib/widget-presets-edit")) => (c: DashboardConfig) => DashboardConfig) =>
+    void import("@/lib/widget-presets-edit").then((edits) => setConfig(fn(edits)));
+  const saveUserWidgetPreset = (preset: UserWidgetPreset) => editPresets((e) => (c) => e.saveWidgetPreset(c, preset));
+  const renameUserWidgetPreset = (id: string, name: string) => editPresets((e) => (c) => e.renameWidgetPreset(c, id, name));
+  const deleteUserWidgetPreset = (id: string) => editPresets((e) => (c) => e.deleteWidgetPreset(c, id));
 
   /** A saved Style takes a widget's look in its place ("Update ‹name›"; one undo step). */
   const updateSavedStyle = (id: string, settings: ModuleSettings) => setConfig((c) => updateStylePreset(c, id, settings));
