@@ -67,6 +67,14 @@ security model, what was fixed, what was decided, and what is deferred.
   every 15 minutes, under one cap of 300 provider calls an hour; place search (`GET /api/weather/places`) is this machine's
   unless `ALLOW_REMOTE_EDIT=1`, 20 a minute. No key, no account, nothing about the user but the place.
   `WEATHER=off` turns it off.
+- **Widget packages** (`crates/ips-server/src/widgets.rs`): recipe and code widgets a user imports are stored under
+  `DATA_DIR/widgets/`, one folder per package, and served and nothing more: a key and a file name are matched against strict
+  patterns before a path is built, a file must stay inside its folder (links are never followed), and a folder whose files are
+  not exactly the manifest's, byte for byte, is not a package. Limits: 512 KB a package, 256 KB a file, 32 files, 64 packages.
+  Files are served typed by extension, `nosniff` and with a CSP that allows nothing. Writes (import, remove, the code-widget
+  switches) need the `X-Dashboard-Widget: 1` header and come from this computer unless `ALLOW_REMOTE_UPLOAD=1`.
+  `USER_WIDGETS=off` turns the whole store off. A recipe holds no code; the studio's validator checks it on import and the
+  kiosk checks it again on every load. A code widget needs a signature (below).
 - **Uploads**: per-type limits, magic-byte checks, a quota, two in flight; SVG assets are served with a sandbox CSP.
 - **Path safety**: static and asset paths reject `..` and dot segments with prefix checks.
 

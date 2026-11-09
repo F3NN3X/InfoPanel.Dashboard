@@ -6,13 +6,17 @@ picker shows and what the kiosk can render: the plain index of the
 
 ## How the picker works
 
-- The picker (the studio's Library) lists modules by their **`title`** — that
-  is what the user sees and searches for — filed under a category chip:
-  System, Hardware, Storage, Network, Media, Audio, Info, Gaming or Generic
-  (plus Layouts and My panels for panels). The **`id`** is what the config
-  stores (`Placement.module`), and what tools like `swap-*.ps1` use.
-- The Library lists the 54 **template widgets** below; they are the whole
-  registry (`TEMPLATE_MODULES`, `src/widgets/registry.ts`).
+- The picker (the studio's **Add** panel, Widgets tab) lists one row per
+  module by its **`title`** — that is what the user sees and searches for —
+  filed under a category chip: System, Hardware, Storage, Network, Media,
+  Audio, Info, Gaming, Generic or Streaming (plus Layouts and My panels for
+  panels). A widget with presets shows "N presets" on its row and opens them
+  (see [Presets](#presets)). The **`id`** is what the config stores
+  (`Placement.module`), and what tools like `swap-*.ps1` use.
+- The 64 **template widgets** below are the whole built-in registry
+  (`TEMPLATE_MODULES`, `src/widgets/registry.ts`, from the folders under
+  `src/widgets/`). Recipe and code widgets a user adds on the Widgets page are
+  listed after them in Add; see [Recipe and code widgets](#recipe-and-code-widgets).
 - Every module claims a set of sensor keys via `matches(key)`; keys no
   module claims fall through to the **Other sensors** catch-all (the `CARDS`
   panel).
@@ -22,10 +26,11 @@ picker shows and what the kiosk can render: the plain index of the
 
 ## Library widgets (templates)
 
-Every template widget is a component in `src/widgets/` drawn inside the shared
-shell and registered through `templateModule` (the group files in
-`src/widgets/registry/`, or a widget's own folder, `src/widgets/<id>/widget.ts`). The id is the template's name; the
-minimum footprint comes from its `meta.minSize`. All of them take the standard
+Every template widget is a folder under `src/widgets/<kebab-id>/` — `meta.ts`
+(the catalog entry), `widget.ts` (settings and how it renders), its component,
+and optionally `presets.ts`, `controls.tsx` and a `README.md` — drawn inside the
+shared shell and turned into a module by `templateModule`. The id is the
+template's name; the minimum footprint comes from its `meta.minSize`. All of them take the standard
 block and the Look keys (skin, variant, graph, meter, summary card); the options of each are in the
 inspector's Show, Data and Behaviour tabs.
 
@@ -56,6 +61,37 @@ through the data adapter (below). `Clock`, `Calendar`, `Timer`, `CodingAgents`, 
 their prefixes exists (the kiosk then hides the zone) and show their own
 empty state when only some readings are missing.
 
+## Presets
+
+A widget's views and ready-made settings are its **presets**: a name, an
+optional view, the settings it sets and a size, in the folder's `presets.ts`
+(67 presets across 21 widgets). Add lists them under the widget's row ("N
+presets"); a placed widget's inspector has a **Preset** row that picks one and
+reads **Custom** once a setting differs. A user can keep a widget's view,
+settings and size as a **saved preset** (`config.widgetPresets`, listed in
+Library › Widget presets); it is a row of that widget in Add too. Each widget's
+README lists its presets in a generated table.
+
+## Recipe and code widgets
+
+The **Widgets** page (sidebar) lists the built-in widgets and the ones a user
+brought. These are not in the registry; the server holds them in
+`DATA_DIR/widgets/` (`GET /api/widgets`) and Add lists them after the built-in
+ones, with ids in their own namespaces:
+
+- `recipe:<id>` — a **recipe**: a JSON description of blocks (card, row,
+  repeat, ring, gauge, bar, sparkline, value, label, weather icon, image,
+  heatmap), options, presets and a sample, drawn by `src/widgets/recipe/`. No
+  code, so no trust is needed. Built in the page's builder, or imported.
+- `ext:<publisher>.<name>` — a **code widget**: a signed package with an ES
+  module, loaded only when its signature verifies against a key the user
+  trusted (Settings › Widget publishers) or the owner's built-in key. See
+  [code-widgets.md](code-widgets.md) and [security.md](security.md).
+
+A recipe can show the weather for places the user picks, from Open-Meteo
+through the server (`WEATHER=off` turns it off); the built-in Weather widget
+still reads the Yr or OpenWeatherMap plugin.
+
 ## Retired ids (saved zones)
 
 The pre-template widget ids are gone from the registry. A zone that still
@@ -77,14 +113,19 @@ reads.
 | `networkmodern` | `NetworkThroughput` |
 | `vbz`, `notifications`, `textfile`, `streamdeck`, `webpage` | `Departures`, `Notifications`, `TextFile`, `StreamDeck`, `WebPage` |
 
-Widgets that merged into another (config v19, `src/lib/settings-migrate.v19.ts`) are rewritten the same
+Widgets that merged into another (config v19, `WIDGET_MERGES` in `src/lib/settings-migrate.v19.ts`) are rewritten the same
 way, to the survivor in the matching view:
 
 | Stored id | Widget |
 |---|---|
-| `Forecast` | `Weather`, Forecast view (`days` becomes `forecastDays`, 0 = as many as fit) |
-| `ThresholdTimeline` | `SessionStats`, Threshold timeline view |
-| `Vitals` | `KpiTiles`, Vitals view (`metrics` becomes `cardMetrics`) |
+| `Forecast` | `Weather`, view `forecast` (`days` becomes `forecastDays`, 0 = as many as fit) |
+| `ThresholdTimeline` | `SessionStats`, view `lanes` |
+| `Vitals` | `KpiTiles`, view `cards` (`metrics` becomes `cardMetrics`) |
+| `GpuRings` | `GpuMonitor`, view `rings` |
+| `FramePacing` | `FpsMonitor`, view `pacing` |
+
+The old ids stay readable in imported files and pasted screens: the rewrite
+keys on the id, not the config version.
 
 The catch-all **Other sensors** (4×2, any key no module claims) is not a
 registry entry: `src/modules/other-sensors.tsx` draws a `SensorValue` card per
@@ -271,24 +312,24 @@ The whole library shares one design system, in `src/widgets/core/`:
 
 ## Adding a new module
 
-1. Create the component in `src/widgets/<Name>.tsx`: export `meta`
-   (`id`, `name`, `category`, `icon`, `prefixes`, `defaultSize`, `minSize`,
-   `description`) and a component that renders `<Widget {...shell(p)}>` over
-   the flat `data` it receives. Take sizes from the tier, shape and inner box
-   the shell passes; supply `compact` and `studio` descriptors for the small
-   views.
-2. Register it in the matching group in `src/widgets/registry/` with
-   `templateModule({ meta, Component, settings, toProps })`: `settings` are
-   the widget's own options after the standard block, `toProps` maps the
-   stored settings to props. `src/widgets/registry.ts` collects the groups and
-   `modules/index.ts` appends them to the registry — the studio Library, the
-   kiosk, and the claimed-key rules pick them up from there.
-3. Add a test next to the registry group and typecheck, test and build (`npm run verify`); then look at it in
-   `?widget-qa` and in a real zone via the kiosk.
-
-A module outside the library (a plain `DashboardModule` with its own
-`render(sensors, settings)` returning a component) is still possible, but
-nothing in the repo is built that way any more: the shell is what gives a
-widget skins, variants and the standard look.
+1. Make the folder `src/widgets/<kebab-id>/`: `meta.ts` (`id`, `name`,
+   `category`, `icon`, `prefixes`, `defaultSize`, `minSize`, `description`, and
+   `views` if it has any) and a component that renders `<Widget {...shell(p)}>`
+   over the flat `data` it receives. Take sizes from the tier, shape and inner
+   box the shell passes; supply `compact` and `studio` descriptors for the
+   small views.
+2. Write its `widget.ts` with `defineWidget({ meta, settings, render })`:
+   `settings` are the widget's own options after the standard block, and
+   `render.toProps` maps the stored settings to props. Add `presets.ts` for its
+   presets and a `README.md` with the sections What it shows, Data it needs,
+   Options and Presets.
+3. Run `npm run widgets:gen`. It writes the folder list the registry reads
+   (`registry.generated.ts`), the studio's loaders and the generated blocks of
+   this page and of the README's Presets section; `--check` fails when one is
+   stale. The folder is picked up by the studio's Add panel, the kiosk and the
+   claimed-key rules from there.
+4. Map the new files in `tests/feature-map.json`, add a test where the change
+   touches something the suite guards, then run `npm run verify`; look at it
+   in `?widget-qa` and in a real zone via the kiosk.
 
 For a template, the standard block and the Look keys come for free.

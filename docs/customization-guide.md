@@ -3,8 +3,8 @@
 How to make a widget look the way you want, from the studio.
 
 Open the studio with the wrench button on the dashboard (or
-`http://127.0.0.1:3922/?studio=1`). Changes save automatically; **Save**
-saves immediately, and open kiosk pages update within about a second.
+`http://127.0.0.1:3922/?studio=1`). Changes save automatically; **Save now**
+(in the top bar's **...** menu) saves immediately, and open kiosk pages update within about a second.
 
 ## The studio layout
 
@@ -14,7 +14,7 @@ saves immediately, and open kiosk pages update within about a second.
 │  │ left panel │      [ quick bar ]            │ inspector       │
 │R │ Layers |   │ canvas                        │ (docked: 320 px)│
 │a │ Add        │                               │                 │
-│i │ (Design    │      [ floating zoom bar ]    │                 │
+│i │ (Edit      │      [ floating zoom bar ]    │                 │
 │l │  only)     │                               │                 │
 └──┴────────────┴───────────────────────────────┴─────────────────┘
 ```
@@ -23,36 +23,37 @@ Shown docked (studio 1100 px or wider). Narrower, the inspector floats over
 the canvas or becomes a bottom sheet, see [Inspector
 placement](#inspector-placement-docked-floating-bottom-sheet).
 
-The bar along the top holds, from left to right:
+The bar along the top of Edit (the window's title bar in the desktop app) holds, from left to right:
 
-- the **screen / page switcher** - the active screen's name with its design
-  size; click it to switch to another screen or page. The gear beside it
-  opens [Screens](#screens) at that screen;
+- the **breadcrumb** - the screen's name (with a pencil to rename it) and its page; the
+  screen name opens a list of your screens, each with its size, and the pages of the
+  current one. **Manage screens…** and **Screen settings…** open [Screens](#screens);
 - **Search settings or run a command** (**Ctrl + K**) - the [command
   palette](#undo-shortcuts-and-the-command-palette);
 - **Undo** and **Redo** (see [Undo, shortcuts and the command
-  palette](#undo-shortcuts-and-the-command-palette));
-- **Import** and **Export** - the Import door brings a config, a screen, a
-  `.infopanel` profile or an asset in; **Export & back up** writes the whole
-  config (or one screen) out;
-- **Live** - control the kiosks now: show a page, **Rotation**, **Mute alerts
-  for 1 h**, **Dynamic Island**, **Dim screens**, **Reload all kiosks** and
-  **Open kiosk view** (leave the studio);
-- **Save**. Changes are pushed to the server automatically; **Save** flushes
-  them at once, and the small dot on it means "edits not pushed yet".
+  palette](#undo-shortcuts-and-the-command-palette)) and the saved state
+  (**Saved · live on N displays**, **Unsaved changes** or **Offline · edits kept locally**);
+- **Preview** (the kiosk view) and **File**: **Import** brings a config, a screen, a
+  `.infopanel` profile or an asset in; **Export & back up** writes the whole config
+  (or one screen) out.
 
-On a phone Undo / Redo, Import, Export and Live move into a **...** menu.
+**Live** - control the kiosks now: show a page, pause rotation, **Mute alerts
+for 1 h**, **Dynamic Island**, dim screens, reload all kiosks and open the kiosk
+view - sits at the foot of the sidebar (in the top bar on a phone). Changes are
+pushed to the server automatically.
+
+Under 600 px a **...** menu holds Undo, Redo, Save now, Import and Export.
 **Reset everything...** (restores the default dashboard after a confirmation:
 it wipes every screen, the theme, the styles and all widget settings; it
 offers a backup first) is in Settings › Dashboard › Danger zone, the shortcut
 list is in Help (and **?**), and the build id is in Settings › App › About.
 
-The **icon rail** (72 px, labelled; 48 px under 960 px) at the left opens one
-full view at a time: **Screens**, **Design**, then **Theme**, **Library**,
-**Gauges**, **Alerts & Island** and **Data**. **Help** and **Settings** sit at
-its foot; Settings opens its own window. Only **Design** has the canvas, the
+The **sidebar** (232 px; it collapses to a 60 px icon rail, and is always the rail under 960 px) at the left opens one
+full view at a time: **Screens**, **Edit**, then **Theme**, **Library**,
+**Widgets**, **Gauges**, **Alerts & Island** and **Data sources**. **Help and shortcuts** and **Settings** sit at
+its foot; Settings opens its own window. Only **Edit** has the canvas, the
 left panel and the inspector; the other views take the whole page and are
-described in their own sections. **Library** (your saved images, fonts, gauges, panels, Themes, Styles and imported InfoPanel canvases) and **Gauges** (design a Custom gauge or edit a screen's) replace the canvas; **Import** in the top bar brings an `.infopanel` profile in as a canvas zone.
+described in their own sections. **Library** (your saved images, fonts, gauges, panels, Themes, Styles, widget presets and imported InfoPanel canvases), **Widgets** (every widget, your own recipes and imports, and the builder; see [The Widgets page and the builder](#the-widgets-page-and-the-builder)) and **Gauges** (design a Custom gauge or edit a screen's) replace the canvas; **Import** in the top bar brings an `.infopanel` profile in as a canvas zone.
 
 A **floating zoom bar** sits over the bottom of the canvas, centred. It
 toggles the grid and the rulers, zooms out and in (or
@@ -125,7 +126,7 @@ Only the middle scrolls.
 
 ### The left panel
 
-In Design, a left panel beside the rail has two tabs, **Layers** and **Add**
+In Edit, a left panel beside the sidebar has two tabs, **Layers** and **Add**
 (its width is Settings › Studio › **Left panel width**: Narrow, Default or Wide).
 
 - **Layers** - every zone of the screen's page, with an icon for its type (the
@@ -135,18 +136,22 @@ In Design, a left panel beside the rail has two tabs, **Layers** and **Add**
   selection; right-click opens the zone menu. The eye hides or shows it and
   the bin removes it. Hidden zones are dimmed but stay selectable (and do not
   show in the kiosk).
-- **Add** - every widget, panel and layout, with a search box and the kinds
-  **Widgets | Panels | Layouts**; Widgets also has category chips (System,
-  Hardware, Storage, Network, Media, Audio, Info, Gaming, Generic), and Panels
-  lists your saved panels under My panels (see
-  [Creating a panel](#creating-a-panel)). **Drag** a card onto the canvas -
-  a dashed ghost shows where it lands, or **No room** in red - or **click** it
-  to place it at the first free spot. With a blank zone selected, a click
-  fills that zone instead. The numbers are the minimum zone size in grid
-  cells, and a badge counts how often a widget is already on the page.
-  *Other sensors* is listed here too, under Generic. **Widget list** and
-  **Preview on hover** in Settings › Studio set the list's density and
-  whether hovering shows a preview.
+- **Add** - every widget, panel and layout, with a search box and the tabs
+  **Widgets | Items | Panels | Layouts** (Items, InfoPanel's items and the
+  studio's elements, appears where the page takes them). Widgets also has
+  category chips (System, Hardware, Storage, Network, Media, Audio, Info, Gaming,
+  Generic, Streaming), and Panels lists your saved panels under My panels (see
+  [Creating a panel](#creating-a-panel)). Each widget is one row with its icon,
+  name and a line of what it is. A widget with presets shows **N presets**: click
+  it to list them and add one directly (see [Widget presets](#widget-presets)).
+  Recipe and code widgets you added on the Widgets page follow the built-in ones.
+  **Drag** a row onto the canvas - a dashed ghost shows where it lands, or **No
+  room here** in red - or **click** it to place it at the first free spot. With a
+  blank zone selected, a click fills that zone instead. **Recently used** holds
+  the last four things you added. Resting the pointer on a row opens a card with
+  a preview, what it is and its minimum size in grid cells. *Other sensors* is
+  listed here too, under Generic. **Widget list** and **Preview on hover** in
+  Settings › Studio set the list's density and whether hovering shows a preview.
 
 The other views are pages of their own:
 
@@ -159,36 +164,39 @@ The other views are pages of their own:
 
 **Screens** lists the monitor profiles as cards (a thumbnail, the size, the
 grid and page count). Click a card to select it for editing: it is the screen
-Design, the page tabs and the canvas follow, and it never changes what the app
+Edit, the page tabs and the canvas follow, and it never changes what the app
 opens on. **Settings > Dashboard > Startup screen** ("When the app opens") is a
 choice between **Best fit for the window** (the screen closest to the kiosk
 window's size; the card tagged *Best fit now*) and one screen (tagged *Opens on
 launch*). A card's **...** menu
-has **Rename**, **Duplicate**, **Always open this one**, **Export screen** and
-**Delete** (not the last screen). **New screen** adds one for the current window
-size; **Import a screen...** reads a screen file.
+has **Open**, **Rename**, **Duplicate**, **Always open this one**, **Copy kiosk link**,
+**Export screen** and **Delete** (not the last screen). **New screen** opens the New
+screen page (templates, a blank grid, the sample layout or an InfoPanel profile);
+**Import** reads a screen or an InfoPanel profile from a file. The Help article
+*Screens and the grid* lists everything on this page.
 
-The selected screen's detail column holds **Size & fit** (a **Size preset**,
+The selected screen's detail column holds **Size and fit** (a **Size preset**,
 **Width** and **Height**, **Match this window**, and **When it doesn't fit**:
 Fill or Scroll), **Grid** (**Columns**, **Rows**, **Gap** and **Edge padding**,
 see [Grid spacing](#grid-spacing-gap-and-padding)), **Rotation** (**Rotate
 pages** and **Every** n seconds), **Performance** (**Frame-rate cap** and
 **Animations** for this screen, with a chip saying whether it inherits
-Settings › Dashboard's), **Linked - edited elsewhere** (links to this screen's
-look in Theme and its Dynamic Island in Alerts & Island) and **Pages - order &
-rotation** (drag pages into order, **+ Add page**, and a switch per page for
-whether it is in the rotation).
+Settings › Dashboard's), **Theme** and **Dynamic Island** (links to this screen's
+look in Theme and its island in Alerts & Island, under **Edited elsewhere**),
+**Shown on** (the displays set to this screen) and **Pages: order and rotation**
+(drag pages into order, **+ Add page**, and a switch per page for whether it is
+in the rotation).
 
 ### Selecting, moving and resizing zones
 
 Drag across empty grid cells to draw a new, blank zone; its **Pick a widget**
-button opens the widget picker. Hovering a zone shows its size in grid cells.
+button opens the widget picker (or select it and use Add). Hovering a zone shows its size in grid cells.
 Clicking selects it (a 2 px accent outline, drawn 5 px outside the zone and
 the same size at any zoom; hovering shows a 1 px one). **Double-click** opens
 all settings: the floating card opens, the bottom sheet goes to half. Clicking
 empty canvas first closes an open colour swatch row, otherwise it clears the
 selection, closes the floating card, sends the sheet to peek and clears the
-search and **Changed**. A hidden zone shows at 35% with a dashed border and an
+search. A hidden zone shows at 35% with a dashed border and an
 eye-off badge, and stays editable. **Shift / Ctrl-click** (on the canvas or in Layers) adds
 or removes a zone from the selection; **Ctrl + A** selects all. The last zone
 you picked is the *primary* one: it shows the handles, the keyboard resize
@@ -217,9 +225,10 @@ size steps are left out. Right-click empty canvas for **Add widget...**,
 **Select all**, **Zoom to fit**, **Edit theme** (opens Theme) and
 **Keyboard shortcuts**.
 
-The widget picker lists every widget and panel (layout starters and your
-saved panels included) with a search box (focused when it opens), the
-category chips and each one's minimum size; **Blank zone** removes the
+The widget picker (the dialog behind **Pick a widget** and **Change widget…**) lists every built-in
+widget and panel (layout starters and your saved panels included) with a search box
+(focused when it opens), the category chips and each one's minimum size; recipe and
+code widgets are added from Add or the Widgets page; **Blank zone** removes the
 widget. Picking one assigns it to the zone and grows the
 zone to the widget's minimum size — unless that would cover another zone;
 then the zone keeps its size and you can resize it yourself.
@@ -244,10 +253,10 @@ any other edit.
 
 - add any widget or panel - layout starters and your saved panels included
   (at the first free spot), switch screen or page, select a zone by name,
-  open any view (Screens, Design, Theme, Library, Gauges, Data, Alerts & Island
+  open any view (Screens, Edit, Theme, Library, Widgets, Gauges, Data, Alerts & Island
   and its tabs, Settings and its pages), the Add or Layers panel, toggle the
   grid, zoom, save, export, import, undo, redo, **Open Live**, the shortcut
-  list, **Theme**, **Theme › Background**, **Theme › Typography**,
+  list, **Theme**, **Theme › Background**, **Theme › Text**,
   **Settings › Dashboard** and **Data › Connection** (each opens that part of
   its view), and **Apply theme: ...** for each saved Theme;
 - for the selected zone: pick a widget, duplicate, hide or show, remove,
@@ -292,7 +301,7 @@ While you type in a field (a setting, the search box, the zone name), the
 plain keys go to the field; Ctrl + S and Ctrl + K still work, and so does
 undo / redo outside text fields (inside one they are the browser's own). With
 a dialog or menu open, its own keys win (Esc closes it). While a pointer drag
-is in flight only Esc (cancel) works. Outside Design the canvas keys are off.
+is in flight only Esc (cancel) works. Outside Edit the canvas keys are off.
 The tooltips of the top bar buttons show their shortcut (the zone's Duplicate
 and Remove only while no panel widget is selected, since Ctrl + D and Del
 then act on the widget).
@@ -308,10 +317,10 @@ settings. It never hard-codes a panel per widget.
 (`Type · N changed`, or `Type · defaults`), and **Hide**, **Duplicate** and
 **Delete**. Under it is the **placement row** (column, row, width, height in
 grid cells; values are checked against neighbours and minimum sizes). A
-**Search all settings** box and a **Changed N** toggle share one row below it.
+**Search this widget's settings** box sits below it.
 
-**Tabs.** A widget or panel zone has **Show**, **Style**, **Data** and **Behaviour**
-(Show: what is on the widget; Style: how it looks; Data: where the values
+**Tabs.** A widget or panel zone has **Content**, **Style**, **Data** and **Behaviour**
+(Content: what is on the widget; Style: how it looks; Data: where the values
 come from and how they are written; Behaviour: how it reacts and what it
 tells you). A small pill on a tab counts the options set on this zone, and
 a tab with no sections is dimmed and skipped. The open tab is remembered per
@@ -320,15 +329,14 @@ tabs. **Search** looks through all tabs at once: the tabs give way to the
 matching options, each section labelled with its tab, and a line says "N
 matching settings". It covers labels, keys and option names, and the custom
 cards by title and keywords; **Esc** clears it, and `No settings match "q".`
-says when nothing matches. **Changed** lists only the values set on this zone,
-across every tab ("N changed settings", with **Reset all**); when there are
-none it says "Nothing changed yet. Everything uses its default."
+says when nothing matches. A dot on a row, and the count on a section, show what
+is changed on this zone (see the source dots below).
 
 **Sections.** The sections are an accordion with sticky headers: icon, title
 (and the tab name while filtering), the number changed, a chevron and a reset
 button that restores just that section's options. Settings › Studio ›
 **Inspector sections** chooses **One open** (the default) or **Many
-open**. The Style tab's toolbar (**Start from a Style**, **Save as Style**, **Make this the theme for...**) sits above its sections. A short hint sits behind an **i** icon on a
+open**. The Style tab's toolbar (**Start from a saved style**, **Save as style**, **Make this the theme for…**) sits above its sections. A short hint sits behind an **i** icon on a
 row.
 
 **Rows.** A label and its control share one line; sliders sit inline with their
@@ -355,7 +363,7 @@ that is set here to reset that option.
 **More.** A section's less-used rows sit behind a **More (n)** link at the
 end of the section; **Less** folds them again. Whether a section is
 expanded is remembered for the session, per section and kind of zone.
-Search and **Changed** always include the More rows, expanded.
+Search always includes the More rows, expanded.
 
 **Inheritance chip.** A section whose look comes from the [widget
 theme](#widget-theme) has a chip in its header saying where its value comes
@@ -382,22 +390,22 @@ inherited**) applies to each of them; the chip shows the primary zone's state.
 **What each context shows:**
 
 - **Widget zone** -
-  - *Show*: **Header** (**Show title**, which off hides the title everywhere
+  - *Content*: **Header** (**Show title**, which off hides the title everywhere
     the widget shows it, **Title** and, under More, **Icon**; a widget that
     draws no header, or only a title, has fewer rows), the widget's own
     sections (for example Media: *Player*, *Visualizer*; System: *Sections*,
     *CPU*, *GPU*, *Memory*, *Drives*; Weather: *Forecast*, *Current
-    conditions*) and **Fit** (**Small zones**: Auto, Full, Card or Dense,
+    conditions*) and **Fit** (**Small sizes**: Auto, Full, Card or Dense,
     with Card only where the widget has a summary card; **Density** under
     More).
-  - *Style*: **Skin** (**Skin**, **Ring / bar thickness**; **Graph
+  - *Style*: **Theme** (**Theme**, **Ring / bar thickness (%)**; **Graph
     style** and **Meter style** under More, see [Skins and
     variants](#skins-and-variants)), **Colors** (**Accent color**, **Text
     color**, **Secondary text color**), **Widget
     colors** (the widget's own colors, each standing for a palette color such
     as *Series 1* or *Critical*, plus the rows that choose how they work, such
     as the tint or a heat ramp; what a widget draws and how, like a Stream
-    Deck's key gap or a scrim, is in its own sections under *Show*),
+    Deck's key gap or a scrim, is in its own sections under *Content*),
     **Typography** (**Font**, **Value weight**, **Label case**), **Shape &
     spacing** (**Size %**, the 3×3 **Alignment** with **Spread**, **Inner
     padding**, **Gap between items**, **Corner radius**), **Surface & effects**
@@ -419,21 +427,21 @@ inherited**) applies to each of them; the chip shows the primary zone's state.
     corner radius, and the border. The plain card widgets (Departures,
     Notifications, Text File, Stream Deck and the *Other sensors* cards)
     offer fewer of the standard options than the other widgets.
-- **Panel zone** - *Show*: **Panel** (Visual or Code, Fill or Hug, gap,
+- **Panel zone** - *Content*: **Panel** (Visual or Code, Fill or Hug, gap,
   padding), **Layout** (Stack / Grid / Overlay options), **Background**
   (Overlay only), **Widgets**; *Style*: the same look sections as a widget;
-  *Data*: **Sensors used** by its widgets. With a widget selected the
+  *Data*: the sensors its widgets use. With a widget selected the
   inspector shows [that item's own four tabs](#editing-widgets) instead.
 - **Blank zone** - **Widget** with a **Pick a widget** button, and **Zone
   frame**.
 - **Several zones** - only the shared Style sections, with the chip of the
   primary zone.
 - **Nothing selected: the Page inspector.** Click empty canvas or press
-  Esc. It shows the page being edited: its **Name** and **Icon**, a
-  **Rotation** link to [Screens](#screens), **This page's look** (the
-  sections the page customises over its screen's theme, with **Edit in
-  Theme** and **Customise a section...**), **Live** (**Show on kiosks now**)
-  and **Duplicate page** / **Delete page**. A screen's size, grid and
+  Esc. It shows the page being edited: its **Name** and **Icon**, its
+  **Size**, **Gap**, **Theme** (**Edit in Theme**) and a **Rotation** link to
+  [Screens](#screens), **This page's theme** (the sections the page changes
+  over its screen's theme), **Live** (**Show on kiosks now**) and **Actions**
+  (**Duplicate page** and **Delete page**). A screen's size, grid and
   rotation are in Screens, the look every level inherits in
   [Theme](#theme-editor), preferences in [Settings](#general-settings) and the
   Data API URL in Data.
@@ -442,7 +450,7 @@ inherited**) applies to each of them; the chip shows the primary zone's state.
 
 ### Data Explorer and binding
 
-The **Data** view replaces everything right of the rail with the Data
+The **Data** view replaces everything right of the sidebar with the Data
 Explorer: a header (the number of data points and sources, whether the Data
 API is running and live over SSE, an **Endpoints** popover that copies a
 route, and **Add source**), a **source tree** (filter, health chips for
@@ -567,10 +575,10 @@ picture behind the whole panel - and **Widgets** lists the widgets (see
 
 For every layout:
 
-- **Gap (px)**: space between the widgets, and **Padding (px)**: space
-  inside the panel's card. Empty (auto) uses *Size & spacing*, then
+- **Gap**: space between the widgets, and **Padding**: space
+  inside the panel's card. Empty (auto) uses *Shape & spacing*, then
   the layout's own spacing.
-- **Fit in zone**: **Fill** (default) stretches the panel over the whole
+- **Size**: **Fill** (default) stretches the panel over the whole
   zone; **Hug** shrinks it to its content.
 
 Switching from Stack to Grid drops Spread (a grid has no free space to
@@ -579,9 +587,9 @@ stack.
 
 ### Alignment at two levels
 
-1. **The panel in its zone.** A panel fills its zone unless **Fit in zone**
+1. **The panel in its zone.** A panel fills its zone unless its **Size**
    is **Hug**. A hugging panel is placed by the zone's own alignment, the
-   3×3 picker in *Size & spacing* (left / center / right × top /
+   3×3 picker in *Shape & spacing* (left / center / right × top /
    middle / bottom).
 2. **The content in the panel.** The layout's alignment (Stack:
    *Alignment*; Grid: *Cell alignment*; Overlay: *Band alignment*) places
@@ -605,7 +613,7 @@ stack.
   header and tabs give way to it; the header's actions still act on the
   zone). The rows are the shared ones, the same as a zone's, filed by what
   the kind uses:
-  - *Show*: **Kind** (chips; **Change kind** keeps the label, sensor, unit,
+  - *Content*: **Kind** (chips; **Change kind** keeps the label, sensor, unit,
     color, layout, CSS and follow flags, and drops what the new kind does
     not read), **Content** (label, clock time / date, static text or image
     URL, shape and thickness, table rows; columns and header under More) and
@@ -712,7 +720,7 @@ Inside a widget (by kind):
 | shape | `.wp-shape` |
 
 The panel's layout fields are CSS variables on `.wp-panel`, read with the
-Size & spacing value and then the built-in spacing as fallbacks:
+Shape & spacing value and then the built-in spacing as fallbacks:
 
 | Variable | From | Used for |
 |---|---|---|
@@ -773,6 +781,91 @@ set on the element); to target a few widgets only, give them a class name
 (Style > Custom CSS > **Class names**, e.g. `hot`) and select `.wp-widget.hot` in the
 panel's CSS.
 
+## Widget presets
+
+Most widgets come with **presets**: named views, each with its own size and settings. Weather has Full, Now, Forecast,
+Minimal, Glance and Week; FPS Monitor has Frame-time graph, Gauge, Trend and Frame pacing. 67 presets ship, across 21
+widgets. Several widgets that used to be separate are presets of another: Forecast is Weather's Forecast preset,
+Threshold Timeline is Session Stats' Threshold timeline, Vitals is KPI Tiles' Vitals, GPU Rings is GPU Monitor's Rings and
+Frame Pacing is FPS Monitor's Frame pacing. A screen saved with an old one opens as the new one, in the matching view, with
+its settings kept.
+
+- In **Add**, a widget with presets shows **N presets**; click it to list them and add one, or drag it onto the canvas.
+- A placed widget has a **Preset** row in its inspector, under the placement row and above the tabs. Click a preset to apply it (one undo step); it sets the
+  view and the settings the preset names and leaves the rest. Tick **Also use the preset's size** to resize the zone too. If
+  you change a setting a preset sets, the row reads **Custom**.
+- **Save as preset** keeps the widget's view, settings and size under a name you type. It is listed under **Yours** in the
+  Preset row, as a row of that widget in Add, and in **Library › Widget presets**, where it can be applied to the selected
+  widgets of that kind, renamed, duplicated and deleted. **Save as style** next to it keeps only the look (see [Styles, Copy,
+  Paste and Make this the theme](#styles-copy-paste-and-make-this-the-theme)).
+
+## The Widgets page and the builder
+
+**Widgets** in the sidebar opens the Widgets page: every built-in widget, the ones you made and the ones you imported, in one
+place. It also builds new ones.
+
+**Browse.** The title counts the built-in, your own and the imported widgets. A search box and the chips **All**, **Recipes**,
+**Code** and **Yours** narrow the list, which has three sections: **Yours** (recipes saved from the builder), **Imported**
+(packages brought in from a file) and **Built in** (with **Show all**). Click a card to open its details: what it is, how it
+is made and by whom, its presets, the options people can change and the screens it is on. **Add to a screen** puts it on the
+screen you were editing. The **⋯** menu has **Duplicate**, **Remove** and, for an imported code widget, **Turn this widget off**.
+
+**Two kinds of widget you add.** A **recipe** is built from the studio's own blocks: it holds no code, follows the theme,
+scales with its zone and needs no trust. A **code widget** is a package with JavaScript in it, written by a developer; it runs
+with the same access as a built-in widget, so it loads only when signed by a key you trust (see [Code widgets and
+trust](#code-widgets-and-trust)). Both appear in Add after the built-in widgets and have presets like any other.
+
+**Import and Export.** **Import** takes a widget package, a `.zip` of at most 512 KB. The studio checks it before storing
+anything; a refused package is listed with the file and the reason in plain words. **Export**, in a widget's details or in the
+builder, writes `<name>-<version>.widget.zip`.
+
+**New widget** opens the builder on a blank recipe. A built-in's details also have **Duplicate as a recipe** for CPU Monitor,
+GPU Monitor, Sensor and Weather; the other built-ins draw things blocks cannot (lists with as many rows as the data has,
+controls, the clock, audio streams), and the button says why it is disabled.
+
+**The builder** has Layers and **Add a block** on the left, the preview in the middle and the inspector on the right.
+
+- A recipe is a card of blocks: Ring, Gauge, Bar, Sparkline, Value, Label, Weather icon, Image, Heatmap, Row and Repeat (up to
+  64 blocks, six levels deep). The name is edited in the bar at the top; **Undo** and **Redo** (`Ctrl+Z`, `Ctrl+Shift+Z`)
+  step through edits, and every open recipe keeps its own history.
+- Above the preview, **Size** switches between the sizes the recipe supports, **Preview in** draws it in another look, and
+  **Data** switches between **Live data** and **Sample** values.
+- The inspector's **Block** tab sets what the selected block reads (a sensor, or a device such as a CPU or GPU), its colour
+  (accent, a series, or by thresholds), when it shows (always, or when an option has a value) and the smallest size it is
+  drawn at. **Let people pick** turns a binding into an option.
+- **Options** are what people can change when they add the widget, shown in its Content tab: a toggle, a choice, a number, a
+  text, a sensor, a place list or a device (up to 24). **Presets** are named sets of options and a size (up to 16).
+- The bar says whether the recipe is valid and, if not, the first problem. **Save** stores it on the server, **Add to a screen**
+  saves it and puts it on the screen, and **Export** writes the package. A recipe signed by someone else cannot be replaced
+  by a save, only copied with **Save as a copy**.
+
+**Weather by place.** A recipe can show the weather for places people choose, with no plugin: a **Repeat** block over a place
+list, with a Weather icon and values bound to each place's temperature, wind, precipitation and so on. In the widget's Content
+tab the place list takes names (**Add a place: search by name**) and a first place for this PC (**Use this PC's location
+first**, picked once and never looked up from your connection). The forecasts come from Open-Meteo, through the dashboard's
+server; only the place names and coordinates leave your PC, and a place is fetched when a screen first needs it and about every
+15 minutes after. The widget draws the credit **Weather data by Open-Meteo.com · CC BY 4.0** and says when data is old or
+missing. Start the server with `WEATHER=off` to turn it off. The built-in Weather widget is separate and still reads the Yr or
+OpenWeatherMap plugin.
+
+### Code widgets and trust
+
+A code widget's details say who stands behind it:
+
+- **Signed by InfoPanel Studio · reviewed** - signed by the owner's key, which is built into the app.
+- **Signed by ‹name› · not reviewed** (amber) - signed by a key you trusted yourself. Nobody has reviewed the code. It can read
+  your sensors, screens and settings and use the network.
+- **Not loaded: the signature does not check out** (red) - refused. It is greyed out, is not in Add and draws "Widget not
+  available" where it is placed.
+
+Keys are added only in **Settings › Widget publishers** (**Manage keys** in a widget's details goes there), never from an
+import. A key signs only for the publisher names you give it. **Turn this widget off** unloads one widget, and **Third-party
+code widgets** at the top of the page hides and stops every code widget that isn't built in. Both are kept by the server, so
+every screen and kiosk it serves obeys them, kiosks on other devices included. The server's own `USER_CODE_WIDGETS=off` does
+the same and cannot be undone from the page; `USER_WIDGETS=off` turns off every recipe and code widget. The page offers the
+**Widget SDK types (.d.ts)** for authors. How to write and sign a widget: [code-widgets.md](code-widgets.md); the security
+side: [security.md](security.md).
+
 ## Scaling with the zone and Size %
 
 Widgets fit themselves to their zone: each one measures its zone, picks a
@@ -801,11 +894,11 @@ its start.
 
 ## Skins and variants
 
-The **Skin & graphics** section (Style tab) restyles a whole widget, not just its colors.
+The **Theme** section (Style tab) restyles a whole widget, not just its colors.
 It resolves like every other look setting: you can set it once for the
 profile or a page (the [widget theme](#widget-theme)) and let widgets follow it.
 
-- **Skin** (Skin & graphics) - Auto, or one of fourteen, each with its own fonts, corner
+- **Theme** (the first Style section, the widget style; stored as the skin) - Auto, or one of fourteen, each with its own fonts, corner
   radius, header and graph and meter style: `default` (studio card), `tui`
   (btop-style terminal), `macos`, `fluent` (Windows 11), `hud` (sci-fi HUD),
   `ink` (monochrome editorial), `retro` (CRT terminal), `ios`, `android`
@@ -815,7 +908,7 @@ profile or a page (the [widget theme](#widget-theme)) and let widgets follow it.
   and its own accent unless you set an accent. Its fonts load on first use; offline, the widget
   falls back to the standard stack. **Font** under *Typography* overrides the
   skin's fonts.
-- **Small zones** (Fit, Show tab) - what the widget draws in a small zone.
+- **Small sizes** (Fit, Content tab) - what the widget draws in a small zone.
   *Auto* swaps a zone of 1 x 1, a one-row strip or a one-column zone to a
   summary card of tile, strip or column form; *Full* keeps the full layout at
   any size; *Card* shows the summary card at any size (a wide zone gets the
@@ -823,7 +916,7 @@ profile or a page (the [widget theme](#widget-theme)) and let widgets follow it.
   have one; *Dense* draws a dense summary of the same data (a headline
   value, a trend and a few rows), or the card where the widget has no dense
   view. **Density** (under More) picks the size tier of the layout. Small
-  zones belongs to the zone's shape, not its look, so no theme sets it.
+  sizes belongs to the zone's shape, not its look, so no theme sets it.
 - **Graph updates** (Motion, Behaviour tab) - Stepped (the default) or Smooth. Smooth scrolls line,
   area and step graphs at a constant speed, about two readings behind the
   feed, so each new reading slides in without the line jumping or pausing;
@@ -837,7 +930,7 @@ profile or a page (the [widget theme](#widget-theme)) and let widgets follow it.
 
 A skin is more than a card: type, numerals, graph and meter style, header and
 decorations, and it brings its own card. The **Surface** setting is only the
-card. Picking a skin (the **Skin** select or the gallery) sets that level's
+card. Picking a skin (the **Theme** row) sets that level's
 surface to Auto, so the skin shows whole; choosing a surface afterwards
 replaces only the card.
 
@@ -863,7 +956,7 @@ radius wins.
 - **Text color** and **Secondary text color** override the surface's text.
 - **Font** (Theme, or any font of the [catalog](#fonts)), **Value weight** and **Label
   case** (UPPERCASE, as written, Capitalized). *Theme* uses the page font,
-  which is the **Page font** in Theme › Typography (see [General settings](#general-settings)).
+  which is the **Page font** in Theme › Fine-tune › Text (see [General settings](#general-settings)).
 - **Ring / bar thickness (%)** (50-250) scales rings and bars.
 - Widgets with several parts add their own colors here (the System widget has
   a color per device).
@@ -970,20 +1063,15 @@ declarations.
 ## Page background
 
 The page behind the zones can be a color, a gradient, an image or a video. Open
-**Theme** and its **Background** card (or **Theme › Background** in the command
+**Theme** and its **Colors and Background** section (or **Theme › Background** in the command
 palette). The studio canvas shows the background as the kiosk will,
 with the dotted grid drawn over it.
 
-The scope bar at the top of Theme chooses what you edit:
-
-- **All screens** - the dashboard's background, shown on every screen that
-  has none of its own. **None** turns it off: the theme's background color
-  shows.
-- **A screen** - that screen only. The card's chip says **From All screens**
-  until you **Customise here**, which gives the screen its own (it starts as a
-  copy of the dashboard's); **None** shows no background on this screen even
-  when the dashboard has one; **Reset to inherited** hands it back.
-- **A page** has no background of its own; the card links to the screen's.
+Each screen has its own background; a page has none of its own (the card
+links to the screen's). **None** shows no background on that screen. The type
+and **Dim** show first; Fit, position, fill, tint, blur and the video options
+are under **More**. A theme can bring a background; **Keep my background** (in
+Theme) keeps yours when you apply a theme.
 
 Then pick the type:
 
@@ -1036,7 +1124,7 @@ Every image field in the studio (the page background, a video's poster, a
 widget's background image) and the video field can take a file instead of a
 URL:
 
-- **Upload image...** / **Upload video...** opens a file picker for that
+- **Upload…** on the field opens a file picker for that
   kind; or drop a file on the field. A video dropped on an image field (or
   the other way round) is refused with a message naming the field's kind. The file
   goes to the dashboard server, and the field gets its address
@@ -1055,11 +1143,11 @@ URL:
   another machine the studio shows "The server only accepts uploads from its
   own computer"; start the server with `ALLOW_REMOTE_UPLOAD=1` to allow it.
 
-The **library** button next to Upload... lists the uploaded files of the
+The library button next to **Upload…** lists the uploaded files of the
 field's kind (thumbnails; the first frame for a video) with their size.
 Click one to use it. Files the saved config does not use are marked
 *unused*. The bin on a file deletes it from the server (click twice to
-confirm). **Clean up unused...** deletes every unused file, images and
+confirm). **Clean up unused…** deletes every unused file, images and
 videos, after a confirm. Undo can't bring a deleted file back. The check
 looks at the config saved on the server (the studio saves a moment after
 each change), so a file that only the undo history still refers to counts as
@@ -1067,116 +1155,85 @@ unused.
 
 ## Skins and saved themes
 
-**Theme** on the rail edits the live look of one screen, or of one of its pages. Each screen owns its look; there is
-no All screens level any more. A theme is four parts, shown under **Made of** on the theme card:
+**Theme** in the sidebar edits the live look of one screen, or of one of its pages; a change shows on the screen at once.
+Each screen owns its theme and nothing above it is shared. A theme is its widget style (the skin, one of the fourteen
+above), its palette (the 19 color tokens and the widgets' accent), its corners and its background (see [Page
+background](#page-background)); a theme pack may add scenery, effects and card details. On a page the palette, corners and
+background are the screen's, and a page changes its widget style and fine-tune only.
 
-- **Palette**: the 19 color tokens and the widgets' accent. A theme's palette brings its theme's accent, one you
-  saved the accent it was saved with, Ocean and Forest their own color; Zinc and the other greys keep the screen's.
-  The glow, number glow and border colors that were the old accent change with it.
-- **Skin**: one of the fourteen skins, drawn live (**Default** is the studio's own).
-- **Corners**: 0 to 24 px.
-- **Background**: the theme's, solid, gradient or image (see [Page background](#page-background)).
+The header has the **level picker** ("‹screen› · whole screen" or "‹screen› › ‹page› page"), the tabs **Customise** and
+**Browse themes**, **Save as my theme** and a **⋯** menu.
 
-On a page the palette, corners and background are the screen's; a page changes its skin and fine-tune only.
+- **Browse themes** shows every theme as a card drawn by the real widgets, in the groups **Yours**, **Theme packs** and
+  **Plain themes**, with filters (All, Packs, Plain, Yours), tags and a search. Select a card for its detail, then **Apply
+  to ‹screen›**, **Preview on screen**, **Duplicate**, and see **What it brings**. **Import a pack** brings in a theme pack
+  from a folder or a zip. **Saved and template themes**, at the end of the list, holds your saved themes and each screen
+  template's theme (filters All, Saved, Templates, Light). Applying one writes its look and, unless **Keep my background**
+  is on, its background; the message under the header says what changed, how many fine-tune changes were kept, with
+  **Reset to ‹name›** and **Undo**.
+- **Customise** draws the screen as the kiosk draws it (**Show as** Full or Lite mode) with, on the right, the **theme
+  card** (**Change** opens Browse themes), **Quick changes** (**Accent**, **Mode**, **Cards**, **Corners**, **Density**),
+  **In this theme** (Scenery, Effects, Card details, Icons, Font, Background and **Keep my background**, Burn-in care) and
+  **Fine-tune**.
+- **Fine-tune** holds the sections that sit on top of the theme: **Colors**, **Text**, **Shape & spacing**, **Surface &
+  border**, **Units & format**, **Thresholds**, **Motion** and **Custom CSS**. Each has a dot saying whether the value is
+  set here or follows the theme (or, on a page, the screen), and, on a screen, a lock. Press the dot for **Reset to
+  inherited**, **Change here** (on a page) or **Edit ‹level›**.
+- The card's **⋯** menu has **Lock all** and **Unlock all** (on a screen), **Reset to ‹name›** (every part back to the theme
+  and this level's fine-tune cleared, one undo step), **Rename**, **Duplicate** and **Delete**. **Save as my theme** keeps
+  the level's theme under a name you type; after a change to a saved theme, **Update ‹name›** saves it and refreshes the
+  levels that use it. Saved themes are stored in the config (`appearancePresets`).
+- The preview draws the page at its real shape and tags each widget that differs from the level; click one for **Use
+  theme's value** and **Open in Edit ↗**, or **Make all follow** with nothing selected.
+- The command palette has **Apply theme: ‹name›** and **Apply theme, keep background: ‹name›**.
 
-**Switch theme** lists your saved themes, then one row per screen template with a chip for each variant (filters All,
-Saved, Templates, Light). Picking one writes the palette, skin, corners and the theme's background, unless **Keep my
-background** is ticked. The first theme picked on a level with none replaces its look, fine-tune included; after
-that a pick adds to the look and keeps the fine-tune changes made at that level since (the toast counts them, with
-**Reset to ‹name›**). A variant also writes its card opacity and color swaps into the widgets, and the next theme or
-Reset takes them back. Widgets with their own colors or card look keep them: the toast counts them, and **Make them
-follow** puts them back on the theme. **Apply to other screens…** gives ticked screens the same theme in one undo
-step.
-
-The card's **⋯** has **Reset to ‹name›** (every part back to the theme and this level's fine-tune cleared),
-**Rename**, **Duplicate** and **Delete**. Once a part changes after a saved theme, a bar in the preview's header,
-beside the zoom, offers **Update ‹name›** (it names the other places that change) and **Save as new**; a template's
-look offers **Save as theme**. Saved themes are stored in the config (`appearancePresets`) and listed in Switch
-theme. The command palette has **Apply theme: ‹name›**, **Apply theme, keep background: ‹name›** and **Apply theme to
-all screens: ‹name›**.
-
-Under the card, **Fine-tune** holds the sections on top of the theme (Colors, Text, Shape & spacing, Surface & border,
-Units & format, Thresholds, Motion, Custom CSS), each with a chip saying where its values come from (**Changed
-here**, **From theme**, **From ‹screen›**, **Built-in**, **Locked**). The preview draws the page with the live look,
-tags each widget that differs from the level, and has **Use theme's value**, **Open in Edit ↗** and **Make all
-follow**.
-
-Saved themes are not the same as a widget's Styles (see [Styles, Copy, Paste and
-Make this the theme](#styles-copy-paste-and-make-this-the-theme)): a saved theme sets a screen's (or page's) look; a
-Style restyles the one widget you apply it to.
+Saved themes are not the same as a widget's Styles (see [Styles, Copy, Paste and Make this the
+theme](#styles-copy-paste-and-make-this-the-theme)): a saved theme sets a screen's (or page's) look; a Style restyles the
+one widget you apply it to.
 
 ## Widget theme
 
-Look and content preferences can be set once instead of per widget. A theme
-holds a value for each *themed* setting: the look sections (skin, colors, widget
-colors, surface, typography, shape & spacing, border & glow, custom CSS) and
-the content ones (units & format, thresholds, motion). Per-widget content,
-layout, title, icon, the background image and a widget's look toggles (the
-tint, the heat ramp) are never themed, and neither is **Small zones**.
+Look and content preferences can be set once instead of per widget. A theme holds a value for each *themed* setting: the
+look sections (Theme, Colors, Widget colors, Surface & effects, Typography, Shape & spacing, Border & glow, custom CSS) and
+the content ones (Units & format, Thresholds, Motion). Per-widget content, layout, title, icon, the background image and a
+widget's look toggles (the tint, the heat ramp) are never themed, and neither is **Small sizes**.
 
 The levels, lowest first (`resolveStyle`, `src/lib/style-resolve.ts`):
 
 1. the defaults (today's look, so nothing repaints on upgrade);
-2. **All screens** - the dashboard style, for every widget on every screen;
-3. **Screen** - the screen's theme, over the dashboard's, with per-section
-   locks;
-4. **Page** - a page's theme: per section, follow the profile or use the
-   page's own values;
-5. **Widget** - each section follows or is custom (see below).
+2. **Screen** - the screen's theme, with per-section locks;
+3. **Page** - a page's theme: per section, follow the screen or use the page's own values;
+4. **Widget** - each section follows or is custom (see below).
 
-Items in a panel follow the panel (the panel's own resolved look), which
-follows the same levels.
+Items in a panel follow the panel (the panel's own resolved look), which follows the same levels.
 
 ### Follow or customise
 
-A widget section either follows the theme (the default) or is custom. Its
-[inheritance chip](#where-the-options-are) switches it: **Customise here**
-unlocks the rows at the theme's values, **Reset to inherited** follows again and
-keeps the widget's own values stored. Editing a themed row of a following
-section is not possible; customise it first. Panels saved by earlier
-versions keep their card and accent as their own values: those sections open
-as *Custom here*.
+A widget section either follows the theme (the default) or is custom. Its [inheritance chip](#where-the-options-are)
+switches it: **Customise here** unlocks the rows at the theme's values, **Reset to inherited** follows again and keeps the
+widget's own values stored. Editing a themed row of a following section is not possible; customise it first. Panels saved
+by earlier versions keep their card and accent as their own values: those sections open as *Custom here*.
 
-A screen can **lock** a section: every widget on every page then follows it,
-the widgets' chip becomes *Locked by Screen* and their own
-values stay stored, inactive. Locking is screen-only; a locked section is
-the screen's on a page too. A locked **Colors** section also overrides a
-panel's own item colors where the panel gives way (fills take the accent).
+A screen can **lock** a section: every widget on every page then follows it, the widgets' chip becomes *Locked by Screen*
+and their own values stay stored, inactive. Locking is screen-only; a locked section is the screen's on a page too. A
+locked **Colors** section also overrides a panel's own item colors where the panel gives way (fills take the accent).
 
-The source dot of a row says where its value comes from (hover it for the
-explanation):
+The source dot of a row says where its value comes from (hover it for the explanation):
 
 - no dot - the default;
 - blue dot - set here (on this widget, or in the scope being edited);
-- teal dot - from the dashboard style (All screens);
-- violet dot - from the screen's style;
+- violet dot - from the screen's theme;
 - blue dot with a ring - set here, overriding the theme.
 
-Clicking a dot that is set here resets it: the option falls back to the
-theme (or the default).
+Clicking a dot that is set here resets it: the option falls back to the theme (or the default).
 
 ### Theme editor
 
-Theme is a view of its own. Open it from **Theme** in the rail, **Edit in Theme**
-on a screen or page, a chip's **Edit ‹level›**, **Edit theme** on the canvas, or
-**Theme** in the command palette.
-
-- The **scope bar** picks what you edit: *All screens*, a screen (pick another
-  with its chevron) or one of its pages. A screen shows a lock on each card
-  and **Lock all** / **Unlock all** at the top; a page shows
-  *Follows ‹screen›* with **Customise here** per card, or *Custom here* with
-  **Reset to inherited**; *All screens* has no locks.
-- The left column is the widget inspector without a Show tab: **Start from**,
-  then the ten cards. Colors adds **Status & series colors** (Series 1-6, OK,
-  Warning, Critical: the palette the widgets' colors stand for); Units & format
-  holds the Data rows; Thresholds and Motion the Behaviour ones. Color tokens,
-  Page font, Corners and Background are the two-level data of their cards
-  (All screens and a screen; a page links to the screen).
-- A live **preview** of the page at the scope draws under the edited values.
-- **Exceptions** (*Who doesn't follow this theme*) lists the widgets and pages
-  with a custom card; **Follow** makes one follow again and keeps its own
-  values, **Follow all** every one. Together with **Lock all** it replaces the
-  old Global style tab.
+Theme is a view of its own (see [Skins and saved themes](#skins-and-saved-themes)). Open it from **Theme** in the sidebar,
+**Edit in Theme** on a screen or page, a chip's **Edit ‹level›**, **Edit theme** on the canvas, or **Theme** in the command
+palette. At a screen the fine-tune sections can be locked; at a page each follows the screen or is **Changed here**. A widget
+that does not follow (a custom section) is listed by the preview's tags, and **Make all follow** puts every one on the page
+back on the theme.
 
 ### Thresholds
 
@@ -1198,29 +1255,9 @@ by default): each sensor's own limits instead of fixed levels. A panel item
 follows the panel's levels for its quantity, and is off until a theme level
 sets them.
 
-### Theme colours per screen
-
-The theme colours belong to the dashboard, unless a screen has its own. The
-corner radius is separate, set in Theme › Shape & spacing (see [Grid
-spacing](#grid-spacing-gap-and-padding)). At a screen, the *Colors* card
-starts with a chip:
-
-- **From All screens** - the screen uses the dashboard's theme colours.
-- **Custom here** (after **Customise here**) - the screen gets its own,
-  starting as a copy of the dashboard's; the palette swatches and the editable
-  colours below then edit the screen's copy only.
-
-The kiosk shows a screen with its own colours in them (page, cards, text,
-the Theme surface). In the studio the canvas previews them while the
-studio's own panels and bars keep the dashboard's colours, so a light
-screen shows as a light page on the canvas. Applying a saved theme to **a
-screen** sets the screen's colours too (see [Skins and saved
-themes](#skins-and-saved-themes)). Each colour edit and the
-inherit / custom switch are undo steps like any other.
-
 ## General settings
 
-Preferences that are not a look are in the Settings window (the rail's
+Preferences that are not a look are in the Settings window (the sidebar's
 **Settings**): **Dashboard** applies to every screen, in the kiosk and in the
 studio, and is saved on the server the moment it changes; **Studio** is this
 device's editor preferences.
@@ -1248,7 +1285,7 @@ device's editor preferences.
   pages, `?kiosk=1`; the studio and the normal dashboard page keep it).
 - **Danger zone** - **Reset everything...**, after an offer to back up first.
 
-The **Page font** is a look: it is in Theme › Typography, from the [font
+The **Page font** is a look: it is in Theme › Fine-tune › Text, from the [font
 catalog](#fonts). Every widget whose **Font** is *Theme* uses it; a Font set on
 the widget, or in the global style, still wins. The **Data API URL** is in Data ›
 Connection.
@@ -1265,7 +1302,7 @@ Dashboard changes are saved at once and are not part of the undo history.
 
 ## Fonts
 
-The page font (Theme › Typography) and every widget's **Font** option offer the
+The page font (Theme › Fine-tune › Text) and every widget's **Font** option offer the
 same catalog (`src/lib/fonts.ts`): *System* (the browser's default), *Sans*,
 *Rounded*, *Serif* and *Mono* (the original system stacks, whose ids saved
 configs keep) and Google Fonts: Inter, Geist, Roboto, Manrope, Outfit, Space
@@ -1308,15 +1345,15 @@ The Style tab's toolbar and the zone menu work on a widget's look-only options:
   options the copied style does not set go back to the theme or defaults, the
   widget's content settings are untouched, and options the target widget does
   not have are skipped.
-- **Start from a Style** lists the built-in Styles and your saved ones and
-  applies one (same replace rules as Paste). **Save as Style** asks for a name
+- **Start from a saved style** lists the built-in Styles and your saved ones and
+  applies one (same replace rules as Paste). **Save as style** asks for a name
   and stores the widget's style in Library › Styles; **Update ‹name›** writes
   the widget's look back into the Style it was built on. Styles are saved in
   the config and are shared by all screens.
-- **Make this the theme for...** makes the selected widget's custom sections
-  the theme of **All screens**, **This screen** or **This page**.
+- **Make this the theme for…** makes the selected widget's custom sections
+  the theme of **This screen** or **This page**.
 
-For a whole dashboard look, see [Skins and saved themes](#skins-and-saved-themes).
+For a whole screen's look, see [Skins and saved themes](#skins-and-saved-themes).
 
 ## Network speeds
 
@@ -1354,7 +1391,7 @@ screen's detail in Screens links to it. The tab also gathers what sends to the i
 - **Size** - S, M or L, and **Scale** (80-150%) for anything in between. A short profile or a
   small screen gets a smaller size automatically: the open island never takes more than 40%
   of the page height.
-- **Offset from top** (the pill only) - 0 to 64 px.
+- **Offset from edge** (the pill only) - 0 to 64 px.
 - **Reserve space** - the zones start below the island instead of under it.
 
 **Idle**
@@ -1391,7 +1428,7 @@ and blur. Reduced motion (General, or the system setting) turns it off. On a kio
 - **Group notices** - a new notification from the same app (an achievement from the same
   game, a friend, a news post) replaces the one shown and counts up (*×3*) instead of
   queueing behind it.
-- **Preview an alert** - plays an info, a warning and a critical sample on the canvas.
+- **Preview** - shows the island on the canvas as it looks when **Idle**, with a **Notice** or with an **Alert**.
 
 **What opens it.**
 
@@ -1481,9 +1518,9 @@ the minimum severity.
 In the **InfoPanel Studio** desktop app (see [desktop/README.md](desktop/README.md)) the studio is the same, with these differences:
 
 - The top bar is the window's title bar. Drag it by its empty space, double-click it to maximize, and use the minimize, maximize and close buttons at its right end. Close hides the app to the tray; the server keeps running, so the kiosk page keeps updating.
-- **The Settings button at the foot of the rail** opens the Settings window (in the desktop app and in a browser alike; the App pages are the app's own): app zoom, start at login, open the studio on launch, close to tray, where the server listens (this computer or the local network; the port; extra allowed host names), updates, the **Coding agents** toggle, debug mode, logs and the changelog.
+- **Settings**, at the foot of the sidebar, opens the Settings window (in the desktop app and in a browser alike; the App pages are the app's own): app zoom, start at login, open the studio on launch, close to tray, where the server listens (this computer or the local network; the port; extra allowed host names), updates, the **Coding agents** toggle, debug mode, logs and the changelog.
 - **Coding agents:** turning the toggle on writes the Claude Code and Codex hooks for you (with backups), using the app's `ips-agent.exe` and the current port. Turning it off, or uninstalling the app, removes them. In Codex, still run `/hooks` once to approve them.
-- **Export config** and **Import config…** use the system Save and Open dialogs. Import merges as before and is one undo step.
+- **Export & back up…** and the Import door use the system Save and Open dialogs. Import merges as before and is one undo step.
 - Pending edits are saved before the window hides or the app quits.
 
 ## Widgets with no data

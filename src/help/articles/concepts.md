@@ -3,7 +3,7 @@ id: concepts
 title: Core concepts
 icon: account_tree
 related: [profiles, zones, themes]
-verified: 1.3.0-beta.36
+verified: 1.3.1-beta.8
 ---
 
 The five building blocks, from the whole dashboard down to a single readout.
@@ -29,7 +29,7 @@ The screen's grid divides it into cells. A widget sits on a rectangle of cells, 
 
 ## Widget
 
-A ready-made module that reads sensors and draws itself: System, Spotify, Weather, FPS and so on. Widgets adapt to their size and have settings in four tabs. See [Widgets](widgets).
+A ready-made module that reads sensors and draws itself: System, Spotify, Weather, FPS and so on. Widgets adapt to their size, come with presets and have settings in four tabs. You can also build your own, called recipes, on the Widgets page. See [Widgets](widgets) and [The Widgets page](widgets-page).
 
 ## Panel
 
