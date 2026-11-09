@@ -1,16 +1,16 @@
 // A recipe's options as rows of its placements' Content tab (Phase 5b): what people can change when they add the widget, as the
 // builder's Options tab orders them. Set on the recipe's module by the store once the recipe has loaded (`store.ts`), so the kiosk
-// entry carries none of it. A place list gets its row with Weather by place (5c), which brings the place search.
+// entry carries none of it. A place list is a text row of JSON (a setting is a scalar) that the studio edits with place search.
 import { STANDARD_KEYS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting } from "@/modules/types";
 import type { Recipe, RecipeOption } from "./types";
 
-/** One option as a Content tab row, or undefined for a place list. */
-function rowOf(o: RecipeOption): ModuleSetting | undefined {
+/** One option as a Content tab row. */
+function rowOf(o: RecipeOption): ModuleSetting {
   const base = { key: o.key, label: o.label, group: o.group ?? "Options", ...(o.hint ? { hint: o.hint } : {}), tab: "show" as const };
   switch (o.type) {
     case "place-list":
-      return undefined;
+      return { ...base, type: "text", default: JSON.stringify(o.default), places: true };
     case "device":
       return { ...base, type: "select", default: "auto", optionsFrom: o.kind };
     case "select":
@@ -25,7 +25,7 @@ function rowOf(o: RecipeOption): ModuleSetting | undefined {
 }
 
 /** A recipe's Content tab rows. */
-export const recipeSettings = (recipe: Recipe): ModuleSetting[] => recipe.options.flatMap((o) => rowOf(o) ?? []);
+export const recipeSettings = (recipe: Recipe): ModuleSetting[] => recipe.options.map(rowOf);
 
 /** The module's rows: its standard look rows, then the recipe's (none to forget them). */
 export function learnSettings(mod: DashboardModule, recipe?: Recipe): void {

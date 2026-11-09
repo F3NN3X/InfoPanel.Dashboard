@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { addBlock, addOption, blockAt, blockCount, devicesIn, duplicateBlock, flatten, layerName, moveBlock, moveOption, newRecipe, optionUses, pickBinding, pickWhat, presetLine, presetValues, recipeIssues, removeBlock, removeOption, removePreset, savePreset, setDefaultPreset, setPresetValue, unpickBinding, updateBlock, validationLine, withSample } from "@/components/widgets-page/builder-model";
+import { addBlock, addOption, blockAt, blockCount, devicesIn, duplicateBlock, flatten, followable, followOf, layerName, moveBlock, moveOption, newRecipe, optionUses, pickBinding, pickWhat, presetLine, presetValues, recipeIssues, removeBlock, removeOption, removePreset, savePreset, setDefaultPreset, setPresetValue, unpickBinding, updateBlock, validationLine, withSample } from "@/components/widgets-page/builder-model";
 import { commit, historyOf, HISTORY_LIMIT, redo, undo } from "@/components/widgets-page/history";
 import { NO_START, START, whyNoStart } from "@/components/widgets-page/start-points";
 import { WIDGET_ORDER } from "@/widgets/order";
-import type { Block, Recipe } from "@/widgets/recipe/types";
+import { oneOf, wholeIn } from "@/widgets/recipe/follow";
+import type { Block, Recipe, RepeatDirection } from "@/widgets/recipe/types";
 
 // The builder's model: the block tree edits, a binding turned into an option (a device or a sensor), options and presets, undo,
 // and the start points. Each edit is checked by the validator the builder's line reads, so a recipe built here is one the
@@ -142,6 +143,32 @@ describe("options and presets", () => {
     const line = validationLine(r, recipeIssues(r));
     expect(line).toMatchObject({ ok: true, floor: "Text stays above 11 px at every size" });
     expect(line.summary).toBe("No code · 6 blocks · 3 options · fits 1×1 to 4×3");
+  });
+});
+
+describe("a setting that follows an option", () => {
+  const recipe: Recipe = {
+    ...newRecipe("W", new Set()),
+    options: [
+      { key: "layout", label: "Layout", type: "select", default: "list", options: [{ value: "list", label: "List" }, { value: "grid", label: "Grid" }] },
+      { key: "dir", label: "Direction", type: "select", default: "rows", options: [{ value: "rows", label: "Rows" }, { value: "columns", label: "Columns" }] },
+      { key: "count", label: "Count", type: "number", default: 4, min: 1, max: 12 },
+      { key: "show", label: "Show", type: "boolean", default: true },
+    ],
+  };
+  const dirs = oneOf<RepeatDirection>(["rows", "columns", "grid"]);
+
+  it("offers selects for a word, and numbers too for a number", () => {
+    expect(followable(recipe, false).map((o) => o.key)).toEqual(["layout", "dir"]);
+    expect(followable(recipe, true).map((o) => o.key)).toEqual(["layout", "dir", "count"]);
+  });
+
+  it("follows a select whose choices it takes as they are, maps any other select's choices, and a number as it is", () => {
+    const o = (k: string) => recipe.options.find((x) => x.key === k)!;
+    expect(followOf(o("dir"), dirs, "rows")).toEqual({ option: "dir" });
+    expect(followOf(o("layout"), dirs, "rows")).toEqual({ option: "layout", map: { list: "rows", grid: "grid" } });
+    expect(followOf(o("count"), wholeIn(1, 12), 12)).toEqual({ option: "count" });
+    expect(followOf(o("layout"), wholeIn(1, 12), 12)).toEqual({ option: "layout", map: { list: 12, grid: 12 } });
   });
 });
 

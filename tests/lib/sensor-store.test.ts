@@ -222,6 +222,24 @@ describe("SensorStore", () => {
     expect(live().map(prefixOf)).toEqual(["c."]);
   });
 
+  it("reads Weather by place from the dashboard server's own stream, outside the Data API's budget", async () => {
+    const { store, live } = setup();
+    store.retain(["weather.place.n5991e1075.", "a.", "b.", "c.", "d."]);
+    await flush();
+    expect(live().map((s) => s.url).sort()).toEqual(["/events/weather?prefix=weather.", `${BASE}/events?prefix=a.&interval=1000`, `${BASE}/events?prefix=b.&interval=1000`, `${BASE}/events?prefix=c.&interval=1000`, `${BASE}/events?prefix=d.&interval=1000`]);
+    const weather = live().find((s) => s.url.startsWith("/events/weather"))!;
+    weather.send({ timestamp: 1, sensors: { "weather.place.n5991e1075.temp": sensor(4) } });
+    expect(store.getValues()["weather.place.n5991e1075.temp"]).toEqual(sensor(4));
+    // past the budget the Data API's namespaces fold into the unfiltered stream; the weather stream stays its own
+    store.retain(["e."]);
+    await flush();
+    vi.advanceTimersByTime(2000);
+    expect(live().map((s) => s.url).sort()).toEqual(["/events/weather?prefix=weather.", `${BASE}/events`]);
+    // the unfiltered stream's snapshots never carry the weather, and do not drop it
+    live().find((s) => s.url === `${BASE}/events`)!.send({ timestamp: 2, sensors: { "a.x": sensor(1) } });
+    expect(store.getValues()["weather.place.n5991e1075.temp"]).toEqual(sensor(4));
+  });
+
   it("uses one unfiltered stream past the budget, each message a full snapshot", async () => {
     const { store, live } = setup();
     store.retain(["a.", "b.", "c.", "d.", "e."]);

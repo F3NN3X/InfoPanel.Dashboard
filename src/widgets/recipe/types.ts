@@ -18,6 +18,17 @@ export type BlockType = (typeof BLOCK_TYPES)[number];
  */
 export type Binding = { sensor: string } | { option: string } | { field: string };
 
+/**
+ * A block setting that follows an option instead of holding a value (Phase 5c): the option's value as it is, or through `map` (a
+ * select's choice to the setting's value). A value the option does not give, or the map leaves out, keeps the block's default.
+ */
+export interface FollowOption<T extends string | number> {
+  option: string;
+  map?: Record<string, T>;
+}
+/** A fixed value, or one that follows an option. */
+export type Follows<T extends string | number> = T | FollowOption<T>;
+
 /** A colour from the theme: its accent, one of its six series, or the status colours by the block's thresholds. */
 export type RecipeColour = "accent" | "series-1" | "series-2" | "series-3" | "series-4" | "series-5" | "series-6" | "thresholds";
 
@@ -74,14 +85,20 @@ export interface RepeatBlock extends BlockBase {
   type: "repeat";
   /** The list option it runs over (a `place-list`). */
   over: string;
-  /** The data source each item reads (5c serves it; until then the recipe's sample items). */
+  /** The data source each item reads: Weather by place (the server's `weather.place.<id>.*`; the recipe's sample items in the builder's Sample). */
   source: "weather-by-place";
-  direction?: "rows" | "columns" | "grid";
+  direction?: Follows<RepeatDirection>;
   /** Most shown (1-12). */
-  max?: number;
+  max?: Follows<number>;
+  /** Hours of forecast in each item's `hourly` (1-24, default 8). */
+  hours?: Follows<number>;
+  /** Temperatures and wind in metric (°C, km/h, the default) or imperial (°F, mph). */
+  units?: Follows<WeatherUnits>;
   dividers?: boolean;
   children: Block[];
 }
+export type RepeatDirection = "rows" | "columns" | "grid";
+export type WeatherUnits = "metric" | "imperial";
 export interface RingBlock extends BlockBase, Ranged {
   type: "ring" | "gauge";
   /** The value in the centre (default on). */
@@ -100,6 +117,8 @@ export interface BarBlock extends BlockBase, Ranged {
 export interface SparklineBlock extends BlockBase, Ranged {
   type: "sparkline";
   style?: "line" | "area" | "bars";
+  /** The history it keeps for a live reading, seconds (10-600; default 60). A list (a Repeat item's `hourly`) is drawn as it is. */
+  window?: Follows<number>;
 }
 export interface ValueBlock extends BlockBase {
   type: "value";
@@ -150,11 +169,13 @@ export type Block = CardBlock | RowBlock | RepeatBlock | RingBlock | BarBlock | 
 /** The blocks that hold others. */
 export type Container = CardBlock | RowBlock | RepeatBlock;
 
-/** A place of a `place-list` option: what the placement stores (as JSON text, since a setting is a scalar). */
+/** A place of a `place-list` option: what the placement stores (as JSON text, since a setting is a scalar). `here`: the place
+ * "Use this PC's location first" put at the top (picked once by the person, never looked up by IP). */
 export interface Place {
   name: string;
   lat: number;
   lon: number;
+  here?: true;
 }
 
 /** The `ModuleSetting` types a recipe option may take, `place-list`, and `device` (a CPU, GPU, drive or adapter, Auto by default). */
@@ -183,7 +204,7 @@ export interface RecipeOption {
   kind?: RecipeDeviceKind;
 }
 
-/** The fields a Weather-by-place item has (5c fills them; 5a's sample items use the same names). */
+/** The fields a Weather-by-place item has (the server's readings for the place, or the recipe's sample items). */
 export const WEATHER_PLACE_FIELDS = ["name", "condition", "code", "temp", "high", "low", "precip", "wind", "hourly"] as const;
 
 export interface RecipeSample {

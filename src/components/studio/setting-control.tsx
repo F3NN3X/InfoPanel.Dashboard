@@ -29,6 +29,8 @@ import { ThresholdsRow } from "./thresholds-control";
 
 /** The theme list: every theme of Browse, its own chunk (the gallery model and the theme packs' names stay out of the studio entry). */
 const WidgetThemeSelect = lazy(() => import("./widget-theme-select"));
+/** A recipe's place list with place search (Weather by place), its own chunk. */
+const PlaceListField = lazy(() => import("./place-list/place-list-field"));
 
 /** The icon grid's cells: "none" first, then every widget icon. */
 const ICONS: IconGridItem[] = [
@@ -309,6 +311,12 @@ export function SettingRow({
     }
 
     default:
+      if (def.places)
+        return (
+          <Suspense fallback={<StackRow {...label}>{null}</StackRow>}>
+            <PlaceListField def={def} value={value} onChange={onChange} />
+          </Suspense>
+        );
       if (def.driveIcons) return <DriveIconsField {...label} def={def} value={String(value)} onChange={onChange} />;
       if (def.suggestKey) return <NameListField {...label} def={def} value={String(value)} onChange={onChange} />;
       return (

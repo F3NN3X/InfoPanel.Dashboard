@@ -8,7 +8,7 @@ import type { Data } from "@/widgets/core/types";
 import { cellBasePx, TEXT_FLOOR } from "@/widgets/recipe/metrics";
 import { recipeBytes } from "@/widgets/recipe/package";
 import { boundSensors, expandKey } from "@/widgets/recipe/reads";
-import { BLOCK_TYPES, type Binding, type Block, type BlockType, type CardBlock, type Cells, type Container, type PackageFile, type Place, type Recipe, type RecipeDeviceKind, type RecipeOption } from "@/widgets/recipe/types";
+import { BLOCK_TYPES, type Binding, type Block, type BlockType, type CardBlock, type Cells, type Container, type FollowOption, type PackageFile, type Place, type Recipe, type RecipeDeviceKind, type RecipeOption } from "@/widgets/recipe/types";
 import { DEVICE_SLOT, ITEMS_MAX, type RecipeIssue, validateRecipe } from "@/widgets/recipe/validate";
 import type { WidgetPreset } from "@/widgets/define";
 
@@ -469,7 +469,7 @@ export const DEFAULT_PLACES: Place[] = [
   { name: "Tokyo", lat: 35.68, lon: 139.69 },
 ];
 
-/** Sample weather by place name until Weather by place (5c) serves it; any other place gets one made from its coordinates. */
+/** Sample weather by place name (the builder's Sample and a new recipe's preview); any other place gets one made from its coordinates. */
 const SAMPLE_WEATHER: Record<string, { condition: string; temp: number; high: number; low: number; hourly: number[] }> = {
   Oslo: { condition: "Cloudy", temp: 4, high: 6, low: 1, hourly: [3, 3, 4, 4, 5, 5, 4, 4] },
   Brevik: { condition: "Light rain", temp: 5, high: 7, low: 3, hourly: [4, 4, 5, 5, 6, 5, 5, 4] },
@@ -513,6 +513,21 @@ export function withSample(recipe: Recipe, data: Data): Recipe {
   };
   const sensors = Object.fromEntries(keys.flatMap((k) => (reading(k) === undefined ? [] : [[k, reading(k)!]])));
   return withSampleItems({ ...recipe, sample: { ...recipe.sample, sensors } });
+}
+
+/* ───────── settings that follow an option (5c) ───────── */
+
+/** The options a block setting can follow: a select (its choices, mapped where they are not values the setting takes), and for a number a number option too. */
+export const followable = (recipe: Recipe, number: boolean): RecipeOption[] => recipe.options.filter((o) => o.type === "select" || (number && o.type === "number"));
+
+/**
+ * A setting following option `o`: a number option as it is, a select whose choices are all values the setting takes as it is, any
+ * other select by a map of its choices (each to itself where `takes` has it, else to `fallback`), which the builder then edits.
+ */
+export function followOf<T extends string | number>(o: RecipeOption, takes: (x: unknown) => x is T, fallback: T): FollowOption<T> {
+  const choices = o.type === "select" ? (o.options ?? []) : [];
+  if (o.type !== "select" || choices.every((c) => takes(c.value))) return { option: o.key };
+  return { option: o.key, map: Object.fromEntries(choices.map((c) => [c.value, takes(c.value) ? (c.value as T) : fallback])) };
 }
 
 /* ───────── what the validator says ───────── */

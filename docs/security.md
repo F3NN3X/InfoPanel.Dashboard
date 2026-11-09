@@ -61,6 +61,12 @@ security model, what was fixed, what was decided, and what is deferred.
   literals and IPv4-mapped IPv6. It sends `user-agent: InfoPanel-Studio`.
 - **Calendar and font proxies**: connect-time address pinning and size caps; the font proxy is pinned to Font
   Squirrel and its https font hosts.
+- **Weather by place** (`crates/ips-server/src/weather.rs`): the server, never a page, asks Open-Meteo for the places
+  recipe widgets show, through the guarded client pinned to `api.open-meteo.com` and `geocoding-api.open-meteo.com` (an
+  exact host list, then the address guard with `blockLan`). Only places stored placements reference are fetched, at most
+  every 15 minutes, under one cap of 300 provider calls an hour; place search (`GET /api/weather/places`) is this machine's
+  unless `ALLOW_REMOTE_EDIT=1`, 20 a minute. No key, no account, nothing about the user but the place.
+  `WEATHER=off` turns it off.
 - **Uploads**: per-type limits, magic-byte checks, a quota, two in flight; SVG assets are served with a sandbox CSP.
 - **Path safety**: static and asset paths reject `..` and dot segments with prefix checks.
 

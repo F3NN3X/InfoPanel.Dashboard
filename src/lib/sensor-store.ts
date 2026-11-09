@@ -57,6 +57,9 @@ const REDISCOVER_MS = 30_000;
 /** Namespaces "every sensor" opens before `/api/sensors` lists the rest. */
 const BASE_NAMESPACES = ["plugins.", "libre.", "system."];
 
+/** The namespace the dashboard server serves itself (Weather by place, ips-server weather.rs): its own origin and stream, never folded. */
+const SERVER_NS = "weather.";
+
 /** Map-key marker of a fast stream (a prefix never starts with it). */
 const FAST = "fast:";
 const fastKey = (prefix: string) => FAST + prefix;
@@ -212,7 +215,9 @@ export class SensorStore {
     const fast = [...this.fastRefs.keys()];
     // a namespace the fast stream already covers needs no slow stream
     for (const prefix of fast) wanted.delete(prefix);
-    return [...planStreams(wanted, Math.max(1, MAX_STREAMS - fast.length)), ...fast.map(fastKey)];
+    // the server's own namespace takes none of the Data API's connections
+    const own = wanted.delete(SERVER_NS) ? [SERVER_NS] : [];
+    return [...planStreams(wanted, Math.max(1, MAX_STREAMS - fast.length)), ...own, ...fast.map(fastKey)];
   }
 
   /**
@@ -274,9 +279,12 @@ export class SensorStore {
     const interval = fast ? FAST_INTERVAL_MS : STREAM_INTERVAL_MS;
     // "" is the unfiltered stream: a full snapshot every second.
     const unfiltered = prefix === "";
-    const url = unfiltered
-      ? `${this.base}/events`
-      : `${this.base}/events?prefix=${encodeURIComponent(prefix)}&interval=${interval}`;
+    const url =
+      prefix === SERVER_NS
+        ? `/events/weather?prefix=${encodeURIComponent(prefix)}`
+        : unfiltered
+          ? `${this.base}/events`
+          : `${this.base}/events?prefix=${encodeURIComponent(prefix)}&interval=${interval}`;
     const source = this.connect(url);
     const stream: Stream = { prefix, interval, source, fresh: true };
     this.streams.set(key, stream);
@@ -296,7 +304,8 @@ export class SensorStore {
       }
       if (!parsed || typeof parsed !== "object") return;
       const reset = stream.fresh || unfiltered ? prefix : null;
-      const { values, changed } = mergeEvent(this.values, parsed, reset);
+      // the unfiltered Data API stream resets every key but the dashboard server's weather, which it never carries
+      const { values, changed } = mergeEvent(this.values, parsed, reset, unfiltered ? SERVER_NS : undefined);
       stream.fresh = false;
       this.values = values;
       if (typeof parsed.timestamp === "number") this.timestamp = parsed.timestamp;

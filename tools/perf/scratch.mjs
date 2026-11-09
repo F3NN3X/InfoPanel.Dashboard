@@ -115,6 +115,8 @@ async function startScratchOnce({ fixture = FIXTURE_DIR, env = {}, dataApiEnv = 
       USERPROFILE: scratch.home,
       INFOPANEL_DATA_DIR: scratch.infopanel,
       HOST: "127.0.0.1",
+      // Weather by place from the fake Data API's stand-in for Open-Meteo, never the real one (a debug server reads this)
+      WEATHER_BASE_URL: scratch.dataApi,
       ...env,
       DASHBOARD_DATA_DIR: scratch.dataDir,
       PORT: "0",

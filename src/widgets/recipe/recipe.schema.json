@@ -87,9 +87,20 @@
       "properties": {
         "name": { "type": "string", "pattern": "^[^<>]{1,60}$" },
         "lat": { "type": "number", "minimum": -90, "maximum": 90 },
-        "lon": { "type": "number", "minimum": -180, "maximum": 180 }
+        "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+        "here": { "const": true }
       }
     },
+    "follow": {
+      "type": "object",
+      "required": ["option"],
+      "additionalProperties": false,
+      "properties": {
+        "option": { "$ref": "#/$defs/key" },
+        "map": { "type": "object", "additionalProperties": { "type": ["string", "number"] } }
+      }
+    },
+    "followNumber": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/follow" }, "else": { "type": "number" } },
     "option": {
       "type": "object",
       "required": ["key", "label", "type", "default"],
@@ -145,12 +156,15 @@
         "title": { "type": "string", "pattern": "^[^<>]{1,60}$" },
         "subtitle": { "$ref": "#/$defs/binding" },
         "icon": { "$ref": "#/$defs/word" },
-        "direction": { "enum": ["row", "column", "rows", "columns", "grid"] },
+        "direction": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/follow" }, "else": { "enum": ["row", "column", "rows", "columns", "grid"] } },
         "gap": { "type": "number", "minimum": 0, "maximum": 24 },
         "align": { "enum": ["start", "center", "end", "stretch"] },
         "over": { "$ref": "#/$defs/key" },
         "source": { "enum": ["weather-by-place"] },
-        "max": { "type": "number" },
+        "max": { "$ref": "#/$defs/followNumber" },
+        "hours": { "$ref": "#/$defs/followNumber" },
+        "window": { "$ref": "#/$defs/followNumber" },
+        "units": { "if": { "type": "object" }, "then": { "$ref": "#/$defs/follow" }, "else": { "enum": ["metric", "imperial"] } },
         "min": { "type": "number" },
         "dividers": { "type": "boolean" },
         "bind": { "$ref": "#/$defs/binding" },

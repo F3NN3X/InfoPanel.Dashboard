@@ -6,10 +6,10 @@ import type { Placement } from "@/lib/layout";
 import { STANDARD_KEYS } from "@/modules/standard-settings";
 import RecipeWidget from "@/widgets/recipe/RecipeWidget";
 import { recipeReads } from "@/widgets/recipe/reads";
-import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
+import { isRecipeId, loadReads, recipeModule, subscribeReads } from "@/widgets/recipe/resolve";
 import { forgetRecipe, listUserWidgets, loadRecipe, removeWidget, storePackage } from "@/widgets/recipe/store";
 import type { PackageFile } from "@/widgets/recipe/types";
-import { fixtureFiles, fixtureRecipe, withFile } from "./fixture-files";
+import { fixtureFiles, fixtureRecipe, variant, withFile } from "./fixture-files";
 
 // How a placement's `recipe:<id>` becomes something drawn: the resolve hook in the kiosk entry, the store's load (validated every
 // time, off when the server says so), a missing or refused recipe drawn as the standard empty card, never an error, and the
@@ -139,8 +139,11 @@ describe("the data gate of a recipe placement", () => {
     expect(reads(undefined)).toEqual(["libre.nvidia_geforce_rtx_5090_gpu_core", GPU, "libre.nvidia_geforce_rtx_5090_gpu_core_clock", "libre.nvidia_geforce_rtx_5090_gpu_package", "libre.nvidia_geforce_rtx_5090_gpu_power"].sort());
     expect(reads({ load: "libre.amd_radeon_gpu_load" })).toContain("libre.amd_radeon_gpu_load");
     expect(reads({ load: "libre.amd_radeon_gpu_load" })).not.toContain(GPU);
-    // a Repeat over places reads no sensor
-    expect(recipeReads(fixtureRecipe("weather-places"))(undefined)).toEqual([]);
+    // a Repeat over places reads its places' weather (Weather by place, 5c): the default places, or the stored list
+    const weather = recipeReads(fixtureRecipe("weather-places"));
+    expect(weather(undefined)).toEqual(["weather.place.n3568e13969.", "weather.place.n5905e970.", "weather.place.n5991e1075."]);
+    expect(weather({ places: JSON.stringify([{ name: "Bergen", lat: 60.39, lon: 5.32 }]) })).toEqual(["weather.place.n6039e532."]);
+    expect(weather({ places: "[]" })).toEqual([]);
   });
 
   it("reads every key until the recipe has loaded, then only its own: an unrelated tick does not redraw the zone, a bound one does", async () => {
@@ -160,8 +163,25 @@ describe("the data gate of a recipe placement", () => {
     expect(touches([GPU], placementPrefixes(at("recipe:cpu-card", { load: GPU })))).toBe(true);
   });
 
-  it("draws a recipe that reads no sensor, and a missing one's empty card, without data", async () => {
+  it("loads a weather-only recipe without any key, and its placement hears its reads and draws on its places' weather", async () => {
+    const p = at("recipe:weather-places");
+    const mod = recipeModule("recipe:weather-places")!;
+    // no Data API keys at all: the gate holds, but the recipe loads anyway
+    expect(mod.render({}, {})).toBeNull();
     serve("recipe.weather-places", fixtureFiles("weather-places"));
+    let heard = 0;
+    const stop = subscribeReads(() => heard++);
+    await loadReads("recipe:weather-places");
+    stop();
+    expect(heard).toBe(1);
+    expect(placementPrefixes(p)).toEqual(["weather.place.n3568e13969.", "weather.place.n5905e970.", "weather.place.n5991e1075."]);
+    expect(placementContent(p, {}, []).content).toBeNull();
+    expect(placementContent(p, { "weather.place.n5991e1075.temp": { value: 4, unit: "°C" } }, []).content).not.toBeNull();
+  });
+
+  it("draws a recipe that reads no sensor, and a missing one's empty card, without data", async () => {
+    // Weather · places without its Repeat reads nothing (the Repeat reads its places' weather since 5c)
+    serve("recipe.weather-places", await variant("weather-places", (r) => (r.root.children = [{ type: "label", text: "Hello" }])));
     await loadRecipe("recipe:weather-places");
     expect(placementPrefixes(at("recipe:weather-places"))).toEqual([]);
     expect(recipeModule("recipe:weather-places")!.render({}, {})).not.toBeNull();

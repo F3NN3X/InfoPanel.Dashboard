@@ -9,6 +9,7 @@ import { resolveWith, type Appearance } from "@/lib/style-resolve";
 import { chromeOf } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
 import { NOMINAL_CELL } from "@/widgets/recipe/metrics";
+import { recipeReads } from "@/widgets/recipe/reads";
 import RecipeView, { type RecipeViewProps } from "@/widgets/recipe/RecipeView";
 import type { Cells, Recipe } from "@/widgets/recipe/types";
 import { templateModule } from "@/widgets/module";
@@ -54,14 +55,19 @@ export interface RecipePreviewProps {
   overlay?: ReactNode;
 }
 
-/** Live readings, or none for a sample (its own readings come from the recipe). */
-function useReadings(sample: boolean) {
+/**
+ * Live readings, or none for a sample (its own readings come from the recipe). "Every sensor" is the Data API's; the weather of the
+ * recipe's places is the dashboard server's own stream, kept open here by its prefixes (`weather.place.<id>.`).
+ */
+function useReadings(sample: boolean, recipe: Recipe, own: ModuleSettings) {
+  const weather = sample ? [] : recipeReads(recipe)(own).filter((k) => k.startsWith("weather."));
+  useSensors(weather);
   return useSensors(sample ? [] : null);
 }
 
 export function RecipePreview({ recipe, values, cells, sample, appearance, pageStyle, lookId, fit, maxScale = 1, overlay }: RecipePreviewProps) {
-  const sensors = useReadings(sample);
   const own: ModuleSettings = { ...storedValues(recipe, values ?? {}), ...(lookId ? { lookId } : {}) };
+  const sensors = useReadings(sample, recipe, own);
   const settings = resolveWith(appearance, own, undefined, undefined, draftModule.settings) ?? own;
   const scope = tokenScope(chromeOf(settings)) as CSSProperties;
   const { w, h } = zonePx(cells);

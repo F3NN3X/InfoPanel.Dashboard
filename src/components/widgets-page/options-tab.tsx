@@ -1,15 +1,16 @@
 // The builder inspector's Options tab (Phase 5b, screenshots 05 and 07): what people can change when they add the widget, in the
 // order its Content tab will show them. Drag a row (or Alt+↑/↓ on it) to reorder; open one to edit its label and default; a
-// place list edits its default places (search comes with Weather by place, 5c: a place is a name and its coordinates for now).
+// place list edits its default places with place search (Weather by place), as a placement's Content tab does.
 import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { ChevronDown, ChevronRight, GripVertical, MapPin, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
 import { ITEM, POPUP } from "@/components/studio/menu-styles";
 import { cn } from "@/lib/utils";
-import { DEVICE_KINDS, type Place, type Recipe, type RecipeOption } from "@/widgets/recipe/types";
-import { ITEMS_MAX } from "@/widgets/recipe/validate";
+import { PlaceListEditor } from "@/components/studio/place-list/place-list-editor";
+import { placeList } from "@/components/studio/place-list/place-search";
+import { DEVICE_KINDS, type Recipe, type RecipeOption } from "@/widgets/recipe/types";
 import { addOption, DEVICE_LABEL, moveOption, optionLine, optionUses, removeOption, updateOption, withSampleItems } from "./builder-model";
 import { Field, INPUT, NumberInput, Select, TextInput } from "./fields";
 
@@ -28,55 +29,6 @@ const NEW_OPTIONS: readonly { label: string; make: () => RecipeOption }[] = [
   { label: "Sensor", make: () => ({ key: "sensor", label: "Sensor", type: "sensor", default: "" }) },
   ...DEVICE_KINDS.map((kind) => ({ label: DEVICE_LABEL[kind], make: (): RecipeOption => ({ key: kind, label: DEVICE_LABEL[kind], type: "device", kind, default: "auto" }) })),
 ];
-
-function PlaceList({ o, onChange }: { o: RecipeOption; onChange: (places: Place[]) => void }) {
-  const places = Array.isArray(o.default) ? (o.default as Place[]) : [];
-  const [draft, setDraft] = useState({ name: "", lat: "", lon: "" });
-  const lat = Number(draft.lat);
-  const lon = Number(draft.lon);
-  const ok = draft.name.trim() && draft.lat && draft.lon && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 && places.length < ITEMS_MAX;
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-caption text-ui-3">Default places</span>
-      {places.map((p, k) => (
-        <div key={`${p.name}-${k}`} className="flex h-9 items-center gap-2 rounded-ui-md border border-ui-subtle bg-ui-app px-2.5">
-          <GripVertical className="h-3.5 w-3.5 text-ui-hint" aria-hidden />
-          <span className="min-w-0 flex-1 truncate text-body text-ui-1">{p.name}</span>
-          <span className="font-ui-mono text-micro text-ui-3">
-            {p.lat.toFixed(2)}, {p.lon.toFixed(2)}
-          </span>
-          <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onChange(places.filter((_, i) => i !== k))} className="rounded-ui-sm p-0.5 text-ui-3 hover:text-ui-1">
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      ))}
-      <div className="flex flex-col gap-1.5 rounded-ui-md border border-ui-subtle p-2">
-        <div className="flex items-center gap-1.5 text-caption text-ui-3">
-          <MapPin className="h-3.5 w-3.5" aria-hidden /> Add a place
-        </div>
-        <div className="flex gap-1.5">
-          <input aria-label="Place name" placeholder="Name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value.slice(0, 60) })} className={cn(INPUT, "w-0 flex-[2]")} />
-          <input aria-label="Latitude" placeholder="Lat" value={draft.lat} onChange={(e) => setDraft({ ...draft, lat: e.target.value })} className={cn(INPUT, "w-0 flex-1 font-ui-mono")} />
-          <input aria-label="Longitude" placeholder="Lon" value={draft.lon} onChange={(e) => setDraft({ ...draft, lon: e.target.value })} className={cn(INPUT, "w-0 flex-1 font-ui-mono")} />
-          <Button
-            small
-            disabled={!ok}
-            onClick={() => {
-              onChange([...places, { name: draft.name.trim(), lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 }]);
-              setDraft({ name: "", lat: "", lon: "" });
-            }}
-          >
-            Add
-          </Button>
-        </div>
-        <span className="text-micro text-ui-hint">Place search comes with Weather by place; it asks only the weather provider.</span>
-      </div>
-      <Field label="Use this PC's location first" hint="Comes with Weather by place: you pick the place once, never by IP">
-        <Toggle label="Use this PC's location first" checked={false} disabled onChange={() => {}} />
-      </Field>
-    </div>
-  );
-}
 
 function OptionEditor({ recipe, o, onChange }: { recipe: Recipe; o: RecipeOption; onChange: (r: Recipe) => void }) {
   const set = (patch: Partial<RecipeOption>) => onChange(updateOption(recipe, o.key, patch));
@@ -118,7 +70,7 @@ function OptionEditor({ recipe, o, onChange }: { recipe: Recipe; o: RecipeOption
           </Field>
         </>
       )}
-      {o.type === "place-list" && <PlaceList o={o} onChange={(places) => onChange(withSampleItems(updateOption(recipe, o.key, { default: places })))} />}
+      {o.type === "place-list" && <PlaceListEditor label="Default places" places={placeList(o.default)} onChange={(places) => onChange(withSampleItems(updateOption(recipe, o.key, { default: places })))} />}
       {o.type === "device" && (
         <Field label="Default">
           <span className="text-body text-ui-2">Auto: the first {DEVICE_LABEL[o.kind ?? "cpu"]} the data has</span>

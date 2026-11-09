@@ -82,6 +82,46 @@ describe("RecipeView", () => {
     expect((optionValues(recipe, { places: "not json" }).places as unknown[]).length).toBe(3);
   });
 
+  it("Weather · places live: each place from the server's readings, with the provider's credit and no sample line", () => {
+    const recipe = fixtureRecipe("weather-places");
+    const data = {
+      "weather.place.n5991e1075.temp": "-3.4 °C",
+      "weather.place.n5991e1075.condition": "Snow",
+      "weather.place.n5991e1075.status": "ok",
+      "weather.place.n3568e13969.temp": "21 °C",
+      "weather.place.n3568e13969.condition": "Clear",
+      "weather.place.n3568e13969.status": "ok",
+    };
+    const html = draw(recipe, undefined, { sample: false, data });
+    expect(html.match(/data-recipe-item=""/g)).toHaveLength(3);
+    for (const text of ["Oslo", "Snow", "-3", "Tokyo", "21", "Weather data by Open-Meteo.com · CC BY 4.0"]) expect(html).toContain(text);
+    expect(html).not.toContain("Sample weather");
+    expect(html).not.toContain("Light rain");
+    // the options take effect: °F, and the grid and one-place layouts through the one Repeat
+    expect(draw(recipe, { units: "f" }, { sample: false, data })).toContain(">26<");
+    expect(draw(recipe, { layout: "one" }, { sample: false, data }).match(/data-recipe-item=""/g)).toHaveLength(1);
+    // late or missing data is said, never hidden
+    const stale = { ...data, "weather.place.n5991e1075.status": "stale", "weather.place.n5991e1075.age": "47 min" };
+    expect(draw(recipe, undefined, { sample: false, data: stale })).toContain("· 47 min old");
+    expect(draw(recipe, undefined, { sample: false, data: {} })).toContain("Open-Meteo.com · CC BY 4.0 · no weather data yet");
+  });
+
+  it("Weather · places sample: the hours and units options take effect, and the sample line replaces the credit", () => {
+    const recipe = fixtureRecipe("weather-places");
+    const values = optionValues(recipe, { units: "f", hours: 4 });
+    const shapeOf = (b: Block) => b as Extract<Block, { type: "repeat" }>;
+    const repeat = shapeOf(recipe.root.children[0]);
+    expect(itemsOf(recipe, "places", values, { hours: 4, units: "imperial" })[0]).toMatchObject({ name: "Oslo", temp: 39, hourly: [37, 37, 39, 39] });
+    expect(repeat.hours).toEqual({ option: "hours" });
+    const html = draw(recipe, { units: "f", hours: 4 });
+    expect(html).toContain("Sample weather");
+    expect(html).not.toContain("Open-Meteo");
+    // a recipe without weather by place draws neither line
+    const cpu = draw(fixtureRecipe("cpu-card"), undefined, { sample: false });
+    expect(cpu).not.toContain("Open-Meteo");
+    expect(cpu).not.toContain("Sample weather");
+  });
+
   it("draws every preset of every fixture", () => {
     for (const name of FIXTURE_NAMES) {
       const recipe = fixtureRecipe(name);

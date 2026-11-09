@@ -15,7 +15,7 @@ import { storedCanvasKeys, storedCanvasWidgets, type StoredWidgetRef } from "@/l
 import { normalizePanelPlacement, panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
 import { lockedIn, resolveWith, type Appearance } from "@/lib/style-resolve";
 import { safeRender } from "@/components/zone-error-boundary";
-import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
+import { isRecipeId, recipeModule, useRecipeReads } from "@/widgets/recipe/resolve";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
 /** A placement's module: a registered widget, else a recipe widget (`recipe:<id>`, drawn by its lazy chunk). */
@@ -233,6 +233,8 @@ interface LivePlacementProps {
  * it — not the whole grid.
  */
 export function LivePlacement({ placement, appearance, studio, selection, children }: LivePlacementProps) {
+  // a recipe's reads come with its recipe, which loads whether or not a key has arrived
+  useRecipeReads(placement.module);
   const prefixes = placementPrefixes(placement);
   const sensors = useSensors(prefixes, quietPrefix(placement));
   const isCards = placement.module === CARDS_ID;
