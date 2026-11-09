@@ -137,6 +137,16 @@ export function removeBlock(recipe: Recipe, path: Path): { recipe: Recipe; path:
   return { recipe: next, path: left === 0 ? parent : [...parent, Math.max(0, k - 1)] };
 }
 
+/** A copy of a block (and what it holds) right after it. Returns the copy's path. */
+export function duplicateBlock(recipe: Recipe, path: Path): { recipe: Recipe; path: number[] } {
+  if (!path.length) return { recipe, path: [] };
+  const parent = path.slice(0, -1);
+  const k = path[path.length - 1];
+  const copy = structuredClone(blockAt(recipe, path)!);
+  const next = mapAt(recipe, parent, (b) => ({ ...b, children: [...childrenOf(b).slice(0, k + 1), copy, ...childrenOf(b).slice(k + 1)] }) as Block);
+  return { recipe: next, path: [...parent, k + 1] };
+}
+
 /** Moves a block one place up or down among its siblings. Returns its new path (the same one at an end). */
 export function moveBlock(recipe: Recipe, path: Path, by: -1 | 1): { recipe: Recipe; path: number[] } {
   if (!path.length) return { recipe, path: [] };
@@ -166,7 +176,7 @@ export const blockCount = (recipe: Recipe): number => flatten(recipe).length;
 
 /** A block's Layers name: its own, else its type's; a Repeat says what it runs over ("Repeat · Locations"). */
 export function layerName(recipe: Recipe, b: Block): string {
-  if (b.type === "repeat") return `Repeat · ${recipe.options.find((o) => o.key === b.over)?.label ?? b.over}`;
+  if (b.type === "repeat") return `${b.name && b.name !== "Repeat" ? b.name : "Repeat"} · ${recipe.options.find((o) => o.key === b.over)?.label ?? b.over}`;
   if (b.name) return b.name;
   if (b.type === "card" && b.title) return b.title;
   if (b.type === "value" && b.label) return b.label;
@@ -233,7 +243,9 @@ function mapKeys(recipe: Recipe, fn: (key: string) => string): Recipe {
 }
 
 const uniqueKey = (base: string, taken: (k: string) => boolean): string => {
-  const stem = base.replace(/[^A-Za-z0-9]/g, "").replace(/^\d+/, "").slice(0, 28) || "option";
+  // "Show clock" is showClock
+  const words = base.split(/[^A-Za-z0-9]+/).filter(Boolean);
+  const stem = words.map((w, k) => (k ? w[0].toUpperCase() + w.slice(1) : w)).join("").replace(/^\d+/, "").slice(0, 28) || "option";
   const key = stem[0].toLowerCase() + stem.slice(1);
   if (!taken(key)) return key;
   for (let n = 2; ; n++) if (!taken(`${key}${n}`)) return `${key}${n}`;
@@ -369,6 +381,21 @@ export function savePreset(recipe: Recipe, name: string, values: Record<string, 
   ) as WidgetPreset["settings"];
   const preset: WidgetPreset = { id, name: name.slice(0, 40), settings, size: [...size] as Cells, ...(recipe.presets.length ? {} : { default: true as const }) };
   return { ...recipe, presets: [...recipe.presets, preset] };
+}
+
+/**
+ * One option's value in a preset. The default preset is what a fresh add is, and Add writes no settings for it (FORMAT.md §13), so
+ * there the value is the option's default; any other preset keeps the values that differ from the defaults.
+ */
+export function setPresetValue(recipe: Recipe, id: string, key: string, value: unknown): Recipe {
+  const preset = recipe.presets.find((p) => p.id === id);
+  const o = recipe.options.find((x) => x.key === key);
+  if (!preset || !o) return recipe;
+  if (preset.default) return updateOption(recipe, key, { default: value as RecipeOption["default"] });
+  const { [key]: _old, ...rest } = preset.settings;
+  const same = JSON.stringify(value) === JSON.stringify(o.default);
+  const settings = same ? rest : { ...rest, [key]: (o.type === "place-list" ? JSON.stringify(value) : value) as string | number | boolean };
+  return { ...recipe, presets: recipe.presets.map((p) => (p.id === id ? { ...p, settings } : p)) };
 }
 
 /** Changes a preset's name, blurb or size. */

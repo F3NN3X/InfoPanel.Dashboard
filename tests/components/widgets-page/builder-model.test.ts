@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addBlock, addOption, blockAt, blockCount, devicesIn, flatten, layerName, moveBlock, moveOption, newRecipe, optionUses, pickBinding, pickWhat, presetLine, presetValues, recipeIssues, removeBlock, removeOption, removePreset, savePreset, setDefaultPreset, unpickBinding, updateBlock, validationLine, withSample } from "@/components/widgets-page/builder-model";
+import { addBlock, addOption, blockAt, blockCount, devicesIn, duplicateBlock, flatten, layerName, moveBlock, moveOption, newRecipe, optionUses, pickBinding, pickWhat, presetLine, presetValues, recipeIssues, removeBlock, removeOption, removePreset, savePreset, setDefaultPreset, setPresetValue, unpickBinding, updateBlock, validationLine, withSample } from "@/components/widgets-page/builder-model";
 import { commit, historyOf, HISTORY_LIMIT, redo, undo } from "@/components/widgets-page/history";
 import { NO_START, START, whyNoStart } from "@/components/widgets-page/start-points";
 import { WIDGET_ORDER } from "@/widgets/order";
@@ -180,5 +180,26 @@ describe("start points", () => {
 
   it("each start point is a recipe the validator passes", () => {
     for (const [id, make] of Object.entries(START)) expect(errorsOf(make(`${id} recipe`, new Set())), id).toEqual([]);
+  });
+});
+
+describe("duplicate and preset values", () => {
+  it("copies a block (and what it holds) right after it", () => {
+    const { recipe, path } = duplicateBlock(cpuCard(), [0]);
+    expect(path).toEqual([1]);
+    expect(blockAt(recipe, [1])).toEqual(blockAt(recipe, [0]));
+    expect(blockCount(recipe)).toBe(blockCount(cpuCard()) + 4);
+    expect(duplicateBlock(cpuCard(), []).path).toEqual([]);
+  });
+
+  it("a preset's value: the default preset's is the option's default, another's only what differs from it", () => {
+    let r = addOption(cpuCard(), { key: "showClock", label: "Show clock", type: "boolean", default: true });
+    r = savePreset(r, "Compact", {}, [2, 2]);
+    r = setPresetValue(r, "compact", "showClock", false);
+    expect(r.presets.at(-1)?.settings).toEqual({ showClock: false });
+    expect(setPresetValue(r, "compact", "showClock", true).presets.at(-1)?.settings).toEqual({});
+    r = setPresetValue(r, "default", "showClock", false);
+    expect(r.options.at(-1)?.default).toBe(false);
+    expect(r.presets[0].settings).toEqual({});
   });
 });
