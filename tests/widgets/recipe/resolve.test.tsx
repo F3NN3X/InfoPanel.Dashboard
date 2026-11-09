@@ -6,7 +6,7 @@ import type { Placement } from "@/lib/layout";
 import { STANDARD_KEYS } from "@/modules/standard-settings";
 import RecipeWidget from "@/widgets/recipe/RecipeWidget";
 import { recipeReads } from "@/widgets/recipe/reads";
-import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
+import { isRecipeId, loadReads, recipeModule, subscribeReads } from "@/widgets/recipe/resolve";
 import { forgetRecipe, listUserWidgets, loadRecipe, removeWidget, storePackage } from "@/widgets/recipe/store";
 import type { PackageFile } from "@/widgets/recipe/types";
 import { fixtureFiles, fixtureRecipe, variant, withFile } from "./fixture-files";
@@ -161,6 +161,22 @@ describe("the data gate of a recipe placement", () => {
     expect(mod.render({ [CPU]: { value: 1, unit: "%" } }, {})).not.toBeNull();
     // a placement that stores another sensor reads that one instead
     expect(touches([GPU], placementPrefixes(at("recipe:cpu-card", { load: GPU })))).toBe(true);
+  });
+
+  it("loads a weather-only recipe without any key, and its placement hears its reads and draws on its places' weather", async () => {
+    const p = at("recipe:weather-places");
+    const mod = recipeModule("recipe:weather-places")!;
+    // no Data API keys at all: the gate holds, but the recipe loads anyway
+    expect(mod.render({}, {})).toBeNull();
+    serve("recipe.weather-places", fixtureFiles("weather-places"));
+    let heard = 0;
+    const stop = subscribeReads(() => heard++);
+    await loadReads("recipe:weather-places");
+    stop();
+    expect(heard).toBe(1);
+    expect(placementPrefixes(p)).toEqual(["weather.place.n3568e13969.", "weather.place.n5905e970.", "weather.place.n5991e1075."]);
+    expect(placementContent(p, {}, []).content).toBeNull();
+    expect(placementContent(p, { "weather.place.n5991e1075.temp": { value: 4, unit: "°C" } }, []).content).not.toBeNull();
   });
 
   it("draws a recipe that reads no sensor, and a missing one's empty card, without data", async () => {
