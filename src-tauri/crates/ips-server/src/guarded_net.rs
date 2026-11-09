@@ -16,6 +16,14 @@ use reqwest::header::HeaderMap;
 
 /// What the guard says for a refused address.
 pub const NOT_ALLOWED: &str = "address not allowed";
+/// What `check_listed` says for a host that is not on its list.
+pub const NOT_LISTED: &str = "host not allowed";
+
+/// Whether `url`'s host is one of `hosts`, exactly (no subdomain, no suffix match; a name with user info before it is still
+/// read for its real host, as the URL parser reads it).
+pub fn host_listed(url: &url::Url, hosts: &[String]) -> bool {
+    url.host_str().is_some_and(|host| hosts.iter().any(|h| h.eq_ignore_ascii_case(host)))
+}
 
 /// An address a link may not reach: this machine (loopback, unspecified), link-local (which holds cloud metadata
 /// services) and multicast. LAN addresses stay allowed: a calendar on a NAS is a real use. `block_lan` also refuses the
@@ -180,6 +188,15 @@ impl GuardedClient {
         Ok(())
     }
 
+    /// `check_target` for a client that may reach only the hosts on `hosts` (the weather source's provider): a URL whose host is
+    /// not on the list, exactly, is refused before any lookup.
+    pub async fn check_listed(&self, url: &url::Url, hosts: &[String]) -> Result<(), String> {
+        if !host_listed(url, hosts) {
+            return Err(NOT_LISTED.into());
+        }
+        self.check_target(url).await
+    }
+
     /// One GET, its body read up to `max_bytes` (more is "too large"). The caller checks the target first.
     pub async fn get(&self, url: &url::Url, headers: &[(&str, &str)], max_bytes: usize) -> Result<Fetched, String> {
         read_capped(self.send(url, headers).await?, max_bytes).await
@@ -309,6 +326,32 @@ mod tests {
         for lan in ["10.0.0.0", "172.31.255.255", "192.168.0.0", "100.64.0.0", "fc00::", "::ffff:192.168.1.1"] {
             assert!(!blocked_address(lan, false), "{lan}");
         }
+    }
+
+    #[tokio::test]
+    async fn an_allow_list_takes_its_hosts_exactly_and_refuses_the_rest_before_any_lookup() {
+        let hosts = vec!["api.open-meteo.com".to_string(), "geocoding-api.open-meteo.com".to_string()];
+        for url in ["https://api.open-meteo.com/v1/forecast?latitude=1", "https://GEOCODING-API.open-meteo.com/v1/search"] {
+            assert!(host_listed(&url.parse().unwrap(), &hosts), "{url}");
+        }
+        for url in [
+            "https://open-meteo.com/",
+            "https://api.open-meteo.com.evil.example/",
+            "https://evil.example/api.open-meteo.com",
+            "https://api.open-meteo.com@evil.example/",
+            "https://x.api.open-meteo.com/",
+            "https://93.184.216.34/",
+        ] {
+            assert!(!host_listed(&url.parse().unwrap(), &hosts), "{url}");
+        }
+        // A lookup that would fail the test if it ran: a host off the list is refused first.
+        let lookup: Lookup = Arc::new(|host| Box::pin(async move { panic!("looked up {host}") }));
+        let client = GuardedClient::with(lookup, Arc::new(|_| false)).unwrap();
+        assert_eq!(client.check_listed(&"https://evil.example/".parse().unwrap(), &hosts).await, Err(NOT_LISTED.to_string()));
+        // On the list, the address guard still runs.
+        let client = GuardedClient::new(true).unwrap();
+        let local = vec!["localhost".to_string()];
+        assert_eq!(client.check_listed(&"http://localhost/".parse().unwrap(), &local).await, Err(NOT_ALLOWED.to_string()));
     }
 
     #[tokio::test]

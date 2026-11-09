@@ -328,6 +328,12 @@ impl Widgets {
         (real.starts_with(&root) && real.is_file()).then_some(real)
     }
 
+    /// The `recipe.json` of the package with id `id`, parsed, when it is there (the weather source reads a recipe's place lists; the
+    /// validator, not this, decides whether it may be drawn).
+    pub fn recipe_json(&self, id: &str) -> Option<Value> {
+        crate::store::read_json(&self.path_of(&key_of(id)?, RECIPE)?)
+    }
+
     /// Removes a package under the write lock. `false`: no such package.
     fn remove(&self, key: &str) -> std::io::Result<bool> {
         let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());

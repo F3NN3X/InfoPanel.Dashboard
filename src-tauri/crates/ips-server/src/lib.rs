@@ -54,6 +54,7 @@ pub mod supervisor;
 mod test_net;
 pub mod touch_hub;
 pub mod twitch;
+pub mod weather;
 pub mod widgets;
 pub mod youtube;
 
@@ -86,6 +87,7 @@ use crate::library::LibraryStore;
 use crate::request_guard::{config_write_refusal, remote_edit_refusal, RequestGuard};
 use crate::streamdeck::StreamDeck;
 use crate::studio_prefs::StudioPrefs;
+use crate::weather::Weather;
 use crate::widgets::Widgets;
 
 /// The health route's app id: older than the InfoPanel Studio name, and what the desktop app matches on.
@@ -179,7 +181,8 @@ pub struct App {
     pub agents: Agents,
     pub assets: Assets,
     pub packs: Packs,
-    pub widgets: Widgets,
+    pub widgets: Arc<Widgets>,
+    pub weather: Arc<Weather>,
     pub canvases: Arc<CanvasStore>,
     pub library: LibraryStore,
     prefs: StudioPrefs,
@@ -318,13 +321,25 @@ async fn bind_inner(cfg: ServerConfig, home: PathBuf, live_audio: bool) -> Resul
     sweeper.trigger();
     let assets = Assets::new(cfg.data_dir.join("assets"), cfg.allow_remote_upload);
     let packs = Packs::new(cfg.data_dir.join("packs"), cfg.allow_remote_upload);
-    let widgets = Widgets::new(cfg.data_dir.join("widgets"), cfg.allow_remote_upload);
+    let widgets = Arc::new(Widgets::new(cfg.data_dir.join("widgets"), cfg.allow_remote_upload));
+    // Weather by place: the places the stored recipe placements reference, read again after every save. A server that does not
+    // run its backends (a test) is given a provider it cannot reach, unless a debug build names a fake one (WEATHER_BASE_URL).
+    let endpoints = weather::Endpoints::from_env(live_audio).map_err(StartError::Other)?;
+    let weather = Weather::new(Weather::enabled_from_env(), endpoints, weather::Limits::default(), {
+        let (config, widgets) = (Arc::clone(&config), Arc::clone(&widgets));
+        move || config.read().map(|c| weather::referenced_places(&c, &|id| widgets.recipe_json(id), weather::Limits::default().places_max)).unwrap_or_default()
+    });
+    config.on_saved({
+        let weather = Arc::clone(&weather);
+        move || weather.reconfigure()
+    });
+    weather.start(&shutdown);
     let library = LibraryStore::new(cfg.data_dir.join("library"));
     println!("InfoPanel Studio on http://{}:{port} (config: {})", cfg.host, cfg.config_file().display());
     if cfg.debug {
         println!("[debug] DASHBOARD_DEBUG=1: logging requests and SSE clients; stats at /api/debug/stats");
     }
-    let app = App { cfg, guard, started: Instant::now(), debug, config, control, alerts, extras, port, audio, streamdeck, agents, assets, packs, widgets, canvases, library, prefs, shutdown };
+    let app = App { cfg, guard, started: Instant::now(), debug, config, control, alerts, extras, port, audio, streamdeck, agents, assets, packs, widgets, weather, canvases, library, prefs, shutdown };
     Ok(Bound { listener, app: Arc::new(app), stop })
 }
 
@@ -443,6 +458,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
         "/api/chat/send" => twitch::routes::handle_chat_send(app, req).await.map_err(io),
         "/events/chat" => Ok(twitch::routes::handle_chat_events(app)),
         "/events/touch" => Ok(touch_hub::handle_events(app, &req)),
+        "/events/weather" => Ok(weather::handle_events(app, &req)),
         "/api/integrations" => extras::handle_integrations(app, req).await.map_err(io),
         "/api/agents/event" | "/api/agents/statusline" => agents::handle(app, req).await.map_err(io),
         "/api/image-proxy" => proxy::handle(req).await,
@@ -452,6 +468,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
         p if is_family(p, "/api/assets") => assets::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/packs") => packs::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/widgets") => widgets::handle(app, req).await.map_err(io),
+        p if is_family(p, "/api/weather") => weather::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/library") => library::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/canvases") => canvases::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/infopanel/installed") => infopanel_local::handle(app, &req).map_err(io),

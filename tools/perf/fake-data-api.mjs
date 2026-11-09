@@ -9,6 +9,8 @@
 //   POST /api/fonts/resolve   [] (no InfoPanel fonts)
 //   GET /steam/logos/<file>   a 1×1 PNG: the capture's game art pointed at the capturing PC's image server, so its
 //                             URLs (CAPTURE_ORIGIN) are rewritten to this server's own origin and answered here
+//   GET /v1/forecast, /v1/search   a stand-in for Open-Meteo (Weather by place): scratch servers name this process as their
+//                             provider (WEATHER_BASE_URL, scratch.mjs), so a test or a screenshot never reaches the real one
 // The sensors are the widget fixtures' capture (src/widgets/__fixtures__, extra wins). Numeric readings move on a
 // seeded wave, so two runs with the same SEED serve the same sequence.
 //   PORT (default 3921; 0 picks a free one)  HOST (127.0.0.1)  RATE_HZ (1)  AUDIO_HZ (10, the audio meter's keys)  SEED (1)
@@ -92,6 +94,38 @@ export function createModel(base, seed = 1) {
     },
   };
 }
+
+/** The places the fake place search knows. */
+const PLACES = [
+  { name: "Oslo", latitude: 59.9127, longitude: 10.7461, country: "Norway", admin1: "Oslo" },
+  { name: "Brevik", latitude: 59.0533, longitude: 9.7007, country: "Norway", admin1: "Telemark" },
+  { name: "Tokyo", latitude: 35.6895, longitude: 139.6917, country: "Japan", admin1: "Tokyo" },
+  { name: "Bergen", latitude: 60.3913, longitude: 5.3221, country: "Norway", admin1: "Vestland" },
+];
+const CODES = [3, 61, 0, 2, 71, 45];
+
+/**
+ * An Open-Meteo forecast answer for a place, the same for the same coordinates and hour: a temperature from the latitude, a
+ * condition from the coordinates, 24 hours that swing two degrees, 7 days.
+ */
+export function fakeForecast(lat, lon, now = Date.now()) {
+  const hour = Math.floor(now / 3_600_000) * 3600;
+  const temp = Math.round((25 - Math.abs(lat) * 0.4 + (Math.abs(lon) % 7)) * 10) / 10;
+  const code = CODES[Math.abs(Math.round(lat + lon)) % CODES.length];
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const days = Array.from({ length: 7 }, (_, i) => i);
+  return {
+    latitude: lat,
+    longitude: lon,
+    utc_offset_seconds: 0,
+    current: { time: hour, temperature_2m: temp, apparent_temperature: temp - 2, relative_humidity_2m: 80, weather_code: code, wind_speed_10m: 12, is_day: 1, precipitation: 0 },
+    hourly: { time: hours.map((i) => hour + i * 3600), temperature_2m: hours.map((i) => Math.round((temp + 2 * Math.sin(i / 4)) * 10) / 10), weather_code: hours.map(() => code), precipitation_probability: hours.map((i) => (i * 7) % 60) },
+    daily: { time: days.map((i) => hour + i * 86_400), temperature_2m_max: days.map((i) => temp + 2 + (i % 3)), temperature_2m_min: days.map((i) => temp - 3 - (i % 2)), weather_code: days.map((i) => CODES[(i + 1) % CODES.length]) },
+  };
+}
+
+/** An Open-Meteo place search answer: the known places whose name starts with the query. */
+export const fakeSearch = (name) => ({ results: PLACES.filter((p) => p.name.toLowerCase().startsWith(String(name).toLowerCase())) });
 
 const same = (a, b) => a === b || (a && b && a.value === b.value && a.text === b.text && a.unit === b.unit);
 
@@ -180,6 +214,8 @@ export function createFakeDataApi({ rateHz = 1, audioHz = 10, seed = 1, sensors 
       return res.end(PIXEL);
     }
     if (pathname === "/events") return stream(req, res, searchParams);
+    if (pathname === "/v1/forecast") return json(res, fakeForecast(num(searchParams.get("latitude"), 0), num(searchParams.get("longitude"), 0)));
+    if (pathname === "/v1/search") return json(res, fakeSearch(searchParams.get("name") ?? ""));
     res.writeHead(404, cors);
     res.end();
   });
