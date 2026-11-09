@@ -587,6 +587,64 @@ async fn a_signed_code_widget_is_taken_only_with_a_trusted_key_and_checked_on_ev
 }
 
 #[tokio::test]
+async fn a_bundle_asked_for_by_its_hash_is_served_only_while_it_is_those_bytes() {
+    let s = start().await;
+    let clock = fixture("ext.test.clock");
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await.status, 200);
+    let hash = sha256_hex(&clock[1].1);
+    let pinned = get(s.port, &format!("/api/widgets/ext.test.clock/widget.js?sha256={hash}")).await;
+    assert_eq!((pinned.status, pinned.body.clone()), (200, clock[1].1.clone()));
+    let other = get(s.port, &format!("/api/widgets/ext.test.clock/widget.js?sha256={}", sha256_hex(b"other"))).await;
+    assert_eq!(other.status, 409, "a hash the file does not have");
+    // the bundle changed on disk after the page read the manifest: not served, under its old hash or any other
+    std::fs::write(s.widgets().join("ext.test.clock/widget.js"), b"export default () => null;").unwrap();
+    assert_eq!(get(s.port, &format!("/api/widgets/ext.test.clock/widget.js?sha256={hash}")).await.status, 413);
+    assert_eq!(get(s.port, "/api/widgets/ext.test.clock/widget.js").await.status, 413);
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn the_widgets_page_switches_hide_and_refuse_code_widgets_for_every_page() {
+    let s = start().await;
+    let clock = fixture("ext.test.clock");
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await.status, 200);
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&package("recipe:mine"))).await.status, 200);
+    let switches = || async { serde_json::from_slice::<Value>(&get(s.port, "/api/widgets/code").await.body).unwrap() };
+    assert_eq!(switches().await, json!({ "on": true, "env": true, "off": [] }), "all on until switched");
+    let put = |body: &'static str, headers: &'static [(&'static str, &'static str)]| {
+        let port = s.port;
+        async move { send(port, "PUT", "/api/widgets/code", headers, body).await }
+    };
+    assert_eq!(put(r#"{"on":false}"#, &[("Content-Type", "application/json")]).await.status, 403, "a write needs the header");
+    assert_eq!(put(r#"{"on":"no"}"#, &WRITE).await.status, 400);
+
+    // one widget off: still listed, marked, and none of its files served
+    assert_eq!(put(r#"{"off":["ext:test.clock","recipe:mine","nonsense"]}"#, &WRITE).await.status, 200);
+    assert_eq!(switches().await["off"], json!(["ext:test.clock"]), "only code widget ids are kept");
+    let items = list(&get(s.port, "/api/widgets").await);
+    assert_eq!(items.iter().map(|i| (i["id"].as_str().unwrap(), i["off"].as_bool())).collect::<Vec<_>>(), [("ext:test.clock", Some(true)), ("recipe:mine", None)]);
+    assert_eq!(get(s.port, "/api/widgets/ext.test.clock/widget.js").await.status, 404);
+    assert_eq!(get(s.port, "/api/widgets/ext.test.clock/manifest.json").await.status, 404);
+
+    // every code widget off: hidden, refused, an import 403; recipes untouched
+    assert_eq!(put(r#"{"on":false,"off":[]}"#, &WRITE).await.status, 200);
+    let listing = get(s.port, "/api/widgets").await;
+    assert_eq!(listing.header("x-user-code-widgets"), Some("off"));
+    assert_eq!(list(&listing).iter().map(|i| i["id"].as_str().unwrap().to_string()).collect::<Vec<_>>(), ["recipe:mine"]);
+    assert_eq!(get(s.port, "/api/widgets/ext.test.clock/widget.js").await.status, 404);
+    let reply = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await;
+    assert_eq!((reply.status, reply.text()), (403, "third-party code widgets are switched off on the Widgets page".into()));
+    assert_eq!(get(s.port, "/api/widgets/recipe.mine/recipe.json").await.status, 200);
+
+    assert_eq!(put(r#"{"on":true}"#, &WRITE).await.status, 200);
+    assert_eq!(get(s.port, "/api/widgets/ext.test.clock/widget.js").await.status, 200, "back on");
+    assert_eq!(send(s.port, "DELETE", "/api/widgets/code", &WRITE, "").await.status, 405);
+    s.stop().await;
+}
+
+#[tokio::test]
 async fn a_signed_package_is_replaced_only_by_the_same_key() {
     let s = start().await;
     let clock = fixture("ext.test.clock");
