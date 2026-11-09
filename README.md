@@ -13,7 +13,7 @@ You lay out widgets in a studio, and a local server serves the result as a full 
 - A studio to design screens: drag widgets onto a grid, resize them, undo any edit, and see saved changes appear on the display within about a second.
 - 64 widgets for system load, temperatures, fans, drives, network, frame rate, clocks, weather, calendars, media and more. Most come with presets (named views with a size and settings), and you can save your own. A library holds your own panels, styles, presets, gauges, images, videos and fonts.
 - Your own widgets: the Widgets page builds a recipe from Studio's blocks with no code, imports and exports widget packages, and can show the weather for places you choose (from Open-Meteo, no plugin). Developers can add code widgets, which run only when signed by a key you trust in Settings > Widget publishers.
-- 24 screen templates to start from, each made for a standard, wide, strip or tall panel.
+- 25 screen templates to start from, each made for a standard, wide, strip or tall panel.
 - Themes: one place to set colours, type, shape and spacing for every screen, one screen or one page, with ready-made skins and palettes you can save as your own.
 - InfoPanel import. Open an `.infopanel` profile as a screen and edit it in a canvas editor. Studio does not write `.infopanel` files.
 - A kiosk page for your panels: open it in InfoPanel's Web Page mode, in a browser, or on any device that can reach the server.
