@@ -55,6 +55,8 @@ test("A signed code widget loads; a tampered one and a switched-off one import n
 
   // the Widgets page lists it as not reviewed; its switch turns every code widget off on the server
   await page.goto(`${scratch.base}/?studio=1&profile=desk`);
+  // the Studio opens on Screens, whose thumbnails draw late under load: open Desk's canvas itself
+  await page.getByRole("button", { name: "Open Desk" }).click();
   await expect(page.locator("[data-example-widget]"), "the studio's canvas draws it too").toBeVisible();
   await page.getByRole("navigation", { name: "Studio views" }).getByRole("button", { name: "Widgets", exact: true }).click();
   const card = page.locator(`[data-widget-card="${ID}"]`);
@@ -67,6 +69,7 @@ test("A signed code widget loads; a tampered one and a switched-off one import n
   const studio = await page.context().newPage();
   asked = bundleRequests(studio);
   await studio.goto(`${scratch.base}/?studio=1&profile=desk`);
+  await studio.getByRole("button", { name: "Open Desk" }).click();
   await expect(studio.getByText("Third-party code widgets are switched off")).toBeVisible();
   await expect(studio.locator("[data-example-widget]")).toHaveCount(0);
   expect(asked).toEqual([]);

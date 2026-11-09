@@ -1,8 +1,8 @@
 // The publisher keys a widget package may be signed with (Phase 6a), and the revoked ones.
 //
 // - The owner's key is built into the app (`OWNER_KEY`): a minisign key of its own, never the updater's (a leak of one must not
-//   compromise the other). It is empty until the owner generates it and adds the public key here (docs/security.md, "Widget
-//   publisher keys"); until then the slot is "not set up" and trusts nothing.
+//   compromise the other). The owner generated it outside the repo and added only the public key here (docs/security.md,
+//   "Widget publisher keys"); the slot is "not set up" and trusts nothing only in a build that leaves it `None`.
 // - Themely's key (`THEMELY_KEY`) is a slot that stays disabled until Themely signs packages.
 // - User keys are added, named, in the app's Settings window only, through the app's own commands (src-tauri/src/commands.rs
 //   `trust_widget_key`, gated by the settings window's capability like every Settings write): never from an import or install
@@ -33,7 +33,7 @@ pub fn is_reserved(s: &str) -> bool {
 }
 
 /// The owner's public key (minisign's key line), or `None` while the owner has not set it up.
-pub const OWNER_KEY: Option<&str> = None;
+pub const OWNER_KEY: Option<&str> = Some("RWQNvf0oF867rh5+3s7LrmeEzEJFN7eU5FnvvxTEbc1Ty3GyBwWAIeRz");
 /// Themely's public key, once Themely signs packages; `THEMELY_ENABLED` turns the slot on.
 pub const THEMELY_KEY: Option<&str> = None;
 pub const THEMELY_ENABLED: bool = false;
@@ -314,23 +314,33 @@ mod tests {
     }
 
     #[test]
-    fn the_owner_slot_ships_empty_and_themely_disabled() {
-        assert_eq!(OWNER_KEY, None, "the owner adds the key (docs/security.md); never a test key");
+    fn the_owner_slot_holds_the_owners_key_and_themely_is_disabled() {
+        let owner = Key::parse(OWNER_KEY.expect("the owner's key is built in")).expect("the owner's key parses");
+        for not_owner in [KEY_A, test_key().as_str(), "RWQ3gHUeo+pkEIIOBliBs3aALuM+q8zZHHbCoysO9qQRp/YClf5zS2PM"] {
+            assert_ne!(owner.bytes, Key::parse(not_owner).unwrap().bytes, "never a test key or the updater's key");
+        }
         const { assert!(!THEMELY_ENABLED) };
         assert!(revoked_keys(REVOKED).is_empty(), "the built-in revoke list parses");
         let dir = tempfile::tempdir().unwrap();
         let store = KeyStore::new(dir.path());
         let list = store.list();
-        assert_eq!((list[0].id.as_str(), list[0].state, list[0].fingerprint.clone()), ("owner", "not-set-up", None));
+        assert_eq!((list[0].id.as_str(), list[0].state, list[0].fingerprint.clone()), ("owner", "trusted", Some(owner.fingerprint())));
         assert_eq!((list[1].id.as_str(), list[1].state), ("themely", "not-available"));
-        assert!(store.keyring().trusted.is_empty());
-        assert!(store.remove("owner").is_err() && store.remove("themely").is_err(), "an empty slot has nothing to remove");
+        let ring = store.keyring();
+        assert_eq!(ring.trusted.len(), 1);
+        assert_eq!((ring.trusted[0].signer.clone(), ring.trusted[0].publishers.clone()), (Signer::Owner, names(&OWNER_PUBLISHERS)));
+        assert!(store.remove("themely").is_err(), "an empty slot has nothing to remove");
+        // The slot left empty (a build without the owner's key) is "not set up" and trusts nothing.
+        let empty = KeyStore::with(dir.path(), None, r#"{"revoked":[]}"#);
+        assert_eq!((empty.list()[0].state, empty.list()[0].fingerprint.clone()), ("not-set-up", None));
+        assert!(empty.keyring().trusted.is_empty());
+        assert!(empty.remove("owner").is_err(), "an empty slot has nothing to remove");
     }
 
     #[test]
     fn a_user_key_is_added_named_listed_with_its_fingerprint_and_removed() {
         let dir = tempfile::tempdir().unwrap();
-        let store = KeyStore::new(dir.path());
+        let store = KeyStore::with(dir.path(), None, r#"{"revoked":[]}"#);
         let list = store.add_user("My key", &test_key(), &names(&["test", "test"])).unwrap();
         let fp = Key::parse(&test_key()).unwrap().fingerprint();
         assert_eq!(list[2], KeyView { id: fp.clone(), kind: "user", name: "My key".into(), fingerprint: Some(fp.clone()), publishers: names(&["test"]), state: "trusted" });
@@ -358,7 +368,7 @@ mod tests {
     #[test]
     fn a_user_key_holds_its_own_publisher_names_never_a_reserved_or_taken_one() {
         let dir = tempfile::tempdir().unwrap();
-        let store = KeyStore::new(dir.path());
+        let store = KeyStore::with(dir.path(), None, r#"{"revoked":[]}"#);
         for bad in [vec![], names(&["Bad"]), names(&["-a"]), names(&["a.b"]), names(&[&"p".repeat(33)]), (0..=PUBLISHERS_MAX).map(|k| format!("p{k}")).collect()] {
             assert!(store.add_user("Mine", &test_key(), &bad).is_err(), "{bad:?}");
         }

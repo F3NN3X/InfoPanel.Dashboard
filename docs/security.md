@@ -100,8 +100,9 @@ pack signature (`pack_sign.rs`), a local check only the server can make.
 
 ### The owner's key (one-time owner step)
 
-The owner key is its own minisign key, never the updater's: a leak of one must not compromise the other. Until it is set,
-the slot shows "Not set up" and trusts nothing. To set it, on the owner's machine, outside the repo:
+The owner key is its own minisign key, never the updater's: a leak of one must not compromise the other. It is set: the
+public key is built into the app and its secret half lives only on the owner's machine. A build with the slot left empty
+shows "Not set up" and trusts nothing. To make a new one (to replace it), on the owner's machine, outside the repo:
 
 ```
 minisign -G -p infopanel-widgets.pub -s infopanel-widgets.key
