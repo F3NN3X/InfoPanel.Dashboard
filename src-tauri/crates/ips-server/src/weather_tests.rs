@@ -244,7 +244,7 @@ async fn place_search_is_cached_and_capped_per_minute() {
     let w = source(&f, Limits { searches_per_minute: 2, ..Limits::default() }, Arc::new(Mutex::new(vec![])));
     let found = w.search("Brevik", "en", 0).await.unwrap();
     assert_eq!(found, json!([{ "name": "Brevik", "admin1": "Vestfold", "country": "Norway", "lat": 59.0533, "lon": 9.7007 }]), "a place off the globe is left out");
-    assert!(f.hits()[0].contains("name=Brevik&count=8&language=en"));
+    assert!(f.hits()[0].contains("name=Brevik&count=20&language=en"));
     assert_eq!(w.search("brevik", "en", 1).await.unwrap(), found, "the same query from the cache");
     assert_eq!(f.count("/v1/search"), 1);
     w.search("Oslo", "en", 2).await.unwrap();

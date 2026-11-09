@@ -46,20 +46,25 @@ function PlaceSearch({ label, onPick, disabled }: { label: string; onPick: (f: F
       </span>
       {state.error && <span className="text-micro text-ui-danger">{state.error}</span>}
       {query.trim().length >= 2 && !state.busy && !state.error && state.found.length === 0 && <span className="text-micro text-ui-3">No place of that name</span>}
-      {state.found.map((f) => (
-        <button
-          key={`${f.lat},${f.lon}`}
-          type="button"
-          onClick={() => {
-            onPick(f);
-            setQuery("");
-          }}
-          className="flex items-baseline gap-2 rounded-ui-md px-2 py-1 text-left hover:bg-ui-hover"
-        >
-          <span className="text-body text-ui-1">{f.name}</span>
-          <span className="min-w-0 truncate text-micro text-ui-3">{whereOf(f)}</span>
-        </button>
-      ))}
+      {state.found.length > 0 && (
+        // up to 20 places (a common name's small town ranks late): the list scrolls rather than pushing the panel down
+        <div className="flex max-h-64 flex-col overflow-y-auto">
+          {state.found.map((f) => (
+            <button
+              key={`${f.lat},${f.lon}`}
+              type="button"
+              onClick={() => {
+                onPick(f);
+                setQuery("");
+              }}
+              className="flex items-baseline gap-2 rounded-ui-md px-2 py-1 text-left hover:bg-ui-hover"
+            >
+              <span className="text-body text-ui-1">{f.name}</span>
+              <span className="min-w-0 truncate text-micro text-ui-3">{whereOf(f)}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

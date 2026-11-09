@@ -64,8 +64,9 @@ const SEARCH_MAX_BYTES: usize = 64 * 1024;
 /// Hours and days of forecast per place.
 pub const HOURS: usize = 24;
 pub const DAYS: usize = 7;
-/// Place search: results per query, cached queries, how long.
-const SEARCH_RESULTS: usize = 8;
+/// Place search: results per query, cached queries, how long. 20, not fewer: a common name's small town ranks late (Brevik in
+/// Telemark is the 14th Brevik, after twelve Swedish ones), and the provider has no country filter in the query text.
+const SEARCH_RESULTS: usize = 20;
 const SEARCH_CACHE_MAX: usize = 200;
 const SEARCH_CACHE_KEEP: Duration = Duration::from_secs(24 * 60 * 60);
 /// The readings' namespace and each place's prefix in it.
