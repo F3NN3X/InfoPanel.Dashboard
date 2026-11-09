@@ -220,12 +220,19 @@ async fn the_server_records_where_a_package_came_from_outside_the_package() {
     for (path, bytes) in &files {
         assert_eq!(&get(s.port, &format!("/api/widgets/recipe.mine/{path}")).await.body, bytes, "{path}");
     }
-    // the same bytes imported from a file: the package is the same, its origin is the import's
-    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&files, "import")).await.status, 200);
-    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["origin"], "import");
-    for (path, bytes) in &files {
+    // the same id imported from a file replaces the package and keeps the stored origin (Q7): your own export stays yours
+    let newer = package_with("recipe:mine", "1.0.1", &[]);
+    let replaced = send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&newer, "import")).await;
+    assert_eq!((replaced.status, serde_json::from_slice::<Value>(&replaced.body).unwrap()["origin"].as_str()), (200, Some("studio")));
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["origin"], "studio");
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["version"], "1.0.1");
+    for (path, bytes) in &newer {
         assert_eq!(&get(s.port, &format!("/api/widgets/recipe.mine/{path}")).await.body, bytes, "{path}");
     }
+    // a new id from a file is an import
+    let other = send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&package("recipe:theirs"), "import")).await;
+    assert_eq!(serde_json::from_slice::<Value>(&other.body).unwrap()["origin"], "import");
+    assert_eq!(send(s.port, "DELETE", "/api/widgets/recipe.theirs", &WRITE, "").await.status, 204);
     // a package without the sidecar (stored before origins) is an import; an unknown origin is refused
     std::fs::remove_file(s.widgets().join("recipe.mine/.origin")).unwrap();
     assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["origin"], "import");
@@ -685,6 +692,28 @@ async fn a_signed_package_is_replaced_only_by_the_same_key() {
     assert_eq!(send(s.port, "DELETE", "/api/widgets/recipe.signed", &WRITE, "").await.status, 204);
     assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await.status, 200, "after a remove");
     assert_eq!(list(&get(s.port, "/api/widgets").await).iter().find(|i| i["id"] == "recipe:signed").unwrap()["version"], "2.0.0");
+    s.stop().await;
+}
+
+#[tokio::test]
+async fn a_signed_package_of_a_stored_version_with_other_files_is_refused() {
+    let s = start().await;
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    // an unsigned 1.0.0 stored, then the signed 1.0.0 with other files: one version, two packages, refused; the stored one stays
+    let unsigned = package_with("recipe:signed", "1.0.0", &[]);
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_with_origin(&unsigned, "studio")).await.status, 200);
+    let reply = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("recipe.signed"))).await;
+    assert_eq!(
+        (reply.status, reply.text()),
+        (409, "recipe:signed 1.0.0 is installed and signed: a package of the same version with other files is refused (a signed package changes its version when its files change)".into())
+    );
+    assert_eq!(get(s.port, "/api/widgets/recipe.signed/recipe.json").await.body, unsigned[1].1, "the stored package is untouched");
+    // another version of it is taken, and keeps the stored origin
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&package_with("recipe:signed", "0.9.0", &[]))).await.status, 200);
+    let signed = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("recipe.signed"))).await;
+    assert_eq!((signed.status, serde_json::from_slice::<Value>(&signed.body).unwrap()["origin"].as_str()), (200, Some("studio")));
+    // the same signed bytes again replace it (nothing differs)
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("recipe.signed"))).await.status, 200);
     s.stop().await;
 }
 

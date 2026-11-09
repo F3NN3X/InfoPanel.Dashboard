@@ -31,7 +31,10 @@
 //
 // Where a package came from (Phase 5b: the Widgets page's Yours and Imported) is the server's word, not the package's: the
 // studio's builder saves with `origin: "studio"`, a file import is `"import"` (the default). It is kept in `.origin` beside the
-// package's files, outside the manifest and its hashes: never a package file, never served, so an export leaves it out.
+// package's files, outside the manifest and its hashes: never a package file, never served, so an export leaves it out. A package
+// that replaces a stored one keeps the stored one's origin (the builder audit's Q7): importing your own export leaves it yours.
+// A signed package is never replaced by one of the same version with other files (nor a stored one of that version by a signed
+// one): a signed package's files change with its version, so two of one version are one package (409).
 // GET/HEAD /api/widgets/<key>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing; with `?sha256=<hex>`
 //                                  (a page importing a bundle) 409 unless the bytes served are those, so a module the page holds
 //                                  under that URL is always the file that verified
@@ -377,13 +380,14 @@ impl Widgets {
     }
 
     /// Stores a checked import under the write lock: written beside its place under a name no key has, then moved in, so a
-    /// half-written package is never a package; a replaced one is set aside until the new one is in place. `check` runs under the
-    /// lock first and refuses the write when it says why.
-    fn store(&self, key: &str, files: &Files, origin: &str, check: impl FnOnce() -> Option<Refused>) -> std::io::Result<Result<(), Refused>> {
+    /// half-written package is never a package; a replaced one is set aside until the new one is in place, and its origin is kept.
+    /// `check` runs under the lock first and refuses the write when it says why. The origin written comes back.
+    fn store(&self, key: &str, files: &Files, origin: &'static str, check: impl FnOnce() -> Option<Refused>) -> std::io::Result<Result<&'static str, Refused>> {
         let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(refused) = check() {
             return Ok(Err(refused));
         }
+        let origin = self.package_dir(key).map_or(origin, |root| origin_of(&root));
         let others: Vec<u64> = listed(self).into_iter().filter(|(other, _)| other != key).map(|(_, (_, bytes))| bytes).collect();
         if others.len() + 1 > WIDGETS_MAX {
             return Ok(Err(refuse(413, format!("{WIDGETS_MAX} widgets are stored; remove one first"))));
@@ -423,7 +427,7 @@ impl Widgets {
             let _ = std::fs::remove_dir_all(&temp);
             return Err(e);
         }
-        Ok(Ok(()))
+        Ok(Ok(origin))
     }
 
     /// The file `file` of package `key`, or `None` for anything not a package file inside its folder: the names are matched first,
@@ -469,16 +473,25 @@ impl Widgets {
     }
 
     /// Why `incoming` may not replace the package stored under `key`: that one is signed, and `incoming` is not signed by the same
-    /// key (the stored signature must still verify with `ring`, and both with the same key bytes). `None` when nothing is stored
-    /// there, or what is stored is unsigned.
+    /// key (the stored signature must still verify with `ring`, and both with the same key bytes); or either is signed and both are
+    /// one version with other files. `None` when nothing is stored there, or neither is signed.
     fn replace_refusal(&self, key: &str, incoming: &Value, ring: &Keyring) -> Option<Refused> {
         let stored: Value = crate::store::read_json(&self.package_dir(key)?.join(MANIFEST))?;
-        let id = widget_sign::signature_key_id(&stored)?;
-        let old = widget_sign::verify(&stored, ring).ok().flatten();
-        let new = widget_sign::verify(incoming, ring).ok().flatten();
-        let same = matches!((old, new), (Some(o), Some(n)) if o.key.bytes == n.key.bytes);
         let name = stored.get("id").and_then(Value::as_str).unwrap_or(key);
-        (!same).then(|| refuse(409, format!("{name} is installed, signed with the key {}: only that key may replace it (remove it first to install this one)", widget_sign::fingerprint(&id))))
+        if let Some(id) = widget_sign::signature_key_id(&stored) {
+            let old = widget_sign::verify(&stored, ring).ok().flatten();
+            let new = widget_sign::verify(incoming, ring).ok().flatten();
+            let same = matches!((old, new), (Some(o), Some(n)) if o.key.bytes == n.key.bytes);
+            if !same {
+                return Some(refuse(409, format!("{name} is installed, signed with the key {}: only that key may replace it (remove it first to install this one)", widget_sign::fingerprint(&id))));
+            }
+        }
+        let signed = stored.get("signature").is_some() || incoming.get("signature").is_some();
+        let version = stored.get("version").and_then(Value::as_str).unwrap_or("");
+        let same_version = incoming.get("version").and_then(Value::as_str) == Some(version);
+        (signed && same_version && listed_files(&stored) != listed_files(incoming)).then(|| {
+            refuse(409, format!("{name} {version} is installed and signed: a package of the same version with other files is refused (a signed package changes its version when its files change)"))
+        })
     }
 
     /// The reason a write is refused, or `None`.
@@ -537,6 +550,19 @@ fn measured(root: &Path, key: &str, ring: &Keyring) -> Option<(Listed, u64)> {
     let (mut listed, manifest) = checked_files(&files, Some(key)).ok()?;
     listed.trust = trust_of(&listed.kind, &manifest, ring).unwrap_or_else(|reason| format!("refused:{reason}"));
     Some((listed, files.iter().map(|(_, b)| b.len() as u64).sum()))
+}
+
+/// A manifest's files as (path, SHA-256), sorted: what two packages of one version must share.
+fn listed_files(manifest: &Value) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = manifest
+        .get("files")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .map(|f| (f.get("path").and_then(Value::as_str).unwrap_or("").to_string(), f.get("sha256").and_then(Value::as_str).unwrap_or("").to_string()))
+        .collect();
+    out.sort();
+    out
 }
 
 /// Where the package in `root` came from: its `.origin`, else `import` (a package from before origins, or one put there by hand).
@@ -652,9 +678,10 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
         Err(reason) => return Ok(http::text(400, format!("refused: {reason}"))),
     };
     let key = key_of(&listed.id).unwrap_or_default();
-    if let Err(Refused(status, message)) = widgets.store(&key, &files, origin, || widgets.replace_refusal(&key, &manifest, &ring))? {
-        return Ok(http::text(status, message));
-    }
+    let origin = match widgets.store(&key, &files, origin, || widgets.replace_refusal(&key, &manifest, &ring))? {
+        Ok(kept) => kept,
+        Err(Refused(status, message)) => return Ok(http::text(status, message)),
+    };
     let size: u64 = files.iter().map(|(_, b)| b.len() as u64).sum();
     Ok(http::json(200, &json!({ "id": listed.id, "kind": listed.kind, "name": listed.name, "version": listed.version, "size": size, "origin": origin, "trust": listed.trust })))
 }
