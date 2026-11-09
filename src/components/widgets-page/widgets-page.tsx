@@ -36,7 +36,7 @@ import { START, whyNoStart } from "./start-points";
 import { storedValues } from "./recipe-preview";
 import { WidgetDetail, type WidgetDetailProps } from "./widget-detail";
 import { WidgetsBrowse, type BuiltInEntry } from "./widgets-browse";
-import { counts, kindLine, markYours, readYours, screensLine, shown, usesOf, type UserWidget, type WidgetFilter } from "./widgets-model";
+import { counts, kindLine, screensLine, shown, usesOf, type UserWidget, type WidgetFilter } from "./widgets-model";
 
 /** The builder comes with its first open. */
 const Builder = lazy(() => import("./builder").then((m) => ({ default: m.Builder })));
@@ -89,12 +89,11 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
 
   const refresh = async (select?: string) => {
     const { list, off } = await listUserWidgets();
-    const yours = readYours();
     const loaded = await Promise.all(
       list.map(async (w): Promise<UserWidget> => {
         const l = await loadRecipe(w.id);
         const r = l.recipe;
-        return { id: w.id, name: r?.name ?? w.name, kind: "recipe", yours: yours.has(w.id), recipe: r, issues: l.issues, trust: { kind: "recipe" }, blurb: r ? blurbOf(r) : w.name, version: w.version, bytes: w.size };
+        return { id: w.id, name: r?.name ?? w.name, kind: "recipe", yours: w.origin === "studio", recipe: r, issues: l.issues, trust: { kind: "recipe" }, blurb: r ? blurbOf(r) : w.name, version: w.version, bytes: w.size };
       }),
     );
     const state = fixtureState();
@@ -145,10 +144,9 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
         setImportError({ file: file.name, lines: [...errors.slice(0, 6).map((i) => `${i.file ? `${i.file}: ` : ""}${i.message}`), ...(skipped.length ? [`Left out, not part of a widget package: ${skipped.slice(0, 4).join(", ")}`] : [])] });
         return;
       }
-      const why = await storePackage(files);
+      const why = await storePackage(files, "import");
       if (why) return setImportError({ file: file.name, lines: [why] });
       setImportError(null);
-      markYours(checked.recipe.id, false);
       toast(`Imported ${checked.recipe.name}`);
       await refresh(checked.recipe.id);
     } catch (e) {
@@ -187,12 +185,11 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
       const rekey = (r: Recipe): Recipe => (r.id === id ? r : { ...r, id });
       const base = withSample(rekey(draft.history.present), liveData);
       const recipe = draft.stored && draft.stored.version === base.version ? { ...base, version: nextVersion(base.version) } : base;
-      const why = await storePackage(await packageOf(recipe, draft.images));
+      const why = await storePackage(await packageOf(recipe, draft.images), "studio");
       if (why) {
         toast(`Not saved: ${why}`);
         return undefined;
       }
-      markYours(recipe.id);
       setDraft({ ...draft, history: { past: draft.history.past.map(rekey), present: recipe, future: draft.history.future.map(rekey) }, stored: recipe });
       toast(`Saved ${recipe.name}`);
       void refresh();
@@ -249,7 +246,7 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
       menu: r
         ? [
             { label: "Duplicate", run: () => open(duplicateRecipe(r, `${r.name} copy`, taken())) },
-            { label: "Remove", run: () => void removeWidget(w.id).then((ok) => (ok ? (markYours(w.id, false), setSelected(null), toast(`Removed ${w.name}`), refresh()) : toast(`Not removed: the server refused`))), disabled: used.length > 0 },
+            { label: "Remove", run: () => void removeWidget(w.id).then((ok) => (ok ? (setSelected(null), toast(`Removed ${w.name}`), refresh()) : toast(`Not removed: the server refused`))), disabled: used.length > 0 },
           ]
         : [],
       presets: r ? r.presets.map((p) => p.name) : (w.fixture?.presets ?? []),

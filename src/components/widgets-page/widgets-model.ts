@@ -33,29 +33,6 @@ export interface UserWidget {
 
 export type WidgetFilter = "all" | "recipes" | "code" | "yours";
 
-/** The ids of the recipes saved from the builder here (Yours); every other user widget is Imported. */
-export const YOURS_KEY = "studio.widgets.yours";
-
-export function readYours(): Set<string> {
-  try {
-    const raw: unknown = JSON.parse(localStorage.getItem(YOURS_KEY) ?? "[]");
-    return new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : []);
-  } catch {
-    return new Set();
-  }
-}
-
-export function markYours(id: string, yours = true): void {
-  const all = readYours();
-  if (yours) all.add(id);
-  else all.delete(id);
-  try {
-    localStorage.setItem(YOURS_KEY, JSON.stringify([...all]));
-  } catch {
-    // a private window: Yours lasts for the session's list only
-  }
-}
-
 /** Whether a widget passes the filter and the search (its name, case-insensitive). */
 export function shown(w: Pick<UserWidget, "kind" | "yours" | "name">, filter: WidgetFilter, query: string): boolean {
   const q = query.trim().toLowerCase();
