@@ -31,6 +31,7 @@ import { checkPackage } from "@/widgets/recipe/validate";
 import { toFlat } from "@/widgets/shared/data-adapter";
 import { blockCount, duplicateRecipe, newRecipe, nextVersion, presetValues, recipeIdFor, valueText, withSample } from "./builder-model";
 import type { Draft } from "./builder";
+import { loadDrafts, saveDrafts } from "./drafts-store";
 import { commit, historyOf, redo, undo } from "./history";
 import { START, whyNoStart } from "./start-points";
 import { storedValues } from "./recipe-preview";
@@ -80,7 +81,8 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
   const [allBuiltIns, setAllBuiltIns] = useState(false);
   const [thirdParty, setThirdParty] = useStoredFlag(THIRD_PARTY_KEY, true);
   const [selected, setSelected] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<Draft[]>([]);
+  // open recipes with edits the server does not have come back from the autosave (`drafts-store.ts`), as the Gauges page's drafts do
+  const [drafts, setDrafts] = useState<Draft[]>(loadDrafts);
   const [active, setActive] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -180,6 +182,7 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
     else setActive(null);
   }, [home]);
   const unsaved = drafts.filter(isUnsaved);
+  useEffect(() => saveDrafts(drafts), [drafts]);
   const setDraft = (next: Draft) => setDrafts((list) => list.map((d) => (d.key === next.key ? next : d)));
   const save = async (): Promise<Recipe | undefined> => {
     if (!draft) return;
