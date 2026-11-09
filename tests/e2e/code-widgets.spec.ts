@@ -63,6 +63,15 @@ test("A signed code widget loads; a tampered one and a switched-off one import n
   await expect(card).toHaveCount(0);
   expect(await (await fetch(`${scratch.base}/api/widgets/code`)).json()).toMatchObject({ on: false });
 
+  // the studio's canvas, opened again: the zone draws the not-available card and the bundle is not asked for
+  const studio = await page.context().newPage();
+  asked = bundleRequests(studio);
+  await studio.goto(`${scratch.base}/?studio=1&profile=desk`);
+  await expect(studio.getByText("Third-party code widgets are switched off")).toBeVisible();
+  await expect(studio.locator("[data-example-widget]")).toHaveCount(0);
+  expect(asked).toEqual([]);
+  await studio.close();
+
   const off = await page.context().newPage();
   asked = bundleRequests(off);
   await off.goto(`${scratch.base}/?profile=desk`);
