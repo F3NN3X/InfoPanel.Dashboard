@@ -54,6 +54,7 @@ pub mod supervisor;
 mod test_net;
 pub mod touch_hub;
 pub mod twitch;
+pub mod widgets;
 pub mod youtube;
 
 use std::future::Future;
@@ -85,6 +86,7 @@ use crate::library::LibraryStore;
 use crate::request_guard::{config_write_refusal, remote_edit_refusal, RequestGuard};
 use crate::streamdeck::StreamDeck;
 use crate::studio_prefs::StudioPrefs;
+use crate::widgets::Widgets;
 
 /// The health route's app id: older than the InfoPanel Studio name, and what the desktop app matches on.
 pub const APP_ID: &str = "infopanel-dashboard";
@@ -177,6 +179,7 @@ pub struct App {
     pub agents: Agents,
     pub assets: Assets,
     pub packs: Packs,
+    pub widgets: Widgets,
     pub canvases: Arc<CanvasStore>,
     pub library: LibraryStore,
     prefs: StudioPrefs,
@@ -315,12 +318,13 @@ async fn bind_inner(cfg: ServerConfig, home: PathBuf, live_audio: bool) -> Resul
     sweeper.trigger();
     let assets = Assets::new(cfg.data_dir.join("assets"), cfg.allow_remote_upload);
     let packs = Packs::new(cfg.data_dir.join("packs"), cfg.allow_remote_upload);
+    let widgets = Widgets::new(cfg.data_dir.join("widgets"), cfg.allow_remote_upload);
     let library = LibraryStore::new(cfg.data_dir.join("library"));
     println!("InfoPanel Studio on http://{}:{port} (config: {})", cfg.host, cfg.config_file().display());
     if cfg.debug {
         println!("[debug] DASHBOARD_DEBUG=1: logging requests and SSE clients; stats at /api/debug/stats");
     }
-    let app = App { cfg, guard, started: Instant::now(), debug, config, control, alerts, extras, port, audio, streamdeck, agents, assets, packs, canvases, library, prefs, shutdown };
+    let app = App { cfg, guard, started: Instant::now(), debug, config, control, alerts, extras, port, audio, streamdeck, agents, assets, packs, widgets, canvases, library, prefs, shutdown };
     Ok(Bound { listener, app: Arc::new(app), stop })
 }
 
@@ -447,6 +451,7 @@ async fn route(app: &App, mut req: Req) -> Result<Response<Body>, String> {
         p if p == "/api/control" || p.starts_with("/api/control/") => Ok(control_store::handle(app, req).await),
         p if is_family(p, "/api/assets") => assets::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/packs") => packs::handle(app, req).await.map_err(io),
+        p if is_family(p, "/api/widgets") => widgets::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/library") => library::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/canvases") => canvases::handle(app, req).await.map_err(io),
         p if is_family(p, "/api/infopanel/installed") => infopanel_local::handle(app, &req).map_err(io),

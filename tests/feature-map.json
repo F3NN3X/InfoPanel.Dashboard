@@ -483,6 +483,8 @@
         "tests/widgets/gpu-monitor/**",
         "tests/widgets/fps-monitor/**",
         "tests/widgets/weather-fx/**",
+        "tests/widgets/recipe/**",
+        "tests/fixtures/recipes/**",
         "tests/e2e/kiosk-renders.spec.ts",
         "tests/e2e/streaming-widgets-fit.spec.ts",
         "tests/e2e/widget-qa-parity.spec.ts",

@@ -193,6 +193,11 @@ export interface DashboardModule {
   reads?: string[];
   /** Reads keys it cannot name up front (no prefixes, but needs data): the zone subscribes to every stream. */
   readsAll?: boolean;
+  /**
+   * The keys a zone reads, from its own stored values (a recipe's sensor bindings and sensor options, known once the recipe
+   * has loaded); `[]` = no sensor at all (it draws without data), undefined = the module's prefixes and `readsAll`.
+   */
+  readsFor?: (saved: ModuleSettings | undefined) => string[] | undefined;
   /** Render the module's cards. Return null to hide the section. */
   render: (sensors: SensorMap, settings?: ModuleSettings) => ReactNode;
   /** Fetches the chunk its component lives in (`src/widgets/lazy-widget.tsx`); unset: the component is in the entry. */
@@ -245,9 +250,11 @@ export const viewOf = (mod: DashboardModule, saved: ModuleSettings | undefined):
 /**
  * The prefixes a zone gates on and subscribes to: its view's own where the view has them (`WidgetView.prefixes`, while
  * its `prefixesWhen` setting is on), else the module's and what it reads; `null` = every key (a widget that reads all,
- * or a view with no prefixes of its own).
+ * or a view with no prefixes of its own). A module's `readsFor` comes first; its `[]` is "no key" (the zone needs no data).
  */
 export function placementReads(mod: DashboardModule, saved: ModuleSettings | undefined): string[] | null {
+  const keys = mod.readsFor?.(saved);
+  if (keys) return keys;
   const view = viewOf(mod, saved);
   const own = view?.prefixesWhen && saved?.[view.prefixesWhen] !== true ? undefined : view?.prefixes;
   if (!own) return mod.readsAll ? null : [...mod.prefixes, ...(mod.reads ?? [])];

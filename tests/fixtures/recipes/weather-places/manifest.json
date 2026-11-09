@@ -1,0 +1,15 @@
+{
+  "format": 1,
+  "kind": "recipe",
+  "id": "recipe:weather-places",
+  "version": "1.0.0",
+  "author": "InfoPanel Studio",
+  "name": "Weather · places",
+  "files": [
+    {
+      "path": "recipe.json",
+      "bytes": 7858,
+      "sha256": "1504d6cb2d40fe0f6d36da99a6a2a61742d58fe6d3f141a2f90a3c2610a8bd05"
+    }
+  ]
+}

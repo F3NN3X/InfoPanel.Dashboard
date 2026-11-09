@@ -1,0 +1,15 @@
+{
+  "format": 1,
+  "kind": "recipe",
+  "id": "recipe:cpu-card",
+  "version": "1.0.0",
+  "author": "InfoPanel Studio",
+  "name": "CPU card",
+  "files": [
+    {
+      "path": "recipe.json",
+      "bytes": 5937,
+      "sha256": "9ac82148792de0f59535e4c327c4292b6684371454afd955f7f79dca315cf196"
+    }
+  ]
+}

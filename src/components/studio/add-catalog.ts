@@ -76,7 +76,7 @@ function partsOf(panel: PanelDef): AddPart[] {
 }
 
 /** A widget's one row (D-5): its further presets are its `presets` rows, found by search through the row's tags. */
-function moduleItem(m: ModuleMeta, presets: readonly WidgetPreset[]): AddItem {
+export function moduleItem(m: ModuleMeta, presets: readonly WidgetPreset[]): AddItem {
   const base = presets.find((p) => p.default);
   const [w, h] = base?.size ?? defaultSize(m.defaultSize, m.minCols, m.minRows);
   const description = m.description ?? (m.id === CARDS_ID ? "Every sensor no other widget shows, as cards." : "");
@@ -178,12 +178,12 @@ const BLANK_ZONE: AddItem = {
 
 export type AddCatalog = Record<AddKind, AddItem[]>;
 
-/** Every widget, panel (saved first, then presets) and layout (Blank zone, then the starters). */
-export function addCatalog(saved?: UserPanelPreset[], presets: PresetMap = {}, userPresets?: readonly UserWidgetPreset[]): AddCatalog {
+/** Every widget (the built-in ones, then the recipes' rows: `recipe-item.ts`), panel (saved first, then presets) and layout (Blank zone, then the starters). */
+export function addCatalog(saved?: UserPanelPreset[], presets: PresetMap = {}, userPresets?: readonly UserWidgetPreset[], recipes: readonly AddItem[] = []): AddCatalog {
   const panelPresets = allPanelPresets(saved);
   const isLayout = (p: PanelPreset) => !p.user && p.id.startsWith("layout-");
   return {
-    widget: widgetItems(presets, userPresets),
+    widget: [...widgetItems(presets, userPresets), ...recipes],
     panel: [
       ...panelPresets.filter((p) => p.user).map((p) => presetItem(p, "panel", MY_PANELS)),
       ...panelPresets.filter((p) => !p.user && !isLayout(p)).map((p) => presetItem(p, "panel", PANEL_PRESETS)),

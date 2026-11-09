@@ -1,0 +1,209 @@
+{
+  "format": 1,
+  "id": "recipe:gpu-card",
+  "name": "GPU card",
+  "version": "1.0.0",
+  "author": "InfoPanel Studio",
+  "description": "The CPU card duplicated for the graphics card: its load as a gauge, temperature, clock and power, and its board power as a bar.",
+  "icon": "developer_board",
+  "category": "Hardware",
+  "size": {
+    "min": [
+      2,
+      2
+    ],
+    "max": [
+      4,
+      3
+    ],
+    "default": [
+      3,
+      2
+    ]
+  },
+  "options": [
+    {
+      "key": "load",
+      "label": "GPU load",
+      "type": "sensor",
+      "default": "libre.nvidia_geforce_rtx_5090_gpu_core_load"
+    },
+    {
+      "key": "temp",
+      "label": "Temperature",
+      "type": "sensor",
+      "default": "libre.nvidia_geforce_rtx_5090_gpu_core"
+    },
+    {
+      "key": "showValues",
+      "label": "Show values",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "showPower",
+      "label": "Show board power",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "showLogo",
+      "label": "Show logo",
+      "type": "boolean",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "id": "full",
+      "name": "Full",
+      "settings": {},
+      "size": [
+        3,
+        2
+      ],
+      "blurb": "Gauge, three values, board power",
+      "default": true
+    },
+    {
+      "id": "compact",
+      "name": "Compact",
+      "settings": {
+        "showPower": false,
+        "showLogo": false
+      },
+      "size": [
+        2,
+        2
+      ],
+      "blurb": "Gauge and values"
+    }
+  ],
+  "root": {
+    "type": "card",
+    "title": "GPU",
+    "icon": "developer_board",
+    "subtitle": {
+      "option": "load"
+    },
+    "children": [
+      {
+        "type": "row",
+        "name": "Top row",
+        "gap": 12,
+        "grow": 3,
+        "children": [
+          {
+            "type": "gauge",
+            "name": "Gauge",
+            "bind": {
+              "option": "load"
+            },
+            "min": 0,
+            "max": 100,
+            "color": "series-2",
+            "unit": "%",
+            "grow": 2
+          },
+          {
+            "type": "row",
+            "name": "Values",
+            "direction": "column",
+            "gap": 4,
+            "grow": 3,
+            "when": {
+              "option": "showValues",
+              "is": true
+            },
+            "children": [
+              {
+                "type": "value",
+                "label": "Temp",
+                "bind": {
+                  "option": "temp"
+                },
+                "decimals": 1,
+                "scale": 0.9,
+                "color": "thresholds",
+                "thresholds": {
+                  "warn": 75,
+                  "crit": 85
+                }
+              },
+              {
+                "type": "value",
+                "label": "Clock",
+                "bind": {
+                  "sensor": "libre.nvidia_geforce_rtx_5090_gpu_core_clock"
+                },
+                "decimals": 0,
+                "scale": 0.9
+              },
+              {
+                "type": "value",
+                "label": "Power",
+                "bind": {
+                  "sensor": "libre.nvidia_geforce_rtx_5090_gpu_package"
+                },
+                "decimals": 0,
+                "scale": 0.9
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "name": "Board power",
+        "align": "center",
+        "gap": 8,
+        "grow": 1,
+        "when": {
+          "option": "showPower",
+          "is": true
+        },
+        "children": [
+          {
+            "type": "image",
+            "name": "Logo",
+            "file": "images/logo.png",
+            "alt": "",
+            "grow": 0.4,
+            "when": {
+              "option": "showLogo",
+              "is": true
+            }
+          },
+          {
+            "type": "label",
+            "name": "Caption",
+            "text": "Board power",
+            "tone": "muted",
+            "scale": 0.8,
+            "grow": 2
+          },
+          {
+            "type": "bar",
+            "name": "Bar",
+            "bind": {
+              "sensor": "libre.nvidia_geforce_rtx_5090_gpu_power"
+            },
+            "min": 0,
+            "max": 100,
+            "color": "series-2",
+            "grow": 4
+          }
+        ]
+      }
+    ]
+  },
+  "sample": {
+    "sensors": {
+      "libre.nvidia_geforce_rtx_5090_gpu_core_load": "90 %",
+      "libre.nvidia_geforce_rtx_5090_gpu_core": "58.9 °C",
+      "libre.nvidia_geforce_rtx_5090_gpu_core_clock": "2505 MHz",
+      "libre.nvidia_geforce_rtx_5090_gpu_package": "361 W",
+      "libre.nvidia_geforce_rtx_5090_gpu_power": "59.4 %"
+    }
+  }
+}

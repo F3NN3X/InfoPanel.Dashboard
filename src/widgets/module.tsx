@@ -70,10 +70,10 @@ export function withSkinSurface(look: ModuleSettings, saved: ModuleSettings | un
  */
 export const SENSORLESS: ReadonlySet<string> = new Set(["Clock", "Calendar", "WebPage", "WaveLink", "Timer", "CodingAgents", "DayPlanner", "RadialClockStack", "OnAirBeacon", "StreamMixer", "AudioButton", "AudioFader", "StreamControl", "ObsButton", "StreamChat"]);
 
-/** Whether the map holds a key under any prefix (a module with no prefixes reads any key). */
-function hasKeys(sensors: SensorMap, prefixes: readonly string[]): boolean {
+/** Whether the map holds a key under any prefix (`null`: any key; `[]`, a zone that reads no key: yes). */
+function hasKeys(sensors: SensorMap, prefixes: readonly string[] | null): boolean {
   const keys = Object.keys(sensors);
-  return prefixes.length === 0 ? keys.length > 0 : keys.some((k) => prefixes.some((p) => k.startsWith(p)));
+  return prefixes === null ? keys.length > 0 : prefixes.length === 0 || keys.some((k) => prefixes.some((p) => k.startsWith(p)));
 }
 
 /** Whether two looks hold the same values (shallow: a stored array keeps its identity while the saved values do). */
@@ -123,9 +123,9 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     ...(island ? { island } : {}),
     ...(preloadOf(Component) ? { preload: preloadOf(Component) } : {}),
     // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet"; a view with prefixes of
-    // its own gates on them (`placementReads`).
+    // its own gates on them (`placementReads`); a zone that reads no key (`[]`, a recipe without sensors) draws without data.
     render: (sensors, saved) =>
-      !SENSORLESS.has(meta.id) && !hasKeys(sensors, placementReads(mod, saved) ?? []) ? null : (
+      !SENSORLESS.has(meta.id) && !hasKeys(sensors, placementReads(mod, saved)) ? null : (
         <TemplateZone sensors={sensors} saved={saved} />
       ),
   };

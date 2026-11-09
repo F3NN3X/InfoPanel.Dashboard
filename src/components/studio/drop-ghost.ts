@@ -6,6 +6,7 @@ import { zoneFits, type ZoneRect } from "./zone-geometry";
 import type { LibraryItem as MyLibraryItem } from "@/lib/library";
 import { isComponent } from "@/lib/my-library/component-meta";
 import { activeLibraryDrag, libraryDragOf } from "@/lib/my-library/drag";
+import { isRecipeId } from "@/widgets/recipe/resolve";
 
 type Size = { cols: number; rows: number };
 
@@ -37,7 +38,7 @@ export function myLibraryDropOf(getData: (type: string) => string): CanvasDrop |
  */
 export function libraryItemOf(getData: (type: string) => string): LibraryItem | null {
   const module = getData(DND_MIME);
-  if (module && (module === BLANK_MODULE || ALL_MODULES.some((m) => m.id === module))) {
+  if (module && (module === BLANK_MODULE || isRecipeId(module) || ALL_MODULES.some((m) => m.id === module))) {
     const settings = dropSettingsOf(module, getData(DND_MIME_SETTINGS));
     return settings ? { kind: "module", id: module, settings } : { kind: "module", id: module };
   }
@@ -45,7 +46,7 @@ export function libraryItemOf(getData: (type: string) => string): LibraryItem | 
   return panel ? { kind: "panel", id: panel } : null;
 }
 
-/** A drag's settings (JSON) narrowed to the keys the module has; undefined when none is left or it does not parse. */
+/** A drag's settings (JSON) narrowed to the keys the module has (a recipe's options are its own: kept as plain values); undefined when none is left or it does not parse. */
 function dropSettingsOf(module: string, raw: string): ModuleSettings | undefined {
   if (!raw) return undefined;
   let parsed: unknown;
@@ -56,7 +57,7 @@ function dropSettingsOf(module: string, raw: string): ModuleSettings | undefined
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return undefined;
   const keys = new Set((modules.find((m) => m.id === module)?.settings ?? []).flatMap(settingKeys));
-  const kept = Object.entries(parsed).filter(([k]) => keys.has(k));
+  const kept = Object.entries(parsed).filter(([k, v]) => (isRecipeId(module) ? ["string", "number", "boolean"].includes(typeof v) : keys.has(k)));
   return kept.length ? (Object.fromEntries(kept) as ModuleSettings) : undefined;
 }
 
