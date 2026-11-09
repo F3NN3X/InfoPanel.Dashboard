@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { writeZip } from "@/lib/infopanel/zip";
 import { exportPackage, importPackage, packageOf } from "@/widgets/recipe/package";
+import { withFormat } from "@/components/widgets-page/builder-model";
 import { checkPackage } from "@/widgets/recipe/validate";
 import { FIXTURE_NAMES, fixtureFiles, fixtureImages, fixtureRecipe } from "./fixture-files";
 
@@ -32,5 +33,19 @@ describe("widget packages", () => {
     const back = await importPackage(zip);
     expect(back.files.map((f) => f.path).sort()).toEqual(["manifest.json", "recipe.json"]);
     expect(back.skipped).toEqual(["cpu-card/notes.txt", "cpu-card/bundle.js"]);
+  });
+});
+
+describe("format 2 in a package (Phase A)", () => {
+  it("a recipe with parts goes out and back as format 2, byte for byte; one without new keys stays format 1, byte for byte", async () => {
+    const weather = await packageOf(withFormat(fixtureRecipe("weather-places")));
+    expect(JSON.parse(new TextDecoder().decode(weather[1].bytes)).format).toBe(2);
+    const back = await importPackage(exportPackage(weather));
+    for (const f of weather) expect(back.files.find((b) => b.path === f.path)?.bytes, f.path).toEqual(f.bytes);
+    for (const name of ["cpu-card", "gpu-card"] as const) {
+      const r = fixtureRecipe(name);
+      expect(withFormat(r)).toBe(r);
+      expect((await packageOf(withFormat(r), fixtureImages(name))).map((f) => f.bytes)).toEqual(fixtureFiles(name).map((f) => f.bytes));
+    }
   });
 });

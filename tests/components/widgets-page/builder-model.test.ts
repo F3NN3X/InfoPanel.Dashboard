@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addBlock, addOption, blockAt, blockCount, devicesIn, duplicateBlock, flatten, followable, followOf, layerName, moveBlock, moveOption, newRecipe, optionUses, pickBinding, pickWhat, presetLine, presetValues, recipeIssues, removeBlock, removeOption, removePreset, savePreset, setDefaultPreset, setPresetValue, unpickBinding, updateBlock, validationLine, withSample } from "@/components/widgets-page/builder-model";
+import { addBlock, addOption, blockAt, blockCount, devicesIn, duplicateBlock, flatten, followable, followOf, isBound, keyMove, labelParts, layerName, moveBlock, moveItem, moveOption, moveRefusal, newRecipe, optionUses, pickBinding, pickWhat, presetLine, presetValues, recipeIssues, removeBlock, removeOption, removePreset, savePreset, setDefaultPreset, setLabelParts, setLabelSource, setPresetValue, setRecipeSize, stepBlock, unpickBinding, updateBlock, validationLine, withFormat, withSample } from "@/components/widgets-page/builder-model";
 import { commit, historyOf, HISTORY_LIMIT, redo, undo } from "@/components/widgets-page/history";
 import { NO_START, START, whyNoStart } from "@/components/widgets-page/start-points";
 import { WIDGET_ORDER } from "@/widgets/order";
@@ -55,10 +55,10 @@ describe("the block tree", () => {
 
   it("moves a block among its siblings, and not past either end", () => {
     const r = cpuCard();
-    const down = moveBlock(r, [0, 0], 1);
+    const down = stepBlock(r, [0, 0], 1);
     expect(down.path).toEqual([0, 1]);
     expect((blockAt(down.recipe, [0]) as Extract<Block, { type: "row" }>).children.map((b) => b.type)).toEqual(["row", "ring"]);
-    expect(moveBlock(r, [0, 1], 1)).toMatchObject({ recipe: r, path: [0, 1] });
+    expect(stepBlock(r, [0, 1], 1)).toMatchObject({ recipe: r, path: [0, 1] });
   });
 
   it("sets and removes a block's fields", () => {
@@ -142,7 +142,7 @@ describe("options and presets", () => {
     r = updateBlock(r, [0, 1], { when: { size: { min: [2, 1] } } });
     const line = validationLine(r, recipeIssues(r));
     expect(line).toMatchObject({ ok: true, floor: "Text stays above 11 px at every size" });
-    expect(line.summary).toBe("No code · 6 blocks · 3 options · fits 1×1 to 4×3");
+    expect(line.summary).toBe("No code · 6 blocks · 3 options · sizes 1×1 to 4×3");
   });
 });
 
@@ -228,5 +228,161 @@ describe("duplicate and preset values", () => {
     r = setPresetValue(r, "default", "showClock", false);
     expect(r.options.at(-1)?.default).toBe(false);
     expect(r.presets[0].settings).toEqual({});
+  });
+});
+
+/** A Weather card as the builder makes it: a Repeat over Locations with a weather icon and a column of the place's name. */
+function weatherCard(): Recipe {
+  const rep = addBlock(newRecipe("Weather", new Set()), [], "repeat", "x.y");
+  const icon = addBlock(rep.recipe, rep.path, "weather-icon", "x.y");
+  const col = addBlock(icon.recipe, rep.path, "row", "x.y");
+  return addBlock(updateBlock(col.recipe, col.path, { name: "City" }), col.path, "label", "x.y").recipe;
+}
+const namesAt = (r: Recipe, path: number[]) => (blockAt(r, path) as Extract<Block, { children: Block[] }>).children.map((b) => b.name ?? b.type);
+
+describe("moving a block between containers (G1)", () => {
+  it("moves into a Row, out of it, and between Rows and Cards, keeping what it holds", () => {
+    const r = cpuCard(); // card[ Top row[ ring, Values[ value ] ], sparkline ]
+    const into = moveBlock(r, [1], [0, 1], 0);
+    expect(into.path).toEqual([0, 1, 0]);
+    expect(namesAt(into.recipe, [0, 1])).toEqual(["sparkline", "value"]);
+    expect(errorsOf(into.recipe)).toEqual([]);
+    const out = moveBlock(into.recipe, [0, 1, 0], [], 1);
+    expect(out.path).toEqual([1]);
+    expect(namesAt(out.recipe, [])).toEqual(["Top row", "sparkline"]);
+    // a whole row with its blocks into a new card, then that card into the top row
+    const card = addBlock(r, [], "card", "x.y");
+    const moved = moveBlock(card.recipe, [0, 1], card.path, 0);
+    expect(moved.path).toEqual([2, 0]);
+    expect(namesAt(moved.recipe, moved.path)).toEqual(["value"]);
+    expect(namesAt(moveBlock(moved.recipe, [2], [0], 0).recipe, [0])).toEqual(["Card", "ring"]);
+  });
+
+  it("moves within its own container to the index as the tree is now", () => {
+    const r = cpuCard();
+    expect(moveBlock(r, [0, 0], [0], 2).path).toEqual([0, 1]);
+    expect(namesAt(moveBlock(r, [0, 0], [0], 2).recipe, [0])).toEqual(["Values", "ring"]);
+    // onto its own place: nothing
+    expect(moveBlock(r, [0, 0], [0], 1)).toMatchObject({ recipe: r, path: [0, 0] });
+  });
+
+  it("moves into and out of a Repeat, the target's path following the block that left", () => {
+    const w = addBlock(weatherCard(), [], "label", "x.y"); // a typed label beside the Repeat
+    const into = moveBlock(w.recipe, w.path, [0], 0);
+    expect(into.path).toEqual([0, 0]);
+    expect(namesAt(into.recipe, [0])).toEqual(["label", "weather-icon", "City"]);
+    expect(errorsOf(into.recipe)).toEqual([]);
+    // the label first, then into the Repeat (now the second block): the target's index moves up one as the label leaves
+    const first = moveBlock(w.recipe, [1], [], 0).recipe;
+    const back = moveBlock(first, [0], [1], 0);
+    expect(back.path).toEqual([0, 0]);
+    expect(namesAt(back.recipe, [0])[0]).toBe("label");
+  });
+
+  it("refuses what the validator would refuse, saying why", () => {
+    const w = weatherCard();
+    const second = addBlock(w, [], "repeat", "x.y");
+    expect(moveRefusal(second.recipe, second.path, [0])).toBe("A Repeat can't go inside another Repeat");
+    expect(moveBlock(second.recipe, second.path, [0], 0).recipe).toBe(second.recipe);
+    // a block reading a place's field stays inside a Repeat
+    expect(moveRefusal(w, [0, 1], [])).toBe("City reads each place's weather: it goes inside a Repeat only");
+    expect(moveRefusal(w, [0], [0, 1])).toBe("A block can't go inside itself");
+    expect(moveRefusal(w, [0, 0], [0, 0])).toBe("Only a Row, a Card or a Repeat holds blocks");
+    expect(moveRefusal(w, [], [0])).toBe("The widget's card stays where it is");
+    // deeper than six: rows nested four deep under the card, then a row holding a label moved into the deepest
+    let deep = newRecipe("Deep", new Set());
+    let at: number[] = [];
+    for (let n = 0; n < 4; n++) {
+      const row = addBlock(deep, at, "row", "x.y");
+      deep = row.recipe;
+      at = row.path;
+    }
+    const holder = addBlock(deep, [], "row", "x.y");
+    const filled = addBlock(holder.recipe, holder.path, "label", "x.y").recipe;
+    expect(moveRefusal(filled, holder.path, at)).toBe("Blocks nest at most 6 deep");
+    expect(moveRefusal(filled, [...holder.path, 0], at)).toBeUndefined();
+  });
+
+  it("Alt+← takes a block out after its container, Alt+→ into the container just above it", () => {
+    const r = cpuCard();
+    expect(keyMove(r, [0, 1, 0], "out")).toEqual({ toParent: [0], index: 2 });
+    expect(keyMove(r, [1], "in")).toEqual({ toParent: [0], index: 2 });
+    expect(keyMove(r, [0, 0], "in")).toEqual({ why: "There is no Row, Card or Repeat just above it" });
+    expect(keyMove(r, [1], "out")).toEqual({ why: "It is in the widget's card already" });
+    expect(keyMove(weatherCard(), [0, 0], "out")).toEqual({ why: "Weather icon reads each place's weather: it goes inside a Repeat only" });
+  });
+});
+
+describe("labels: typed, from data, and parts (G3, G4, B9)", () => {
+  it("a label inside a Repeat goes back to typed text, and to data again (B9)", () => {
+    const w = weatherCard();
+    const typed = setLabelSource(w, [0, 1, 0], "typed", "x.y");
+    expect(blockAt(typed, [0, 1, 0])).toEqual({ type: "label", text: "Label" });
+    expect(blockAt(setLabelSource(typed, [0, 1, 0], "data", "x.y"), [0, 1, 0])).toEqual({ type: "label", bind: { field: "name" } });
+    // outside a Repeat, from data reads a sensor, or an option people set (a Text option is of use now)
+    const card = addBlock(addOption(newRecipe("Note", new Set()), { key: "note", label: "Note", type: "text", default: "Hi" }), [], "label", "x.y");
+    expect(blockAt(setLabelSource(card.recipe, card.path, "data", "libre.cpu_total"), card.path)).toEqual({ type: "label", bind: { sensor: "libre.cpu_total" } });
+    expect(errorsOf(updateBlock(card.recipe, card.path, { text: undefined, bind: { option: "note" } }))).toEqual([]);
+  });
+
+  it("writes one reading as bind and one text as text (format 1), more as parts (format 2), and back", () => {
+    const w = weatherCard();
+    const at = [0, 1, 0];
+    const hl = setLabelParts(w, at, [{ bind: { field: "high" }, decimals: 0, unit: "°" }, { text: " / " }, { bind: { field: "low" }, decimals: 0, unit: "°" }]);
+    expect(blockAt(hl, at)).toEqual({ type: "label", parts: [{ bind: { field: "high" }, decimals: 0, unit: "°" }, { text: " / " }, { bind: { field: "low" }, decimals: 0, unit: "°" }] });
+    expect(labelParts(blockAt(hl, at) as Extract<Block, { type: "label" }>)).toHaveLength(3);
+    expect(withFormat(hl).format).toBe(2);
+    expect(errorsOf(withFormat(hl))).toEqual([]);
+    expect(errorsOf(hl)).toEqual(["$.root.children[0].children[1].children[0].parts: parts need recipe format 2"]);
+    const two = withFormat(hl);
+    expect(withFormat(two)).toBe(two);
+    const one = setLabelParts(withFormat(hl), at, [{ bind: { field: "name" } }]);
+    expect(blockAt(one, at)).toEqual({ type: "label", bind: { field: "name" } });
+    expect(withFormat(one).format).toBe(1);
+    // no new key: format 1, the very same recipe
+    expect(withFormat(w)).toBe(w);
+    expect(blockAt(setLabelParts(hl, at, [{ text: "Now" }]), at)).toEqual({ type: "label", text: "Now" });
+  });
+
+  it("a part's reading counts as a read: an option it names is used, a device's key follows the pick", () => {
+    const card = addBlock(addOption(newRecipe("C", new Set()), { key: "note", label: "Note", type: "text", default: "" }), [], "label", "x.y");
+    const r = setLabelParts(card.recipe, card.path, [{ bind: { option: "note" } }, { text: " · " }, { bind: { sensor: `libre.${CPU}_cpu_total` }, unit: "%" }]);
+    expect(optionUses(r, "note")).toBe(1);
+    expect(flatten(r).filter(({ block }) => block.type === "label").map(({ block }) => isBound(block))).toEqual([true]);
+    // a ring of the same CPU let people pick it: the part's key names the device option too
+    const ring = addBlock(r, [], "ring", `libre.${CPU}_cpu_total`);
+    const picked = pickBinding(ring.recipe, ring.path, DEVICES);
+    expect((blockAt(picked, card.path) as Extract<Block, { type: "label" }>).parts?.[2]).toEqual({ bind: { sensor: "libre.{cpu}_cpu_total" }, unit: "%" });
+  });
+});
+
+describe("sizes (B6)", () => {
+  it("Opens at is the default preset's size too, so Add places the widget there", () => {
+    const r = setRecipeSize(newRecipe("W", new Set()), "default", [4, 3]);
+    expect(r.size.default).toEqual([4, 3]);
+    expect(r.presets.find((p) => p.default)?.size).toEqual([4, 3]);
+    expect(setRecipeSize(r, "min", [1, 1]).presets[0].size).toEqual([4, 3]);
+    expect(errorsOf(r)).toEqual([]);
+  });
+});
+
+describe("lists inside a block", () => {
+  it("moves an item from one place to another, and leaves the list as it was for a place out of range", () => {
+    expect(moveItem(["a", "b", "c"], 0, 2)).toEqual(["b", "c", "a"]);
+    expect(moveItem(["a", "b", "c"], 2, 0)).toEqual(["c", "a", "b"]);
+    expect(moveItem(["a", "b"], 0, 5)).toEqual(["a", "b"]);
+  });
+});
+
+describe("found in Phase A", () => {
+  it("B14: the validation line counts in words that agree with the number (1 option, not 1 options)", () => {
+    const r = addOption(newRecipe("W", new Set()), { key: "show", label: "Show", type: "boolean", default: true });
+    expect(validationLine(r, recipeIssues(r)).summary).toBe("No code · 1 block · 1 option · sizes 2×2 to 4×3");
+  });
+
+  it("B15: a heatmap cell bound to a sensor option counts as a use, so the option can't be removed from under it", () => {
+    const h = addBlock(addOption(newRecipe("W", new Set()), { key: "core", label: "Core", type: "sensor", default: "libre.cpu_total" }), [], "heatmap", "libre.cpu_total");
+    const r = updateBlock(h.recipe, h.path, { cells: [{ option: "core" }] });
+    expect(optionUses(r, "core")).toBe(1);
   });
 });

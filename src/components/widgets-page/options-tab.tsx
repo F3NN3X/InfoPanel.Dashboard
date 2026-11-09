@@ -10,13 +10,27 @@ import { ITEM, POPUP } from "@/components/studio/menu-styles";
 import { cn } from "@/lib/utils";
 import { PlaceListEditor } from "@/components/studio/place-list/place-list-editor";
 import { placeList } from "@/components/studio/place-list/place-search";
-import { DEVICE_KINDS, type Recipe, type RecipeOption } from "@/widgets/recipe/types";
-import { addOption, DEVICE_LABEL, moveOption, optionLine, optionUses, removeOption, updateOption, withSampleItems } from "./builder-model";
+import type { Data } from "@/widgets/core/types";
+import { DEVICE_KINDS, type Recipe, type RecipeDeviceKind, type RecipeOption } from "@/widgets/recipe/types";
+import { addOption, bindingsOf, DEVICE_LABEL, flatten, layerName, moveOption, optionLine, optionUses, removeOption, updateOption, withSampleItems } from "./builder-model";
+import { changeDeviceKind } from "./device-kind";
 import { Field, INPUT, NumberInput, Select, TextInput } from "./fields";
 
 export interface OptionsTabProps {
   recipe: Recipe;
   onChange: (recipe: Recipe) => void;
+  /** The readings the stage shows: a device option's Kind maps a key only where the new kind's device has it. */
+  data: Data;
+}
+
+/** The blocks reading each of `keys`, as "Clock (libre.{cpu}_cores__average)". */
+function readers(recipe: Recipe, keys: readonly string[]): string[] {
+  return keys.map((k) => {
+    const names = flatten(recipe)
+      .filter(({ block }) => bindingsOf(block).some((b) => "sensor" in b && b.sensor === k))
+      .map(({ block }) => layerName(recipe, block));
+    return `${names.join(", ") || "A block"} (${k})`;
+  });
 }
 
 /** "Add an option": the kinds, each with what it starts as. */
@@ -30,9 +44,11 @@ const NEW_OPTIONS: readonly { label: string; make: () => RecipeOption }[] = [
   ...DEVICE_KINDS.map((kind) => ({ label: DEVICE_LABEL[kind], make: (): RecipeOption => ({ key: kind, label: DEVICE_LABEL[kind], type: "device", kind, default: "auto" }) })),
 ];
 
-function OptionEditor({ recipe, o, onChange }: { recipe: Recipe; o: RecipeOption; onChange: (r: Recipe) => void }) {
+function OptionEditor({ recipe, o, onChange, data }: { recipe: Recipe; o: RecipeOption; onChange: (r: Recipe) => void; data: Data }) {
   const set = (patch: Partial<RecipeOption>) => onChange(updateOption(recipe, o.key, patch));
   const uses = optionUses(recipe, o.key);
+  /** The keys the last Kind change could not map, by the blocks that read them. */
+  const [unmapped, setUnmapped] = useState<string[]>([]);
   return (
     <div className="flex flex-col gap-2 border-b border-ui-subtle px-3 pb-3 pl-8">
       <Field label="Label">
@@ -72,9 +88,35 @@ function OptionEditor({ recipe, o, onChange }: { recipe: Recipe; o: RecipeOption
       )}
       {o.type === "place-list" && <PlaceListEditor label="Default places" places={placeList(o.default)} onChange={(places) => onChange(withSampleItems(updateOption(recipe, o.key, { default: places })))} />}
       {o.type === "device" && (
-        <Field label="Default">
-          <span className="text-body text-ui-2">Auto: the first {DEVICE_LABEL[o.kind ?? "cpu"]} the data has</span>
-        </Field>
+        <>
+          <Field label="Kind">
+            <Select
+              label="Kind"
+              value={o.kind ?? "cpu"}
+              options={DEVICE_KINDS.map((kind) => ({ value: kind, label: DEVICE_LABEL[kind] }))}
+              onChange={(kind: RecipeDeviceKind) => {
+                const changed = changeDeviceKind(recipe, o.key, kind, data);
+                onChange(changed.recipe);
+                setUnmapped(readers(changed.recipe, changed.unmapped));
+              }}
+            />
+          </Field>
+          {unmapped.length > 0 && (
+            <div role="status" data-unmapped="" className="rounded-ui-md border border-ui-warn/40 bg-ui-warn/10 px-2.5 py-2 text-caption leading-snug text-ui-2">
+              <p className="text-ui-1">Not mapped to the {DEVICE_LABEL[o.kind ?? "cpu"]}: pick their data again</p>
+              <ul className="mt-1 list-disc pl-4">
+                {unmapped.map((line) => (
+                  <li key={line} className="break-all">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <Field label="Default">
+            <span className="text-body text-ui-2">Auto: the first {DEVICE_LABEL[o.kind ?? "cpu"]} the data has</span>
+          </Field>
+        </>
       )}
       {(o.type === "text" || o.type === "sensor") && (
         <Field label="Default">
@@ -91,7 +133,7 @@ function OptionEditor({ recipe, o, onChange }: { recipe: Recipe; o: RecipeOption
   );
 }
 
-export function OptionsTab({ recipe, onChange }: OptionsTabProps) {
+export function OptionsTab({ recipe, onChange, data }: OptionsTabProps) {
   const [open, setOpen] = useState<string | null>(null);
   const [drag, setDrag] = useState<number | null>(null);
   /** "Add an option" asks for the name first: the option's key is made from it. */
@@ -146,7 +188,7 @@ export function OptionsTab({ recipe, onChange }: OptionsTabProps) {
               </span>
               {open === o.key ? <ChevronDown className="h-4 w-4 text-ui-3" aria-hidden /> : <ChevronRight className="h-4 w-4 text-ui-3" aria-hidden />}
             </button>
-            {open === o.key && <OptionEditor recipe={recipe} o={o} onChange={onChange} />}
+            {open === o.key && <OptionEditor recipe={recipe} o={o} onChange={onChange} data={data} />}
           </li>
         ))}
       </ul>

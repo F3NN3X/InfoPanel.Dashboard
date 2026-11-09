@@ -8,8 +8,8 @@ import type { Data } from "@/widgets/core/types";
 import { cellBasePx, TEXT_FLOOR } from "@/widgets/recipe/metrics";
 import { recipeBytes } from "@/widgets/recipe/package";
 import { boundSensors, expandKey } from "@/widgets/recipe/reads";
-import { BLOCK_TYPES, type Binding, type Block, type BlockType, type CardBlock, type Cells, type Container, type FollowOption, type PackageFile, type Place, type Recipe, type RecipeDeviceKind, type RecipeOption } from "@/widgets/recipe/types";
-import { DEVICE_SLOT, ITEMS_MAX, type RecipeIssue, validateRecipe } from "@/widgets/recipe/validate";
+import { BLOCK_TYPES, type Binding, type Block, type BlockType, type CardBlock, type Cells, type Container, type FollowOption, type LabelPart, type PackageFile, type Place, type Recipe, type RecipeDeviceKind, type RecipeOption } from "@/widgets/recipe/types";
+import { DEPTH_MAX, DEVICE_SLOT, format2Keys, ITEMS_MAX, type RecipeIssue, validateRecipe } from "@/widgets/recipe/validate";
 import type { WidgetPreset } from "@/widgets/define";
 
 /** A block's place: its child indices from the root card's. */
@@ -147,17 +147,79 @@ export function duplicateBlock(recipe: Recipe, path: Path): { recipe: Recipe; pa
   return { recipe: next, path: [...parent, k + 1] };
 }
 
-/** Moves a block one place up or down among its siblings. Returns its new path (the same one at an end). */
-export function moveBlock(recipe: Recipe, path: Path, by: -1 | 1): { recipe: Recipe; path: number[] } {
+/** How many levels a block and what it holds take (a block holding nothing is 1). */
+const heightOf = (b: Block): number => 1 + Math.max(0, ...childrenOf(b).map(heightOf));
+/** Whether a block is or holds a Repeat. */
+const holdsRepeat = (b: Block): boolean => b.type === "repeat" || childrenOf(b).some(holdsRepeat);
+/** Whether a block, or one it holds outside a Repeat of its own, reads a Repeat item's field. */
+const readsField = (b: Block): boolean =>
+  b.type !== "repeat" && (bindingsOf(b).some((x) => "field" in x) || childrenOf(b).some(readsField));
+
+/**
+ * Why the block at `from` may not go into the container at `toParent`, in the words the drop line shows, or undefined. The rules
+ * are the validator's: no Repeat inside a Repeat, no deeper than `DEPTH_MAX`, a field of each place only inside a Repeat.
+ */
+export function moveRefusal(recipe: Recipe, from: Path, toParent: Path): string | undefined {
+  const b = blockAt(recipe, from);
+  const target = blockAt(recipe, toParent);
+  if (!from.length || !b) return "The widget's card stays where it is";
+  if (!target || !isContainer(target)) return "Only a Row, a Card or a Repeat holds blocks";
+  if (toParent.length >= from.length && from.every((k, i) => toParent[i] === k)) return "A block can't go inside itself";
+  const inRepeat = target.type === "repeat" || !!repeatAbove(recipe, [...toParent, 0]);
+  if (inRepeat && holdsRepeat(b)) return "A Repeat can't go inside another Repeat";
+  if (!inRepeat && readsField(b)) return `${layerName(recipe, b)} reads each place's weather: it goes inside a Repeat only`;
+  if (toParent.length + 1 + heightOf(b) > DEPTH_MAX) return `Blocks nest at most ${DEPTH_MAX} deep`;
+  return undefined;
+}
+
+/**
+ * Moves a block (and what it holds) into the container at `toParent`, before that container's child `index` as the tree is now (its
+ * length: at the end). A move `moveRefusal` refuses, or one to where the block already is, returns the recipe as it was. Returns the
+ * block's path after the move.
+ */
+export function moveBlock(recipe: Recipe, from: Path, toParent: Path, index: number): { recipe: Recipe; path: number[] } {
+  if (moveRefusal(recipe, from, toParent)) return { recipe, path: [...from] };
+  const parent = from.slice(0, -1);
+  const k = from[from.length - 1];
+  const same = parent.length === toParent.length && parent.every((x, i) => toParent[i] === x);
+  if (same && (index === k || index === k + 1)) return { recipe, path: [...from] };
+  const block = blockAt(recipe, from)!;
+  const without = mapAt(recipe, parent, (b) => ({ ...b, children: childrenOf(b).filter((_, i) => i !== k) }) as Block);
+  // the target's path once the block has left its place: a later sibling of the block (or one inside it) moves up one
+  const to = toParent.map((x, i) => (i === parent.length && x > k && parent.every((y, j) => toParent[j] === y) ? x - 1 : x));
+  const at = Math.max(0, Math.min(same && index > k ? index - 1 : index, childrenOf(blockAt(without, to)!).length));
+  const next = mapAt(without, to, (b) => ({ ...b, children: [...childrenOf(b).slice(0, at), block, ...childrenOf(b).slice(at)] }) as Block);
+  return { recipe: next, path: [...to, at] };
+}
+
+/** Moves a block one place up or down among its siblings (Alt+↑/↓). Returns its new path (the same one at an end). */
+export function stepBlock(recipe: Recipe, path: Path, by: -1 | 1): { recipe: Recipe; path: number[] } {
   if (!path.length) return { recipe, path: [] };
+  const k = path[path.length - 1];
+  const length = childrenOf(blockAt(recipe, path.slice(0, -1))!).length;
+  if (k + by < 0 || k + by >= length) return { recipe, path: [...path] };
+  return moveBlock(recipe, path, path.slice(0, -1), by < 0 ? k - 1 : k + 2);
+}
+
+/**
+ * Where Alt+← (`out`: right after its container, in the container's parent) or Alt+→ (`in`: to the end of the Row, Card or Repeat
+ * just above it) takes a block, or why it can't go there.
+ */
+export function keyMove(recipe: Recipe, path: Path, way: "out" | "in"): { toParent: number[]; index: number } | { why: string } {
+  if (!path.length) return { why: "The widget's card stays where it is" };
   const parent = path.slice(0, -1);
   const k = path[path.length - 1];
-  const list = childrenOf(blockAt(recipe, parent)!);
-  const to = k + by;
-  if (to < 0 || to >= list.length) return { recipe, path: [...path] };
-  const moved = [...list];
-  [moved[k], moved[to]] = [moved[to], moved[k]];
-  return { recipe: mapAt(recipe, parent, (b) => ({ ...b, children: moved }) as Block), path: [...parent, to] };
+  if (way === "out") {
+    if (!parent.length) return { why: "It is in the widget's card already" };
+    const toParent = parent.slice(0, -1);
+    const why = moveRefusal(recipe, path, toParent);
+    return why ? { why } : { toParent, index: parent[parent.length - 1] + 1 };
+  }
+  const above = k > 0 ? blockAt(recipe, [...parent, k - 1]) : undefined;
+  if (!above || !isContainer(above)) return { why: "There is no Row, Card or Repeat just above it" };
+  const toParent = [...parent, k - 1];
+  const why = moveRefusal(recipe, path, toParent);
+  return why ? { why } : { toParent, index: above.children.length };
 }
 
 /** Every block with its path, depth first (the root card first): Layers' rows. */
@@ -185,7 +247,7 @@ export function layerName(recipe: Recipe, b: Block): string {
 }
 
 /** Whether a block reads data (Layers' link icon). */
-export const isBound = (b: Block): boolean => ("bind" in b && !!b.bind) || ("cells" in b && !!b.cells?.length) || (b.type === "card" && !!b.subtitle) || b.type === "repeat";
+export const isBound = (b: Block): boolean => bindingsOf(b).length > 0 || b.type === "repeat";
 
 /* ───────── devices and "Let people pick" ───────── */
 
@@ -202,7 +264,15 @@ export function deviceOfKey(key: string, devices: Partial<Record<RecipeDeviceKin
 }
 
 /** The binding a block reads its value through (a card's sub-title for the root). */
-const bindingOf = (b: Block): Binding | undefined => ("bind" in b ? b.bind : b.type === "card" ? b.subtitle : undefined);
+function bindingOf(b: Block): Binding | undefined {
+  return "bind" in b ? b.bind : b.type === "card" ? b.subtitle : undefined;
+}
+
+/** Every binding a block reads through itself: its own, a heatmap's cells, a label's parts. */
+export function bindingsOf(b: Block): Binding[] {
+  const own = bindingOf(b);
+  return [...(own ? [own] : []), ...("cells" in b ? (b.cells ?? []) : []), ...(b.type === "label" ? (b.parts ?? []).flatMap((p) => ("bind" in p ? [p.bind] : [])) : [])];
+}
 
 /** The option a binding is open to people through: a sensor option, or the device option its key names. */
 export function pickedOption(recipe: Recipe, b: Binding | undefined): RecipeOption | undefined {
@@ -229,12 +299,13 @@ export function pickWhat(recipe: Recipe, path: Path, devices: Partial<Record<Rec
 }
 
 /** Every sensor key of the tree rewritten by `fn` (bindings, a card's sub-title, heatmap cells). */
-function mapKeys(recipe: Recipe, fn: (key: string) => string): Recipe {
+export function mapKeys(recipe: Recipe, fn: (key: string) => string): Recipe {
   const bind = (b: Binding | undefined) => (b && "sensor" in b ? { sensor: fn(b.sensor) } : b);
   const go = (b: Block): Block => {
     const next = { ...b } as Record<string, unknown>;
     if ("bind" in b && b.bind) next.bind = bind(b.bind);
     if ("cells" in b && b.cells) next.cells = b.cells.map((c) => bind(c));
+    if (b.type === "label" && b.parts) next.parts = b.parts.map((p) => ("bind" in p ? { ...p, bind: bind(p.bind) } : p));
     if (b.type === "card" && b.subtitle) next.subtitle = bind(b.subtitle);
     if (isContainer(b)) next.children = b.children.map(go);
     return next as unknown as Block;
@@ -308,11 +379,8 @@ export function updateOption(recipe: Recipe, key: string, patch: Partial<Omit<Re
 /** How many blocks name an option (a binding, a key's device, a Repeat, a condition). */
 export function optionUses(recipe: Recipe, key: string): number {
   return flatten(recipe).filter(({ block: b }) => {
-    const bind = bindingOf(b);
     return (
-      (bind && "option" in bind && bind.option === key) ||
-      (bind && "sensor" in bind && bind.sensor.includes(`{${key}}`)) ||
-      ("cells" in b && b.cells?.some((c) => "sensor" in c && c.sensor.includes(`{${key}}`))) ||
+      bindingsOf(b).some((bind) => ("option" in bind && bind.option === key) || ("sensor" in bind && bind.sensor.includes(`{${key}}`))) ||
       (b.type === "repeat" && b.over === key) ||
       b.when?.option === key
     );
@@ -548,17 +616,74 @@ export function recipeIssues(recipe: Recipe, images: readonly PackageFile[] = []
   return validateRecipe({ files: [{ path: "manifest.json", bytes: new TextEncoder().encode(JSON.stringify(manifest)) }, ...files] });
 }
 
-/** The validation line: "No code · 7 blocks · 3 options · fits 2×2 to 4×3", and the floor's half ("Text stays above 11 px at every size", else the first text under it). */
-export function validationLine(recipe: Recipe, issues: readonly RecipeIssue[]): { ok: boolean; summary: string; floor: string; first?: string } {
+const count = (n: number, word: string): string => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+/**
+ * The validation line: "No code · 7 blocks · 3 options · sizes 2×2 to 4×3", and the floor's half ("Text stays above 11 px at every
+ * size", else the first text under it). It says only what the validator checks: the sizes are the recipe's range, not a claim that
+ * every block fits at each (that is the stage's to measure).
+ */
+export function validationLine(recipe: Recipe, issues: readonly RecipeIssue[]): { ok: boolean; summary: string; floor: string } {
   const { min, max } = recipe.size;
   const floor = issues.find((i) => i.rule === "text-floor");
-  const first = issues.find((i) => i.severity === "error");
   return {
-    ok: !first,
-    summary: `No code · ${blockCount(recipe)} blocks · ${recipe.options.length} options · fits ${min[0]}×${min[1]} to ${max[0]}×${max[1]}`,
+    ok: !issues.some((i) => i.severity === "error"),
+    summary: `No code · ${count(blockCount(recipe), "block")} · ${count(recipe.options.length, "option")} · sizes ${min[0]}×${min[1]} to ${max[0]}×${max[1]}`,
     floor: floor ? floor.message.replace(/^\$\.root(\.children\[\d+\])*: /, "") : `Text stays above ${TEXT_FLOOR} px at every size`,
-    first: first?.message,
   };
+}
+
+/* ───────── format ───────── */
+
+/** The recipe with the format its keys need: 2 where it uses a key format 1 has not got (a label's parts), else 1, byte for byte. */
+export function withFormat(recipe: Recipe): Recipe {
+  const format = format2Keys(recipe.root).length ? 2 : 1;
+  return recipe.format === format ? recipe : { ...recipe, format };
+}
+
+/* ───────── labels ───────── */
+
+/** A label's line as parts: its parts, else its one reading as one part; typed text has none. */
+export const labelParts = (b: Extract<Block, { type: "label" }>): LabelPart[] => b.parts ?? (b.bind ? [{ bind: b.bind }] : []);
+
+/**
+ * A label's line set from parts. One reading with no decimals or unit of its own is written as `bind`, and one piece of text as
+ * `text`, both format 1; anything more is `parts` (format 2, `withFormat`). No parts leaves typed text.
+ */
+export function setLabelParts(recipe: Recipe, path: Path, parts: readonly LabelPart[]): Recipe {
+  const clear = { text: undefined, bind: undefined, parts: undefined };
+  const [one] = parts;
+  if (!parts.length) return updateBlock(recipe, path, { ...clear, text: "Label" });
+  if (parts.length === 1 && "text" in one) return updateBlock(recipe, path, { ...clear, text: one.text });
+  if (parts.length === 1 && "bind" in one && one.decimals === undefined && one.unit === undefined) return updateBlock(recipe, path, { ...clear, bind: one.bind });
+  return updateBlock(recipe, path, { ...clear, parts: [...parts] });
+}
+
+/** "Typed" or "From data": a label's text, or a reading (`bind`, a Repeat item's name inside a Repeat). */
+export function setLabelSource(recipe: Recipe, path: Path, source: "typed" | "data", sensor: string): Recipe {
+  const b = blockAt(recipe, path);
+  if (b?.type !== "label") return recipe;
+  if (source === "typed") return updateBlock(recipe, path, { text: b.text ?? "Label", bind: undefined, parts: undefined });
+  return updateBlock(recipe, path, { text: undefined, parts: undefined, bind: repeatAbove(recipe, path) ? { field: "name" } : { sensor } });
+}
+
+/* ───────── lists inside a block ───────── */
+
+/** A list with one item moved from one place to another (a heatmap's cells, a label's parts: drag to order). */
+export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
+  if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return [...list];
+  const next = [...list];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
+/* ───────── sizes ───────── */
+
+/** Sets one of the recipe's sizes. "Opens at" is what Add uses, so it is the default preset's size too (B6). */
+export function setRecipeSize(recipe: Recipe, key: "min" | "max" | "default", cells: Cells): Recipe {
+  const size = { ...recipe.size, [key]: [...cells] as Cells };
+  return key === "default" ? { ...recipe, size, presets: recipe.presets.map((p) => (p.default ? { ...p, size: [...cells] as Cells } : p)) } : { ...recipe, size };
 }
 
 /** The base text size at a zone size (the stage's hint). */
