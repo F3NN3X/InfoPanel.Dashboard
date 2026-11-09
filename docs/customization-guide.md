@@ -14,7 +14,7 @@ saves immediately, and open kiosk pages update within about a second.
 │  │ left panel │      [ quick bar ]            │ inspector       │
 │R │ Layers |   │ canvas                        │ (docked: 320 px)│
 │a │ Add        │                               │                 │
-│i │ (Design    │      [ floating zoom bar ]    │                 │
+│i │ (Edit      │      [ floating zoom bar ]    │                 │
 │l │  only)     │                               │                 │
 └──┴────────────┴───────────────────────────────┴─────────────────┘
 ```
@@ -48,11 +48,11 @@ offers a backup first) is in Settings › Dashboard › Danger zone, the shortcu
 list is in Help (and **?**), and the build id is in Settings › App › About.
 
 The **icon rail** (72 px, labelled; 48 px under 960 px) at the left opens one
-full view at a time: **Screens**, **Design**, then **Theme**, **Library**,
-**Gauges**, **Alerts & Island** and **Data**. **Help** and **Settings** sit at
-its foot; Settings opens its own window. Only **Design** has the canvas, the
+full view at a time: **Screens**, **Edit**, then **Theme**, **Library**,
+**Widgets**, **Gauges**, **Alerts & Island** and **Data sources**. **Help** and **Settings** sit at
+its foot; Settings opens its own window. Only **Edit** has the canvas, the
 left panel and the inspector; the other views take the whole page and are
-described in their own sections. **Library** (your saved images, fonts, gauges, panels, Themes, Styles and imported InfoPanel canvases) and **Gauges** (design a Custom gauge or edit a screen's) replace the canvas; **Import** in the top bar brings an `.infopanel` profile in as a canvas zone.
+described in their own sections. **Library** (your saved images, fonts, gauges, panels, Themes, Styles, widget presets and imported InfoPanel canvases), **Widgets** (every widget, your own recipes and imports, and the builder; see [The Widgets page and the builder](#the-widgets-page-and-the-builder)) and **Gauges** (design a Custom gauge or edit a screen's) replace the canvas; **Import** in the top bar brings an `.infopanel` profile in as a canvas zone.
 
 A **floating zoom bar** sits over the bottom of the canvas, centred. It
 toggles the grid and the rulers, zooms out and in (or
@@ -125,7 +125,7 @@ Only the middle scrolls.
 
 ### The left panel
 
-In Design, a left panel beside the rail has two tabs, **Layers** and **Add**
+In Edit, a left panel beside the rail has two tabs, **Layers** and **Add**
 (its width is Settings › Studio › **Left panel width**: Narrow, Default or Wide).
 
 - **Layers** - every zone of the screen's page, with an icon for its type (the
@@ -135,18 +135,22 @@ In Design, a left panel beside the rail has two tabs, **Layers** and **Add**
   selection; right-click opens the zone menu. The eye hides or shows it and
   the bin removes it. Hidden zones are dimmed but stay selectable (and do not
   show in the kiosk).
-- **Add** - every widget, panel and layout, with a search box and the kinds
-  **Widgets | Panels | Layouts**; Widgets also has category chips (System,
-  Hardware, Storage, Network, Media, Audio, Info, Gaming, Generic), and Panels
-  lists your saved panels under My panels (see
-  [Creating a panel](#creating-a-panel)). **Drag** a card onto the canvas -
-  a dashed ghost shows where it lands, or **No room** in red - or **click** it
-  to place it at the first free spot. With a blank zone selected, a click
-  fills that zone instead. The numbers are the minimum zone size in grid
-  cells, and a badge counts how often a widget is already on the page.
-  *Other sensors* is listed here too, under Generic. **Widget list** and
-  **Preview on hover** in Settings › Studio set the list's density and
-  whether hovering shows a preview.
+- **Add** - every widget, panel and layout, with a search box and the tabs
+  **Widgets | Items | Panels | Layouts** (Items, InfoPanel's items and the
+  studio's elements, appears where the page takes them). Widgets also has
+  category chips (System, Hardware, Storage, Network, Media, Audio, Info, Gaming,
+  Generic, Streaming), and Panels lists your saved panels under My panels (see
+  [Creating a panel](#creating-a-panel)). Each widget is one row with its icon,
+  name and a line of what it is. A widget with presets shows **N presets**: click
+  it to list them and add one directly (see [Widget presets](#widget-presets)).
+  Recipe and code widgets you added on the Widgets page follow the built-in ones.
+  **Drag** a row onto the canvas - a dashed ghost shows where it lands, or **No
+  room here** in red - or **click** it to place it at the first free spot. With a
+  blank zone selected, a click fills that zone instead. **Recently used** holds
+  the last four things you added. Resting the pointer on a row opens a card with
+  a preview, what it is and its minimum size in grid cells. *Other sensors* is
+  listed here too, under Generic. **Widget list** and **Preview on hover** in
+  Settings › Studio set the list's density and whether hovering shows a preview.
 
 The other views are pages of their own:
 
@@ -159,7 +163,7 @@ The other views are pages of their own:
 
 **Screens** lists the monitor profiles as cards (a thumbnail, the size, the
 grid and page count). Click a card to select it for editing: it is the screen
-Design, the page tabs and the canvas follow, and it never changes what the app
+Edit, the page tabs and the canvas follow, and it never changes what the app
 opens on. **Settings > Dashboard > Startup screen** ("When the app opens") is a
 choice between **Best fit for the window** (the screen closest to the kiosk
 window's size; the card tagged *Best fit now*) and one screen (tagged *Opens on
@@ -217,9 +221,9 @@ size steps are left out. Right-click empty canvas for **Add widget...**,
 **Select all**, **Zoom to fit**, **Edit theme** (opens Theme) and
 **Keyboard shortcuts**.
 
-The widget picker lists every widget and panel (layout starters and your
-saved panels included) with a search box (focused when it opens), the
-category chips and each one's minimum size; **Blank zone** removes the
+The widget picker lists every widget and panel (layout starters, your
+saved panels and your recipe and code widgets included) with a search box
+(focused when it opens), the category chips and each one's minimum size; **Blank zone** removes the
 widget. Picking one assigns it to the zone and grows the
 zone to the widget's minimum size — unless that would cover another zone;
 then the zone keeps its size and you can resize it yourself.
@@ -244,7 +248,7 @@ any other edit.
 
 - add any widget or panel - layout starters and your saved panels included
   (at the first free spot), switch screen or page, select a zone by name,
-  open any view (Screens, Design, Theme, Library, Gauges, Data, Alerts & Island
+  open any view (Screens, Edit, Theme, Library, Widgets, Gauges, Data, Alerts & Island
   and its tabs, Settings and its pages), the Add or Layers panel, toggle the
   grid, zoom, save, export, import, undo, redo, **Open Live**, the shortcut
   list, **Theme**, **Theme › Background**, **Theme › Typography**,
@@ -292,7 +296,7 @@ While you type in a field (a setting, the search box, the zone name), the
 plain keys go to the field; Ctrl + S and Ctrl + K still work, and so does
 undo / redo outside text fields (inside one they are the browser's own). With
 a dialog or menu open, its own keys win (Esc closes it). While a pointer drag
-is in flight only Esc (cancel) works. Outside Design the canvas keys are off.
+is in flight only Esc (cancel) works. Outside Edit the canvas keys are off.
 The tooltips of the top bar buttons show their shortcut (the zone's Duplicate
 and Remove only while no panel widget is selected, since Ctrl + D and Del
 then act on the widget).
@@ -310,8 +314,8 @@ settings. It never hard-codes a panel per widget.
 grid cells; values are checked against neighbours and minimum sizes). A
 **Search all settings** box and a **Changed N** toggle share one row below it.
 
-**Tabs.** A widget or panel zone has **Show**, **Style**, **Data** and **Behaviour**
-(Show: what is on the widget; Style: how it looks; Data: where the values
+**Tabs.** A widget or panel zone has **Content**, **Style**, **Data** and **Behaviour**
+(Content: what is on the widget; Style: how it looks; Data: where the values
 come from and how they are written; Behaviour: how it reacts and what it
 tells you). A small pill on a tab counts the options set on this zone, and
 a tab with no sections is dimmed and skipped. The open tab is remembered per
@@ -382,7 +386,7 @@ inherited**) applies to each of them; the chip shows the primary zone's state.
 **What each context shows:**
 
 - **Widget zone** -
-  - *Show*: **Header** (**Show title**, which off hides the title everywhere
+  - *Content*: **Header** (**Show title**, which off hides the title everywhere
     the widget shows it, **Title** and, under More, **Icon**; a widget that
     draws no header, or only a title, has fewer rows), the widget's own
     sections (for example Media: *Player*, *Visualizer*; System: *Sections*,
@@ -397,7 +401,7 @@ inherited**) applies to each of them; the chip shows the primary zone's state.
     colors** (the widget's own colors, each standing for a palette color such
     as *Series 1* or *Critical*, plus the rows that choose how they work, such
     as the tint or a heat ramp; what a widget draws and how, like a Stream
-    Deck's key gap or a scrim, is in its own sections under *Show*),
+    Deck's key gap or a scrim, is in its own sections under *Content*),
     **Typography** (**Font**, **Value weight**, **Label case**), **Shape &
     spacing** (**Size %**, the 3×3 **Alignment** with **Spread**, **Inner
     padding**, **Gap between items**, **Corner radius**), **Surface & effects**
@@ -419,7 +423,7 @@ inherited**) applies to each of them; the chip shows the primary zone's state.
     corner radius, and the border. The plain card widgets (Departures,
     Notifications, Text File, Stream Deck and the *Other sensors* cards)
     offer fewer of the standard options than the other widgets.
-- **Panel zone** - *Show*: **Panel** (Visual or Code, Fill or Hug, gap,
+- **Panel zone** - *Content*: **Panel** (Visual or Code, Fill or Hug, gap,
   padding), **Layout** (Stack / Grid / Overlay options), **Background**
   (Overlay only), **Widgets**; *Style*: the same look sections as a widget;
   *Data*: **Sensors used** by its widgets. With a widget selected the
@@ -605,7 +609,7 @@ stack.
   header and tabs give way to it; the header's actions still act on the
   zone). The rows are the shared ones, the same as a zone's, filed by what
   the kind uses:
-  - *Show*: **Kind** (chips; **Change kind** keeps the label, sensor, unit,
+  - *Content*: **Kind** (chips; **Change kind** keeps the label, sensor, unit,
     color, layout, CSS and follow flags, and drops what the new kind does
     not read), **Content** (label, clock time / date, static text or image
     URL, shape and thickness, table rows; columns and header under More) and
@@ -773,6 +777,91 @@ set on the element); to target a few widgets only, give them a class name
 (Style > Custom CSS > **Class names**, e.g. `hot`) and select `.wp-widget.hot` in the
 panel's CSS.
 
+## Widget presets
+
+Most widgets come with **presets**: named views, each with its own size and settings. Weather has Full, Now, Forecast,
+Minimal, Glance and Week; FPS Monitor has Frame-time graph, Gauge, Trend and Frame pacing. 67 presets ship, across 21
+widgets. Several widgets that used to be separate are presets of another: Forecast is Weather's Forecast preset,
+Threshold Timeline is Session Stats' Threshold timeline, Vitals is KPI Tiles' Vitals, GPU Rings is GPU Monitor's Rings and
+Frame Pacing is FPS Monitor's Frame pacing. A screen saved with an old one opens as the new one, in the matching view, with
+its settings kept.
+
+- In **Add**, a widget with presets shows **N presets**; click it to list them and add one, or drag it onto the canvas.
+- A placed widget has a **Preset** row at the top of its inspector. Click a preset to apply it (one undo step); it sets the
+  view and the settings the preset names and leaves the rest. Tick **Also use the preset's size** to resize the zone too. If
+  you change a setting a preset sets, the row reads **Custom**.
+- **Save as preset** keeps the widget's view, settings and size under a name you type. It is listed under **Yours** in the
+  Preset row, as a row of that widget in Add, and in **Library › Widget presets**, where it can be applied to the selected
+  widgets of that kind, renamed, duplicated and deleted. **Save as style** next to it keeps only the look (see [Styles, Copy,
+  Paste and Make this the theme](#styles-copy-paste-and-make-this-the-theme)).
+
+## The Widgets page and the builder
+
+**Widgets** in the sidebar opens the Widgets page: every built-in widget, the ones you made and the ones you imported, in one
+place. It also builds new ones.
+
+**Browse.** The title counts the built-in, your own and the imported widgets. A search box and the chips **All**, **Recipes**,
+**Code** and **Yours** narrow the list, which has three sections: **Yours** (recipes saved from the builder), **Imported**
+(packages brought in from a file) and **Built in** (with **Show all**). Click a card to open its details: what it is, how it
+is made and by whom, its presets, the options people can change and the screens it is on. **Add to a screen** puts it on the
+screen you were editing. The **⋯** menu has **Duplicate**, **Remove** and, for an imported code widget, **Turn this widget off**.
+
+**Two kinds of widget you add.** A **recipe** is built from the studio's own blocks: it holds no code, follows the theme,
+scales with its zone and needs no trust. A **code widget** is a package with JavaScript in it, written by a developer; it runs
+with the same access as a built-in widget, so it loads only when signed by a key you trust (see [Code widgets and
+trust](#code-widgets-and-trust)). Both appear in Add after the built-in widgets and have presets like any other.
+
+**Import and Export.** **Import** takes a widget package, a `.zip` of at most 512 KB. The studio checks it before storing
+anything; a refused package is listed with the file and the reason in plain words. **Export**, in a widget's details or in the
+builder, writes `<name>-<version>.widget.zip`.
+
+**New widget** opens the builder on a blank recipe. A built-in's details also have **Duplicate as a recipe** for CPU Monitor,
+GPU Monitor, Sensor and Weather; the other built-ins draw things blocks cannot (lists with as many rows as the data has,
+controls, the clock, audio streams), and the button says why it is disabled.
+
+**The builder** has Layers and **Add a block** on the left, the preview in the middle and the inspector on the right.
+
+- A recipe is a card of blocks: Ring, Gauge, Bar, Sparkline, Value, Label, Weather icon, Image, Heatmap, Row and Repeat (up to
+  64 blocks, six levels deep). The name is edited in the bar at the top; **Undo** and **Redo** (`Ctrl+Z`, `Ctrl+Shift+Z`)
+  step through edits, and every open recipe keeps its own history.
+- Above the preview, **Size** switches between the sizes the recipe supports, **Preview in** draws it in another look, and
+  **Data** switches between **Live data** and **Sample** values.
+- The inspector's **Block** tab sets what the selected block reads (a sensor, or a device such as a CPU or GPU), its colour
+  (accent, a series, or by thresholds), when it shows (always, or when an option has a value) and the smallest size it is
+  drawn at. **Let people pick** turns a binding into an option.
+- **Options** are what people can change when they add the widget, shown in its Content tab: a toggle, a choice, a number, a
+  text, a sensor, a place list or a device (up to 24). **Presets** are named sets of options and a size (up to 16).
+- The bar says whether the recipe is valid and, if not, the first problem. **Save** stores it on the server, **Add to a screen**
+  saves it and puts it on the screen, and **Export** writes the package. A recipe signed by someone else cannot be replaced
+  by a save, only copied with **Save as a copy**.
+
+**Weather by place.** A recipe can show the weather for places people choose, with no plugin: a **Repeat** block over a place
+list, with a Weather icon and values bound to each place's temperature, wind, precipitation and so on. In the widget's Content
+tab the place list takes names (**Add a place: search by name**) and a first place for this PC (**Use this PC's location
+first**, picked once and never looked up from your connection). The forecasts come from Open-Meteo, through the dashboard's
+server; only the place names and coordinates leave your PC, and a place is fetched when a screen first needs it and about every
+15 minutes after. The widget draws the credit **Weather data by Open-Meteo.com · CC BY 4.0** and says when data is old or
+missing. Start the server with `WEATHER=off` to turn it off. The built-in Weather widget is separate and still reads the Yr or
+OpenWeatherMap plugin.
+
+### Code widgets and trust
+
+A code widget's details say who stands behind it:
+
+- **Signed by InfoPanel Studio · reviewed** - signed by the owner's key, which is built into the app.
+- **Signed by ‹name› · not reviewed** (amber) - signed by a key you trusted yourself. Nobody has reviewed the code. It can read
+  your sensors, screens and settings and use the network.
+- **Not loaded: the signature does not check out** (red) - refused. It is greyed out, is not in Add and draws "Widget not
+  available" where it is placed.
+
+Keys are added only in **Settings › Widget publishers** (**Manage keys** in a widget's details goes there), never from an
+import. A key signs only for the publisher names you give it. **Turn this widget off** unloads one widget, and **Third-party
+code widgets** at the top of the page hides and stops every code widget that isn't built in. Both are kept by the server, so
+every screen and kiosk it serves obeys them, kiosks on other devices included. The server's own `USER_CODE_WIDGETS=off` does
+the same and cannot be undone from the page; `USER_WIDGETS=off` turns off every recipe and code widget. The page offers the
+**Widget SDK types (.d.ts)** for authors. How to write and sign a widget: [code-widgets.md](code-widgets.md); the security
+side: [security.md](security.md).
+
 ## Scaling with the zone and Size %
 
 Widgets fit themselves to their zone: each one measures its zone, picks a
@@ -815,7 +904,7 @@ profile or a page (the [widget theme](#widget-theme)) and let widgets follow it.
   and its own accent unless you set an accent. Its fonts load on first use; offline, the widget
   falls back to the standard stack. **Font** under *Typography* overrides the
   skin's fonts.
-- **Small zones** (Fit, Show tab) - what the widget draws in a small zone.
+- **Small zones** (Fit, Content tab) - what the widget draws in a small zone.
   *Auto* swaps a zone of 1 x 1, a one-row strip or a one-column zone to a
   summary card of tile, strip or column form; *Full* keeps the full layout at
   any size; *Card* shows the summary card at any size (a wide zone gets the
@@ -1166,7 +1255,7 @@ on a screen or page, a chip's **Edit ‹level›**, **Edit theme** on the canvas
   and **Lock all** / **Unlock all** at the top; a page shows
   *Follows ‹screen›* with **Customise here** per card, or *Custom here* with
   **Reset to inherited**; *All screens* has no locks.
-- The left column is the widget inspector without a Show tab: **Start from**,
+- The left column is the widget inspector without a Content tab: **Start from**,
   then the ten cards. Colors adds **Status & series colors** (Series 1-6, OK,
   Warning, Critical: the palette the widgets' colors stand for); Units & format
   holds the Data rows; Thresholds and Motion the Behaviour ones. Color tokens,
