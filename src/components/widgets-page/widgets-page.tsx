@@ -350,7 +350,7 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
       pageStyle,
       refused: w.kind === "recipe" && !r ? (w.issues.find((i) => i.severity === "error")?.message ?? "the check refused it") : undefined,
       onAdd: r ? { label: "Add to a screen", run: () => addRecipe(r) } : { label: "Add to a screen", run: () => {}, disabled: true, title: w.kind === "code" ? "A dev fixture: there is no package to load" : "The check refused it" },
-      primary: w.kind === "code" ? { label: "About", icon: "about", run: () => toast(`${w.name}: a dev fixture of an owner-signed code widget (the owner key is not set up yet)`) } : { label: "Edit recipe", icon: "edit", run: () => void editStored(w), disabled: !r },
+      primary: w.kind === "code" ? { label: "About", icon: "about", run: () => toast(`${w.name}: a dev fixture of an owner-signed code widget`) } : { label: "Edit recipe", icon: "edit", run: () => void editStored(w), disabled: !r },
       onExport: r ? { label: "Export", run: () => void exportStored(w.id, r) } : { label: "Export", run: () => {}, disabled: true },
       menu: r
         ? [

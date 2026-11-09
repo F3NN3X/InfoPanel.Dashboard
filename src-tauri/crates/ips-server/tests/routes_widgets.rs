@@ -693,7 +693,8 @@ async fn publisher_keys_are_read_over_http_and_never_written() {
     let s = start().await;
     let keys = || async { serde_json::from_slice::<Value>(&get(s.port, "/api/widget-keys").await.body).unwrap()["keys"].clone() };
     let before = keys().await;
-    assert_eq!((before[0]["id"].as_str(), before[0]["state"].as_str(), &before[0]["fingerprint"]), (Some("owner"), Some("not-set-up"), &Value::Null), "the owner slot ships empty");
+    assert_eq!((before[0]["id"].as_str(), before[0]["state"].as_str()), (Some("owner"), Some("trusted")), "the owner's key is built in");
+    assert!(before[0]["fingerprint"].as_str().is_some_and(|f| !f.is_empty()));
     assert_eq!((before[1]["id"].as_str(), before[1]["state"].as_str()), (Some("themely"), Some("not-available")), "the Themely slot is disabled");
     assert_eq!(before.as_array().unwrap().len(), 2);
     let body = json!({ "name": "Mine", "key": test_key() }).to_string();
