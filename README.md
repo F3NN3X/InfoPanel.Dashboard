@@ -11,7 +11,8 @@ You lay out widgets in a studio, and a local server serves the result as a full 
 ## What you get
 
 - A studio to design screens: drag widgets onto a grid, resize them, undo any edit, and see saved changes appear on the display within about a second.
-- More than 60 widgets for system load, temperatures, fans, drives, network, frame rate, clocks, weather, calendars, media and more, and a library of your own panels, styles, gauges, images, videos and fonts.
+- 64 widgets for system load, temperatures, fans, drives, network, frame rate, clocks, weather, calendars, media and more. Most come with presets (named views with a size and settings), and you can save your own. A library holds your own panels, styles, presets, gauges, images, videos and fonts.
+- Your own widgets: the Widgets page builds a recipe from Studio's blocks with no code, imports and exports widget packages, and can show the weather for places you choose (from Open-Meteo, no plugin). Developers can add code widgets, which run only when signed by a key you trust in Settings > Widget publishers.
 - 24 screen templates to start from, each made for a standard, wide, strip or tall panel.
 - Themes: one place to set colours, type, shape and spacing for every screen, one screen or one page, with ready-made skins and palettes you can save as your own.
 - InfoPanel import. Open an `.infopanel` profile as a screen and edit it in a canvas editor. Studio does not write `.infopanel` files.
@@ -36,13 +37,13 @@ Your dashboards are stored in `%LOCALAPPDATA%\InfoPanel\Dashboard`.
 
 - Windows 10 or 11, 64 bit.
 - InfoPanel with the Data API, installed and running, with the Data API turned on in its Settings. That is where every sensor value comes from. By default the studio looks for it at `http://127.0.0.1:3921`, and you can change the address in the studio.
-- Some widgets need an InfoPanel plugin: `wavelink-plugin` for Wave Link, `yr-weather-plugin` for the weather forecast, and `InfoPanel.Notifications` 2.0 or newer for alerts from Windows notifications.
+- Some widgets need an InfoPanel plugin: `wavelink-plugin` for Wave Link, `yr-weather-plugin` for the Weather widget (a recipe widget's weather by place needs no plugin), and `InfoPanel.Notifications` 2.0 or newer for alerts from Windows notifications.
 
 ## Quick start
 
 1. Open the studio, press Screens on the rail, then New.
 2. Pick a template, pick the size of your panel, and press Create screen.
-3. In Design, add or move widgets. Any widget with a sensor has a Data tab to choose the reading.
+3. In Edit, add or move widgets. Any widget with a sensor has a Data tab to choose the reading.
 4. Open Settings > Server and copy the kiosk URL.
 5. In InfoPanel, make a profile for your panel, turn on Web Page mode and paste the URL. For a particular screen, add `&profile=<profile id>` to it:
 
@@ -70,7 +71,7 @@ Known problems and fixes are in the Help article Common problems. Report bugs an
 
 - [Releases](https://github.com/F3NN3X/InfoPanel.Studio/releases) and the [changelog](CHANGELOG.md)
 - [Issues](https://github.com/F3NN3X/InfoPanel.Studio/issues)
-- Help is inside the app. [docs/](docs/README.md) has the customization guide, the widget catalog and the security model.
+- Help is inside the app. [docs/](docs/README.md) has the customization guide (including the Widgets page and builder), the widget catalog, how to write a code widget and the security model.
 
 ## For developers
 
