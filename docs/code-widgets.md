@@ -103,5 +103,5 @@ the server, so every screen obeys them. The server's own `USER_CODE_WIDGETS=off`
 
 ## The owner's key
 
-Widgets signed with the owner's key show "Signed by InfoPanel Studio · reviewed". That key is the owner's alone and is not the
-updater's key; setting it up is a one-time owner step, described in [security.md](security.md) under "Widget publisher keys".
+Widgets signed with the owner's key show "Signed by InfoPanel Studio · reviewed". That key is built into the app. It is the owner's
+alone and is not the updater's key; see [security.md](security.md) under "Widget publisher keys".
