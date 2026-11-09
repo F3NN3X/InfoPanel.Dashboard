@@ -18,7 +18,7 @@ Where the page takes InfoPanel items, as on an InfoPanel profile, Add has an **I
 
 ## Views and presets
 
-Several widgets draw more than one view of the same data, and a view comes with a size and a few settings that suit it. These are the widget's **presets**: a row in Add that shows "N presets" opens them, and you can add one straight from the list. A placed widget shows the same presets as the **Preset** row at the top of its inspector. If you change a setting a preset sets, the row reads **Custom**. See [Layouts and presets](presets#widget-presets) for saving your own.
+Several widgets draw more than one view of the same data, and a view comes with a size and a few settings that suit it. These are the widget's **presets**: a row in Add that shows "N presets" opens them, and you can add one straight from the list. A placed widget shows the same presets as the **Preset** row in its inspector, under the placement row. If you change a setting a preset sets, the row reads **Custom**. See [Layouts and presets](presets#widget-presets) for saving your own.
 
 A few widgets that used to be separate are now views of another widget. A screen saved with the old one opens as the new one, in the matching view, with its settings kept.
 

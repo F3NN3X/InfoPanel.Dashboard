@@ -787,7 +787,7 @@ Frame Pacing is FPS Monitor's Frame pacing. A screen saved with an old one opens
 its settings kept.
 
 - In **Add**, a widget with presets shows **N presets**; click it to list them and add one, or drag it onto the canvas.
-- A placed widget has a **Preset** row at the top of its inspector. Click a preset to apply it (one undo step); it sets the
+- A placed widget has a **Preset** row in its inspector, under the placement row and above the tabs. Click a preset to apply it (one undo step); it sets the
   view and the settings the preset names and leaves the rest. Tick **Also use the preset's size** to resize the zone too. If
   you change a setting a preset sets, the row reads **Custom**.
 - **Save as preset** keeps the widget's view, settings and size under a name you type. It is listed under **Yours** in the

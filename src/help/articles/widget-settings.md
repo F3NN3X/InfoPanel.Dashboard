@@ -19,7 +19,7 @@ Widget-specific sections come first in each tab, shared ones after. With nothing
 
 Every Style section has a chip that says where its value comes from: **From ‹screen›**, **From theme**, **Changed here**, **Built-in** or **Locked** (see [Themes](themes#fine-tune)). Editing a row changes the section here. Click the chip, or the links under the rows, to **Reset to inherited**, **Change here** or open the level it comes from. With a section focused, Backspace resets it.
 
-A widget with presets also has a **Preset** row at the top of the inspector, under its place; it picks a view and its settings in one step (see [Layouts and presets](presets#widget-presets)).
+A widget with presets also has a **Preset** row under the header and the place row, above the tabs and the search box; it picks a view and its settings in one step (see [Layouts and presets](presets#widget-presets)).
 
 ## Finding a setting
 
