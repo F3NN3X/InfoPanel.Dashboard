@@ -6,6 +6,7 @@ import { ALL_MODULES, type ModuleMeta } from "./studio-modules";
 import { addSettings, defaultSize, presetsFor, type PresetMap } from "./widget-presets";
 import type { UserWidgetPreset } from "@/lib/widget-presets";
 import type { WidgetPreset } from "@/widgets/define";
+import type { Recipe } from "@/widgets/recipe/types";
 
 /**
  * The Add panel's catalog (handoff SPEC §3): every widget, panel and layout as one row shape, with search
@@ -124,6 +125,17 @@ function widgetItems(map: PresetMap, saved: readonly UserWidgetPreset[] | undefi
   return ALL_MODULES.map((m) => moduleItem(m, presetsFor(m, map, saved)));
 }
 
+/**
+ * A recipe widget's row (FORMAT.md §14), after the built-in ones: its presets as rows, as a built-in's are. Every add, the default
+ * preset's too, stores the recipe's version with the placement.
+ */
+export function recipeItem(r: Recipe): AddItem {
+  const m: ModuleMeta = { id: r.id, title: r.name, minCols: r.size.min[0], minRows: r.size.min[1], category: r.category, icon: r.icon, description: r.description, defaultSize: r.size.default };
+  const versioned = (i: AddItem): AddItem => ({ ...i, drop: { ...i.drop, settings: { recipeVersion: r.version, ...i.drop.settings } } });
+  const item = moduleItem(m, r.presets);
+  return { ...versioned(item), ...(item.presets ? { presets: item.presets.map(versioned) } : {}) };
+}
+
 /** The widgets with each one's presets as rows: what a drop that carries a preset's settings resolves against. */
 export const widgetRows = (items: readonly AddItem[]): AddItem[] => items.flatMap((i) => [i, ...(i.presets ?? [])]);
 
@@ -178,12 +190,12 @@ const BLANK_ZONE: AddItem = {
 
 export type AddCatalog = Record<AddKind, AddItem[]>;
 
-/** Every widget, panel (saved first, then presets) and layout (Blank zone, then the starters). */
-export function addCatalog(saved?: UserPanelPreset[], presets: PresetMap = {}, userPresets?: readonly UserWidgetPreset[]): AddCatalog {
+/** Every widget (the built-in ones, then the recipes), panel (saved first, then presets) and layout (Blank zone, then the starters). */
+export function addCatalog(saved?: UserPanelPreset[], presets: PresetMap = {}, userPresets?: readonly UserWidgetPreset[], recipes: readonly Recipe[] = []): AddCatalog {
   const panelPresets = allPanelPresets(saved);
   const isLayout = (p: PanelPreset) => !p.user && p.id.startsWith("layout-");
   return {
-    widget: widgetItems(presets, userPresets),
+    widget: [...widgetItems(presets, userPresets), ...recipes.map(recipeItem)],
     panel: [
       ...panelPresets.filter((p) => p.user).map((p) => presetItem(p, "panel", MY_PANELS)),
       ...panelPresets.filter((p) => !p.user && !isLayout(p)).map((p) => presetItem(p, "panel", PANEL_PRESETS)),

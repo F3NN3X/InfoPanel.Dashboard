@@ -7,6 +7,7 @@ import type { AddToastState } from "./add-toast";
 import type { LibraryItem } from "./drop-ghost";
 import type { AddOutcome } from "./use-studio-mutations";
 import { useWidgetPresets } from "./widget-presets";
+import { useRecipes } from "@/widgets/recipe/use-recipes";
 import type { ZoneRect } from "./zone-geometry";
 
 /** How long the Add panel's toast stays up. */
@@ -55,9 +56,10 @@ interface AddPanelDeps {
  */
 export function useAddPanel({ config, addFromPanel, targetZoneId, undo }: AddPanelDeps) {
   const builtin = useWidgetPresets();
+  const recipes = useRecipes();
   const catalog = useMemo(
-    () => addCatalog(config.panelPresets, builtin, config.widgetPresets),
-    [config.panelPresets, config.widgetPresets, builtin]
+    () => addCatalog(config.panelPresets, builtin, config.widgetPresets, recipes),
+    [config.panelPresets, config.widgetPresets, builtin, recipes]
   );
   const [recent, pushRecent] = useRecentAdds();
   const { toast, show, seq, clear } = useAddToast(config);
