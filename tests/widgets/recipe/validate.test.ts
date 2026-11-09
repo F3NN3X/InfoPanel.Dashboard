@@ -84,9 +84,10 @@ describe("validateRecipe", () => {
     expect(errors(withFile(files, "manifest.json", JSON.stringify({ ...manifestOfFiles(files), kind: "code" })))).toEqual(["kind"]);
   });
 
-  it("signature: a recipe carries none", async () => {
+  it("signature: a recipe may carry one in minisign's form (the server verifies it); any other shape is refused", async () => {
     const files = await cpu(() => {});
-    expect(errors(withFile(files, "manifest.json", JSON.stringify({ ...manifestOfFiles(files), signature: { alg: "ed25519" } })))).toEqual(["signature"]);
+    expect(errors(withFile(files, "manifest.json", JSON.stringify({ ...manifestOfFiles(files), signature: { alg: "ed25519" } })))).toEqual(["schema"]);
+    expect(errors(withFile(files, "manifest.json", JSON.stringify({ ...manifestOfFiles(files), signature: { minisign: "untrusted comment: x" } })))).toEqual([]);
   });
 
   it("id and version: the manifest's are the recipe's", async () => {

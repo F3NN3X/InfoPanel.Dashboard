@@ -167,9 +167,10 @@ function blockTypes(block: unknown, at = "$.root", out: [string, string][] = [])
 
 type Add = (rule: string, file: string, message: string, severity?: RecipeIssue["severity"]) => void;
 
+// A recipe may carry a publisher signature (`{ minisign }`, FORMAT.md §17). Its shape is the schema's; whether it verifies is the
+// server's word (ips-server widget_sign.rs, on import and on every read): a package it does not verify is never served.
 function manifestRules(m: Manifest, r: Recipe, files: readonly PackageFile[], add: Add): void {
-  if (m.kind !== "recipe") add("kind", "manifest.json", `kind ${m.kind}: this build takes recipe packages only (code widgets come with signatures, Phase 6)`);
-  if (m.signature !== undefined) add("signature", "manifest.json", "a recipe package carries no signature (the field is kept for code widgets)");
+  if (m.kind !== "recipe") add("kind", "manifest.json", `kind ${m.kind}: a code widget is not a recipe (code widgets load from Phase 6b)`);
   if (m.id !== r.id) add("id", "manifest.json", `the manifest's id ${m.id} is not the recipe's ${r.id}`);
   if (m.version !== r.version) add("version", "manifest.json", `the manifest's version ${m.version} is not the recipe's ${r.version}`);
   const listed = new Set<string>();

@@ -247,9 +247,9 @@ export interface ManifestFile {
 }
 
 /**
- * A widget package's manifest (`manifest.json`), the one format of recipes (5a) and code widgets (6a). For a recipe `signature`
- * is absent; 6a signs the manifest without its `signature` field (the file list carries every file's hash), so a recipe's
- * manifest is read the same way then.
+ * A widget package's manifest (`manifest.json`), the one format of recipes (5a) and code widgets (6a). `signature` is minisign's
+ * over the manifest without it (the file list carries every file's hash, FORMAT.md §17): a code widget's must be there, a
+ * recipe's may. A code widget names its `publisher` (the id's) and its bundle `entry`.
  */
 export interface Manifest {
   format: 1;
@@ -258,6 +258,8 @@ export interface Manifest {
   version: string;
   author: string;
   name?: string;
+  publisher?: string;
+  entry?: "widget.js";
   files: ManifestFile[];
-  signature?: unknown;
+  signature?: { minisign: string };
 }

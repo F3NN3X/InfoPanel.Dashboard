@@ -19,7 +19,8 @@ export const keyOf = (id: string): string => id.replace(":", ".");
 /** Where a package came from, as the server recorded it: saved from the studio's builder, or imported from a file. */
 export type WidgetOrigin = "studio" | "import";
 
-/** What `GET /api/widgets` says of a package. */
+/** What `GET /api/widgets` says of a package. `trust` is the server's check of its signature, now: `unsigned` (a recipe without
+ * one), `owner`, `themely`, `user:<name>`, or `refused:<reason>` (its files are not served). */
 export interface UserWidgetInfo {
   id: string;
   kind: string;
@@ -27,6 +28,7 @@ export interface UserWidgetInfo {
   version: string;
   size: number;
   origin: WidgetOrigin;
+  trust: string;
 }
 
 /** A loaded recipe: drawn when `recipe` is set; `off` when the server has user widgets switched off. */
@@ -43,7 +45,7 @@ export async function listUserWidgets(): Promise<{ list: UserWidgetInfo[]; off: 
     const off = res.headers.get("X-User-Widgets") === "off";
     const raw: unknown = res.ok ? await res.json() : [];
     const list = Array.isArray(raw)
-      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0, origin: w.origin === "studio" ? "studio" : "import" }] : []))
+      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0, origin: w.origin === "studio" ? "studio" : "import", trust: typeof w.trust === "string" ? w.trust : "unsigned" }] : []))
       : [];
     return { list, off };
   } catch {
