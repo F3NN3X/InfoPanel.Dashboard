@@ -23,7 +23,7 @@ import { migrateLegacyZones } from "./legacy-zones";
 import { clearOwnCardsV18, migrateLooksV17, renameSkinsV17 } from "./look-migrate";
 import { migrateProfileV15 } from "./page-model/migrate";
 import { normalizePanelPresets } from "./panel-model";
-import { normalizeWidgetPresets } from "./widget-presets";
+import { normalizeWidgetPresets } from "./widget-presets-guard";
 import { clockOfStyle, dashboardLook, migrateScreensV16 } from "./screen-look-migrate";
 import { YR_FORECAST_KEY } from "./sensors";
 import {

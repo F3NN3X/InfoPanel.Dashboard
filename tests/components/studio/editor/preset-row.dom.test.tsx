@@ -19,7 +19,7 @@ afterEach(cleanup);
 
 function row(settings: ModuleSettings | undefined, saved: UserWidgetPreset[] = []) {
   const on = { onPick: vi.fn(), onSave: vi.fn(), onRename: vi.fn(), onDelete: vi.fn() };
-  render(<PresetRow mod={weather} builtin={builtin} saved={saved} settings={settings} {...on} />);
+  render(<PresetRow mod={weather} builtin={builtin} saved={saved} settings={settings} size={[3, 2]} {...on} />);
   return on;
 }
 
@@ -52,7 +52,9 @@ describe("PresetRow", () => {
     expect(on.onSave).not.toHaveBeenCalled();
     fireEvent.change(input, { target: { value: " Desk weather " } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(on.onSave).toHaveBeenCalledWith("Desk weather");
+    expect(on.onSave).toHaveBeenCalledTimes(1);
+    expect(on.onSave.mock.calls[0][0]).toMatchObject({ widget: "Weather", name: "Desk weather", view: "full", settings: {}, size: [3, 2] });
+    expect(on.onSave.mock.calls[0][0].id).toMatch(/^my-/);
     expect(screen.queryByLabelText("Preset name")).toBeNull();
   });
 

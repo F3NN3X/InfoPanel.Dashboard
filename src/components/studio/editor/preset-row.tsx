@@ -9,7 +9,7 @@ import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { iconFor } from "@/widgets/core/icons";
 import type { WidgetPreset } from "@/widgets/define";
 import { userPreset } from "../widget-presets";
-import { matchingPreset, presetChange } from "./preset-model";
+import { matchingPreset, presetChange, presetFromZone } from "./preset-model";
 
 interface PresetRowProps {
   mod: DashboardModule;
@@ -18,9 +18,11 @@ interface PresetRowProps {
   /** The user's saved presets for the widget. */
   saved: readonly UserWidgetPreset[];
   settings: ModuleSettings | undefined;
+  /** The zone's size in cells (what Save as preset keeps). */
+  size: [number, number];
   /** One undo step; `size` only when the user asked for the preset's size too. */
   onPick: (patch: ModuleSettings, clear: string[], size?: [number, number]) => void;
-  onSave: (name: string) => void;
+  onSave: (preset: UserWidgetPreset) => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
   /** Keep the widget's own style (Style tab › Save); unset when it has none. */
@@ -75,7 +77,7 @@ function NameField({ label, initial, onDone, onCancel }: NameFieldProps) {
  * preset's view and settings (the size only when "Also use the preset's size" is on); a placement's own view id never changes
  * by itself (G1). Saved styles are another list and stay under Style; the link goes there.
  */
-export default function PresetRow({ mod, builtin, saved, settings, onPick, onSave, onRename, onDelete, onSaveStyle }: PresetRowProps) {
+export default function PresetRow({ mod, builtin, saved, settings, size, onPick, onSave, onRename, onDelete, onSaveStyle }: PresetRowProps) {
   const [naming, setNaming] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [withSize, setWithSize] = useState(false);
@@ -114,7 +116,7 @@ export default function PresetRow({ mod, builtin, saved, settings, onPick, onSav
           label="Preset name"
           initial=""
           onDone={(name) => {
-            onSave(name);
+            onSave(presetFromZone(mod, settings, size, `my-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, new Date().toISOString()));
             setNaming(false);
           }}
           onCancel={() => setNaming(false)}

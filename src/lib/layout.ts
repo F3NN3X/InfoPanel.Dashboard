@@ -640,7 +640,7 @@ export function mergeConfig(input: StoredConfig): DashboardConfig {
     dataApiUrl: normalizeApiBase(input.dataApiUrl) ?? undefined,
     stylePresets: Array.isArray(input.stylePresets) ? input.stylePresets : undefined,
     panelPresets: normalizePanelPresets(input.panelPresets),
-    widgetPresets: Array.isArray(input.widgetPresets) ? input.widgetPresets : undefined,
+    widgetPresets: input.widgetPresets,
     appearancePresets: normalizeAppearancePresets(input.appearancePresets),
     palettes: normalizePalettes(input.palettes),
     general: normalizeGeneral(isSettings(input.general) ? input.general : undefined),

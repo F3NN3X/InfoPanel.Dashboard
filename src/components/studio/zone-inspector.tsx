@@ -1,9 +1,8 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { presetFromZone } from "./editor/preset-model";
 import { viewKeyOf, viewsOf } from "./editor/view-presets";
 import { builtinPresets, useWidgetPresets } from "./widget-presets";
 import { ALL_MODULES } from "./studio-modules";
-import { normalizeWidgetPresets, widgetPresetsOf, type UserWidgetPreset } from "@/lib/widget-presets";
+import { widgetPresetsOf, type UserWidgetPreset } from "@/lib/widget-presets";
 import { useInspectorChrome } from "./inspector-layout";
 import { useToast } from "@/components/ui/toast";
 import { VectorGaugeSvg } from "@/components/infopanel/VectorGaugeSvg";
@@ -477,15 +476,14 @@ export function ZoneInspector({
       <PresetRow
         mod={presetMod}
         builtin={builtinPresets(ALL_MODULES.find((m) => m.id === presetMod.id)!, builtinMap)}
-        saved={widgetPresetsOf(normalizeWidgetPresets(config.widgetPresets), presetMod.id)}
+        saved={widgetPresetsOf(config.widgetPresets, presetMod.id)}
         settings={zone.settings}
         onPick={(patch, clear, size) => {
           update((p) => withoutSettings(customised(withSettings(p, patch), appearance, defs, Object.keys(patch)), clear), `preset:${presetMod.id}`);
           if (size && onZoneBox({ cols: size[0], rows: size[1] }) === false) toast("Not enough room for the preset's size");
         }}
-        onSave={(name) =>
-          onSaveWidgetPreset(presetFromZone(presetMod, zone.settings, [zone.colSpan, zone.rowSpan], `my-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, new Date().toISOString()))
-        }
+        size={[zone.colSpan, zone.rowSpan]}
+        onSave={onSaveWidgetPreset}
         onRename={onRenameWidgetPreset}
         onDelete={onDeleteWidgetPreset}
         onSaveStyle={

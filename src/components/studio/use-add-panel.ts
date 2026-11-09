@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DashboardConfig } from "@/lib/layout";
-import { normalizeWidgetPresets } from "@/lib/widget-presets";
 import { addCatalog, sameDrop, type AddItem } from "./add-catalog";
 import type { Ghost } from "./add-place";
 import { useRecentAdds } from "./add-recent";
@@ -57,7 +56,7 @@ interface AddPanelDeps {
 export function useAddPanel({ config, addFromPanel, targetZoneId, undo }: AddPanelDeps) {
   const builtin = useWidgetPresets();
   const catalog = useMemo(
-    () => addCatalog(config.panelPresets, builtin, normalizeWidgetPresets(config.widgetPresets)),
+    () => addCatalog(config.panelPresets, builtin, config.widgetPresets),
     [config.panelPresets, config.widgetPresets, builtin]
   );
   const [recent, pushRecent] = useRecentAdds();

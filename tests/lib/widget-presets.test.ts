@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { readConfigText } from "@/components/studio/config-file";
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { defaultConfig, mergeConfig, type DashboardConfig } from "@/lib/layout";
+import { normalizeWidgetPresets } from "@/lib/widget-presets-guard";
 import {
   deleteWidgetPreset,
-  normalizeWidgetPresets,
   renameWidgetPreset,
   saveWidgetPreset,
   WIDGET_PRESET_CAPS,
@@ -46,7 +46,7 @@ describe("normalizeWidgetPresets", () => {
       { ...preset("size-short"), size: [2] },
       { ...preset("size-zero"), size: [0, 1] },
       { ...preset("size-frac"), size: [1.5, 1] },
-      { ...preset("size-huge"), size: [1, WIDGET_PRESET_CAPS.span + 1] },
+      { ...preset("size-huge"), size: [1, 49] },
       { ...preset("size-text"), size: ["2", "1"] },
     ];
     expect(normalizeWidgetPresets([...bad, preset("ok")])?.map((p) => p.id)).toEqual(["ok"]);
@@ -60,7 +60,7 @@ describe("normalizeWidgetPresets", () => {
   });
 
   it("holds the caps: settings bytes per entry and the total", () => {
-    const fat = preset("fat", { settings: { blob: "x".repeat(WIDGET_PRESET_CAPS.settingsBytes) } });
+    const fat = preset("fat", { settings: { blob: "x".repeat(16_384) } });
     expect(normalizeWidgetPresets([fat, preset("slim")])?.map((p) => p.id)).toEqual(["slim"]);
     const many = Array.from({ length: WIDGET_PRESET_CAPS.total + 25 }, (_, i) => preset(`p${i}`));
     expect(normalizeWidgetPresets(many)).toHaveLength(WIDGET_PRESET_CAPS.total);
@@ -95,6 +95,9 @@ describe("editing the saved list", () => {
     const list = [preset("a"), preset("b", { widget: "Clock" }), preset("c")];
     expect(widgetPresetsOf(list, "Weather").map((p) => p.id)).toEqual(["a", "c"]);
     expect(widgetPresetsOf(undefined, "Weather")).toEqual([]);
+    // The list is the config's own; a malformed entry (a hand edit that never met the import guard) is skipped, not trusted.
+    expect(widgetPresetsOf([null, { widget: "Weather" }, { ...preset("x"), size: undefined }, preset("ok")] as never, "Weather").map((p) => p.id)).toEqual(["ok"]);
+    expect(widgetPresetsOf("nope" as never, "Weather")).toEqual([]);
   });
 });
 

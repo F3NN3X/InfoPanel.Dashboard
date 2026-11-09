@@ -44,7 +44,6 @@ import { AddPalette, idOf, paletteEntryOf, type AddEntry } from "./add-palette";
 import { AddPanel } from "@/components/studio/add-panel";
 import { addCatalog, sameDrop, widgetRows, type AddItem } from "@/components/studio/add-catalog";
 import { useWidgetPresets } from "@/components/studio/widget-presets";
-import { normalizeWidgetPresets } from "@/lib/widget-presets";
 import { freeSize } from "@/components/studio/add-place";
 import { useAddListDensity, useAddPreviewOnHover, type AddFilter } from "@/components/studio/add-prefs";
 import { useRecentAdds } from "@/components/studio/add-recent";
@@ -223,7 +222,7 @@ export default function CanvasEditorView({ zone, setConfig, shell, hidden = fals
   };
   const builtinPresets = useWidgetPresets();
   const catalog = useMemo(
-    () => addCatalog(widgetHost?.config.panelPresets, builtinPresets, normalizeWidgetPresets(widgetHost?.config.widgetPresets)),
+    () => addCatalog(widgetHost?.config.panelPresets, builtinPresets, widgetHost?.config.widgetPresets),
     [widgetHost?.config.panelPresets, widgetHost?.config.widgetPresets, builtinPresets]
   );
   const [recent, pushRecent] = useRecentAdds();

@@ -28,7 +28,7 @@ import type { StoredItem } from "@/lib/infopanel/import/stored";
 import { applyPlacements } from "@/lib/page-model/placements-adapter";
 import { sampleLayout } from "@/lib/sample-layout";
 import { updateStylePreset } from "@/lib/style-presets";
-import { deleteWidgetPreset, normalizeWidgetPresets, renameWidgetPreset, saveWidgetPreset, type UserWidgetPreset } from "@/lib/widget-presets";
+import { deleteWidgetPreset, renameWidgetPreset, saveWidgetPreset, type UserWidgetPreset } from "@/lib/widget-presets";
 import type { ModuleSettings } from "@/modules/types";
 import * as actions from "./studio-actions";
 import { arrangeZones, type ArrangeOp } from "./zone-arrange";
@@ -466,7 +466,7 @@ export function useStudioMutations({ config, profile, setConfig, sel, onPresetSa
     }));
 
   /** The widget presets of the Preset row (`config.widgetPresets`); each is one undo step. */
-  const saveUserWidgetPreset = (preset: UserWidgetPreset) => setConfig((c) => saveWidgetPreset({ ...c, widgetPresets: normalizeWidgetPresets(c.widgetPresets) }, preset));
+  const saveUserWidgetPreset = (preset: UserWidgetPreset) => setConfig((c) => saveWidgetPreset(c, preset));
   const renameUserWidgetPreset = (id: string, name: string) => setConfig((c) => renameWidgetPreset(c, id, name));
   const deleteUserWidgetPreset = (id: string) => setConfig((c) => deleteWidgetPreset(c, id));
 
