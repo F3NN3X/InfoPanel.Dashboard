@@ -539,7 +539,12 @@ async fn a_signed_code_widget_is_taken_only_with_a_trusted_key_and_checked_on_ev
     assert_eq!(get(s.port, "/api/widgets").await.text(), "[]");
 
     // The Settings window's path: the app's command writes the store (src-tauri/src/commands.rs `trust_widget_key`).
-    s.keys().add_user("Test publisher", &test_key()).unwrap();
+    // A key that holds another publisher's name signs nothing for `test`.
+    s.keys().add_user("Elsewhere", &test_key(), &["acme".into()]).unwrap();
+    let elsewhere = import(clock.clone()).await;
+    assert_eq!((elsewhere.status, elsewhere.text()), (400, "refused: signed with a key (FD89B8C08B250DF6) that does not sign for the publisher test".into()), "the signer does not hold the publisher");
+    s.keys().remove("FD89B8C08B250DF6").unwrap();
+    s.keys().add_user("Test publisher", &test_key(), &["test".into()]).unwrap();
     let good = import(clock.clone()).await;
     assert_eq!(good.status, 200, "{}", good.text());
     let stored: Value = serde_json::from_slice(&good.body).unwrap();
@@ -582,6 +587,38 @@ async fn a_signed_code_widget_is_taken_only_with_a_trusted_key_and_checked_on_ev
 }
 
 #[tokio::test]
+async fn a_signed_package_is_replaced_only_by_the_same_key() {
+    let s = start().await;
+    let clock = fixture("ext.test.clock");
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await.status, 200);
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&clock)).await.status, 200, "the same key replaces its own package");
+    // Another key that now holds `test` (the first one removed in Settings, this one added for the name) cannot take it over.
+    let fp = s.keys().list()[2].id.clone();
+    s.keys().remove(&fp).unwrap();
+    let other = std::fs::read_to_string(fixtures().join("TEST-ONLY-other.pub")).unwrap();
+    s.keys().add_user("Other", &other, &["test".into()]).unwrap();
+    let takeover = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("other-signer/ext.test.clock"))).await;
+    assert_eq!((takeover.status, takeover.text()), (409, "ext:test.clock is installed, signed with the key FD89B8C08B250DF6: only that key may replace it (remove it first to install this one)".into()));
+    assert_eq!(list(&get(s.port, "/api/widgets").await)[0]["version"], "1.0.0", "the installed package is untouched");
+    let other_fp = s.keys().list()[2].id.clone();
+    s.keys().remove(&other_fp).unwrap();
+    s.keys().add_user("Test", &test_key(), &["test".into()]).unwrap();
+    // The signed recipe, then an unsigned recipe of the same id (a builder save, or someone else's file): refused.
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("recipe.signed"))).await.status, 200);
+    let unsigned = package_with("recipe:signed", "2.0.0", &[]);
+    let reply = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await;
+    assert_eq!((reply.status, reply.text()), (409, "recipe:signed is installed, signed with the key FD89B8C08B250DF6: only that key may replace it (remove it first to install this one)".into()));
+    // Once its key is removed, the stored package no longer verifies: nothing replaces it until it is removed.
+    s.keys().remove("FD89B8C08B250DF6").unwrap();
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await.status, 409);
+    assert_eq!(send(s.port, "DELETE", "/api/widgets/recipe.signed", &WRITE, "").await.status, 204);
+    assert_eq!(send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&unsigned)).await.status, 200, "after a remove");
+    assert_eq!(list(&get(s.port, "/api/widgets").await).iter().find(|i| i["id"] == "recipe:signed").unwrap()["version"], "2.0.0");
+    s.stop().await;
+}
+
+#[tokio::test]
 async fn publisher_keys_are_read_over_http_and_never_written() {
     let s = start().await;
     let keys = || async { serde_json::from_slice::<Value>(&get(s.port, "/api/widget-keys").await.body).unwrap()["keys"].clone() };
@@ -609,9 +646,11 @@ async fn publisher_keys_are_read_over_http_and_never_written() {
     assert_eq!(keys().await, before, "no key was added");
     assert!(!s.dir.path().join("data").join("widget-keys.json").exists(), "nothing was written");
     // the settings path adds and removes one, and the read shows it
-    s.keys().add_user("Mine", &test_key()).unwrap();
+    s.keys().add_user("Mine", &test_key(), &["test".into()]).unwrap();
     let after = keys().await;
     assert_eq!((after[2]["name"].as_str(), after[2]["kind"].as_str(), after[2]["fingerprint"].as_str()), (Some("Mine"), Some("user"), Some("FD89B8C08B250DF6")));
+    assert_eq!(after[2]["publishers"], json!(["test"]));
+    assert_eq!(before[0]["publishers"], json!(["infopanel", "infopanel-studio"]), "the owner's publisher names are fixed");
     s.keys().remove("FD89B8C08B250DF6").unwrap();
     assert_eq!(keys().await, before);
     s.stop().await;

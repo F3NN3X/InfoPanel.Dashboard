@@ -7,6 +7,10 @@
 // a changed manifest fails the signature. It is carried in the manifest: `"signature": { "minisign": "<the .minisig text>" }`.
 // FORMAT.md §17 defines the canonical form; `tests/fixtures/widgets/canonical-vector.json` is its test vector, checked here and
 // by the signing tool's tests (tools/widgets/minisign.mjs), so both sides make the same bytes.
+//
+// A key id is only a label (minisign does not sign it), so a revoked key is matched by its key bytes as well as its id. And a key
+// signs for the publishers it holds only: a code widget `ext:<publisher>.<id>` verifies only with a key whose `publishers` name
+// that publisher (the owner's and Themely's are fixed, a user key's are given when it is added in Settings).
 
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
@@ -124,36 +128,72 @@ impl Signer {
     }
 }
 
+/// A trusted key: whose it is, the key, and the publishers it may sign code widgets for.
+#[derive(Clone, Debug)]
+pub struct Trusted {
+    pub signer: Signer,
+    pub key: Key,
+    pub publishers: Vec<String>,
+}
+
 /// The keys a package may be signed with, and the revoked ones (whatever they sign is refused).
 #[derive(Clone, Debug, Default)]
 pub struct Keyring {
-    pub trusted: Vec<(Signer, Key)>,
+    pub trusted: Vec<Trusted>,
     pub revoked: Vec<Key>,
 }
 
+impl Keyring {
+    /// Whether `key` is revoked: its id or its key bytes are on the list (an id alone is a label anyone can give a key).
+    pub fn is_revoked(&self, key: &Key) -> bool {
+        self.revoked.iter().any(|r| r.id == key.id || r.bytes == key.bytes)
+    }
+}
+
+/// Who signed a package, with the key that verified it.
+#[derive(Clone, Debug)]
+pub struct Verified {
+    pub signer: Signer,
+    pub key: Key,
+}
+
+/// The key id a manifest's signature names (bytes 2..10 of its second line; minisign-verify keeps it private), when it has one.
+pub fn signature_key_id(manifest: &Value) -> Option<[u8; 8]> {
+    manifest.get("signature")?.get("minisign")?.as_str()?.lines().nth(1).and_then(|line| STANDARD.decode(line.trim()).ok()).and_then(|bin| bin.get(2..10)?.try_into().ok())
+}
+
+/// The publisher a code widget's id names (`ext:<publisher>.<id>`), or `None` for any other id.
+fn publisher_of(manifest: &Value) -> Option<&str> {
+    manifest.get("id")?.as_str()?.strip_prefix("ext:")?.split_once('.').map(|(p, _)| p)
+}
+
 /// The signer of a package whose manifest carries a signature, `Ok(None)` when it carries none, or why it is refused: an unreadable
-/// signature, a revoked key, a key not trusted here, or a signature that does not match the manifest.
-pub fn verify(manifest: &Value, ring: &Keyring) -> Result<Option<Signer>, String> {
+/// signature, a revoked key (by id or by key bytes), a key not trusted here, a key that does not hold the id's publisher, or a
+/// signature that does not match the manifest.
+pub fn verify(manifest: &Value, ring: &Keyring) -> Result<Option<Verified>, String> {
     let Some(signature) = manifest.get("signature") else {
         return Ok(None);
     };
     let text = signature.get("minisign").and_then(Value::as_str).filter(|_| signature.as_object().is_some_and(|o| o.len() == 1));
     let parsed = text.and_then(|t| Signature::decode(t).ok()).ok_or("the signature is not a minisign signature")?;
-    // The key id is the signature's bytes 2..10 (minisign-verify keeps it private): it picks the key.
-    let id: [u8; 8] = text
-        .and_then(|t| t.lines().nth(1))
-        .and_then(|line| STANDARD.decode(line.trim()).ok())
-        .and_then(|bin| bin.get(2..10).and_then(|b| b.try_into().ok()))
-        .ok_or("the signature is not a minisign signature")?;
+    let id = signature_key_id(manifest).ok_or("the signature is not a minisign signature")?;
     if ring.revoked.iter().any(|k| k.id == id) {
         return Err(format!("signed with a revoked key ({})", fingerprint(&id)));
     }
-    let Some((signer, key)) = ring.trusted.iter().find(|(_, k)| k.id == id) else {
+    let Some(trusted) = ring.trusted.iter().find(|t| t.key.id == id) else {
         return Err(format!("signed with a key this app does not trust ({})", fingerprint(&id)));
     };
+    if ring.is_revoked(&trusted.key) {
+        return Err(format!("signed with a revoked key ({})", fingerprint(&id)));
+    }
+    if let Some(publisher) = publisher_of(manifest) {
+        if !trusted.publishers.iter().any(|p| p == publisher) {
+            return Err(format!("signed with a key ({}) that does not sign for the publisher {publisher}", fingerprint(&id)));
+        }
+    }
     let message = canonical(manifest)?;
-    key.verifier.verify(&message, &parsed, false).map_err(|_| "the signature does not match the package".to_string())?;
-    Ok(Some(signer.clone()))
+    trusted.key.verifier.verify(&message, &parsed, false).map_err(|_| "the signature does not match the package".to_string())?;
+    Ok(Some(Verified { signer: trusted.signer.clone(), key: trusted.key.clone() }))
 }
 
 #[cfg(test)]
@@ -194,5 +234,49 @@ mod tests {
         for bad in ["", "abc", "untrusted comment: x", "untrusted comment: x\nnot base64!", &STANDARD.encode([0u8; 42])] {
             assert!(Key::parse(bad).is_err(), "{bad:?}");
         }
+    }
+
+    /// The fixture code widget's manifest, its key, and that key under another id (minisign signs no id, so a signature
+    /// re-labelled with the new id still verifies with the same key bytes).
+    fn relabelled() -> (Value, Key, Value, Key) {
+        let manifest: Value = serde_json::from_slice(&std::fs::read(fixtures().join("ext.test.clock/manifest.json")).unwrap()).unwrap();
+        let key = Key::parse(&std::fs::read_to_string(fixtures().join("TEST-ONLY-publisher.pub")).unwrap()).unwrap();
+        let new_id = [9u8; 8];
+        let line = STANDARD.encode([b"Ed".as_slice(), &new_id, &key.bytes].concat());
+        let other = Key::parse(&line).unwrap();
+        let mut moved = manifest.clone();
+        let text = manifest["signature"]["minisign"].as_str().unwrap();
+        let mut lines: Vec<String> = text.lines().map(str::to_string).collect();
+        let mut sig = STANDARD.decode(&lines[1]).unwrap();
+        sig[2..10].copy_from_slice(&new_id);
+        lines[1] = STANDARD.encode(sig);
+        moved["signature"]["minisign"] = json!(lines.join("\n"));
+        (manifest, key, moved, other)
+    }
+
+    fn trusted(key: &Key, publishers: &[&str]) -> Trusted {
+        Trusted { signer: Signer::User("Test".into()), key: key.clone(), publishers: publishers.iter().map(|p| p.to_string()).collect() }
+    }
+
+    #[test]
+    fn a_revoked_key_is_refused_under_any_id() {
+        let (manifest, key, moved, other) = relabelled();
+        let ring = Keyring { trusted: vec![trusted(&other, &["test"])], revoked: vec![] };
+        assert!(verify(&moved, &ring).is_ok(), "the re-labelled signature verifies: the id is not signed");
+        let ring = Keyring { trusted: vec![trusted(&other, &["test"])], revoked: vec![key.clone()] };
+        assert_eq!(verify(&moved, &ring).unwrap_err(), "signed with a revoked key (0909090909090909)", "the revoked key's bytes under another id");
+        let ring = Keyring { trusted: vec![trusted(&key, &["test"])], revoked: vec![key] };
+        assert!(verify(&manifest, &ring).unwrap_err().starts_with("signed with a revoked key"), "by its own id");
+    }
+
+    #[test]
+    fn a_key_signs_code_widgets_for_its_own_publishers_only() {
+        let (manifest, key, ..) = relabelled();
+        let ok = Keyring { trusted: vec![trusted(&key, &["other", "test"])], revoked: vec![] };
+        assert_eq!(verify(&manifest, &ok).unwrap().unwrap().signer, Signer::User("Test".into()));
+        let wrong = Keyring { trusted: vec![trusted(&key, &["infopanel"])], revoked: vec![] };
+        assert_eq!(verify(&manifest, &wrong).unwrap_err(), "signed with a key (FD89B8C08B250DF6) that does not sign for the publisher test");
+        let none = Keyring { trusted: vec![trusted(&key, &[])], revoked: vec![] };
+        assert!(verify(&manifest, &none).is_err(), "a key with no publisher signs no code widget");
     }
 }

@@ -13,8 +13,9 @@
 // Code widgets (Phase 6a: kind `code`, id `ext:<publisher>.<id>`, an ES-module bundle `widget.js`) must carry a publisher signature
 // (widget_sign.rs) from a key this app trusts (widget_keys.rs); a recipe may carry one, and is refused when it does not verify.
 // The signature is checked on import and on every read (the list, each file): a package whose signature no longer verifies (its key
-// removed or revoked) is listed with `trust: "refused:<reason>"` and its files are 403. Nothing here runs a bundle: 6a stores and
-// verifies it only. `USER_CODE_WIDGETS=off` hides and refuses every code widget, as `USER_WIDGETS=off` does every package.
+// removed or revoked) is listed with `trust: "refused:<reason>"` and its files are 403. A code widget's key must hold the id's
+// publisher (widget_keys.rs), and an import never replaces a signed package unless the same key signed it (409): no key can take
+// over another's namespace or package. Nothing here runs a bundle: 6a stores and verifies it only. `USER_CODE_WIDGETS=off` hides and refuses every code widget, as `USER_WIDGETS=off` does every package.
 //
 // GET /api/widgets                 list: id, kind, name, version, size, origin and trust (`owner`, `themely`, `user:<name>`,
 //                                  `unsigned` for a recipe without a signature, `refused:<reason>`) of each package
@@ -252,7 +253,7 @@ fn checked_files(files: &Files, key: Option<&str>) -> Result<(Listed, Value), Re
 /// unknown or revoked key, a signature that does not match).
 fn trust_of(kind: &str, manifest: &Value, ring: &Keyring) -> Result<String, String> {
     match widget_sign::verify(manifest, ring)? {
-        Some(signer) => Ok(signer.state()),
+        Some(verified) => Ok(verified.signer.state()),
         None if kind == "code" => Err("a code widget must be signed, and this one is not".into()),
         None => Ok("unsigned".into()),
     }
@@ -333,9 +334,13 @@ impl Widgets {
     }
 
     /// Stores a checked import under the write lock: written beside its place under a name no key has, then moved in, so a
-    /// half-written package is never a package; a replaced one is set aside until the new one is in place.
-    fn store(&self, key: &str, files: &Files, origin: &str) -> std::io::Result<Result<(), Refused>> {
+    /// half-written package is never a package; a replaced one is set aside until the new one is in place. `check` runs under the
+    /// lock first and refuses the write when it says why.
+    fn store(&self, key: &str, files: &Files, origin: &str, check: impl FnOnce() -> Option<Refused>) -> std::io::Result<Result<(), Refused>> {
         let _held = self.write.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(refused) = check() {
+            return Ok(Err(refused));
+        }
         let others: Vec<u64> = listed(self).into_iter().filter(|(other, _)| other != key).map(|(_, (_, bytes))| bytes).collect();
         if others.len() + 1 > WIDGETS_MAX {
             return Ok(Err(refuse(413, format!("{WIDGETS_MAX} widgets are stored; remove one first"))));
@@ -418,6 +423,19 @@ impl Widgets {
         }
         let real = std::fs::canonicalize(&dir).ok()?;
         (real.parent() == Some(base.as_path()) && real.is_dir()).then_some(real)
+    }
+
+    /// Why `incoming` may not replace the package stored under `key`: that one is signed, and `incoming` is not signed by the same
+    /// key (the stored signature must still verify with `ring`, and both with the same key bytes). `None` when nothing is stored
+    /// there, or what is stored is unsigned.
+    fn replace_refusal(&self, key: &str, incoming: &Value, ring: &Keyring) -> Option<Refused> {
+        let stored: Value = crate::store::read_json(&self.package_dir(key)?.join(MANIFEST))?;
+        let id = widget_sign::signature_key_id(&stored)?;
+        let old = widget_sign::verify(&stored, ring).ok().flatten();
+        let new = widget_sign::verify(incoming, ring).ok().flatten();
+        let same = matches!((old, new), (Some(o), Some(n)) if o.key.bytes == n.key.bytes);
+        let name = stored.get("id").and_then(Value::as_str).unwrap_or(key);
+        (!same).then(|| refuse(409, format!("{name} is installed, signed with the key {}: only that key may replace it (remove it first to install this one)", widget_sign::fingerprint(&id))))
     }
 
     /// The reason a write is refused, or `None`.
@@ -578,12 +596,13 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
     if listed.kind == "code" && !widgets.code_enabled {
         return Ok(http::text(403, "code widgets are off (USER_CODE_WIDGETS=off)"));
     }
-    listed.trust = match trust_of(&listed.kind, &manifest, &widgets.keys.keyring()) {
+    let ring = widgets.keys.keyring();
+    listed.trust = match trust_of(&listed.kind, &manifest, &ring) {
         Ok(trust) => trust,
         Err(reason) => return Ok(http::text(400, format!("refused: {reason}"))),
     };
     let key = key_of(&listed.id).unwrap_or_default();
-    if let Err(Refused(status, message)) = widgets.store(&key, &files, origin)? {
+    if let Err(Refused(status, message)) = widgets.store(&key, &files, origin, || widgets.replace_refusal(&key, &manifest, &ring))? {
         return Ok(http::text(status, message));
     }
     let size: u64 = files.iter().map(|(_, b)| b.len() as u64).sum();
@@ -731,8 +750,9 @@ mod tests {
     fn ring(trusted: bool, revoked: bool) -> Keyring {
         let pub_key = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets/TEST-ONLY-publisher.pub")).unwrap();
         let key = widget_sign::Key::parse(&pub_key).unwrap();
+        let publishers = vec!["test".to_string()];
         Keyring {
-            trusted: if trusted { vec![(widget_sign::Signer::User("Test".into()), key.clone())] } else { vec![] },
+            trusted: if trusted { vec![widget_sign::Trusted { signer: widget_sign::Signer::User("Test".into()), key: key.clone(), publishers }] } else { vec![] },
             revoked: if revoked { vec![key] } else { vec![] },
         }
     }
@@ -820,7 +840,7 @@ mod tests {
         let mut widgets = Widgets::with(dir.path().to_path_buf(), true);
         let trusts = |w: &Widgets| listed(w).into_iter().map(|(k, (l, _))| format!("{k} {}", l.trust)).collect::<Vec<_>>();
         assert_eq!(trusts(&widgets), ["ext.test.clock refused:signed with a key this app does not trust (FD89B8C08B250DF6)", "recipe.mine unsigned"]);
-        widgets.keys.add_user("Test", &std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets/TEST-ONLY-publisher.pub")).unwrap()).unwrap();
+        widgets.keys.add_user("Test", &std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets/TEST-ONLY-publisher.pub")).unwrap(), &["test".into()]).unwrap();
         assert_eq!(trusts(&widgets), ["ext.test.clock user:Test", "recipe.mine unsigned"]);
         assert!(widgets.path_of("ext.test.clock", BUNDLE).is_some());
         widgets.code_enabled = false;
@@ -862,11 +882,11 @@ mod tests {
             let stored = std::thread::scope(|scope| {
                 let x = scope.spawn(|| {
                     gate.wait();
-                    widgets.store("recipe.a", &a, "import").unwrap().is_ok()
+                    widgets.store("recipe.a", &a, "import", || None).unwrap().is_ok()
                 });
                 let y = scope.spawn(|| {
                     gate.wait();
-                    widgets.store("recipe.b", &b, "import").unwrap().is_ok()
+                    widgets.store("recipe.b", &b, "import", || None).unwrap().is_ok()
                 });
                 [x.join().unwrap(), y.join().unwrap()]
             });

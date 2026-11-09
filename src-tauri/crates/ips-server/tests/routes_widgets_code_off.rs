@@ -48,7 +48,7 @@ async fn off_a_code_widget_is_not_listed_served_or_imported_and_recipes_are_unto
     let data = dir.path().join("data");
     copy(&fixtures().join("ext.test.clock"), &data.join("widgets").join("ext.test.clock"));
     copy(&fixtures().join("recipe.signed"), &data.join("widgets").join("recipe.signed"));
-    KeyStore::new(&data).add_user("Test", &std::fs::read_to_string(fixtures().join("TEST-ONLY-publisher.pub")).unwrap()).unwrap();
+    KeyStore::new(&data).add_user("Test", &std::fs::read_to_string(fixtures().join("TEST-ONLY-publisher.pub")).unwrap(), &["test".into()]).unwrap();
     let cfg = ServerConfig {
         host: "127.0.0.1".into(),
         port: 0,
