@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { addCatalog, recipeItem, widgetRows } from "@/components/studio/add-catalog";
+import { addCatalog, widgetRows } from "@/components/studio/add-catalog";
+import { recipeItem } from "@/components/studio/recipe-item";
 import { fixtureRecipe } from "../../widgets/recipe/fixture-files";
 
 // A recipe widget in the Add panel (Phase 5a): one row after the built-in widgets, its presets as further rows (Phase 4 style),
 // and every add storing the recipe's version with the placement.
 describe("recipes in the Add panel", () => {
   it("come after the built-in widgets", () => {
-    const widgets = addCatalog(undefined, {}, undefined, [fixtureRecipe("cpu-card"), fixtureRecipe("weather-places")]).widget;
+    const widgets = addCatalog(undefined, {}, undefined, [recipeItem(fixtureRecipe("cpu-card")), recipeItem(fixtureRecipe("weather-places"))]).widget;
     expect(widgets.slice(-2).map((i) => i.id)).toEqual(["recipe:cpu-card", "recipe:weather-places"]);
     expect(addCatalog().widget.some((i) => i.id.startsWith("recipe:"))).toBe(false);
   });
