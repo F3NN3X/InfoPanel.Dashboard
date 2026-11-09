@@ -3,6 +3,9 @@
 // which fetches, validates and draws the recipe; until then, and for a recipe that is missing or refused, that chunk draws
 // the standard empty card. The module goes through `templateModule`, so the standard look, the theme and the pack apply as
 // for a built-in widget.
+//
+// A code widget (`ext:<publisher>.<name>`, Phase 6b) resolves here too, to the code chunk (`code/CodeWidget.tsx`), which imports
+// its bundle only after the server verified it (`code/loader.ts`); this file holds nothing of that but the id test.
 import { useEffect, useState } from "react";
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import { lazyWidget } from "../lazy-widget";
@@ -10,19 +13,25 @@ import { templateModule } from "../module";
 
 /** A recipe id: `recipe:` and a lowercase name of up to 48 (widgets.rs `is_widget_key`). */
 export const isRecipeId = (id: unknown): id is string => typeof id === "string" && /^recipe:[a-z0-9][a-z0-9-]{0,47}$/.test(id);
+/** A code widget id: `ext:<publisher>.<name>`, a publisher of up to 32 and a name of up to 48 (widgets.rs `is_widget_key`). */
+export const isCodeId = (id: unknown): id is string => typeof id === "string" && /^ext:[a-z0-9][a-z0-9-]{0,31}\.[a-z0-9][a-z0-9-]{0,47}$/.test(id);
 
 // one call site for the chunk: the widget, and the store its placements load their reads through (`loadReads`)
 const chunk = () => import("./RecipeWidget");
 const RecipeWidget = lazyWidget(chunk);
+const CodeWidget = lazyWidget(() => import("../code/CodeWidget"));
 const made = new Map<string, DashboardModule>();
 
-/** The module that draws a recipe placement, or undefined for an id that is not a recipe's. One per id. */
+/** The module that draws a recipe or code widget placement, or undefined for an id that is neither. One per id. */
 export function recipeModule(id: string): DashboardModule | undefined {
-  if (!isRecipeId(id)) return undefined;
+  const code = isCodeId(id);
+  if (!code && !isRecipeId(id)) return undefined;
   let mod = made.get(id);
   if (!mod) {
-    const meta = { id, name: id.slice(7), category: "Recipes", icon: "dashboard", prefixes: [], defaultSize: [3, 2] as [number, number], minSize: [1, 1] as [number, number], description: "" };
-    mod = templateModule({ meta, Component: RecipeWidget, settings: [], toProps: (_look, saved) => ({ recipe: id, saved }) });
+    const meta = { id, name: id.slice(code ? 4 : 7), category: "Recipes", icon: "dashboard", prefixes: [], defaultSize: [3, 2] as [number, number], minSize: [1, 1] as [number, number], description: "" };
+    mod = code
+      ? templateModule({ meta, Component: CodeWidget, settings: [], toProps: (_look, saved) => ({ code: id, saved }) })
+      : templateModule({ meta, Component: RecipeWidget, settings: [], toProps: (_look, saved) => ({ recipe: id, saved }) });
     made.set(id, mod);
   }
   return mod;

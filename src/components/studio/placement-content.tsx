@@ -15,10 +15,10 @@ import { storedCanvasKeys, storedCanvasWidgets, type StoredWidgetRef } from "@/l
 import { normalizePanelPlacement, panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
 import { lockedIn, resolveWith, type Appearance } from "@/lib/style-resolve";
 import { safeRender } from "@/components/zone-error-boundary";
-import { isRecipeId, recipeModule, useRecipeReads } from "@/widgets/recipe/resolve";
+import { isCodeId, isRecipeId, recipeModule, useRecipeReads } from "@/widgets/recipe/resolve";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
-/** A placement's module: a registered widget, else a recipe widget (`recipe:<id>`, drawn by its lazy chunk). */
+/** A placement's module: a registered widget, else a recipe or code widget (`recipe:<id>`, `ext:<publisher>.<name>`, drawn by their lazy chunks). */
 const moduleOf = (id: string) => moduleById.get(id) ?? recipeModule(id);
 // The InfoPanel renderer loads only when a canvas zone is drawn.
 const CanvasZone = lazy(() => import("@/components/infopanel/CanvasZone"));
@@ -111,7 +111,7 @@ export function widgetPlacement(w: StoredWidgetRef & { design?: Placement["desig
 }
 
 /** Whether this build has the widget a Free page's item names (§11: an older or newer build's is shown greyed). */
-export const knownWidget = (module: string): boolean => module === PANEL_ID || moduleById.has(module) || isRecipeId(module);
+export const knownWidget = (module: string): boolean => module === PANEL_ID || moduleById.has(module) || isRecipeId(module) || isCodeId(module);
 
 /** Tokens for the zone frame (`undefined` when nothing is re-scoped). */
 function frameScope(settings: ModuleSettings | undefined): CSSProperties | undefined {

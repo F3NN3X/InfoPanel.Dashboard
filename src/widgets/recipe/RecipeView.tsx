@@ -4,11 +4,11 @@
 // zone (`metrics.ts`) and never drawn under 11 px. A Repeat over places draws the server's weather for each place (Weather by
 // place, `weather.ts`) with the provider's credit under the card's blocks, where no block can reach it; in the builder's Sample it
 // draws the recipe's sample items and says so instead.
-import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { weatherKind } from "@/lib/weather-icons";
 import type { ModuleSettings } from "@/modules/types";
 import { Bar, Empty, fmt, get, heat, hue, hw, num, Num, pretty, Ring, shell, shortLabel, Spark, TONES, tone, useHistory, Widget, WeatherGlyph, type ShellProps, type Tone } from "../kit";
-import { cellsOf, textPx } from "./metrics";
+import { cellsOf, TEXT_FLOOR, textPx } from "./metrics";
 import { followed, oneOf, wholeIn } from "./follow";
 import { expandKey } from "./reads";
 import { keyOf } from "./store";
@@ -231,12 +231,30 @@ function ValueView({ b }: { b: Extract<Block, { type: "value" }> }) {
   );
 }
 
+/** A label's size: its scale's, shrunk to fit its line where it would be cut ("Partly cloudy" in a narrow place column), never under
+ * the floor; under it the line is cut with an ellipsis as before. */
+function useFitPx(want: number, text: unknown) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [px, setPx] = useState(want);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.fontSize = `${want}px`;
+    const over = el.clientWidth > 0 && el.scrollWidth > el.clientWidth;
+    const next = over ? Math.max(TEXT_FLOOR, Math.floor(((want * el.clientWidth) / el.scrollWidth) * 10) / 10) : want;
+    el.style.fontSize = `${next}px`;
+    setPx(next);
+  }, [want, text]);
+  return [ref, px] as const;
+}
+
 function LabelView({ b }: { b: Extract<Block, { type: "label" }> }) {
   const ctx = useCtx();
   const text = b.text ?? shown(read(b.bind, ctx));
   const color = b.tone === "muted" ? "var(--w-muted)" : b.tone === "accent" ? "var(--w-accent)" : "var(--w-fg)";
+  const [ref, px] = useFitPx(textPx(b.scale ?? 0.85, ctx.w, ctx.h), text);
   return (
-    <span className="block w-full truncate leading-tight" style={{ fontSize: textPx(b.scale ?? 0.85, ctx.w, ctx.h), color }}>
+    <span ref={ref} className="block w-full truncate leading-tight" style={{ fontSize: px, color }}>
       {text}
     </span>
   );

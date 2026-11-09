@@ -46,6 +46,8 @@ export interface BuilderProps {
   onRedo: () => void;
   onBack: () => void;
   onSave: () => void;
+  /** The recipe on the server is signed (6a Q2): an edit is saved as a copy under a new id, the signed one stays as it is. */
+  onSaveCopy?: () => void;
   saving: boolean;
   onExport: () => void;
   onAddToScreen: (presetId: string | null) => void;
@@ -115,8 +117,11 @@ function Layers({ recipe, path, onSelect, onRemove, onMove }: { recipe: Recipe; 
 }
 
 /** The selected block's box on the stage, in the zone's own px, with its name over it. */
+/** The room the selection's name tag takes beside its block, in the zone's px (11 px text, its padding and gap). */
+const TAG_ROOM = 24;
+
 function Selection({ zone, path, recipe, tick }: { zone: HTMLElement | null; path: Path; recipe: Recipe; tick: unknown }) {
-  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number; zoneH: number } | null>(null);
   useLayoutEffect(() => {
     const at = path.join(".");
     const el = at ? zone?.querySelector<HTMLElement>(`[data-recipe-path="${at}"]`) : zone?.querySelector<HTMLElement>("[data-part='card']");
@@ -124,14 +129,17 @@ function Selection({ zone, path, recipe, tick }: { zone: HTMLElement | null; pat
     const z = zone.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     const scale = z.width / zone.offsetWidth || 1;
-    setBox({ x: (r.left - z.left) / scale, y: (r.top - z.top) / scale, w: r.width / scale, h: r.height / scale });
+    setBox({ x: (r.left - z.left) / scale, y: (r.top - z.top) / scale, w: r.width / scale, h: r.height / scale, zoneH: zone.offsetHeight });
   }, [zone, path.join("."), tick]);
   const b = blockAt(recipe, path);
   if (!box || !b || !path.length) return null;
+  // the name tag goes under the block where the zone has room for it, else over it, else inside its corner: never over what is
+  // drawn under the blocks (the weather credit line sits right under a Repeat that fills the card)
+  const tag = box.zoneH - (box.y + box.h) >= TAG_ROOM ? "left-0 top-full mt-1" : box.y >= TAG_ROOM ? "left-0 bottom-full mb-1" : "left-1 top-1";
   return (
     <div aria-hidden className="pointer-events-none absolute z-10" style={{ left: box.x - 3, top: box.y - 3, width: box.w + 6, height: box.h + 6 }}>
       <div className="h-full w-full rounded-[6px] border-2 border-ui-accent" />
-      <span className="absolute left-0 top-full mt-1 whitespace-nowrap rounded-[4px] bg-ui-accent px-1.5 py-0.5 font-ui text-[11px] font-medium text-white">{layerName(recipe, b)}</span>
+      <span data-selection-tag="" className={`absolute ${tag} whitespace-nowrap rounded-[4px] bg-ui-accent px-1.5 py-0.5 font-ui text-[11px] font-medium text-white`}>{layerName(recipe, b)}</span>
     </div>
   );
 }
@@ -283,9 +291,15 @@ export function Builder(p: BuilderProps) {
         <Button variant="ghost" icon={<Upload strokeWidth={1.5} />} onClick={p.onExport} disabled={!line.ok} title={line.ok ? undefined : line.first}>
           Export
         </Button>
-        <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSave} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? undefined : line.first}>
-          Save
-        </Button>
+        {p.onSaveCopy ? (
+          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSaveCopy} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? "It is signed: only its publisher's key may replace it, so the edit is saved as a new recipe" : line.first}>
+            Save as a copy
+          </Button>
+        ) : (
+          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSave} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? undefined : line.first}>
+            Save
+          </Button>
+        )}
         <Button variant="primary" icon={<MonitorUp strokeWidth={1.5} />} onClick={() => p.onAddToScreen(preset)} disabled={p.saving || !line.ok} title={line.ok ? "Saves it, then adds it to the screen in Edit" : line.first}>
           Add to a screen
         </Button>

@@ -15,7 +15,13 @@
 // The signature is checked on import and on every read (the list, each file): a package whose signature no longer verifies (its key
 // removed or revoked) is listed with `trust: "refused:<reason>"` and its files are 403. A code widget's key must hold the id's
 // publisher (widget_keys.rs), and an import never replaces a signed package unless the same key signed it (409): no key can take
-// over another's namespace or package. Nothing here runs a bundle: 6a stores and verifies it only. `USER_CODE_WIDGETS=off` hides and refuses every code widget, as `USER_WIDGETS=off` does every package.
+// over another's namespace or package. Nothing here runs a bundle: the studio and the kiosk import `widget.js` from this route (Phase
+// 6b), and only once the list says it verifies. `USER_CODE_WIDGETS=off` hides and refuses every code widget, as `USER_WIDGETS=off`
+// does every package.
+//
+// The Widgets page's switches (Phase 6b) are the server's too, so every page that asks this server obeys them, a kiosk on another
+// device included: DATA_DIR/widgets/.code.json `{ "on": bool, "off": [id] }`. With `on` false every code widget is hidden and
+// refused as with `USER_CODE_WIDGETS=off`; an id in `off` (Turn this widget off) stays listed with `"off": true`, its files 404.
 //
 // GET /api/widgets                 list: id, kind, name, version, size, origin and trust (`owner`, `themely`, `user:<name>`,
 //                                  `unsigned` for a recipe without a signature, `refused:<reason>`) of each package
@@ -26,7 +32,11 @@
 // Where a package came from (Phase 5b: the Widgets page's Yours and Imported) is the server's word, not the package's: the
 // studio's builder saves with `origin: "studio"`, a file import is `"import"` (the default). It is kept in `.origin` beside the
 // package's files, outside the manifest and its hashes: never a package file, never served, so an export leaves it out.
-// GET/HEAD /api/widgets/<key>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing
+// GET/HEAD /api/widgets/<key>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing; with `?sha256=<hex>`
+//                                  (a page importing a bundle) 409 unless the bytes served are those, so a module the page holds
+//                                  under that URL is always the file that verified
+// GET /api/widgets/code            the switches: `{ "on", "env": false when USER_CODE_WIDGETS=off, "off": [id] }`
+// PUT /api/widgets/code            `{ "on"?: bool, "off"?: [id] }` sets them (a write: the guards below)
 // DELETE /api/widgets/<key>        remove a package
 // GET /api/widget-keys             the publisher keys (widget_keys.rs `KeyView`s); a write is 403 from anywhere: keys are added and
 //                                  removed in the app's Settings window only, through the app's commands, never over HTTP
@@ -66,6 +76,10 @@ const RECIPE: &str = "recipe.json";
 /// A code widget's bundle: its manifest's `entry`, an ES module.
 const BUNDLE: &str = "widget.js";
 const IMAGES: &str = "images";
+/// The Widgets page's switches, in the widgets folder (not a package: no key starts with a dot).
+const SWITCHES: &str = ".code.json";
+/// At most this many ids are turned off one by one.
+const OFF_MAX: usize = 64;
 /// The sidecar the server writes beside a package's files: where it came from, one of `ORIGINS`.
 const ORIGIN: &str = ".origin";
 const ORIGINS: [&str; 2] = ["studio", "import"];
@@ -157,6 +171,20 @@ pub struct Listed {
     pub name: String,
     pub version: String,
     pub trust: String,
+}
+
+/// The Widgets page's switches (`SWITCHES`): every code widget on or off, and the ids turned off one by one.
+#[derive(Debug, PartialEq)]
+pub struct Switches {
+    pub on: bool,
+    pub off: Vec<String>,
+}
+
+impl Switches {
+    fn of(v: &Value) -> Self {
+        let off = v.get("off").and_then(Value::as_array).into_iter().flatten().filter_map(Value::as_str).filter(|id| id.starts_with("ext:") && key_of(id).is_some());
+        Self { on: v.get("on").and_then(Value::as_bool).unwrap_or(true), off: off.take(OFF_MAX).map(str::to_string).collect() }
+    }
 }
 
 /// Checks a package's files against its manifest: every file a package has, within the caps, the manifest naming `key`'s id,
@@ -286,9 +314,24 @@ impl Widgets {
         Self { dir, enabled, code_enabled: true, keys, allow_remote: false, write: Mutex::new(()) }
     }
 
-    /// Whether `key` names a code widget while code widgets are off: such a package is not read at all.
+    /// Whether `key` names a code widget while code widgets are off (here or on the Widgets page): such a package is not read at all.
     fn hidden(&self, key: &str) -> bool {
-        !self.code_enabled && key.starts_with(EXT_NS)
+        key.starts_with(EXT_NS) && !self.code_on()
+    }
+
+    /// Whether code widgets are on: not `USER_CODE_WIDGETS=off`, and not switched off on the Widgets page.
+    fn code_on(&self) -> bool {
+        self.code_enabled && self.switches().on
+    }
+
+    /// The Widgets page's switches as stored (all on when the file is missing or unreadable).
+    pub fn switches(&self) -> Switches {
+        Switches::of(&crate::store::read_json(&self.dir.join(SWITCHES)).unwrap_or(Value::Null))
+    }
+
+    /// Whether the code widget `key` is turned off on its own.
+    fn turned_off(&self, key: &str) -> bool {
+        key.starts_with(EXT_NS) && self.switches().off.iter().any(|id| key_of(id).as_deref() == Some(key))
     }
 
     /// Whether the store is read at all.
@@ -537,11 +580,15 @@ fn handle_list(app: &App) -> Response<Body> {
         .into_iter()
         .map(|(key, (l, size))| {
             let origin = widgets.package_dir(&key).map_or("import", |root| origin_of(&root));
-            json!({ "id": l.id, "kind": l.kind, "name": l.name, "version": l.version, "size": size, "origin": origin, "trust": l.trust })
+            let mut item = json!({ "id": l.id, "kind": l.kind, "name": l.name, "version": l.version, "size": size, "origin": origin, "trust": l.trust });
+            if widgets.turned_off(&key) {
+                item["off"] = Value::Bool(true);
+            }
+            item
         })
         .collect();
     let mut reply = http::json(200, &Value::Array(items));
-    if !widgets.code_enabled {
+    if !widgets.code_on() {
         reply.headers_mut().insert("X-User-Code-Widgets", HeaderValue::from_static("off"));
     }
     if widgets.enabled { reply } else { off(reply) }
@@ -596,6 +643,9 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
     if listed.kind == "code" && !widgets.code_enabled {
         return Ok(http::text(403, "code widgets are off (USER_CODE_WIDGETS=off)"));
     }
+    if listed.kind == "code" && !widgets.code_on() {
+        return Ok(http::text(403, "third-party code widgets are switched off on the Widgets page"));
+    }
     let ring = widgets.keys.keyring();
     listed.trust = match trust_of(&listed.kind, &manifest, &ring) {
         Ok(trust) => trust,
@@ -619,23 +669,32 @@ fn handle_delete(app: &App, req: &Req, key: &str) -> std::io::Result<Response<Bo
 }
 
 /// One file of a package: refused whole when the folder is not a package within the caps and its manifest (413) or its signature
-/// does not verify now (403), typed by its extension.
+/// does not verify now (403), 404 for a code widget turned off; typed by its extension. The bytes served are the ones just checked
+/// (the folder is read once), and with `?sha256=` they must be that file (409): a bundle changed on disk after the page read the
+/// manifest is never served under the hash the page asked for, so a page imports only bytes that verified.
 fn serve_file(app: &App, req: &Req, key: &str, file: &str) -> Response<Body> {
     let widgets = &app.widgets;
     if !widgets.enabled {
         return off(http::empty(404));
     }
-    let Some(path) = widgets.path_of(key, file) else {
+    let Some(root) = widgets.path_of(key, file).and_then(|_| widgets.package_dir(key)) else {
         return http::empty(404);
     };
-    match widgets.package_dir(key).and_then(|root| measured(&root, key, &widgets.keys.keyring())) {
-        None => return http::empty(413),
-        Some((listed, _)) if listed.trust.starts_with("refused:") => return http::text(403, listed.trust),
-        Some(_) => {}
+    if widgets.turned_off(key) {
+        return http::empty(404);
     }
-    let (Some(mime), Ok(bytes)) = (mime_of(file), std::fs::read(&path)) else {
+    let Some(((listed, manifest), files)) = read_files(&root).and_then(|files| Some((checked_files(&files, Some(key)).ok()?, files))) else {
+        return http::empty(413);
+    };
+    if let Err(reason) = trust_of(&listed.kind, &manifest, &widgets.keys.keyring()) {
+        return http::text(403, format!("refused:{reason}"));
+    }
+    let (Some(mime), Some((_, bytes))) = (mime_of(file), files.into_iter().find(|(p, _)| p == file)) else {
         return http::empty(404);
     };
+    if req.query("sha256").is_some_and(|want| want != sha256_hex(&bytes)) {
+        return http::text(409, "the file is not the one asked for (it changed): read the package again");
+    }
     let length = bytes.len();
     Response::builder()
         .status(200)
@@ -646,6 +705,40 @@ fn serve_file(app: &App, req: &Req, key: &str, file: &str) -> Response<Body> {
         .header("Content-Security-Policy", "default-src 'none'; sandbox")
         .body(if req.method == Method::HEAD { Body::empty() } else { Body::from(bytes) })
         .unwrap_or_default()
+}
+
+/// /api/widgets/code: the Widgets page's switches, read by any page; set under the write guards (this computer, the header).
+async fn handle_switches(app: &App, mut req: Req) -> std::io::Result<Response<Body>> {
+    let widgets = &app.widgets;
+    let view = |w: &Widgets| {
+        let s = w.switches();
+        json!({ "on": s.on, "env": w.code_enabled, "off": s.off })
+    };
+    match req.method {
+        Method::GET => Ok(http::json(200, &view(widgets))),
+        Method::PUT => {
+            if let Some(refusal) = widgets.write_refusal(&req) {
+                let reply = http::text(403, refusal);
+                return Ok(if widgets.enabled { reply } else { off(reply) });
+            }
+            let Ok(text) = req.read_body(16 * 1024).await else {
+                return Ok(http::closing(http::text(413, "the body is too large")));
+            };
+            let Some(body) = serde_json::from_str::<Value>(&text).ok().filter(Value::is_object) else {
+                return Ok(http::text(400, "the body is not a JSON object"));
+            };
+            if body.get("on").is_some_and(|v| !v.is_boolean()) || body.get("off").is_some_and(|v| !v.is_array()) {
+                return Ok(http::text(400, "on is true or false, off a list of code widget ids"));
+            }
+            let _held = widgets.write.lock().unwrap_or_else(|e| e.into_inner());
+            let now = widgets.switches();
+            let next = Switches::of(&json!({ "on": body.get("on").cloned().unwrap_or(Value::Bool(now.on)), "off": body.get("off").cloned().unwrap_or(json!(now.off)) }));
+            std::fs::create_dir_all(&widgets.dir)?;
+            crate::store::write_atomic(&widgets.dir.join(SWITCHES), json!({ "on": next.on, "off": next.off }).to_string().as_bytes())?;
+            Ok(http::json(200, &view(widgets)))
+        }
+        _ => Ok(http::empty(405)),
+    }
 }
 
 /// /api/widget-keys: the publisher keys, read only. Adding or removing one is the Settings window's alone (the app's commands).
@@ -665,6 +758,9 @@ pub async fn handle(app: &App, req: Req) -> std::io::Result<Response<Body>> {
             Method::POST => handle_import(app, req).await,
             _ => Ok(http::empty(405)),
         };
+    }
+    if req.path == "/api/widgets/code" {
+        return handle_switches(app, req).await;
     }
     let rest = req.path.strip_prefix("/api/widgets/").unwrap_or("");
     let (key, file) = rest.split_once('/').map_or((rest, None), |(key, file)| (key, Some(file)));

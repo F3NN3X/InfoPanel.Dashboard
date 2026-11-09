@@ -87,7 +87,16 @@ pack signature (`pack_sign.rs`), a local check only the server can make.
 - **Revoke list** (`crates/ips-server/src/widget-keys-revoked.json`): ships with app updates only, never fetched. A key on it
   (matched by its key bytes as well as its id) refuses everything it signed.
 - **Off switch**: `USER_CODE_WIDGETS=off` hides and refuses every code widget that is not built in (`USER_WIDGETS=off`
-  every user widget).
+  every user widget). The Widgets page's "Third-party code widgets" and "Turn this widget off" are the server's too
+  (`DATA_DIR/widgets/.code.json`, `PUT /api/widgets/code` under the import's guards), so every page that asks this server obeys
+  them, kiosks on other devices included.
+- **Loading** (`src/widgets/code/loader.ts`): the studio and the kiosk import `widget.js` same-origin, and only when the list
+  says it verifies with a trusted key and is not off. The import asks for the bundle by the SHA-256 its verified manifest lists,
+  and the server serves it only while it is those bytes and still verifies, so a file changed on disk never runs under a URL the
+  page already holds. A widget on screen is asked again every 30 s and drops its code when it no longer verifies. It then runs
+  in the page with the same access as a built-in widget (owner decision): sensors, screens, settings and the network. What the
+  bundle returns is checked before it is registered, and a widget that throws while it draws is contained in its zone. How to
+  write and sign one: [code-widgets.md](code-widgets.md).
 
 ### The owner's key (one-time owner step)
 

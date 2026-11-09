@@ -25,9 +25,13 @@ export interface WidgetsBrowseProps {
   filter: WidgetFilter;
   onFilter: (f: WidgetFilter) => void;
   counts: Record<WidgetFilter, number>;
-  /** "Third-party code widgets": kept, and with nothing to hide until code widgets exist (Phase 6). */
+  /** "Third-party code widgets" (Phase 6b): the server's switch; off hides and stops every code widget on every screen. */
   thirdParty: boolean;
   onThirdParty: (on: boolean) => void;
+  /** Code widgets are off on the server itself (USER_CODE_WIDGETS=off): the switch cannot turn them on. */
+  thirdPartyLocked?: boolean;
+  /** A loaded code widget's card picture. */
+  codePreview?: (w: UserWidget) => ReactNode;
   yours: readonly UserWidget[];
   imported: readonly UserWidget[];
   builtIns: readonly BuiltInEntry[];
@@ -66,9 +70,9 @@ function SectionHead({ title, count, note, more }: { title: string; count: numbe
   );
 }
 
-function Card({ w, selected, uses, onSelect, onOpen, appearance, pageStyle }: { w: UserWidget; selected: boolean; uses: Use[]; onSelect: () => void; onOpen: () => void; appearance?: Appearance; pageStyle?: CSSProperties }) {
+function Card({ w, selected, uses, onSelect, onOpen, appearance, pageStyle, codePreview }: { w: UserWidget; selected: boolean; uses: Use[]; onSelect: () => void; onOpen: () => void; appearance?: Appearance; pageStyle?: CSSProperties; codePreview?: (w: UserWidget) => ReactNode }) {
   const chip = onScreensChip(uses);
-  const refused = !w.recipe && w.kind === "recipe";
+  const refused = (!w.recipe && w.kind === "recipe") || w.trust.kind === "refused";
   return (
     <button
       type="button"
@@ -84,22 +88,29 @@ function Card({ w, selected, uses, onSelect, onOpen, appearance, pageStyle }: { 
       <span className="flex h-[156px] w-full items-center justify-center overflow-hidden bg-ui-app p-3">
         {w.recipe ? (
           <RecipePreview recipe={w.recipe} cells={w.recipe.size.default} sample appearance={appearance} pageStyle={pageStyle} fit={{ w: 260, h: 132 }} />
+        ) : w.def && !w.off && codePreview ? (
+          codePreview(w)
         ) : w.fixture ? (
           <span className="flex h-[132px] w-[260px] items-center justify-center rounded-ui-md border border-ui-subtle bg-ui-raised text-caption text-ui-2">{w.fixture.preview}</span>
         ) : (
-          <span className="px-4 text-center text-caption text-ui-3">{refused ? "Not drawn: the check refused it" : "No preview"}</span>
+          <span className="px-4 text-center text-caption text-ui-3">{refused ? (w.trust.kind === "refused" ? "Not loaded: the signature does not check out" : "Not drawn: the check refused it") : w.off ? "Turned off" : "No preview"}</span>
         )}
       </span>
-      <span className="flex min-w-0 items-center gap-2 px-3 py-2.5">
-        <span className="min-w-0 flex-1">
+      {/* the name and its line get the card's whole width; the chips go on their own line under them, so a name is never cut to "T…" */}
+      <span className="flex min-w-0 flex-col gap-2 px-3 py-2.5">
+        <span className="min-w-0">
           <span className="block truncate text-body font-medium text-ui-1">{w.name}</span>
-          <span className="block truncate text-caption text-ui-3">{refused ? (w.issues.find((i) => i.severity === "error")?.message ?? "Refused") : w.blurb}</span>
+          <span className="block truncate text-caption text-ui-3">{w.trust.kind === "refused" ? `Refused: ${w.trust.why}` : refused ? (w.issues.find((i) => i.severity === "error")?.message ?? "Refused") : w.blurb}</span>
         </span>
-        {chip && <StatusChip tone="ok">{chip}</StatusChip>}
-        {w.trust.kind === "user-key" && <StatusChip tone="warn">Not reviewed</StatusChip>}
-        <StatusChip tone="neutral" dot={false}>
-          {w.kind === "code" ? "Code" : "Recipe"}
-        </StatusChip>
+        <span data-card-chips="" className="flex flex-wrap items-center gap-2">
+          {chip && <StatusChip tone="ok">{chip}</StatusChip>}
+          {w.trust.kind === "user-key" && <StatusChip tone="warn">Not reviewed</StatusChip>}
+          {w.trust.kind === "refused" && <StatusChip tone="danger">Refused</StatusChip>}
+          {w.off && <StatusChip tone="neutral">Off</StatusChip>}
+          <StatusChip tone="neutral" dot={false}>
+            {w.kind === "code" ? "Code" : "Recipe"}
+          </StatusChip>
+        </span>
       </span>
     </button>
   );
@@ -136,7 +147,7 @@ export function WidgetsBrowse(p: WidgetsBrowseProps) {
   const cards = (list: readonly UserWidget[]) => (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
       {list.map((w) => (
-        <Card key={w.id} w={w} selected={p.selected === w.id} uses={p.usesOf(w.id)} onSelect={() => p.onSelect(w.id)} onOpen={() => p.onOpen(w.id)} appearance={p.appearance} pageStyle={p.pageStyle} />
+        <Card key={w.id} w={w} selected={p.selected === w.id} uses={p.usesOf(w.id)} onSelect={() => p.onSelect(w.id)} onOpen={() => p.onOpen(w.id)} appearance={p.appearance} pageStyle={p.pageStyle} codePreview={p.codePreview} />
       ))}
     </div>
   );
@@ -154,9 +165,12 @@ export function WidgetsBrowse(p: WidgetsBrowseProps) {
             </button>
           ))}
         </div>
-        <span className="ml-auto flex items-center gap-3 text-body text-ui-2" title="Code widgets come with signatures in a later version: there are none to hide yet. Off hides every code widget that isn't built in.">
+        <span
+          className="ml-auto flex items-center gap-3 text-body text-ui-2"
+          title={p.thirdPartyLocked ? "Off on the server (USER_CODE_WIDGETS=off): every code widget is hidden and none loads." : "Off hides every code widget that isn't built in and stops it loading, on every screen this server serves."}
+        >
           Third-party code widgets
-          <Toggle label="Third-party code widgets" checked={p.thirdParty} onChange={p.onThirdParty} />
+          <Toggle label="Third-party code widgets" checked={p.thirdParty} onChange={p.onThirdParty} disabled={p.thirdPartyLocked} />
         </span>
         {/* The SDK's types for code widget authors (Phase 6a, written by tools/widgets/sdk-types.mjs into public/). */}
         <a href={`${import.meta.env.BASE_URL}widget-sdk/infopanel-widget-sdk.d.ts`} download className="text-caption text-ui-2 underline hover:text-ui-1">
