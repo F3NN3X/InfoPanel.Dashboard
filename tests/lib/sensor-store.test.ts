@@ -39,7 +39,8 @@ function setup(fetchImpl?: typeof fetch) {
     fetchImpl ?? (vi.fn() as unknown as typeof fetch)
   );
   const live = () => streams.filter((s) => !s.closed);
-  const prefixOf = (s: FakeStream) => new URL(s.url).searchParams.get("prefix");
+  // the weather stream's URL is the page's own (`/events/weather?...`): read against a page origin
+  const prefixOf = (s: FakeStream) => new URL(s.url, "http://page").searchParams.get("prefix");
   return { store, streams, live, prefixOf };
 }
 
@@ -199,11 +200,11 @@ describe("SensorStore", () => {
     const { store, live, prefixOf } = setup(fetchImpl);
     store.retain(null);
     await flush();
-    // Before discovery: the base namespaces.
-    expect(live().map(prefixOf).sort()).toEqual(["libre.", "plugins.", "system."]);
+    // Before discovery: the base namespaces, and the dashboard server's weather (Weather by place, 5c).
+    expect(live().map(prefixOf).sort()).toEqual(["libre.", "plugins.", "system.", "weather."]);
     await vi.advanceTimersByTimeAsync(0);
     expect(fetchImpl).toHaveBeenCalledWith(`${BASE}/api/sensors`, { cache: "no-store" });
-    expect(live().map(prefixOf).sort()).toEqual(["libre.", "plugins.", "spotify.", "system."]);
+    expect(live().map(prefixOf).sort()).toEqual(["libre.", "plugins.", "spotify.", "system.", "weather."]);
   });
   it("re-arms the grace delay on every release", async () => {
     const { store, live, prefixOf } = setup();
