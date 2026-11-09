@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { modules } from "@/modules";
-import type { SensorMap } from "@/modules/types";
+import type { ModuleSettings, SensorMap } from "@/modules/types";
 import { renderModule } from "@/widgets/test-render";
 import capture from "../lib/infopanel/__fixtures__/hwinfo-capture.json";
 
 // A PC with HWiNFO and no LibreHardwareMonitor: the capture's HWiNFO readings only (9950X3D, RTX 5090).
 const hwinfo = Object.fromEntries(Object.entries(capture).filter(([k]) => k.startsWith("hwinfo."))) as unknown as SensorMap;
-const text = (id: string) => renderModule(modules.find((m) => m.id === id)!, {}, hwinfo).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+const text = (id: string, settings: ModuleSettings = {}) => renderModule(modules.find((m) => m.id === id)!, settings, hwinfo).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 describe("hardware widgets on HWiNFO only", () => {
-  it.each([
+  it.each<[string, string[], ModuleSettings?]>([
     ["CpuMonitor", ["61°C", "121.6 W", "1.19 GHz", "Max core 55 %"]],
     ["GpuMonitor", ["84.8 W", "1,717 MHz", "12 %"]],
     ["SystemOverview", ["CPU 19%", "GPU 12%", "43.8 / 63.7 GB"]],
@@ -17,13 +17,14 @@ describe("hardware widgets on HWiNFO only", () => {
     ["NetworkThroughput", ["Download 12.6 KB/s", "Upload 57.7 KB/s"]],
     ["PowerDraw", ["206 W", "CPU 122", "GPU 85"]],
     ["Thermals", ["CPU 61 °C"]],
-    ["Vitals", ["CPU 19 %"]],
+    // KPI Tiles' cards view, the Vitals widget until config v19
+    ["KpiTiles cards", ["CPU 19 %"], { view: "cards" }],
     ["KpiTiles", ["CPU 19 %"]],
     ["CoreHeatmap", ["19 %"]],
     ["DiskIO", ["Drive"]],
-  ])("%s draws HWiNFO's readings", (id, shown) => {
-    const out = text(id as string);
-    for (const s of shown as string[]) expect(out, s).toContain(s);
+  ])("%s draws HWiNFO's readings", (name, shown, settings = {}) => {
+    const out = text(name.split(" ")[0], settings);
+    for (const s of shown) expect(out, s).toContain(s);
   });
 });
 

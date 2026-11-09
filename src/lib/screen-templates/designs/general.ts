@@ -55,7 +55,8 @@ export const GENERAL: ScreenTemplate = {
           zone("NowPlaying", [9, 1, 4, 2]),
           zone("SystemOverview", [1, 3, 8, 4], overview),
           zone("NetworkThroughput", [9, 3, 4, 2], network),
-          zone("Forecast", [9, 5, 4, 2]),
+          // The Forecast widget until config v19: Weather's forecast view, as many days as fit, its empty card kept.
+          zone("Weather", [9, 5, 4, 2], { view: "forecast", showForecast: true, showStats: false, showFeels: false, forecastDays: 0, emptyCard: true }),
         ],
       ],
     },

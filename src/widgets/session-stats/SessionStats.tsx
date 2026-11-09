@@ -1,9 +1,10 @@
 import { useContext, useRef, useState } from "react";
-import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, IpTagCtx, Num, type ShellProps } from "./kit";
-import { useOnData } from "./core/history";
-import { average, durationText, observe, type SessionStat } from "./core/session-stats";
-import { roleData, unitOf } from "./shared/role-data";
-import { meta, MAX_SENSORS } from "./meta/SessionStats";
+import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, IpTagCtx, Num, type ShellProps } from "../kit";
+import { useOnData } from "../core/history";
+import { average, durationText, observe, type SessionStat } from "../core/session-stats";
+import { roleData, unitOf } from "../shared/role-data";
+import { meta, MAX_SENSORS } from "./meta";
+import ThresholdTimeline, { type ThresholdTimelineProps } from "./ThresholdTimeline";
 
 export { meta, MAX_SENSORS };
 
@@ -16,7 +17,17 @@ export interface SessionStatsProps extends ShellProps {
 
 const decimals = (v: number): number => (Math.abs(v) >= 100 ? 0 : 1);
 
-export default function SessionStats(p: SessionStatsProps) {
+/** The view: `stats` the totals (the default), `lanes` the Threshold Timeline widget until config v19. */
+export type SessionStatsView = "stats" | "lanes";
+
+/** Each view's props: the lanes view reads the window and the value thresholds. */
+export type SessionStatsWidgetProps = SessionStatsProps & Pick<ThresholdTimelineProps, "window" | "warn" | "crit"> & { view?: SessionStatsView };
+
+export default function SessionStats(p: SessionStatsWidgetProps) {
+  return p.view === "lanes" ? <ThresholdTimeline {...p} /> : <Stats {...p} />;
+}
+
+function Stats(p: SessionStatsProps) {
   const d = p.data;
   const onCanvas = useContext(IpTagCtx);
   const { roles } = roleData(d, p.names);

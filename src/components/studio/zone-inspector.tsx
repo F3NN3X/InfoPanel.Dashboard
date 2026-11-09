@@ -234,7 +234,7 @@ export function ZoneInspector({
       : zone.panel && panelView
         ? { kind: "panel", defs, ...panelView }
         : mod
-          ? widgetContext(mod)
+          ? widgetContext(mod, zone.settings)
           : { kind: "widget", defs };
 
   // A panel widget picked on the canvas: its inspector opens on Kind.

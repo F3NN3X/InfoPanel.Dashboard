@@ -1,9 +1,7 @@
+// Weather's forecast view: the multi-day forecast, drawn as the Forecast widget drew it before it merged into Weather (config v19).
 import type { ModuleSettings } from "@/modules/types";
 import { weatherKind } from "@/lib/weather-icons";
-import { Widget, shell, get, num, fmt, rows, RangeBar, WeatherGlyph, weatherIcon, type ShellProps, type WeatherIconProps } from "./kit";
-import { meta } from "./meta/Forecast";
-
-export { meta };
+import { Widget, shell, get, num, fmt, rows, RangeBar, WeatherGlyph, weatherIcon, type ShellProps, type WeatherIconProps } from "../kit";
 
 interface Day {
   day: string;

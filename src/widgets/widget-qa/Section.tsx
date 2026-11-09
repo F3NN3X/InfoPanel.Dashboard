@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { categorize, tabOf } from "@/components/studio/inspector-categories";
+import { migratePlacementV19 } from "@/lib/settings-migrate.v19";
 import { STANDARD_KEYS } from "@/modules/standard-settings";
 import type { DashboardModule, ModuleSetting, ModuleSettings } from "@/modules/types";
 import { withDemo } from "./demo-settings";
@@ -149,7 +150,7 @@ function Figure({ mod, frameKey, c, r, settings, view, caption, attrs }: FigureP
   return (
     <figure id={id} {...attrs} className={`m-0 flex scroll-mt-40 flex-col gap-1 rounded ${targeted ? "outline outline-2 outline-offset-4 outline-sky-400" : ""}`}>
       <div className={`relative rounded ${issues.length ? "outline outline-1 outline-offset-2 outline-red-500/70" : ""}`}>
-        <Frame p={{ ...placement(mod.id, c, r, withDemo(mod.id, settings, view.live)), id: `qa-${mod.id}-${attrs["data-qa-view"] ?? ""}${c}x${r}` }} w={w} h={h} live={view.live} eager={view.eager} onSettled={(box) => setIssues(probeBox(box))} />
+        <Frame p={{ ...migratePlacementV19(placement(mod.id, c, r, withDemo(mod.id, settings, view.live))), id: `qa-${mod.id}-${attrs["data-qa-view"] ?? ""}${c}x${r}` }} w={w} h={h} live={view.live} eager={view.eager} onSettled={(box) => setIssues(probeBox(box))} />
         {view.grid && <GridOverlay c={c} r={r} cell={view.cell} gap={view.gap} />}
       </div>
       <figcaption className="flex items-center gap-2 font-mono text-[10px]">

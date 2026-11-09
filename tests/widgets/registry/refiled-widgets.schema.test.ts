@@ -6,10 +6,10 @@ import { isMore, type ModuleSetting } from "@/modules/types";
 // Widget settings v2 (SPEC §6.4): the widgets filed by the rules rather than drawn in the concept, each
 // tab's sections in order with each row's key, More flag, palette role and per-widget flag.
 // Batch A: system and hardware (`a.ts`).
-const BATCH_A = ["MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "Vitals", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans"];
+const BATCH_A = ["MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans"];
 
 // Batch B: storage, network, info, generic and audio (`b.ts`, `c.ts`).
-const BATCH_B = ["DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "CodingAgents", "Calendar", "Forecast", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink"];
+const BATCH_B = ["DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "CodingAgents", "Calendar", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink"];
 
 // Batch C: gaming and the plain plugin cards (`d.ts`, `e.ts`).
 const BATCH_C = ["FpsMonitor", "GameSpotlight", "OsdStrip", "FramePacing", "PlaytimeShare", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews", "TextFile", "Notifications", "Departures", "Bluetooth", "StreamDeck"];

@@ -902,6 +902,7 @@ exports[`Weather > files its rows as drawn 1`] = `
         "showFeels",
         "showForecast",
         "forecastDays",
+        "emptyCard",
       ],
     },
     {

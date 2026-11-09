@@ -1,9 +1,22 @@
 import type { DashboardModule, ModuleSettings } from "@/modules/types";
 import type { Placement } from "@/lib/layout";
+import { WIDGET_MERGES } from "@/lib/settings-migrate.v19";
 
 /** Which modules the page shows: exactly the `module=` ids, else the template widgets. */
 export function pickModules(all: DashboardModule[], templates: DashboardModule[], ids?: string[]): DashboardModule[] {
   return ids?.length ? all.filter((m) => ids.includes(m.id)) : templates;
+}
+
+/**
+ * The widgets that merged into another (config v19) as the page draws them: the survivor under the old id, without its
+ * views, each frame the old placement migrated (`Section.tsx`). Their frames keep their keys in the overflow, pack markup
+ * and look baselines, so those baselines check that a migrated placement draws as the old widget did.
+ */
+export function mergedModules(templates: DashboardModule[]): DashboardModule[] {
+  return WIDGET_MERGES.flatMap((m) => {
+    const to = templates.find((t) => t.id === m.to);
+    return to ? [{ ...to, id: m.from, title: m.name, views: undefined, viewKey: undefined }] : [];
+  });
 }
 
 /** The filter box: a case-insensitive match on id or title. */

@@ -372,7 +372,7 @@ function StudioViewBody({
     const key = pendingSetting.current;
     pendingSetting.current = null;
     if (key) {
-      const restored = mod && allSections(widgetContext(mod)).find((s) => s.settings.some((d) => d.key === key));
+      const restored = mod && allSections(widgetContext(mod, zone?.settings)).find((s) => s.settings.some((d) => d.key === key));
       if (restored) requestAnimationFrame(() => ui.jumpInspector(restored.id, key, true));
       return;
     }

@@ -34,15 +34,15 @@ inspector's Show, Data and Behaviour tabs.
 
 | Category | Widgets (id · minimum) |
 |---|---|
-| System | `SystemOverview` 1×1, `MenuBar` 2×1, `KpiTiles` 1×1, `StatusTracker` 2×1, `SystemStatus` 1×1, `Vitals` 1×1, `ServiceHealth` 1×1, `ProcessList` 1×1, `Uptime` 1×1, `StatusBar` 3×1, `CodingAgents` 1×1 |
+| System | `SystemOverview` 1×1, `MenuBar` 2×1, `KpiTiles` 1×1, `StatusTracker` 2×1, `SystemStatus` 1×1, `ServiceHealth` 1×1, `ProcessList` 1×1, `Uptime` 1×1, `StatusBar` 3×1, `CodingAgents` 1×1 |
 | Hardware | `CpuMonitor` 1×1, `CoreHeatmap` 1×1, `GpuRings` 1×1, `GpuMonitor` 1×1, `MemoryUsage` 1×1, `Thermals` 1×1, `PowerDraw` 1×1, `Fans` 1×1 |
 | Storage | `DriveSpace` 1×1, `StorageHealth` 1×1, `DiskIO` 1×1 |
 | Network | `NetworkThroughput` 1×1, `NetworkAdapters` 1×1 |
 | Media | `NowPlaying` 1×1 |
 | Audio | `AudioMeter` 1×1, `VolumeMixer` 1×1, `MeterBridge` 1×1, `Visualizer` 1×1, `WaveLink` 1×1, `StreamMixer` 2×1, `AudioButton` 1×1, `AudioFader` 1×1 |
-| Info | `Clock` 1×1, `Timer` 1×1, `Countdown` 1×1, `Calendar` 1×1, `Weather` 1×1, `Forecast` 1×1, `TextFile` 2×1, `Notifications` 2×1, `Departures` 2×1, `DayPlanner` 2×2, `RadialClockStack` 1×1 |
+| Info | `Clock` 1×1, `Timer` 1×1, `Countdown` 1×1, `Calendar` 1×1, `Weather` 1×1, `TextFile` 2×1, `Notifications` 2×1, `Departures` 2×1, `DayPlanner` 2×2, `RadialClockStack` 1×1 |
 | Gaming | `FpsMonitor` 1×1, `GameSpotlight` 1×1, `OsdStrip` 2×1, `FramePacing` 2×1, `PlaytimeShare` 1×1, `SteamProfile` 1×1, `SteamFriends` 1×1, `SteamGame` 2×1, `Achievements` 1×1, `SteamLibrary` 1×1, `SteamNews` 1×1, `BottleneckLens` 2×1, `FrameHistogram` 2×1 |
-| Generic | `SensorValue` 1×1, `SensorGroup` 1×1, `CustomGauge` 1×1, `WebPage` 4×2, `Bluetooth` 2×1, `SessionStats` 2×1, `ThresholdTimeline` 2×1 |
+| Generic | `SensorValue` 1×1, `SensorGroup` 1×1, `CustomGauge` 1×1, `WebPage` 4×2, `Bluetooth` 2×1, `SessionStats` 2×1 |
 | Streaming | `OnAirBeacon` 1×1, `StreamControl` 2×1, `ObsButton` 1×1, `StreamChat` 2×2, `StreamDeck` 1×1 |
 
 <!-- @generated:end library -->
@@ -76,6 +76,15 @@ reads.
 | `bluetoothmodern` | `Bluetooth` |
 | `networkmodern` | `NetworkThroughput` |
 | `vbz`, `notifications`, `textfile`, `streamdeck`, `webpage` | `Departures`, `Notifications`, `TextFile`, `StreamDeck`, `WebPage` |
+
+Widgets that merged into another (config v19, `src/lib/settings-migrate.v19.ts`) are rewritten the same
+way, to the survivor in the matching view:
+
+| Stored id | Widget |
+|---|---|
+| `Forecast` | `Weather`, Forecast view (`days` becomes `forecastDays`, 0 = as many as fit) |
+| `ThresholdTimeline` | `SessionStats`, Threshold timeline view |
+| `Vitals` | `KpiTiles`, Vitals view (`metrics` becomes `cardMetrics`) |
 
 The catch-all **Other sensors** (4×2, any key no module claims) is not a
 registry entry: `src/modules/other-sensors.tsx` draws a `SensorValue` card per
@@ -133,6 +142,7 @@ The whole library shares one design system, in `src/widgets/core/`:
 
 - **SystemOverview** ([README](../src/widgets/system-overview/README.md)) — Loads from `system.cpu.load` and `system.ram.load`; the rest from LibreHardwareMonitor (or HWiNFO through its aliases), `libre.*`, found by key suffix and unit (`src/lib/system-metrics.ts`): the GPU's `_gpu_core_load`, `_gpu_core`, `_gpu_package`, `_gpu_core_clock`, `_gpu_memory`, `_gpu_memory_used` / `_gpu_memory_total`, `_gpu_memory_junction`, `_gpu_fan_<n>` / `_gpu_fan_<n>_control`, `_gpu_memory_clock` and `_gpu_power`; the CPU's `_cpu_total`, temperature, package power and per-thread `_cpu_core__<n>`; memory's `total_memory_memory_used` / `_available` and the page file's `virtual_memory_memory*`; each drive's `<drive>_used_space`, temperature, `_read_rate` / `_write_rate`, `_life`, `_total_space` / `_free_space` and `_volumes`; the network adapter's speeds.
 - **MenuBar** ([README](../src/widgets/menu-bar/README.md)) — LibreHardwareMonitor (or HWiNFO through its aliases), `libre.*`: the chosen processor's `<cpu>_cpu_total` and `<cpu>_cpu_core_max`, the graphics card's `<gpu>_gpu_core_load`, `gpu_core`, `gpu_core_clock`, `gpu_memory_used`, `gpu_memory_junction` and `gpu_package`, `total_memory_memory` (with `_used` and `_available`), the network adapter's `<net>_download_speed`, `upload_speed`, `data_downloaded`, `data_uploaded` and `network_utilization`, and the first disk's `<disk>_temperature` (or `composite_temperature`), `life` and `read_rate`. CPU temperature and power come from the hardware readings by name.
+- **KpiTiles** ([README](../src/widgets/kpi-tiles/README.md)) — The system readings (`src/lib/system-metrics.ts`): the Data API's own `system.*` keys where it has them, the rest from LibreHardwareMonitor or HWiNFO, found by suffix and unit. FPS (Vitals view) is RTSS, `plugins.InfoPanel.RTSS.rtss.fps` and `resolution`. It owns no prefix.
 - **StatusTracker** ([README](../src/widgets/status-tracker/README.md)) — By default LibreHardwareMonitor (or HWiNFO through its aliases), `libre.*`: the processor's `<cpu>_cpu_core_max`, the graphics card's `<gpu>_gpu_core_load` and `total_memory_memory`; the network adapter's state; and the Data API's own `system.bridge.status` and `system.bridge.time`. Each track can read any sensor instead.
 - **SystemStatus** ([README](../src/widgets/system-status/README.md)) — The Data API's own `system.*` readings: `system.cpu.load`, `system.ram.load`, `system.ram.free`, `system.bridge.status` and `system.bridge.time`. It owns the `system.` prefix.
 - **ServiceHealth** ([README](../src/widgets/service-health/README.md)) — One reading per source, to tell whether it answers: `system.bridge.status` and `system.bridge.time`, `libre.*`, `plugins.InfoPanel.RTSS.rtss.fps`, `plugins.wavelink-plugin.wavelink.status`, `plugins.spotify-plugin.spotify.auth-state` and `current-track`, `plugins.media-plugin.media.session-state` and `current-track`, `plugins.InfoPanel.SteamAPI.SteamAPI-Profile.player-name` and `online-status`, `plugins.weather-plugin.weather.weather` and `plugins.network-info-plugin.public-ip.ipv4`.
@@ -157,6 +167,7 @@ The whole library shares one design system, in `src/widgets/core/`:
 - **StatusBar** ([README](../src/widgets/status-bar/README.md)) — Each item reads only when it is in a slot: LibreHardwareMonitor `libre.*` (CPU, GPU and memory load and temperature, battery charge level), the weather plugins (`plugins.yr-weather-plugin.*`, else `plugins.weather-plugin.weather.*`), `plugins.network-info-plugin.*`, `plugins.volume-plugin.*`, `plugins.drive-info-plugin.*`, `plugins.system-info-plugin.uptime.*`, the Now Playing sources and RTSS or the fps plugin (`plugins.InfoPanel.RTSS.rtss.*`, `plugins.fps-plugin.fps.*`) for FPS and frame time. An item with no data is left out.
 - **CodingAgents** ([README](../src/widgets/coding-agents/README.md)) — No sensor keys: the server's agent data (`agents` in the integrations extras, `src/lib/agents.ts`), fed by the Claude Code and Codex hooks (`ips-agent`), the Claude statusline, the Codex session files and the transcripts. Connect them once with `node tools/agent-install.mjs`.
 - **Calendar** ([README](../src/widgets/calendar/README.md)) — The clock plugin's date, `plugins.clock-plugin.clock.day`, `month` and `year` (read, not owned: Clock owns the prefix). It draws without sensor keys too.
+- **Weather** ([README](../src/widgets/weather/README.md)) — The Yr plugin, `plugins.yr-weather-plugin.<location>.*`: `temp`, `feels_like`, `weather_icon`, `weather_desc`, `name`, `wind_speed`, `wind_deg`, `wind_gust`, `humidity`, `pressure`, `clouds`, `rain`, `snow`, `last_refreshed` and the `forecast` table (date, condition, high / low, rain, wind). The OpenWeatherMap plugin, `plugins.weather-plugin.weather.*`, with the same names. The Forecast view reads only the Yr `forecast` table; with Empty card on it draws (empty) once any sensor exists, as the Forecast widget did.
 - **SensorGroup** ([README](../src/widgets/sensor-group/README.md)) — Pick sensors: the chosen keys, any source. With none picked, this machine's own `system.cpu.load`, the graphics card's `libre.<gpu>_gpu_core_load` and `gpu_core`, `system.ram.load` and `plugins.volume-plugin.default.volume`. Auto-discover: every live `libre.*` / `hwinfo.*` reading.
 - **NowPlaying** ([README](../src/widgets/now-playing/README.md)) — The media plugin, `plugins.media-plugin.media.*`: `current-track`, `artist`, `album`, `cover-art`, `track-progress`, `elapsed-time`, `remaining-time`, `playback-state` (2 or 4 = playing). The Spotify plugin, `plugins.spotify-plugin.spotify.*` (the same names), with pushed `spotify.track` / `artist` / `album` / `art` / `progress` / `playing` winning over it. The visualiser reads the audio level meter, `plugins.audio-level-meter.*`, without owning it.
 - **AudioMeter** ([README](../src/widgets/audio-meter/README.md)) — The audio level meter plugin, `plugins.audio-level-meter.*` (it owns the prefix), grouped by container (device): the entries are found by their key suffix (`audio-level`, `peak-level`, `rms-level`, `left-channel`, `right-channel`, `device-name`), and the legacy plain names (`Level`, `Peak`, ...) are the fallback. The `default-audio` container is labelled "Default device". Volume and mute come from the volume plugin when shown.
@@ -183,6 +194,7 @@ The whole library shares one design system, in `src/widgets/core/`:
 - **OnAirBeacon** ([README](../src/widgets/on-air-beacon/README.md)) — The OBS connection under Settings › Connections (served by the server, not sensor keys). It draws without sensor keys.
 - **BottleneckLens** ([README](../src/widgets/bottleneck-lens/README.md)) — The sensor roles, not fixed keys (`role-data.ts`, owning no prefix): `gpu.load`, `cpu.load`, `cpu.maxcore`, `vram.used`, `vram.total`, `fps` and `gpu.temp`, and the thermal and power throttle flags.
 - **FrameHistogram** ([README](../src/widgets/frame-histogram/README.md)) — The sensor roles, not fixed keys (`role-data.ts`, owning no prefix): `fps` and `frametime` (RTSS's Current Frame Time, or a reading named Frame Time in ms).
+- **SessionStats** ([README](../src/widgets/session-stats/README.md)) — Any numeric sensors you pick. With none picked, CPU and GPU load and temperature, read by role (`shared/role-data.ts`). It owns no prefix.
 - **StreamMixer** ([README](../src/widgets/stream-mixer/README.md)) — The server's audio control (`src/lib/audio-control.ts`: Windows audio and Wave Link), not sensor keys. It reads and writes it, so it draws without sensor keys.
 - **AudioButton** ([README](../src/widgets/audio-button/README.md)) — The server's audio control (`src/lib/audio-control.ts`: Windows audio and Wave Link), not sensor keys. It writes through it, so it draws without sensor keys.
 - **AudioFader** ([README](../src/widgets/audio-fader/README.md)) — The server's audio control (`src/lib/audio-control.ts`: Windows audio and Wave Link), not sensor keys. It reads and writes it, so it draws without sensor keys.
@@ -233,11 +245,6 @@ The whole library shares one design system, in `src/widgets/core/`:
   device) is labelled "Default device" so it doesn't read as a duplicate of
   that device's own container. AudioMeter binds to one device
   with `device`, MeterBridge picks devices with `channels` (`""` = all).
-- **Weather** — `plugins.yr-weather-plugin.*`:
-  `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
-  `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
-  `last_refreshed`, `weather_icon`; forecast from the yr
-  plugin's `forecast` (multi-day lines, starting tomorrow).
 - **GameSpotlight** — the chosen **Spotlight layout** draws while the box
   holds it (`fitLayout`, minimums in `LAYOUT_MIN`: hero 250×110, logo
   160×110, combo 260×180, poster 340×200, ticker 320 wide), else the hero,
@@ -247,10 +254,10 @@ The whole library shares one design system, in `src/widgets/core/`:
 - **Fit by content, not tier alone.** Fans (tiles while each gets ~64×80 px,
   else one line per fan), Power Draw (CPU / GPU split stacks under 260 px,
   short boxes drop the graph), Thermals (no bar under 180 px), Disk I/O (no
-  bar under 170 px), Volume Mixer (ring over number under 170 px), Vitals and
-  KPI Tiles (cards that keep a readable width), Status Tracker (as many
+  bar under 170 px), Volume Mixer (ring over number under 170 px), KPI Tiles
+  in both views (cards that keep a readable width), Status Tracker (as many
   readings as the bar width holds, legend only with room), Uptime (numerals
-  sized to the width), Achievements (ring sized to the box), Forecast (one line
+  sized to the width), Achievements (ring sized to the box), Weather's Forecast view (one line
   per day under 100 px tall), Calendar (the current week under 120 px tall),
   Playtime Share (one line under 110 px tall), Sensor Group (rows counted
   with their gaps).

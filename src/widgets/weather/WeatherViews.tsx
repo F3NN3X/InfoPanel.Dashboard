@@ -1,6 +1,6 @@
 import { isToday, weekdayLabel } from "@/lib/weather-days";
 import type { WeatherCondition } from "@/lib/weather-icons";
-import { Num, WeatherGlyph, type WeatherIconProps } from "./kit";
+import { Num, WeatherGlyph, type WeatherIconProps } from "../kit";
 
 export interface WeatherDay {
   /** "Today" or the weekday short name. */

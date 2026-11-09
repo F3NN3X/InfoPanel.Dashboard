@@ -1,10 +1,10 @@
-import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, tone, TONES, STATE, Num, type ShellProps, type Tone } from "./kit";
-import { useSeries, type Sample, type SeriesLimits } from "./core/history";
-import { laneColumns, laneRuns, laneStats, type LaneRun } from "./core/lanes";
-import { roleData, unitOf } from "./shared/role-data";
-import { meta, MAX_LANES } from "./meta/ThresholdTimeline";
-
-export { meta, MAX_LANES };
+// Session Stats' lanes view: one green, amber and red lane per sensor, drawn as the Threshold Timeline widget drew it
+// before it merged into Session Stats (config v19).
+import { Widget, shell, get, num, fmt, pretty, sensorLabel, shortLabel, rowLabel, fitRows, rowsFor, roomy, ROOMY_SCALE, tone, TONES, STATE, Num, type ShellProps, type Tone } from "../kit";
+import { useSeries, type Sample, type SeriesLimits } from "../core/history";
+import { laneColumns, laneRuns, laneStats, type LaneRun } from "../core/lanes";
+import { roleData, unitOf } from "../shared/role-data";
+import { MAX_LANES } from "./meta";
 
 export interface ThresholdTimelineProps extends ShellProps {
   /** Sensor keys (at most six); unset: CPU and GPU load and temperature. */

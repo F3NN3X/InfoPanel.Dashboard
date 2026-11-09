@@ -126,6 +126,24 @@ describe("liftCanvases and inlineCanvases", () => {
     expect(server.canvases.size).toBe(1);
   });
 
+  it("makes a stored canvas's merged-away Studio widget its survivor when it loads (config v19), and sends the changed canvas again", async () => {
+    const widget = (module: string, settings?: object) => ({ kind: "Image", $: { widget: { module, ...(settings ? { settings } : {}) } } });
+    const old = { ...canvas("F"), items: [widget("Forecast", { days: 3 }), { kind: "Group", DisplayItems: [widget("Forecast")] }, widget("Clock")] } as unknown as StoredCanvas;
+    server.canvases.set("cnv_old", JSON.stringify(old));
+    const config = withZones([zone("a", { canvasRef: "cnv_old" })]);
+    const [a] = zonesOf(await inlineCanvases(config));
+    const items = (a.canvas as unknown as { items: { $?: { widget?: unknown }; DisplayItems?: { $?: { widget?: unknown } }[] }[] }).items;
+    const view = { view: "forecast", showForecast: true, showStats: false, showFeels: false, emptyCard: true };
+    expect(items[0].$?.widget).toEqual({ module: "Weather", settings: { ...view, forecastDays: 3 } });
+    expect(items[1].DisplayItems?.[0].$?.widget).toEqual({ module: "Weather", settings: { ...view, forecastDays: 0 } });
+    expect(items[2].$?.widget).toEqual({ module: "Clock" });
+    expect(refOf(a.canvas!)).toBeUndefined();
+    // a canvas without one is the store's object, its ref known
+    server.canvases.set("cnv_plain", JSON.stringify(canvas("P")));
+    const [p] = zonesOf(await inlineCanvases(withZones([zone("p", { canvasRef: "cnv_plain" })])));
+    expect(refOf(p.canvas!)).toBe("cnv_plain");
+  });
+
   it("returns the same config when there is nothing to move", async () => {
     const config = withZones([zone("plain", { module: "Clock" })]);
     expect(await liftCanvases(config)).toBe(config);

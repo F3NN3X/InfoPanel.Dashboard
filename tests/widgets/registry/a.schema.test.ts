@@ -20,7 +20,6 @@ const MANIFEST: Record<string, Record<string, string[]>> = {
   KpiTiles: { metrics: ["metrics"], lookback: ["lookback"] },
   StatusTracker: { tracks: [1, 2, 3].flatMap((n) => track(n, true)).concat(track(4, false), track(5, false)), samples: ["samples"] },
   SystemStatus: { warn: ["warn.load"], crit: ["crit.load"] },
-  Vitals: { metrics: ["metrics"] },
   ServiceHealth: {},
   ProcessList: { sort: ["sort"], rows: ["rows"] },
   Uptime: { showSeconds: ["showSeconds"] },

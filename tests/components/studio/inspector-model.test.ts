@@ -193,7 +193,7 @@ describe("tabs of every widget", () => {
 });
 
 describe("header modes", () => {
-  const NO_HEADER = ["Calendar", "GameSpotlight", "KpiTiles", "MenuBar", "OsdStrip", "StatusBar", "SteamGame", "Vitals", "WebPage"];
+  const NO_HEADER = ["Calendar", "GameSpotlight", "KpiTiles", "MenuBar", "OsdStrip", "StatusBar", "SteamGame", "WebPage"];
   const TITLE_ONLY = ["Clock", "SystemOverview"];
 
   it("declares the header and small-zone shape of every widget", () => {
@@ -599,5 +599,25 @@ describe("view helpers", () => {
     expect(extraMatches({ kind: "zoneFrame", more: true, count: 3 }, "frame")).toBe(true);
     expect(extraMatches({ kind: "zoneFrame", more: true, count: 3 }, "glow")).toBe(false);
     expect(extraMatches({ kind: "widgetPicker", more: false, count: 1 }, "")).toBe(true);
+  });
+});
+
+describe("a view's own inspector fields (byView)", () => {
+  it("sets them over the widget's for a zone in that view: Weather's forecast view keeps the Forecast widget's dense view", () => {
+    const weather = mod("Weather");
+    const compactOf = (c: InspectorContext) => (c.kind === "widget" ? c.compact : undefined);
+    expect(compactOf(widgetContext(weather))).toEqual({ card: true, dense: "fallback" });
+    expect(compactOf(widgetContext(weather, { view: "now" }))).toEqual({ card: true, dense: "fallback" });
+    expect(compactOf(widgetContext(weather, { view: "forecast" }))).toEqual({ card: true, dense: true });
+    // the small-zone choices it draws: Auto, Full, Card and Dense in both
+    const options = (c: InspectorContext) => (c.kind === "widget" ? c.defs.find((d) => d.key === "compact")?.options?.map((o) => o.value) : undefined);
+    expect(options(widgetContext(weather, { view: "forecast" }))).toEqual(["auto", "full", "card", "dense"]);
+    expect(options(widgetContext(weather, { view: "forecast" }))).toEqual(options(widgetContext(weather)));
+  });
+
+  it("narrows the Fit rows to a view's own small-zone shape (a dense-only view has no Card)", () => {
+    const weather = { ...mod("Weather"), byView: { glance: { compact: { card: false, dense: true } } } };
+    const c = widgetContext(weather, { view: "glance" });
+    expect(c.kind === "widget" && c.defs.find((d) => d.key === "compact")?.options?.map((o) => o.value)).toEqual(["auto", "full", "dense"]);
   });
 });

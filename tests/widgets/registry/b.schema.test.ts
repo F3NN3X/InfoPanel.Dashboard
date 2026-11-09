@@ -47,7 +47,6 @@ const MANIFEST: Record<string, Record<string, string>> = {
   CodingAgents: { agents: "agents", showPlan: "showPlan", showSessions: "showSessions", showUsage: "showUsage", limitStyle: "limitStyle", percent: "percent", history: "history" },
   Calendar: { weekStart: "weekStart" },
   Weather: { provider: "provider", location: "location", units: "tempUnit" },
-  Forecast: { location: "location", days: "days", units: "tempUnit" },
   SensorValue: { sensor: "sensor", label: "label", display: "display", min: "min", max: "max", warn: "warn.value", crit: "crit.value", decimals: "decimals", unit: "unit" },
   SensorGroup: { sensors: "sensors", layout: "groupLayout", bars: "bars" },
   // Designed on the Gauges page: no spec doc; the title is the standard label.

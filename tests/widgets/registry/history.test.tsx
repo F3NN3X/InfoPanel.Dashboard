@@ -7,8 +7,8 @@ import { toFlat, toNames } from "@/widgets/shared/data-adapter";
 import type { ShellProps } from "@/widgets/kit";
 import BottleneckLens, { meta as bottleneck } from "@/widgets/bottleneck-lens/BottleneckLens";
 import FrameHistogram, { meta as histogram } from "@/widgets/frame-histogram/FrameHistogram";
-import SessionStats, { meta as stats } from "@/widgets/SessionStats";
-import ThresholdTimeline, { meta as timeline } from "@/widgets/ThresholdTimeline";
+import SessionStats, { meta as stats } from "@/widgets/session-stats/SessionStats";
+import ThresholdTimeline from "@/widgets/session-stats/ThresholdTimeline";
 import { resolveRole } from "@/lib/infopanel/templates/roles";
 import type { DataApiValue } from "@/lib/infopanel/sensors";
 import { RULES, roleData, type Role } from "@/widgets/shared/role-data";
@@ -18,7 +18,6 @@ const WIDGETS: [typeof bottleneck, ComponentType<ShellProps>][] = [
   [bottleneck, BottleneckLens],
   [histogram, FrameHistogram],
   [stats, SessionStats],
-  [timeline, ThresholdTimeline],
 ];
 // The history widgets as the registry lists them, wherever each lives (group file or folder).
 const GROUP_HISTORY = groupOf(GROUP_HISTORY_IDS);
@@ -53,6 +52,25 @@ describe("history and analysis widgets", () => {
         expect(html(Component, { ...LIVE, size: "xs", variant: "studio", skin: "tui" }).length).toBeGreaterThan(0);
         expect(html(Component, { data: {} }).length).toBeGreaterThan(0);
       });
+    });
+  });
+
+  // The Threshold Timeline widget's render check, kept for the view it became (config v19): its component, and Session
+  // Stats in the lanes view.
+  describe("Session Stats' lanes view (the Threshold Timeline widget)", () => {
+    const lanes = (p: Partial<ShellProps> & { data: ShellProps["data"] }) => html(SessionStats, { ...p, view: "lanes" } as ShellProps);
+    it("renders live, idle, dense and with no data without throwing", () => {
+      for (const draw of [(p: Partial<ShellProps> & { data: ShellProps["data"] }) => html(ThresholdTimeline, p), lanes]) {
+        expect(draw({ ...LIVE, size: "md" })).toMatch(/d/);
+        expect(draw({ ...IDLE, size: "md" }).length).toBeGreaterThan(0);
+        expect(draw({ ...LIVE, size: "xs", variant: "studio", skin: "tui" }).length).toBeGreaterThan(0);
+        expect(draw({ data: {} }).length).toBeGreaterThan(0);
+      }
+    });
+
+    it("draws the Threshold Timeline component, not the stats", () => {
+      expect(lanes({ ...LIVE, size: "md" })).toEqual(html(ThresholdTimeline, { ...LIVE, size: "md" }));
+      expect(lanes({ ...LIVE, size: "md" })).not.toEqual(html(SessionStats, { ...LIVE, size: "md" }));
     });
   });
 

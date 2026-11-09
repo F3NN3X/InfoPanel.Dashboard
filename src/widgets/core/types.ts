@@ -98,6 +98,14 @@ export interface WidgetView {
   minSize?: [number, number];
   /** Settings the view sets with it (a preset's bundle, e.g. FpsMonitor trend → sparkline: true). */
   applies?: ModuleSettings;
+  /**
+   * The view's own data prefixes, for a view that draws a merged-away widget as it did (Weather's forecast view is the
+   * Forecast widget): its no-data gate and what its zone subscribes to (`placementReads`); empty = any key. Unset: the
+   * widget's.
+   */
+  prefixes?: string[];
+  /** A boolean setting the view's own prefixes wait for: off, the zone keeps the widget's (Weather's `emptyCard`). */
+  prefixesWhen?: string;
 }
 
 /** Skin token keys; all optional. */

@@ -14,7 +14,7 @@ import { lintPackCss, scopePackCss } from "@/looks/pack-css";
 import { Widget } from "@/widgets/core/Widget";
 import { t3Tokens } from "@/widgets/core/t3-tokens";
 import fs from "node:fs";
-import { CONFIG_VERSION, readConfig, type StoredConfig } from "@/lib/layout";
+import { readConfig, type StoredConfig } from "@/lib/layout";
 import { SAMPLE_LOOK_IDS } from "@/looks/ids";
 import { SAMPLE_THEMES } from "@/looks/sample-themes";
 import { resolveSurface } from "@/widgets/core/theme";
@@ -268,7 +268,8 @@ describe("what the five Looks teach the contract (P11b)", () => {
     const config = (version: number, id: string) =>
       ({ version, activeProfile: "p", profiles: [{ id: "p", name: "P", width: 800, height: 480, widgetTheme: { values: { lookId: id, surface: `look-${id}`, accent: "#123456" } }, pages: [{ id: "a", name: "A", placements: [] }] }] }) as unknown as StoredConfig;
     for (const id of SAMPLE_LOOK_IDS) {
-      const upgraded = await readConfig(config(CONFIG_VERSION - 1, id));
+      // v17, the last version before the Look kept its own card (config v18)
+      const upgraded = await readConfig(config(17, id));
       // what the studio saves, read back as the next start reads it
       const reloaded = await readConfig(JSON.parse(JSON.stringify(upgraded)) as StoredConfig);
       for (const read of [upgraded, reloaded]) {
