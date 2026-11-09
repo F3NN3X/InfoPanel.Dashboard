@@ -38,7 +38,7 @@ export interface CodeWidgetDefinition {
   name: string;
   /** One line for the Widgets page and Add, 120 at most. */
   description?: string;
-  /** A Material Symbols name for the card's header (default `widgets`). */
+  /** A Material Symbols name for the card's header (default `dashboard`). */
   icon?: string;
   /** Sensor key prefixes the widget reads (`cpu.`, `gpu.0.`); at most 16. `[]`: it reads none. */
   reads: string[];

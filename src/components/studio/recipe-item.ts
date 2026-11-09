@@ -21,7 +21,7 @@ export function recipeItem(r: Recipe): AddItem {
 /** A code widget's row (Phase 6b): one, at its definition's size. */
 export function codeItem(id: string, def: CodeWidgetDefinition): AddItem {
   const [mc, mr] = def.minSize ?? [1, 1];
-  const m: ModuleMeta = { id, title: def.name, minCols: mc, minRows: mr, category: "Imported", icon: def.icon ?? "widgets", description: def.description ?? "", defaultSize: def.defaultSize };
+  const m: ModuleMeta = { id, title: def.name, minCols: mc, minRows: mr, category: "Imported", icon: def.icon ?? "dashboard", description: def.description ?? "", defaultSize: def.defaultSize };
   return moduleItem(m, []);
 }
 

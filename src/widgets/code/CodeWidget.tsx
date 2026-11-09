@@ -55,17 +55,17 @@ export default function CodeWidget(p: CodeWidgetHostProps) {
   }, [p.code]);
   const def = state && "def" in state ? state.def : undefined;
   const title = p.title ?? def?.name ?? p.code.slice(4);
-  const unavailable = (hint?: string) => <Empty icon="widgets" label="Widget not available" hint={hint?.slice(0, 120)} large />;
+  const unavailable = (hint?: string) => <Empty icon="dashboard" label="Widget not available" hint={hint?.slice(0, 120)} large />;
   if (!def) {
     return (
-      <Widget {...shell(p)} title={title} icon="widgets" design={null}>
+      <Widget {...shell(p)} title={title} icon="dashboard" design={null}>
         {state && unavailable("why" in state ? state.why : undefined)}
       </Widget>
     );
   }
   const sha256 = state && "sha256" in state ? state.sha256 : "";
   return (
-    <Widget {...shell(p)} title={title} icon={def.icon ?? "widgets"} design={null}>
+    <Widget {...shell(p)} title={title} icon={def.icon ?? "dashboard"} design={null}>
       <Contained reset={sha256} fallback={(m) => unavailable(`It stopped with an error: ${m}`)}>
         <Body key={sha256} def={def} saved={p.saved} />
       </Contained>
