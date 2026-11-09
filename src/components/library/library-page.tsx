@@ -237,6 +237,7 @@ export default function LibraryPage(p: LibraryPageProps) {
           ? { label: "Place on this page", icon: Plus, run: () => void addComponentZone(bridge, item) }
           : { label: "Edit profile", icon: MonitorPlay, run: () => p.onEditCanvas(item) };
       case "style":
+      case "wpreset":
         return presetPrimary(item, presetCtx);
       case "template": {
         const t = item.data as ScreenTemplate;
@@ -445,7 +446,7 @@ export default function LibraryPage(p: LibraryPageProps) {
     { id: "recent" as const, title: "Recent", note: "Added or edited this week", items: sortItems(collectionItems("recent", index), "recent") },
     { id: "gauges" as const, title: "Gauges", note: "Built here or imported", items: collectionItems("gauges", index) },
     { id: "videos" as const, title: "Videos", note: "Backgrounds that move", items: collectionItems("videos", index) },
-    { id: "panels" as const, title: "Panels & Styles", note: "Yours to reuse", items: [...collectionItems("panels", index), ...collectionItems("styles", index)] },
+    { id: "panels" as const, title: "Panels, Styles & Presets", note: "Yours to reuse", items: [...collectionItems("panels", index), ...collectionItems("styles", index), ...collectionItems("wpresets", index)] },
   ];
 
   const detail = (item: LibraryItem, sheet: boolean) => {

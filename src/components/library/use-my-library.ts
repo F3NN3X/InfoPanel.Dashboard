@@ -11,6 +11,7 @@ import { createLibraryItem, deleteLibraryItem, getLibraryItem, listLibrary, upda
 import { builtinItems, configItems, type BuiltinSources } from "@/lib/my-library/config-items";
 import { updateItemFormat } from "@/lib/my-library/item-format";
 import { isConfigItem } from "@/lib/my-library/model";
+import { ALL_MODULES } from "@/components/studio/studio-modules";
 import { addFileToLibrary } from "./add-file";
 import { uploadName } from "./adopt-uploads";
 import { removeBlocked, removeItem, type RemoveResult } from "./remove-item";
@@ -54,7 +55,7 @@ export interface MyLibrary {
 
 const WORKERS = 2;
 
-export function useMyLibrary(config: Pick<DashboardConfig, "panelPresets" | "stylePresets">): MyLibrary {
+export function useMyLibrary(config: Pick<DashboardConfig, "panelPresets" | "stylePresets" | "widgetPresets">): MyLibrary {
   const [server, setServer] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +135,10 @@ export function useMyLibrary(config: Pick<DashboardConfig, "panelPresets" | "sty
   };
 
   const builtins = useMemo(() => builtinItems(sources), [sources]);
-  const items = useMemo(() => [...server, ...configItems(config), ...builtins], [server, config.panelPresets, config.stylePresets, builtins]);
+  const items = useMemo(
+    () => [...server, ...configItems(config, (id) => ALL_MODULES.find((m) => m.id === id)?.title ?? id), ...builtins],
+    [server, config.panelPresets, config.stylePresets, config.widgetPresets, builtins],
+  );
 
   return {
     items,

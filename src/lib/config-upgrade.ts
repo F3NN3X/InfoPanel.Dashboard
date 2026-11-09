@@ -10,7 +10,7 @@
  * it makes), v15→v16 gives each screen the look it inherited (`migrateScreensV16`), v17→v18 clears the card a level stores as its own sample Look's (`clearOwnCardsV18`), v16→v17 folds the skins into
  * Looks: every stored skin becomes a `lookId` before the other steps (`renameSkinsV17`), and the levels that applied a
  * sample theme name its Look after them (`migrateLooksV17`), v18→v19 makes each merged-away widget its survivor's view
- * (`migrateMergedWidgetsV19`, keyed on the id, last of the profile steps so the older id-keyed steps still see the old id). A config at this build's version comes out as
+ * (`migrateMergedWidgetsV19`, keyed on the id, last of the profile steps so the older id-keyed steps still see the old id). The `widgetPresets` list is guarded here (`normalizeWidgetPresets`). A config at this build's version comes out as
  * `mergeConfig` makes it.
  */
 import type { ModuleSettings } from "@/modules/types";
@@ -23,6 +23,7 @@ import { migrateLegacyZones } from "./legacy-zones";
 import { clearOwnCardsV18, migrateLooksV17, renameSkinsV17 } from "./look-migrate";
 import { migrateProfileV15 } from "./page-model/migrate";
 import { normalizePanelPresets } from "./panel-model";
+import { normalizeWidgetPresets } from "./widget-presets-guard";
 import { clockOfStyle, dashboardLook, migrateScreensV16 } from "./screen-look-migrate";
 import { YR_FORECAST_KEY } from "./sensors";
 import {
@@ -138,6 +139,7 @@ export function upgradeConfig(input: StoredConfig, log?: string[]): DashboardCon
       ? parsed.stylePresets.map((p) => (isSettings(p?.settings) ? { ...p, settings: migrateStyleV7(p.settings) } : p))
       : undefined,
     panelPresets: normalizePanelPresets(parsed.panelPresets),
+    widgetPresets: normalizeWidgetPresets(parsed.widgetPresets),
     appearancePresets: normalizeAppearancePresets(parsed.appearancePresets),
     palettes: normalizePalettes(parsed.palettes),
     general: normalizeGeneral(clock ? { ...v7.general, clock } : v7.general),

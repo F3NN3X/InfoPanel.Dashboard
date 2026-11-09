@@ -12,3 +12,26 @@ describe("the generated widget files", () => {
     expect(current).toBe(generated.get(file));
   });
 });
+
+describe("a README's Presets section", () => {
+  it("names every preset of its folder's presets.ts, with its view and size", async () => {
+    const { widgetFolders } = await import("../../tools/widgets/generate.mjs");
+    let checked = 0;
+    for (const folder of widgetFolders()) {
+      const file = `src/widgets/${folder}/presets.ts`;
+      let list: { name: string; view?: string; size: number[]; default?: boolean }[];
+      try {
+        list = (await import(/* @vite-ignore */ `../../${file}`)).default;
+      } catch {
+        continue;
+      }
+      const readme = generated.get(`src/widgets/${folder}/README.md`)!;
+      for (const p of list) {
+        expect(readme, `${folder}: ${p.name}`).toContain(`**${p.name}**${p.default ? " (default)" : ""}`);
+        expect(readme, `${folder}: ${p.name} size`).toContain(`${p.size[0]}×${p.size[1]}`);
+      }
+      checked++;
+    }
+    expect(checked).toBe(21);
+  });
+});

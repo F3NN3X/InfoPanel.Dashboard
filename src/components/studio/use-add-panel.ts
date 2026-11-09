@@ -6,6 +6,7 @@ import { useRecentAdds } from "./add-recent";
 import type { AddToastState } from "./add-toast";
 import type { LibraryItem } from "./drop-ghost";
 import type { AddOutcome } from "./use-studio-mutations";
+import { useWidgetPresets } from "./widget-presets";
 import type { ZoneRect } from "./zone-geometry";
 
 /** How long the Add panel's toast stays up. */
@@ -53,7 +54,11 @@ interface AddPanelDeps {
  * zone's flash, and `add` for a click, Enter or a drop. Each add is one undo step.
  */
 export function useAddPanel({ config, addFromPanel, targetZoneId, undo }: AddPanelDeps) {
-  const catalog = useMemo(() => addCatalog(config.panelPresets), [config.panelPresets]);
+  const builtin = useWidgetPresets();
+  const catalog = useMemo(
+    () => addCatalog(config.panelPresets, builtin, config.widgetPresets),
+    [config.panelPresets, config.widgetPresets, builtin]
+  );
   const [recent, pushRecent] = useRecentAdds();
   const { toast, show, seq, clear } = useAddToast(config);
   const [flash, setFlash] = useState<{ zoneId: string; seq: number } | null>(null);

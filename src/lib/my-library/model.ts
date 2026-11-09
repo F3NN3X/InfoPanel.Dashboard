@@ -130,6 +130,7 @@ export type CollectionId =
   | "gauges"
   | "panels"
   | "styles"
+  | "wpresets"
   | "canvases"
   | "components"
   | "templates"
@@ -154,6 +155,7 @@ export const COLLECTIONS: Collection[] = [
   { id: "duplicates", label: "Duplicates", section: "Smart" },
   { id: "suggested", label: "Suggested for theme", section: "Smart" },
   { id: "styles", label: "Widget styles", section: "Library", hint: "A widget style is one widget’s saved style. Apply from a widget’s Style tab." },
+  { id: "wpresets", label: "Widget presets", section: "Library", hint: "One widget’s view, settings and size, also a row of it in Add." },
   { id: "panels", label: "Panels", section: "Library", hint: "Reusable widget groups. Drag onto the canvas from Design › Add." },
   { id: "gauges", label: "Gauges", section: "Library", hint: "Open a gauge to edit it in Gauges." },
   { id: "media", label: "Media", section: "Library", hint: "Images and videos. Use one as a background from Theme › Background." },
@@ -204,6 +206,7 @@ const KIND_OF: Partial<Record<CollectionId, LibraryKind>> = {
   gauges: "gauge",
   panels: "panel",
   styles: "style",
+  wpresets: "wpreset",
 };
 
 export function inCollection(item: LibraryItem, id: CollectionId, index: LibraryIndex, now = Date.now()): boolean {
@@ -336,6 +339,7 @@ export const KIND_LABEL: Record<LibraryKind, string> = {
   gauge: "Gauge",
   panel: "Panel",
   style: "Widget style",
+  wpreset: "Widget preset",
   canvas: "Canvas",
   theme: "Saved theme",
   skin: "Theme",
@@ -415,6 +419,8 @@ export function metaLine(item: LibraryItem): string {
       return m.cols && m.rows ? `${m.cols} × ${m.rows} cells` : "Panel";
     case "style":
       return "Style";
+    case "wpreset":
+      return [item.meta.widgetName, item.meta.size].filter((x) => typeof x === "string" && x).join(" · ") || "Widget preset";
     case "template":
       return [px, "Screen template"].filter(Boolean).join(" · ");
     case "ptemplate":

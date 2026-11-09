@@ -6,11 +6,12 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { LibraryItem } from "@/lib/library";
 import { KIND_LABEL, metaLine } from "@/lib/my-library/model";
+import type { UserWidgetPreset } from "@/lib/widget-presets";
 import type { ModuleSettings } from "@/modules/types";
 import { AssetThumb } from "./asset-thumb";
 import type { DetailAction } from "./library-detail";
 import { isUserPreset } from "./preset-actions";
-import { styleRows } from "./preset-summary";
+import { styleRows, widgetPresetRows } from "./preset-summary";
 
 export interface PresetDetailProps {
   item: LibraryItem;
@@ -61,7 +62,7 @@ export function PresetDetail(p: PresetDetailProps) {
     onFocusedName?.();
   }, [focusName, onFocusedName]);
 
-  const rows = styleRows((item.data as { settings: ModuleSettings }).settings);
+  const rows = item.kind === "wpreset" ? widgetPresetRows(item.data as UserWidgetPreset) : styleRows((item.data as { settings: ModuleSettings }).settings);
   const button = (a: DetailAction, primary?: boolean) => (
     <button
       key={a.label}
@@ -96,7 +97,7 @@ export function PresetDetail(p: PresetDetailProps) {
         {p.secondary.length > 0 && <div className="grid grid-cols-2 gap-2 [&>*:last-child:nth-child(odd)]:col-span-2">{p.secondary.map((a) => button(a))}</div>}
       </div>
       <Section title="Settings">
-        {rows.length > 0 ? <Rows rows={rows} /> : <span className="text-caption text-ui-4">No settings: it clears the widget’s own style</span>}
+        {rows.length > 0 ? <Rows rows={rows} /> : <span className="text-caption text-ui-4">{item.kind === "wpreset" ? "No settings: only its view and size" : "No settings: it clears the widget’s own style"}</span>}
       </Section>
       <Section title="Kept in">
         <span className="text-caption text-ui-2">{user ? "this dashboard’s config" : "the Studio (built in)"}</span>

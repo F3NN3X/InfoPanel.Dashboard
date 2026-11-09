@@ -10,11 +10,13 @@ import type { Template } from "@/lib/infopanel/templates/kit";
 import type { DashboardConfig } from "@/lib/layout";
 import type { LibraryItem } from "@/lib/library";
 import { panelPresets } from "@/lib/panelPresets";
+import { savedWidgetPresets } from "@/lib/widget-presets";
 import type { ScreenTemplate } from "@/lib/screen-templates/kit";
 
 /** Config presets shown as library items carry these id prefixes; they live in the config, not the library. */
 export const CONFIG_PANEL = "cfg-panel:";
 export const CONFIG_STYLE = "cfg-style:";
+export const CONFIG_WPRESET = "cfg-wpreset:";
 /** The built-ins that ship with the app. */
 export const BUILTIN_STYLE = "builtin-style:";
 /** The built-in panels and the screen templates. */
@@ -30,7 +32,7 @@ export const BUILTIN_PREFIXES: readonly string[] = [
   BUILTIN_PROFILE_TEMPLATE,
   BUILTIN_FONT,
 ];
-export const CONFIG_PREFIXES: readonly string[] = [CONFIG_PANEL, CONFIG_STYLE, ...BUILTIN_PREFIXES];
+export const CONFIG_PREFIXES: readonly string[] = [CONFIG_PANEL, CONFIG_STYLE, CONFIG_WPRESET, ...BUILTIN_PREFIXES];
 
 /** Something that ships with the app: shown, applied and duplicated, never renamed or deleted. */
 export const isBuiltinItem = (item: Pick<LibraryItem, "id">): boolean => BUILTIN_PREFIXES.some((p) => item.id.startsWith(p));
@@ -43,14 +45,17 @@ function stand(id: string, kind: LibraryItem["kind"], name: string, meta: Record
   return { id, kind, name, createdAt: at, updatedAt: at, files: [], meta, copies: [{ profileId: "*" }], data };
 }
 
-type Source = Pick<DashboardConfig, "panelPresets" | "stylePresets">;
+type Source = Pick<DashboardConfig, "panelPresets" | "stylePresets" | "widgetPresets">;
 
-/** The config's saved panels and Styles, then the built-in Styles, as library items. */
-export function configItems(config: Source): LibraryItem[] {
+/** The config's saved panels, Styles and widget presets, then the built-in Styles, as library items (`titleOf`: a widget's name). */
+export function configItems(config: Source, titleOf: (widget: string) => string = (w) => w): LibraryItem[] {
   const panels = (config.panelPresets ?? []).map((p, i) => stand(CONFIG_PANEL + p.id, "panel", p.name, { cols: p.colSpan, rows: p.rowSpan, source: "config" }, p, i));
   const styles = (config.stylePresets ?? []).map((s, i) => stand(CONFIG_STYLE + s.id, "style", s.name, { source: "config" }, s, i));
+  const widgetPresets = savedWidgetPresets(config.widgetPresets).map((p, i) =>
+    stand(CONFIG_WPRESET + p.id, "wpreset", p.name, { source: "config", widget: p.widget, widgetName: titleOf(p.widget), size: `${p.size[0]}×${p.size[1]}` }, p, i),
+  );
   const builtinStyles = BUILTIN_STYLES.map((s, i) => stand(BUILTIN_STYLE + s.id, "style", s.name, { source: "builtin" }, s, i));
-  return [...panels, ...styles, ...builtinStyles];
+  return [...panels, ...styles, ...widgetPresets, ...builtinStyles];
 }
 
 /** The catalogs that load on demand (the screen templates are large): absent until loaded. */

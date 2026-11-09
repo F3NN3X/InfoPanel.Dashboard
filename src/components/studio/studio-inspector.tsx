@@ -112,6 +112,9 @@ export function StudioInspector({
         onPickWidget={() => ui.setPickerFor(selected.id)}
         onSavePreset={edit.saveStylePreset}
         onUpdatePreset={edit.updateSavedStyle}
+        onSaveWidgetPreset={edit.saveWidgetPreset}
+        onRenameWidgetPreset={edit.renameWidgetPreset}
+        onDeleteWidgetPreset={edit.deleteWidgetPreset}
         onToggleVisible={() => edit.toggleVisible(selected.id)}
         onDuplicate={() => edit.duplicateZones([selected.id])}
         onRemove={() => edit.removePlacement(selected.id)}

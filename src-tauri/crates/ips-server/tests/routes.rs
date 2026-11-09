@@ -306,6 +306,24 @@ async fn keeps_the_v18_config_before_the_first_v19_save() {
     s.stop().await;
 }
 
+// Widget presets (`widgetPresets`, an optional key of config v19): the server keeps the config as posted, so the list a user saved
+// comes back from GET as it went in, and a save without the key (an older studio) takes it out with the rest, as for every key.
+#[tokio::test]
+async fn stores_widget_presets_as_posted_and_returns_them() {
+    let s = start().await;
+    let with = r#"{"version":19,"profiles":[],"widgetPresets":[{"id":"my-1","widget":"Weather","name":"Tiny","view":"minimal","settings":{"showStats":false},"size":[2,1],"created":"2026-01-15T12:00:00.000Z"}]}"#;
+    assert_eq!(post_config(s.port, with, &[]).await.status, 200);
+    let read = get(s.port, "/api/config").await;
+    assert_eq!(read.status, 200);
+    assert_eq!(json(&read)["widgetPresets"][0]["name"], "Tiny");
+    assert_eq!(json(&read)["widgetPresets"][0]["settings"]["showStats"], false);
+    assert_eq!(std::fs::read_to_string(s.data().join("config.json")).unwrap(), with);
+    let without = r#"{"version":19,"profiles":[]}"#;
+    assert_eq!(post_config(s.port, without, &[]).await.status, 200);
+    assert!(json(&get(s.port, "/api/config").await).get("widgetPresets").is_none());
+    s.stop().await;
+}
+
 #[tokio::test]
 async fn settings_patch_sets_the_startup_screen() {
     let s = start().await;

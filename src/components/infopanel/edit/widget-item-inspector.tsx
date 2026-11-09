@@ -91,6 +91,9 @@ export function WidgetItemInspector({ editor, path, item, host, place }: WidgetI
       onPickWidget={() => toast("To change the widget, add another from Add and remove this one")}
       onSavePreset={host.onSaveStyle}
       onUpdatePreset={host.onUpdateStyle}
+      onSaveWidgetPreset={(preset) => void import("@/lib/widget-presets-edit").then((e) => host.setConfig((c) => e.saveWidgetPreset(c, preset)))}
+      onRenameWidgetPreset={(id, name) => void import("@/lib/widget-presets-edit").then((e) => host.setConfig((c) => e.renameWidgetPreset(c, id, name)))}
+      onDeleteWidgetPreset={(id) => void import("@/lib/widget-presets-edit").then((e) => host.setConfig((c) => e.deleteWidgetPreset(c, id)))}
       onToggleVisible={() => editor.setField(path, "Hidden", !item.Hidden)}
       onDuplicate={editor.duplicate}
       onRemove={editor.remove}

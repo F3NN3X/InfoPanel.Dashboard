@@ -108,7 +108,7 @@ export const ELEMENT_TILES: readonly AddTile[] = ELEMENTS.map((e) => ({
 export const tileSize = (tile: AddTile): string | undefined => (tile.widget ? sizeText(tile.widget.w, tile.widget.h) : undefined);
 
 /** How many presets a widget holds (D-5), its own default among them; none when it has no choice. */
-export const tileStyles = (tile: AddTile): number | undefined => (tile.widget?.styles ? tile.widget.styles.length + 1 : undefined);
+export const tilePresets = (tile: AddTile): number | undefined => (tile.widget?.presets ? tile.widget.presets.length + 1 : undefined);
 
 /** The chips over the list for a segment (SPEC §9.1): widget categories, or the item groups and Elements. */
 export function chipsFor(segment: AddFilter, widgets: readonly AddItem[]): string[] {

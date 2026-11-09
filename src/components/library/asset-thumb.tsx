@@ -221,6 +221,7 @@ export function AssetThumb({ item, size = "md", live = false, className }: { ite
       );
     }
     case "style":
+    case "wpreset":
       return (
         <div className={box}>
           <span className="flex h-[52%] w-[62%] flex-col justify-center gap-1.5 rounded-ui-md border border-white/20 bg-slate-400/15 px-[10%] shadow-[0_8px_20px_rgba(0,0,0,.35)]">
