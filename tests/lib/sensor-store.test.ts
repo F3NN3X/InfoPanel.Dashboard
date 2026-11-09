@@ -236,6 +236,9 @@ describe("SensorStore", () => {
     await flush();
     vi.advanceTimersByTime(2000);
     expect(live().map((s) => s.url).sort()).toEqual(["/events/weather?prefix=weather.", `${BASE}/events`]);
+    // the unfiltered stream's snapshots never carry the weather, and do not drop it
+    live().find((s) => s.url === `${BASE}/events`)!.send({ timestamp: 2, sensors: { "a.x": sensor(1) } });
+    expect(store.getValues()["weather.place.n5991e1075.temp"]).toEqual(sensor(4));
   });
 
   it("uses one unfiltered stream past the budget, each message a full snapshot", async () => {

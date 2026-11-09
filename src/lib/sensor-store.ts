@@ -307,7 +307,8 @@ export class SensorStore {
       }
       if (!parsed || typeof parsed !== "object") return;
       const reset = stream.fresh || unfiltered ? prefix : null;
-      const { values, changed } = mergeEvent(this.values, parsed, reset);
+      // the unfiltered Data API stream resets every key but the dashboard server's weather, which it never carries
+      const { values, changed } = mergeEvent(this.values, parsed, reset, unfiltered ? SERVER_NS : undefined);
       stream.fresh = false;
       this.values = values;
       if (typeof parsed.timestamp === "number") this.timestamp = parsed.timestamp;

@@ -27,12 +27,14 @@ export function sameSensor(a: SensorValue | undefined, b: SensorValue | undefine
  * Merge one stream message into the map, copy-on-write. Keys whose reading
  * did not change keep their old object, and a message that changes nothing
  * returns `prev` itself. `resetPrefix` marks the full set sent on connect:
- * keys under it that the message does not carry are dropped.
+ * keys under it that the message does not carry are dropped, except those
+ * under `spare` (another stream's, which this one never carries).
  */
 export function mergeEvent(
   prev: SensorMap,
   event: StreamEvent,
-  resetPrefix: string | null
+  resetPrefix: string | null,
+  spare?: string
 ): { values: SensorMap; changed: string[] } {
   let next: SensorMap | null = null;
   const changed: string[] = [];
@@ -51,7 +53,7 @@ export function mergeEvent(
   }
   if (resetPrefix !== null) {
     for (const key of Object.keys(prev)) {
-      if (key.startsWith(resetPrefix) && !(key in incoming)) {
+      if (key.startsWith(resetPrefix) && !(key in incoming) && !(spare && key.startsWith(spare))) {
         delete write()[key];
         changed.push(key);
       }
