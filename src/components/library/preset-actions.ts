@@ -46,7 +46,10 @@ function applyWidgetPreset(item: LibraryItem, ctx: PresetContext): void {
   const preset = item.data as UserWidgetPreset;
   const mod = ALL_MODULES.find((m) => m.id === preset.widget);
   const ids = new Set(presetZones(item, ctx).map((z) => z.id));
-  if (ids.size === 0) return ctx.bridge.toast(`Select a ${mod?.title ?? preset.widget} widget first`);
+  if (ids.size === 0) {
+    ctx.bridge.toast(`Select a ${mod?.title ?? preset.widget} widget first`);
+    return;
+  }
   const patch = { ...(preset.view ? { [mod?.viewKey ?? "view"]: preset.view } : {}), ...preset.settings };
   ctx.bridge.updateProfile((p) => ({ ...p, placements: p.placements.map((z) => (ids.has(z.id) ? { ...z, settings: { ...z.settings, ...patch } } : z)) }));
   ctx.bridge.toast(`Applied ${item.name} to ${ids.size === 1 ? "the widget" : `${ids.size} widgets`}`);
