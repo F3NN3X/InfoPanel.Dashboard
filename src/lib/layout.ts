@@ -325,8 +325,15 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
  *     supplies it, so a page that stored the card alone (a v16 shape) now takes the Look's other values too. Every other
  *     stored value stays. A v17 build's save is refused as any older one's is (`config_guard.rs`); before the first v18 save
  *     the server keeps the v17 file as `config.backup-before-v18.json` (once: an existing backup is never overwritten).
+ * v19: the widget merges (`settings-migrate.v19.ts` `migrateMergedWidgetsV19`, _docs/widgets/MERGES.md): a placement of a
+ *     merged-away widget, and one an inline canvas holds, becomes the survivor in the matching view with its settings
+ *     mapped (Forecast: Weather's `forecast` view, its `days` as `forecastDays`, 0 = as many as fit when it stored none).
+ *     Keyed on the id, so an imported file with an old id maps too. Nothing draws differently. A v18 build would not know
+ *     the survivor's new values (Weather's `forecastDays: 0`) and its save is refused as any older one's is
+ *     (`config_guard.rs`); before the first v19 save the server keeps the v18 file as `config.backup-before-v19.json`
+ *     (once: an existing backup is never overwritten).
  */
-export const CONFIG_VERSION = 18;
+export const CONFIG_VERSION = 19;
 
 export interface DashboardConfig {
   version: typeof CONFIG_VERSION;

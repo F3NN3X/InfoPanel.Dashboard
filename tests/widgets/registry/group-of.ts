@@ -10,7 +10,7 @@ export const groupOf = (ids: readonly string[]): DashboardModule[] => modules.fi
 
 /** The ids of each former registry group, in the registry's order. */
 export const GROUP_A_IDS = ["SystemOverview", "MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "Vitals", "ServiceHealth", "ProcessList", "Uptime", "CpuMonitor", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans"];
-export const GROUP_B_IDS = ["DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "Countdown", "StatusBar", "CodingAgents", "Calendar", "Weather", "Forecast", "SensorValue", "SensorGroup", "CustomGauge"];
+export const GROUP_B_IDS = ["DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "Countdown", "StatusBar", "CodingAgents", "Calendar", "Weather", "SensorValue", "SensorGroup", "CustomGauge"];
 export const GROUP_C_IDS = ["NowPlaying", "AudioMeter", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink"];
 export const GROUP_D_IDS = ["FpsMonitor", "GameSpotlight", "OsdStrip", "FramePacing", "PlaytimeShare", "SteamProfile", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews"];
 export const GROUP_E_IDS = ["WebPage", "TextFile", "Notifications", "Departures", "Bluetooth"];

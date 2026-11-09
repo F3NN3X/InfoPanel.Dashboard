@@ -59,10 +59,11 @@ import uptime from "./uptime/widget";
 import visualizer from "./visualizer/widget";
 import volumeMixer from "./volume-mixer/widget";
 import waveLink from "./wave-link/widget";
+import weather from "./weather/widget";
 import webPage from "./web-page/widget";
 
 /** The folder widgets in the order of src/widgets/order.ts. */
 // biome-ignore lint/suspicious/noExplicitAny: each definition keeps its own props type.
-export const FOLDER_WIDGETS: readonly WidgetDefinition<any>[] = [systemOverview, menuBar, statusTracker, systemStatus, serviceHealth, processList, uptime, cpuMonitor, coreHeatmap, gpuRings, gpuMonitor, memoryUsage, thermals, powerDraw, fans, driveSpace, storageHealth, diskIo, networkThroughput, networkAdapters, clock, timer, countdown, statusBar, codingAgents, calendar, sensorGroup, nowPlaying, audioMeter, volumeMixer, meterBridge, visualizer, waveLink, gameSpotlight, osdStrip, playtimeShare, steamProfile, steamFriends, steamGame, achievements, steamLibrary, steamNews, webPage, textFile, notifications, departures, bluetooth, dayPlanner, radialClockStack, onAirBeacon, bottleneckLens, frameHistogram, streamMixer, audioButton, audioFader, streamControl, obsButton, streamChat, streamDeck];
+export const FOLDER_WIDGETS: readonly WidgetDefinition<any>[] = [systemOverview, menuBar, statusTracker, systemStatus, serviceHealth, processList, uptime, cpuMonitor, coreHeatmap, gpuRings, gpuMonitor, memoryUsage, thermals, powerDraw, fans, driveSpace, storageHealth, diskIo, networkThroughput, networkAdapters, clock, timer, countdown, statusBar, codingAgents, calendar, weather, sensorGroup, nowPlaying, audioMeter, volumeMixer, meterBridge, visualizer, waveLink, gameSpotlight, osdStrip, playtimeShare, steamProfile, steamFriends, steamGame, achievements, steamLibrary, steamNews, webPage, textFile, notifications, departures, bluetooth, dayPlanner, radialClockStack, onAirBeacon, bottleneckLens, frameHistogram, streamMixer, audioButton, audioFader, streamControl, obsButton, streamChat, streamDeck];
 /** Each one's index in src/widgets/order.ts: its place among all the widgets. */
-export const FOLDER_SLOTS: readonly number[] = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 31, 33, 34, 35, 36, 37, 38, 40, 41, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67, 68];
+export const FOLDER_SLOTS: readonly number[] = [0, 1, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 32, 33, 34, 35, 36, 37, 39, 40, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 61, 62, 63, 64, 65, 66, 67];

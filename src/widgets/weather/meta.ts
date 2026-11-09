@@ -1,4 +1,4 @@
-// Weather's catalog entry, apart from its component so the registry can list it without loading the widget.
+// Weather's catalog entry: pure data, so the registry and the generator read it without the component.
 import type { WidgetMeta } from "../core/types";
 
 export const meta: WidgetMeta = {
@@ -16,7 +16,9 @@ export const meta: WidgetMeta = {
   views: [
     { id: "full", name: "Full", applies: { showForecast: true, showStats: true, showFeels: true } },
     { id: "now", name: "Now", blurb: "Current conditions with wind and humidity", tags: "current today", applies: { showForecast: false, showStats: true, showFeels: true } },
-    { id: "forecast", name: "Forecast", blurb: "Conditions now and the days ahead", tags: "week days outlook", applies: { showForecast: true, showStats: false, showFeels: false } },
+    // The Forecast widget until config v19: found by its words, and it gates on any key as that widget did (no prefixes
+    // of its own).
+    { id: "forecast", name: "Forecast", blurb: "Conditions now and the days ahead", tags: "week days outlook multi-day highs lows", applies: { showForecast: true, showStats: false, showFeels: false }, prefixes: [] },
     { id: "minimal", name: "Minimal", blurb: "Temperature and conditions only", tags: "simple small", applies: { showForecast: false, showStats: false, showFeels: false } },
     { id: "glance", name: "Glance", blurb: "Big icon, temperature and place", tags: "icon big", defaultSize: [3, 2], applies: { showForecast: false, showStats: false, showFeels: false } },
     { id: "week", name: "Week", blurb: "Today and the next days", tags: "days outlook forecast", defaultSize: [5, 2], applies: { showForecast: true, showStats: false, showFeels: false } },

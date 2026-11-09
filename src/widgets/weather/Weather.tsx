@@ -1,11 +1,11 @@
 import type { ModuleSettings } from "@/modules/types";
 import { weatherKind, type WeatherKind } from "@/lib/weather-icons";
-import { windValue } from "./weather-fx/config";
-import { WeatherFx, type WeatherFxOpts } from "./weather-fx/WeatherFx";
+import { windValue } from "../weather-fx/config";
+import { WeatherFx, type WeatherFxOpts } from "../weather-fx/WeatherFx";
 import Forecast from "./Forecast";
-import { Widget, shell, get, num, fmt, has, rows, roomy, squareHero, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "./kit";
+import { Widget, shell, get, num, fmt, has, rows, roomy, squareHero, Stat, Num, WeatherGlyph, weatherIcon, useIpTag, type ShellProps, type WeatherIconProps } from "../kit";
 import { WeatherGlance, WeatherWeek, weekDays } from "./WeatherViews";
-import { meta } from "./meta/Weather";
+import { meta } from "./meta";
 
 export { meta };
 
@@ -31,7 +31,7 @@ export interface WeatherProps extends ShellProps {
   /** Yr container slug. */
   location?: string;
   units?: "C" | "F";
-  /** What shows: `full` everything, `now` no forecast, `minimal` temperature + condition only (each flag below overrides it), `forecast` the Forecast widget. */
+  /** What shows: `full` everything, `now` no forecast, `minimal` temperature + condition only (each flag below overrides it), `forecast` the multi-day forecast (`./Forecast`, the Forecast widget before config v19). */
   view?: "full" | "now" | "forecast" | "minimal" | "glance" | "week";
   /** The icon set: the app's own or Meteocons, with the Meteocons style and whether they animate. */
   iconSet?: WeatherIconProps["set"];
@@ -50,7 +50,7 @@ export interface WeatherProps extends ShellProps {
   fxOpts?: WeatherFxOpts;
   fxWind?: "auto" | "none" | "left" | "right";
   fxPreview?: "auto" | WeatherKind;
-  /** Forecast days shown, 1-7 (default: 5, or 7 in a large zone). */
+  /** Forecast days shown, 1-7 (default: 5, or 7 in a large zone; in the forecast view as many as fit). */
   days?: number;
 }
 

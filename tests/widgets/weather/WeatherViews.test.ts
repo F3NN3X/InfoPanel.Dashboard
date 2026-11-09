@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekDays } from "@/widgets/WeatherViews";
+import { weekDays } from "@/widgets/weather/WeatherViews";
 
 const cond = { kind: "rain", night: false } as const;
 const fc = [

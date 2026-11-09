@@ -82,6 +82,15 @@ mod tests {
         assert!(needs_update(r#"{"version":17,"profiles":[]}"#));
     }
 
+    // v19 (the widget merges: a merged-away widget is its survivor's view): a v18 build would not know the survivor's new values, so its save is refused as any older one's is.
+    #[test]
+    fn refuses_a_v18_save_over_a_v19_config() {
+        assert!(version_refusal(r#"{"version":19}"#, &serde_json::json!({ "version": 18 })).is_some());
+        assert!(version_refusal(r#"{"version":18}"#, &serde_json::json!({ "version": 19 })).is_none());
+        assert!(version_refusal(r#"{"version":19}"#, &serde_json::json!({ "version": 19 })).is_none());
+        assert!(needs_update(r#"{"version":18,"profiles":[]}"#));
+    }
+
     #[test]
     fn a_saved_config_needs_an_update_below_this_builds_version_only() {
         let below = format!(r#"{{"version":{},"profiles":[]}}"#, crate::CONFIG_VERSION - 1);
@@ -108,5 +117,7 @@ mod tests {
         assert_eq!(version_backup_name(r#"{"version":16}"#, &v17).as_deref(), Some("config.backup-before-v17.json"));
         let v18 = serde_json::json!({ "version": 18 });
         assert_eq!(version_backup_name(r#"{"version":17}"#, &v18).as_deref(), Some("config.backup-before-v18.json"));
+        let v19 = serde_json::json!({ "version": 19 });
+        assert_eq!(version_backup_name(r#"{"version":18}"#, &v19).as_deref(), Some("config.backup-before-v19.json"));
     }
 }

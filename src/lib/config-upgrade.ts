@@ -9,7 +9,8 @@
  * the screens made for InfoPanel, v14→v15 makes every page one kind (`migrateProfileV15`, a line in `log` per change
  * it makes), v15→v16 gives each screen the look it inherited (`migrateScreensV16`), v17→v18 clears the card a level stores as its own sample Look's (`clearOwnCardsV18`), v16→v17 folds the skins into
  * Looks: every stored skin becomes a `lookId` before the other steps (`renameSkinsV17`), and the levels that applied a
- * sample theme name its Look after them (`migrateLooksV17`). A config at this build's version comes out as
+ * sample theme name its Look after them (`migrateLooksV17`), v18→v19 makes each merged-away widget its survivor's view
+ * (`migrateMergedWidgetsV19`, keyed on the id, last of the profile steps so the older id-keyed steps still see the old id). A config at this build's version comes out as
  * `mergeConfig` makes it.
  */
 import type { ModuleSettings } from "@/modules/types";
@@ -37,6 +38,7 @@ import {
   migrateStyleV7,
   type LegacyProfileFields,
 } from "./settings-migrate";
+import { migrateMergedWidgetsV19 } from "./settings-migrate.v19";
 
 /**
  * Image paths saved while the DataBridge plugin served the dashboard point
@@ -114,7 +116,8 @@ export function upgradeConfig(input: StoredConfig, log?: string[]): DashboardCon
     .map(migrateProfileV12)
     .map(migrateProfileStreamDeck)
     .map((p) => migrateProfileV14(p, { legacy: (parsed.version ?? 0) < 14 }))
-    .map((p) => migrateProfileV15(p, { legacy: (parsed.version ?? 0) < 15, log }));
+    .map((p) => migrateProfileV15(p, { legacy: (parsed.version ?? 0) < 15, log }))
+    .map(migrateMergedWidgetsV19);
   // v7: the clocks' 12 / 24 h moves from `general` into the all-profiles style (its themed `clock`).
   const v7 = migrateGeneralV7(isSettings(parsed.general) ? parsed.general : undefined, isSettings(parsed.style) ? migrateStyleV7(migrateBaseStyleV6(parsed.style)) : undefined);
   // A pin to a profile that is gone falls back to Auto.

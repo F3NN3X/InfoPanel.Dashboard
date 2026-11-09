@@ -283,6 +283,29 @@ async fn keeps_the_v17_config_before_the_first_v18_save() {
     s.stop().await;
 }
 
+// v19 (the widget merges: a Forecast zone is Weather's forecast view): the first v19 save keeps the v18 file, as the v18 one kept the v17 file.
+#[tokio::test]
+async fn keeps_the_v18_config_before_the_first_v19_save() {
+    let s = start().await;
+    let backup = s.data().join("config.backup-before-v19.json");
+    let v18 = r#"{"version":18,"profiles":[{"id":"s","pages":[{"id":"main","placements":[{"id":"f","module":"Forecast","settings":{"days":3}}]}]}]}"#;
+    assert_eq!(post_config(s.port, v18, &[]).await.status, 200);
+    let raised = post_config(s.port, r#"{"version":19,"profiles":[]}"#, &[]).await;
+    assert_eq!(raised.status, 200);
+    assert_eq!(json(&raised)["backup"], backup.display().to_string());
+    assert_eq!(std::fs::read_to_string(&backup).unwrap(), v18);
+    assert_eq!(post_config(s.port, v18, &[]).await.status, 409);
+    // A backup that exists already stays byte for byte on a second raise (first wins), and the answer still names it.
+    let restored = r#"{"version":18,"profiles":[],"restored":true}"#;
+    std::fs::write(s.data().join("config.json"), restored).unwrap();
+    let again = post_config(s.port, r#"{"version":19,"n":2}"#, &[]).await;
+    assert_eq!(again.status, 200);
+    assert_eq!(json(&again)["backup"], backup.display().to_string());
+    assert_eq!(std::fs::read_to_string(&backup).unwrap(), v18);
+    assert_eq!(std::fs::read_to_string(s.data().join("config.json")).unwrap(), r#"{"version":19,"n":2}"#);
+    s.stop().await;
+}
+
 #[tokio::test]
 async fn settings_patch_sets_the_startup_screen() {
     let s = start().await;

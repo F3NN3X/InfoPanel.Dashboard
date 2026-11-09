@@ -40,7 +40,7 @@ inspector's Show, Data and Behaviour tabs.
 | Network | `NetworkThroughput` 1×1, `NetworkAdapters` 1×1 |
 | Media | `NowPlaying` 1×1 |
 | Audio | `AudioMeter` 1×1, `VolumeMixer` 1×1, `MeterBridge` 1×1, `Visualizer` 1×1, `WaveLink` 1×1, `StreamMixer` 2×1, `AudioButton` 1×1, `AudioFader` 1×1 |
-| Info | `Clock` 1×1, `Timer` 1×1, `Countdown` 1×1, `Calendar` 1×1, `Weather` 1×1, `Forecast` 1×1, `TextFile` 2×1, `Notifications` 2×1, `Departures` 2×1, `DayPlanner` 2×2, `RadialClockStack` 1×1 |
+| Info | `Clock` 1×1, `Timer` 1×1, `Countdown` 1×1, `Calendar` 1×1, `Weather` 1×1, `TextFile` 2×1, `Notifications` 2×1, `Departures` 2×1, `DayPlanner` 2×2, `RadialClockStack` 1×1 |
 | Gaming | `FpsMonitor` 1×1, `GameSpotlight` 1×1, `OsdStrip` 2×1, `FramePacing` 2×1, `PlaytimeShare` 1×1, `SteamProfile` 1×1, `SteamFriends` 1×1, `SteamGame` 2×1, `Achievements` 1×1, `SteamLibrary` 1×1, `SteamNews` 1×1, `BottleneckLens` 2×1, `FrameHistogram` 2×1 |
 | Generic | `SensorValue` 1×1, `SensorGroup` 1×1, `CustomGauge` 1×1, `WebPage` 4×2, `Bluetooth` 2×1, `SessionStats` 2×1, `ThresholdTimeline` 2×1 |
 | Streaming | `OnAirBeacon` 1×1, `StreamControl` 2×1, `ObsButton` 1×1, `StreamChat` 2×2, `StreamDeck` 1×1 |
@@ -76,6 +76,13 @@ reads.
 | `bluetoothmodern` | `Bluetooth` |
 | `networkmodern` | `NetworkThroughput` |
 | `vbz`, `notifications`, `textfile`, `streamdeck`, `webpage` | `Departures`, `Notifications`, `TextFile`, `StreamDeck`, `WebPage` |
+
+Widgets that merged into another (config v19, `src/lib/settings-migrate.v19.ts`) are rewritten the same
+way, to the survivor in the matching view:
+
+| Stored id | Widget |
+|---|---|
+| `Forecast` | `Weather`, Forecast view (`days` becomes `forecastDays`, 0 = as many as fit) |
 
 The catch-all **Other sensors** (4×2, any key no module claims) is not a
 registry entry: `src/modules/other-sensors.tsx` draws a `SensorValue` card per
@@ -157,6 +164,7 @@ The whole library shares one design system, in `src/widgets/core/`:
 - **StatusBar** ([README](../src/widgets/status-bar/README.md)) — Each item reads only when it is in a slot: LibreHardwareMonitor `libre.*` (CPU, GPU and memory load and temperature, battery charge level), the weather plugins (`plugins.yr-weather-plugin.*`, else `plugins.weather-plugin.weather.*`), `plugins.network-info-plugin.*`, `plugins.volume-plugin.*`, `plugins.drive-info-plugin.*`, `plugins.system-info-plugin.uptime.*`, the Now Playing sources and RTSS or the fps plugin (`plugins.InfoPanel.RTSS.rtss.*`, `plugins.fps-plugin.fps.*`) for FPS and frame time. An item with no data is left out.
 - **CodingAgents** ([README](../src/widgets/coding-agents/README.md)) — No sensor keys: the server's agent data (`agents` in the integrations extras, `src/lib/agents.ts`), fed by the Claude Code and Codex hooks (`ips-agent`), the Claude statusline, the Codex session files and the transcripts. Connect them once with `node tools/agent-install.mjs`.
 - **Calendar** ([README](../src/widgets/calendar/README.md)) — The clock plugin's date, `plugins.clock-plugin.clock.day`, `month` and `year` (read, not owned: Clock owns the prefix). It draws without sensor keys too.
+- **Weather** ([README](../src/widgets/weather/README.md)) — The Yr plugin, `plugins.yr-weather-plugin.<location>.*`: `temp`, `feels_like`, `weather_icon`, `weather_desc`, `name`, `wind_speed`, `wind_deg`, `wind_gust`, `humidity`, `pressure`, `clouds`, `rain`, `snow`, `last_refreshed` and the `forecast` table (date, condition, high / low, rain, wind). The OpenWeatherMap plugin, `plugins.weather-plugin.weather.*`, with the same names. The Forecast view reads only the Yr `forecast` table, and draws (empty) once any sensor exists, as the Forecast widget did.
 - **SensorGroup** ([README](../src/widgets/sensor-group/README.md)) — Pick sensors: the chosen keys, any source. With none picked, this machine's own `system.cpu.load`, the graphics card's `libre.<gpu>_gpu_core_load` and `gpu_core`, `system.ram.load` and `plugins.volume-plugin.default.volume`. Auto-discover: every live `libre.*` / `hwinfo.*` reading.
 - **NowPlaying** ([README](../src/widgets/now-playing/README.md)) — The media plugin, `plugins.media-plugin.media.*`: `current-track`, `artist`, `album`, `cover-art`, `track-progress`, `elapsed-time`, `remaining-time`, `playback-state` (2 or 4 = playing). The Spotify plugin, `plugins.spotify-plugin.spotify.*` (the same names), with pushed `spotify.track` / `artist` / `album` / `art` / `progress` / `playing` winning over it. The visualiser reads the audio level meter, `plugins.audio-level-meter.*`, without owning it.
 - **AudioMeter** ([README](../src/widgets/audio-meter/README.md)) — The audio level meter plugin, `plugins.audio-level-meter.*` (it owns the prefix), grouped by container (device): the entries are found by their key suffix (`audio-level`, `peak-level`, `rms-level`, `left-channel`, `right-channel`, `device-name`), and the legacy plain names (`Level`, `Peak`, ...) are the fallback. The `default-audio` container is labelled "Default device". Volume and mute come from the volume plugin when shown.
@@ -233,11 +241,6 @@ The whole library shares one design system, in `src/widgets/core/`:
   device) is labelled "Default device" so it doesn't read as a duplicate of
   that device's own container. AudioMeter binds to one device
   with `device`, MeterBridge picks devices with `channels` (`""` = all).
-- **Weather** — `plugins.yr-weather-plugin.*`:
-  `name`, `temp`, `feels_like`, `weather_desc`/`weather`, `humidity`,
-  `pressure`, `wind_speed`, `wind_gust`, `wind_deg`, `rain`, `snow`,
-  `last_refreshed`, `weather_icon`; forecast from the yr
-  plugin's `forecast` (multi-day lines, starting tomorrow).
 - **GameSpotlight** — the chosen **Spotlight layout** draws while the box
   holds it (`fitLayout`, minimums in `LAYOUT_MIN`: hero 250×110, logo
   160×110, combo 260×180, poster 340×200, ticker 320 wide), else the hero,
@@ -250,7 +253,7 @@ The whole library shares one design system, in `src/widgets/core/`:
   bar under 170 px), Volume Mixer (ring over number under 170 px), Vitals and
   KPI Tiles (cards that keep a readable width), Status Tracker (as many
   readings as the bar width holds, legend only with room), Uptime (numerals
-  sized to the width), Achievements (ring sized to the box), Forecast (one line
+  sized to the width), Achievements (ring sized to the box), Weather's Forecast view (one line
   per day under 100 px tall), Calendar (the current week under 120 px tall),
   Playtime Share (one line under 110 px tall), Sensor Group (rows counted
   with their gaps).

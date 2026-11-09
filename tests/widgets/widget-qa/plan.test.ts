@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { modules } from "@/modules";
 import { TEMPLATE_MODULES } from "@/widgets/registry";
 import { DEFAULT_STATE, widgetLinks } from "@/widgets/widget-qa/params";
-import { gallerySpan, pickModules, viewPlans } from "@/widgets/widget-qa/plan";
+import { gallerySpan, mergedModules, pickModules, viewPlans } from "@/widgets/widget-qa/plan";
 
 describe("widget-qa parity", () => {
   it("lists every registered widget, so a new one is on the page the day it is added", () => {
@@ -42,5 +42,16 @@ describe("widget-qa parity", () => {
 
   it("shows exactly the module= ids when given, legacy ones included", () => {
     expect(pickModules(modules, TEMPLATE_MODULES, ["StreamDeck", "CpuMonitor"]).map((m) => m.id).sort()).toEqual(["CpuMonitor", "StreamDeck"]);
+  });
+});
+
+describe("the merged-away widgets on the page (config v19)", () => {
+  it("draws each under its old id from its survivor, without the survivor's views, so its frames keep their baseline keys", () => {
+    const merged = mergedModules(TEMPLATE_MODULES);
+    expect(merged.map((m) => m.id)).toEqual(["Forecast"]);
+    const weather = TEMPLATE_MODULES.find((m) => m.id === "Weather")!;
+    expect(merged[0]).toMatchObject({ id: "Forecast", title: "Forecast", category: weather.category, minCols: 1, minRows: 1, views: undefined });
+    expect(viewPlans(merged[0])).toEqual([]);
+    expect(pickModules([...modules, ...merged], [...TEMPLATE_MODULES, ...merged], ["Forecast"]).map((m) => m.id)).toEqual(["Forecast"]);
   });
 });

@@ -476,6 +476,7 @@
         "tests/widgets/stream-chat/**",
         "tests/widgets/status-bar/**",
         "tests/widgets/shared/**",
+        "tests/widgets/weather/**",
         "tests/widgets/weather-fx/**",
         "tests/e2e/kiosk-renders.spec.ts",
         "tests/e2e/streaming-widgets-fit.spec.ts",

@@ -191,7 +191,9 @@ describe("v7 §6.2: devices, units, decimals, clock", () => {
 
   it("units → tempUnit (C dropped as the old default, F kept custom)", () => {
     expect(one("Weather", { units: "F" })).toMatchObject({ settings: { tempUnit: "f" }, follow: { format: false } });
-    expect(one("Forecast", { units: "C" }).settings).toBeUndefined();
+    expect(settingsOf("Forecast", { units: "C" }).settings).toBeUndefined();
+    // the full upgrade then makes it Weather's forecast view (config v19), still without a unit of its own
+    expect(one("Forecast", { units: "C" }).settings).not.toHaveProperty("tempUnit");
   });
 
   it("an own SensorValue decimals auto (v7) stays", () => {

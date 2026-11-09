@@ -5,7 +5,7 @@ import type { CompactShape, DashboardModule, HeaderMode, ModuleSetting } from "@
 import { BOTH, CARD, NONE } from "../define";
 
 export type InspectorMeta = Required<Pick<DashboardModule, "header" | "compact">> &
-  Pick<DashboardModule, "fmt" | "thr" | "styleSubset" | "noData">;
+  Pick<DashboardModule, "fmt" | "thr" | "styleSubset" | "noData" | "byView">;
 
 const yes = (compact: CompactShape, more: Omit<InspectorMeta, "header" | "compact"> = {}): InspectorMeta => ({ header: "yes", compact, ...more });
 const as = (header: HeaderMode, compact: CompactShape, more: Omit<InspectorMeta, "header" | "compact"> = {}): InspectorMeta => ({ header, compact, ...more });
@@ -16,8 +16,6 @@ export const INSPECTOR_META: Record<string, InspectorMeta> = {
   KpiTiles: as("none", BOTH),
   Vitals: as("none", BOTH),
   // Group B: storage, network, info, generic
-  Weather: yes(CARD, { fmt: ["tempUnit"] }),
-  Forecast: yes(BOTH, { fmt: ["tempUnit"] }),
   SensorValue: yes(CARD, { fmt: ["decimals"], thr: ["value"] }),
   CustomGauge: yes(NONE),
   // Group D: gaming

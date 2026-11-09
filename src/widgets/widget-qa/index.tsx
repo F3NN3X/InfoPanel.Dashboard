@@ -14,7 +14,7 @@ import { forceMountAll, mountAllSettled } from "./Frame";
 import { overflowReport, type Issue } from "./probe";
 import { NOTES } from "./notes";
 import { DEFAULT_STATE, frameRef, parseParams, parseSpans, placementSettings, serializeParams, widgetLinks, type QaState } from "./params";
-import { filterModules, groupByCategory, pickModules } from "./plan";
+import { filterModules, groupByCategory, mergedModules, pickModules } from "./plan";
 import { installDemoStreams } from "./demo-streams";
 
 /**
@@ -31,6 +31,9 @@ const DATA_PARAM = new URLSearchParams(window.location.search).get("data");
 if (DATA_PARAM !== "live") installDemoStreams(DATA_PARAM === "stress");
 // The sample themes' cards (`surface=look-…`): a config would load them on read, this page has none.
 registerSampleCards();
+
+/** The merged-away widgets, drawn as their placements migrate (`mergedModules`). */
+const MERGED = mergedModules(TEMPLATE_MODULES);
 
 const CATEGORY_ORDER = INSERT_CATEGORIES.filter((c) => !["All", "Layouts", "My panels"].includes(c));
 
@@ -53,7 +56,7 @@ function WidgetQa() {
   const theme = THEME_PRESETS.find((p) => p.name === state.theme);
   const spans = useMemo(() => parseSpans(state.spans), [state.spans]);
   const settings = useMemo(() => placementSettings(state), [state]);
-  const picked = useMemo(() => pickModules(modules, TEMPLATE_MODULES, state.module).filter((m) => !state.noted || NOTES[m.id]), [state.module, state.noted]);
+  const picked = useMemo(() => pickModules([...modules, ...MERGED], [...TEMPLATE_MODULES, ...MERGED], state.module).filter((m) => !state.noted || NOTES[m.id]), [state.module, state.noted]);
   const sections = useMemo(() => groupByCategory(filterModules(picked, state.q), CATEGORY_ORDER), [picked, state.q]);
   const shown = sections.reduce((n, s) => n + s.mods.length, 0);
   const live = state.data === "live";

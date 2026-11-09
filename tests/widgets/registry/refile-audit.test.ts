@@ -11,7 +11,7 @@ const REFILED = [
   // Batch A
   "MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "Vitals", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans",
   // Batch B
-  "DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "Countdown", "StatusBar", "CodingAgents", "Calendar", "Forecast", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink",
+  "DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "Countdown", "StatusBar", "CodingAgents", "Calendar", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink",
   // Batch C
   "FpsMonitor", "GameSpotlight", "OsdStrip", "FramePacing", "PlaytimeShare", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews", "TextFile", "Notifications", "Departures", "Bluetooth", "StreamDeck",
   // Time and status
@@ -24,9 +24,9 @@ const REFILED = [
   "BottleneckLens", "FrameHistogram", "SessionStats", "ThresholdTimeline",
 ];
 
-it("covers all 69 widgets", () => {
-  expect(REFILED).toHaveLength(69);
-  expect(new Set(REFILED).size).toBe(69);
+it("covers all 68 widgets", () => {
+  expect(REFILED).toHaveLength(68);
+  expect(new Set(REFILED).size).toBe(68);
   expect([...REFILED].sort()).toEqual(modules.filter((m) => m.header).map((m) => m.id).sort());
 });
 

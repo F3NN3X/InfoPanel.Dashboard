@@ -16,8 +16,7 @@ import * as Timer from "@/widgets/timer/Timer";
 import * as Countdown from "@/widgets/countdown/Countdown";
 import * as StatusBar from "@/widgets/status-bar/StatusBar";
 import * as CodingAgents from "@/widgets/coding-agents/CodingAgents";
-import * as Weather from "@/widgets/Weather";
-import * as Forecast from "@/widgets/Forecast";
+import * as Weather from "@/widgets/weather/Weather";
 import * as SensorValue from "@/widgets/SensorValue";
 import * as SensorGroup from "@/widgets/sensor-group/SensorGroup";
 import * as CustomGauge from "@/widgets/CustomGauge";
@@ -27,7 +26,7 @@ import { GROUP_B_IDS, groupOf } from "./group-of";
 const GROUP_B = groupOf(GROUP_B_IDS);
 
 type Template = { meta: WidgetMeta; default: (p: never) => unknown };
-const TEMPLATES = [DriveSpace, StorageHealth, DiskIO, NetworkThroughput, NetworkAdapters, Clock, Timer, Countdown, StatusBar, CodingAgents, Calendar, Weather, Forecast, SensorValue, SensorGroup, CustomGauge] as unknown as Template[];
+const TEMPLATES = [DriveSpace, StorageHealth, DiskIO, NetworkThroughput, NetworkAdapters, Clock, Timer, Countdown, StatusBar, CodingAgents, Calendar, Weather, SensorValue, SensorGroup, CustomGauge] as unknown as Template[];
 
 const data = toFlat(snapshot.sensors as unknown as SensorMap);
 // Widgets with no live value at size md, and why.

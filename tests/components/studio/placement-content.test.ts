@@ -62,6 +62,15 @@ describe("placementPrefixes", () => {
     expect(placementPrefixes(place({ module: "DayPlanner" }))).toEqual(["plugins.yr-weather-plugin."]);
   });
 
+  it("subscribes a zone to its view's own prefixes where the view has them: Weather's forecast view reads every stream, as the Forecast widget did", () => {
+    const weather = ["plugins.yr-weather-plugin.", "plugins.weather-plugin."];
+    expect(placementPrefixes(place({ module: "Weather" }))).toEqual(weather);
+    expect(placementPrefixes(place({ module: "Weather", settings: { view: "now" } }))).toEqual(weather);
+    expect(placementPrefixes(place({ module: "Weather", settings: { view: "forecast" } }))).toBeNull();
+    expect(quietPrefix(place({ module: "Weather", settings: { view: "forecast" } }))).toBe("plugins.audio-level-meter.");
+    expect(quietPrefix(place({ module: "Weather" }))).toBeUndefined();
+  });
+
   it("subscribes a canvas zone to the keys its items read", () => {
     const canvas = { items: [{ kind: "Sensor", $: { key: "libre.cpu" } }, { kind: "Group", DisplayItems: [{ kind: "Bar", $: { key: "libre.gpu" } }] }] };
     expect(placementPrefixes(place({ module: CANVAS_ID, canvas: canvas as never }))).toEqual(["libre.cpu", "libre.gpu"]);

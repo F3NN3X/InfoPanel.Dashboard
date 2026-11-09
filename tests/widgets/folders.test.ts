@@ -75,7 +75,7 @@ describe("the widget folders", () => {
 
 describe("the registry, groups and folders side by side", () => {
   it("lists every widget once, in order.ts's order", () => {
-    expect(WIDGET_ORDER).toHaveLength(69);
+    expect(WIDGET_ORDER).toHaveLength(68);
     expect(modules.map((m) => m.id)).toEqual(WIDGET_ORDER);
   });
 

@@ -164,7 +164,7 @@
     "src/widgets/weather-fx/lightning.ts": 2,
     "src/widgets/weather-fx/particles.ts": 15,
     "src/widgets/weather-fx/sky.ts": 13,
-    "src/widgets/Weather.tsx": 7,
+    "src/widgets/weather/Weather.tsx": 7,
     "src/widgets/web-page/WebPage.tsx": 1
   },
   "blur outside the cap": {
