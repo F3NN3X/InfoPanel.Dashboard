@@ -155,7 +155,7 @@ export const COLLECTIONS: Collection[] = [
   { id: "duplicates", label: "Duplicates", section: "Smart" },
   { id: "suggested", label: "Suggested for theme", section: "Smart" },
   { id: "styles", label: "Widget styles", section: "Library", hint: "A widget style is one widget’s saved style. Apply from a widget’s Style tab." },
-  { id: "wpresets", label: "Widget presets", section: "Library", hint: "A widget preset is one widget’s view, settings and size. Apply from a widget’s Preset row; it is also a row of that widget in Add." },
+  { id: "wpresets", label: "Widget presets", section: "Library", hint: "One widget’s view, settings and size, also a row of it in Add." },
   { id: "panels", label: "Panels", section: "Library", hint: "Reusable widget groups. Drag onto the canvas from Design › Add." },
   { id: "gauges", label: "Gauges", section: "Library", hint: "Open a gauge to edit it in Gauges." },
   { id: "media", label: "Media", section: "Library", hint: "Images and videos. Use one as a background from Theme › Background." },
