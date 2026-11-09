@@ -2,12 +2,14 @@
 // have through their prefixes): every sensor binding in its blocks, and the value of each sensor option (the placement's
 // stored one, else the recipe's default). A sensor key that names a device option (`libre.{cpu}_cpu_total`) reads the device the
 // placement picked; on Auto it reads by the key's part before the device, as a built-in hardware widget reads its prefix. A Repeat
-// over places reads no sensor (5c serves its weather under a namespace of its own). A recipe that reads none draws without data.
+// over places reads its places' weather (`weather.place.<id>.`, the server's Weather by place) for the places the placement lists.
+// A recipe that reads none draws without data.
 import type { ModuleSettings } from "@/modules/types";
 import { hw } from "../core/data";
 import type { Data } from "../core/types";
 import type { Binding, Block, Recipe, RecipeDeviceKind } from "./types";
-import { DEVICE_SLOT } from "./validate";
+import { DEVICE_SLOT, placesOf } from "./validate";
+import { placePrefix } from "./weather";
 
 /** The sensor keys bound by name anywhere in the tree (a binding to an option is the option's, read per placement). */
 export function boundSensors(recipe: Recipe): string[] {
@@ -49,15 +51,35 @@ export function expandKey(recipe: Recipe, key: string, values: Record<string, un
   return missing ? { device } : { key: out, device };
 }
 
-/** A placement's keys, sorted: the recipe's bound sensors (a device on Auto by the key's part before it) and its sensor options' values. */
+/** The place-list options a Repeat over Weather by place runs over. */
+export function weatherLists(recipe: Recipe): string[] {
+  const out = new Set<string>();
+  const walk = (b: Block) => {
+    if (b.type === "repeat" && b.source === "weather-by-place") out.add(b.over);
+    if ("children" in b) for (const c of b.children) walk(c);
+  };
+  walk(recipe.root);
+  return [...out];
+}
+
+/**
+ * A placement's keys, sorted: the recipe's bound sensors (a device on Auto by the key's part before it), its sensor options' values,
+ * and the weather prefix of each place its Repeats run over (the stored list, else the recipe's default, as the renderer reads it).
+ */
 export function recipeReads(recipe: Recipe): (saved: ModuleSettings | undefined) => string[] {
   const fixed = boundSensors(recipe);
   const options = recipe.options.filter((o) => o.type === "sensor");
   const devices = recipe.options.filter((o) => o.type === "device");
+  const lists = recipe.options.filter((o) => o.type === "place-list" && weatherLists(recipe).includes(o.key));
   return (saved) => {
     const values = Object.fromEntries(devices.map((o) => [o.key, saved?.[o.key] ?? o.default]));
     const bound = fixed.map((k) => expandKey(recipe, k, values).key ?? k.slice(0, k.indexOf("{")));
     const chosen = options.flatMap((o) => String(saved?.[o.key] ?? o.default ?? "").split(",").filter(Boolean));
-    return [...new Set([...bound, ...chosen])].sort();
+    const weather = lists.flatMap((o) => {
+      const stored = placesOf(saved?.[o.key]);
+      const list = (Array.isArray(stored) ? stored : o.default) as { lat?: unknown; lon?: unknown }[];
+      return (Array.isArray(list) ? list : []).flatMap((p) => (typeof p?.lat === "number" && typeof p.lon === "number" ? [placePrefix({ lat: p.lat, lon: p.lon })] : []));
+    });
+    return [...new Set([...bound, ...chosen, ...weather])].sort();
   };
 }

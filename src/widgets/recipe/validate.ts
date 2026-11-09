@@ -7,6 +7,7 @@ import { rasterMatches, INJECTION, jsonShapeIssues } from "@/looks/pack-safety";
 import { schemaErrors } from "@/looks/schema-check";
 import { STANDARD_KEYS } from "@/modules/standard-settings";
 import manifestSchema from "./manifest.schema.json";
+import { isFollow } from "./follow";
 import { cellBasePx, TEXT_FLOOR } from "./metrics";
 import recipeSchema from "./recipe.schema.json";
 import { BLOCK_TYPES, type Binding, type Block, type Cells, type Condition, DEVICE_ID, DEVICE_KINDS, type Manifest, OPTION_TYPES, type PackageFile, type Recipe, type RecipeOption, WEATHER_PLACE_FIELDS } from "./types";
@@ -49,6 +50,8 @@ const RESERVED_KEYS = new Set(["recipeVersion", "view"]);
 /** What reads as an address or code wherever it stands. */
 const URLISH = /:\/\/|^\/\/|^(javascript|vbscript|data|https?|file|ftp|blob|wss?):/i;
 const HEX = /^#([\da-f]{3}|[\da-f]{6}|[\da-f]{8})$/i;
+/** Words of the weather provider's credit, which only the renderer writes. */
+const CREDIT = /open-?meteo|weather data by/i;
 
 const issue = (rule: string, file: string, message: string, severity: RecipeIssue["severity"] = "error"): RecipeIssue => ({ rule, severity, file, message });
 
@@ -133,6 +136,9 @@ function validate(files: readonly PackageFile[]): RecipeIssue[] {
   for (const [file, value] of [["manifest.json", manifest], ["recipe.json", recipe]] as const) {
     for (const [at, s] of strings(value)) if (at !== "$.id" && (URLISH.test(s) || INJECTION.test(s))) add("url", file, `${at}: ${s.slice(0, 40)} reads as an address, markup or code; a recipe holds plain values and its own files only`);
   }
+  // the weather provider's credit is the renderer's to draw (outside the blocks, where nothing can hide it): a recipe may not write
+  // its own, so it can neither imitate nor contradict it
+  for (const [at, s] of strings(recipe)) if (CREDIT.test(s)) add("attribution", "recipe.json", `${at}: ${s.slice(0, 40)} speaks for the weather provider; the app draws its credit under weather by place itself`);
   if (manifestErrors.length || recipeErrors.length) return out;
 
   const m = manifest as Manifest;
@@ -263,8 +269,10 @@ export function placesOf(value: unknown): unknown {
 }
 
 const isPlace = (p: unknown): boolean => {
-  const x = p as { name?: unknown; lat?: unknown; lon?: unknown } | null;
-  return !!x && typeof x.name === "string" && x.name.length > 0 && x.name.length <= 60 && typeof x.lat === "number" && Math.abs(x.lat) <= 90 && typeof x.lon === "number" && Math.abs(x.lon) <= 180 && Object.keys(x).length === 3;
+  const x = p as { name?: unknown; lat?: unknown; lon?: unknown; here?: unknown } | null;
+  // `here`: the place "Use this PC's location first" put at the top, the one other key a place may have
+  const keys = x ? Object.keys(x).length - (x.here === true ? 1 : 0) : 0;
+  return !!x && typeof x.name === "string" && x.name.length > 0 && x.name.length <= 60 && typeof x.lat === "number" && Math.abs(x.lat) <= 90 && typeof x.lon === "number" && Math.abs(x.lon) <= 180 && keys === 3;
 };
 
 /** Why a value does not suit an option, or undefined. */
@@ -276,7 +284,7 @@ function optionValueIssue(o: RecipeOption, v: unknown): string | undefined {
     case "boolean":
       return typeof v === "boolean" ? undefined : "is true or false";
     case "place-list":
-      return Array.isArray(v) && v.length <= ITEMS_MAX && v.every(isPlace) ? undefined : `is a list of at most ${ITEMS_MAX} places ({ name, lat, lon })`;
+      return Array.isArray(v) && v.length <= ITEMS_MAX && v.every(isPlace) && v.filter((p) => p.here === true).length <= 1 ? undefined : `is a list of at most ${ITEMS_MAX} places ({ name, lat, lon }, one of them here at most)`;
     case "select":
       return typeof v === "string" && (o.options ?? []).some((x) => x.value === v) ? undefined : `${String(v)} is not one of its choices`;
     case "sensor":
@@ -332,7 +340,8 @@ function blockRules(b: Block, at: string, repeat: string | undefined, options: M
   if (container && !Array.isArray(raw.children)) add("block", R, `${at}: a ${b.type} holds its blocks in children`);
   if (!container && raw.children !== undefined) add("block", R, `${at}: a ${b.type} holds no blocks`);
   if (BOUND.has(b.type) && raw.bind === undefined) add("binding", R, `${at}: a ${b.type} needs its data (bind)`);
-  if (raw.direction !== undefined && !DIRECTIONS[b.type]?.includes(String(raw.direction))) add("block", R, `${at}: direction ${String(raw.direction)} is not a ${b.type}'s`);
+  if (raw.direction !== undefined && !isFollow(raw.direction) && !DIRECTIONS[b.type]?.includes(String(raw.direction))) add("block", R, `${at}: direction ${String(raw.direction)} is not a ${b.type}'s`);
+  followRules(b, at, options, add);
   if (raw.style !== undefined && !STYLES[b.type]?.includes(String(raw.style))) add("block", R, `${at}: style ${String(raw.style)} is not a ${b.type}'s`);
   if (typeof raw.min === "number" && typeof raw.max === "number" && raw.min >= raw.max) add("block", R, `${at}: min ${raw.min} is not under max ${raw.max}`);
   if (raw.color === "thresholds" && raw.thresholds === undefined) add("block", R, `${at}: colour by thresholds needs its thresholds`);
@@ -355,12 +364,66 @@ function blockRules(b: Block, at: string, repeat: string | undefined, options: M
   }
   if (b.type === "repeat") {
     if (options.get(b.over)?.type !== "place-list") add("repeat", R, `${at}: over ${b.over} is not a place-list option`);
-    if (b.max !== undefined && !(Number.isInteger(b.max) && b.max >= 1 && b.max <= ITEMS_MAX)) add("repeat", R, `${at}: most shown ${b.max}, a whole number from 1 to ${ITEMS_MAX}`);
+    if (b.max !== undefined && !isFollow(b.max) && !(Number.isInteger(b.max) && b.max >= 1 && b.max <= ITEMS_MAX)) add("repeat", R, `${at}: most shown ${b.max}, a whole number from 1 to ${ITEMS_MAX}`);
+    if (b.hours !== undefined && !isFollow(b.hours) && !(Number.isInteger(b.hours) && b.hours >= 1 && b.hours <= HOURS_MAX)) add("repeat", R, `${at}: hours ${b.hours}, a whole number from 1 to ${HOURS_MAX}`);
   }
   if (b.type === "image") {
     const f = files.find((x) => x.path === b.file);
     if (!f) add("image", R, `${at}: ${b.file} is not in the package`);
     else if (!rasterMatches(b.file.split(".").pop()!, f.bytes)) add("image", f.path, `the bytes are not a ${b.file.split(".").pop()} image`);
+  }
+}
+
+/** The forecast hours a Weather-by-place item can carry (the server sends 24). */
+const HOURS_MAX = 24;
+/** The block settings that may follow an option, by block type, each with what its values may be. */
+const FOLLOWERS: Record<string, Record<string, { values?: readonly string[]; range?: [number, number] }>> = {
+  repeat: { direction: { values: ["rows", "columns", "grid"] }, max: { range: [1, ITEMS_MAX] }, hours: { range: [1, HOURS_MAX] }, units: { values: ["metric", "imperial"] } },
+  sparkline: { window: { range: [10, 600] } },
+};
+const FOLLOWABLE = ["direction", "max", "hours", "units", "window"];
+
+/**
+ * A setting that follows an option (Phase 5c): only a Repeat's direction, most shown, hours and units and a sparkline's window may;
+ * the option is there and of a kind that gives such a value (a select for a word; a number with its range inside the setting's, or
+ * a select mapped to numbers); a map names the select's own choices and maps each to a value the setting takes. A fixed sparkline
+ * window is checked here too. Hours and units belong to a Repeat, a window to a sparkline.
+ */
+function followRules(b: Block, at: string, options: Map<string, RecipeOption>, add: Add): void {
+  const R = "recipe.json";
+  const raw = b as unknown as Record<string, unknown>;
+  const own = FOLLOWERS[b.type] ?? {};
+  for (const key of FOLLOWABLE) {
+    const v = raw[key];
+    if (v === undefined) continue;
+    const spec = own[key];
+    if (!spec) {
+      if (isFollow(v)) add("follow", R, `${at}.${key}: only a Repeat's direction, most shown, hours and units and a sparkline's window follow an option`);
+      else if (key === "hours" || key === "units" || key === "window") add("block", R, `${at}: ${key} is not a ${b.type}'s`);
+      continue;
+    }
+    const fits = (x: unknown): boolean => (spec.values ? typeof x === "string" && spec.values.includes(x) : typeof x === "number" && Number.isInteger(x) && x >= spec.range![0] && x <= spec.range![1]);
+    const what = spec.values ? spec.values.join(", ") : `a whole number from ${spec.range![0]} to ${spec.range![1]}`;
+    if (!isFollow(v)) {
+      if (key === "window" && !fits(v)) add("block", R, `${at}.window: ${String(v)} s, ${what}`);
+      continue;
+    }
+    const o = options.get(v.option);
+    if (!o) {
+      add("follow", R, `${at}.${key}: option ${v.option} is not one of the recipe's options`);
+      continue;
+    }
+    if (v.map) {
+      if (o.type !== "select") add("follow", R, `${at}.${key}: a map reads a select's choices; ${v.option} is a ${o.type}`);
+      for (const [choice, x] of Object.entries(v.map)) {
+        if (o.type === "select" && !(o.options ?? []).some((c) => c.value === choice)) add("follow", R, `${at}.${key}: ${choice.slice(0, 20)} is not a choice of ${v.option}`);
+        if (!fits(x)) add("follow", R, `${at}.${key}: ${choice.slice(0, 20)} maps to ${String(x).slice(0, 20)}, not ${what}`);
+      }
+    } else if (spec.values) {
+      if (o.type !== "select") add("follow", R, `${at}.${key}: follows ${v.option}, a ${o.type}; a select's choices (or a map) give ${what}`);
+      else for (const c of o.options ?? []) if (!fits(c.value)) add("follow", R, `${at}.${key}: ${v.option}'s choice ${c.value.slice(0, 20)} is not ${what} (map it)`);
+    } else if (o.type !== "number") add("follow", R, `${at}.${key}: follows ${v.option}, a ${o.type}; a number option (or a select with a map) gives ${what}`);
+    else if (o.min === undefined || o.max === undefined || !fits(o.min) || !fits(o.max) || (o.step !== undefined && !Number.isInteger(o.step))) add("follow", R, `${at}.${key}: ${v.option}'s range is ${o.min ?? "-"} to ${o.max ?? "-"}; it needs whole steps inside ${what}`);
   }
 }
 

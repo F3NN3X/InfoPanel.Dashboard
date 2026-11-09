@@ -4,7 +4,7 @@
   "name": "Weather · places",
   "version": "1.0.0",
   "author": "InfoPanel Studio",
-  "description": "The weather in several places: now, today's high and low, and the next hours. Until Weather by place is served it draws its sample weather.",
+  "description": "The weather in several places: now, today's high and low, and the next hours, from Weather by place.",
   "icon": "partly_cloudy_day",
   "category": "Info",
   "size": {
@@ -137,13 +137,33 @@
         "name": "Locations",
         "over": "places",
         "source": "weather-by-place",
-        "direction": "rows",
-        "max": 4,
-        "dividers": true,
-        "when": {
+        "direction": {
           "option": "layout",
-          "is": "list"
+          "map": {
+            "list": "rows",
+            "grid": "columns",
+            "one": "rows"
+          }
         },
+        "max": {
+          "option": "layout",
+          "map": {
+            "list": 4,
+            "grid": 4,
+            "one": 1
+          }
+        },
+        "hours": {
+          "option": "hours"
+        },
+        "units": {
+          "option": "units",
+          "map": {
+            "c": "metric",
+            "f": "imperial"
+          }
+        },
+        "dividers": true,
         "children": [
           {
             "type": "weather-icon",
@@ -152,7 +172,24 @@
               "field": "condition"
             },
             "scale": 1.6,
-            "grow": 0.6
+            "grow": 0.6,
+            "when": {
+              "option": "layout",
+              "not": "one"
+            }
+          },
+          {
+            "type": "weather-icon",
+            "name": "Large icon",
+            "bind": {
+              "field": "condition"
+            },
+            "scale": 2.4,
+            "grow": 1,
+            "when": {
+              "option": "layout",
+              "is": "one"
+            }
           },
           {
             "type": "row",
@@ -169,12 +206,44 @@
                 "scale": 0.85
               },
               {
+                "type": "value",
+                "name": "Temperature (grid)",
+                "bind": {
+                  "field": "temp"
+                },
+                "unit": "°",
+                "decimals": 0,
+                "scale": 1.1,
+                "when": {
+                  "option": "layout",
+                  "is": "grid"
+                }
+              },
+              {
+                "type": "value",
+                "name": "Temperature (one place)",
+                "bind": {
+                  "field": "temp"
+                },
+                "unit": "°",
+                "decimals": 0,
+                "scale": 1.6,
+                "when": {
+                  "option": "layout",
+                  "is": "one"
+                }
+              },
+              {
                 "type": "label",
                 "bind": {
                   "field": "condition"
                 },
                 "scale": 0.7,
-                "tone": "muted"
+                "tone": "muted",
+                "when": {
+                  "option": "layout",
+                  "not": "grid"
+                }
               }
             ]
           },
@@ -187,7 +256,11 @@
             "unit": "°",
             "decimals": 0,
             "scale": 1.3,
-            "grow": 1.2
+            "grow": 1.2,
+            "when": {
+              "option": "layout",
+              "is": "list"
+            }
           },
           {
             "type": "value",
@@ -198,7 +271,11 @@
             "unit": "°",
             "decimals": 0,
             "scale": 0.7,
-            "grow": 0.8
+            "grow": 0.8,
+            "when": {
+              "option": "layout",
+              "is": "list"
+            }
           },
           {
             "type": "value",
@@ -209,117 +286,25 @@
             "unit": "°",
             "decimals": 0,
             "scale": 0.7,
-            "grow": 0.8
+            "grow": 0.8,
+            "when": {
+              "option": "layout",
+              "is": "list"
+            }
           },
           {
             "type": "sparkline",
-            "name": "Next 8 hours",
+            "name": "Next hours",
             "bind": {
               "field": "hourly"
             },
             "style": "bars",
             "color": "series-1",
-            "grow": 2
-          }
-        ]
-      },
-      {
-        "type": "repeat",
-        "name": "Grid",
-        "over": "places",
-        "source": "weather-by-place",
-        "direction": "columns",
-        "max": 4,
-        "dividers": true,
-        "when": {
-          "option": "layout",
-          "is": "grid"
-        },
-        "children": [
-          {
-            "type": "weather-icon",
-            "bind": {
-              "field": "condition"
-            },
-            "scale": 1.6,
-            "grow": 1
-          },
-          {
-            "type": "row",
-            "direction": "column",
-            "gap": 2,
             "grow": 2,
-            "children": [
-              {
-                "type": "label",
-                "bind": {
-                  "field": "name"
-                },
-                "scale": 0.7
-              },
-              {
-                "type": "value",
-                "bind": {
-                  "field": "temp"
-                },
-                "unit": "°",
-                "decimals": 0,
-                "scale": 1.1
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "repeat",
-        "name": "One place",
-        "over": "places",
-        "source": "weather-by-place",
-        "max": 1,
-        "when": {
-          "option": "layout",
-          "is": "one"
-        },
-        "children": [
-          {
-            "type": "weather-icon",
-            "bind": {
-              "field": "condition"
-            },
-            "scale": 2.4,
-            "grow": 1
-          },
-          {
-            "type": "row",
-            "direction": "column",
-            "gap": 2,
-            "grow": 2,
-            "children": [
-              {
-                "type": "label",
-                "bind": {
-                  "field": "name"
-                },
-                "scale": 0.8
-              },
-              {
-                "type": "value",
-                "bind": {
-                  "field": "temp"
-                },
-                "unit": "°",
-                "decimals": 0,
-                "scale": 1.6
-              },
-              {
-                "type": "label",
-                "bind": {
-                  "field": "condition"
-                },
-                "scale": 0.6,
-                "tone": "muted"
-              }
-            ]
+            "when": {
+              "option": "layout",
+              "is": "list"
+            }
           }
         ]
       }

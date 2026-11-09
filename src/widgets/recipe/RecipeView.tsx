@@ -1,17 +1,20 @@
 // Draws a validated recipe: the root card is the widget shell (`Widget`, so the theme, the material, the pack's T3 tokens
 // and slots apply as for a built-in widget) and each block is a core primitive. Colours come from the theme only: its accent,
 // its series (a pack's `series-n`, else the theme's palette role) or the status colours by thresholds. Text is sized from the
-// zone (`metrics.ts`) and never drawn under 11 px. A Repeat over places draws its sample items until Weather by place (5c)
-// serves them, and says so.
+// zone (`metrics.ts`) and never drawn under 11 px. A Repeat over places draws the server's weather for each place (Weather by
+// place, `weather.ts`) with the provider's credit under the card's blocks, where no block can reach it; in the builder's Sample it
+// draws the recipe's sample items and says so instead.
 import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
 import { weatherKind } from "@/lib/weather-icons";
 import type { ModuleSettings } from "@/modules/types";
 import { Bar, Empty, fmt, get, heat, hue, hw, num, Num, pretty, Ring, shell, shortLabel, Spark, TONES, tone, useHistory, Widget, WeatherGlyph, type ShellProps, type Tone } from "../kit";
 import { cellsOf, textPx } from "./metrics";
+import { followed, oneOf, wholeIn } from "./follow";
 import { expandKey } from "./reads";
 import { keyOf } from "./store";
-import type { Binding, Block, Cells, Condition, Place, Recipe, RecipeColour, Ranged } from "./types";
+import type { Binding, Block, Cells, Condition, Place, Recipe, RecipeColour, Ranged, RepeatBlock, RepeatDirection, WeatherUnits } from "./types";
 import { placesOf, sizeHolds } from "./validate";
+import { ATTRIBUTION, HOURS_DEFAULT, HOURS_MAX, inUnits, type Item, LICENCE, liveItem, placeState } from "./weather";
 
 export interface RecipeViewProps extends ShellProps {
   look?: ModuleSettings;
@@ -21,9 +24,6 @@ export interface RecipeViewProps extends ShellProps {
   /** Draw the recipe's sample readings instead of the live ones (the builder's Sample, tests). */
   sample?: boolean;
 }
-
-/** One field set of a Repeat's item. */
-type Item = Record<string, string | number | number[]>;
 
 interface Ctx {
   recipe: Recipe;
@@ -38,6 +38,8 @@ interface Ctx {
   cells?: Cells;
   t3?: Record<string, string | number>;
   saved?: ModuleSettings;
+  /** The recipe's sample data is drawn (the builder's Sample, tests), not the live readings. */
+  sample?: boolean;
 }
 
 const RecipeCtx = createContext<Ctx | null>(null);
@@ -204,7 +206,9 @@ function BarView({ b }: { b: Extract<Block, { type: "bar" }> }) {
 function SparkView({ b }: { b: Extract<Block, { type: "sparkline" }> }) {
   const ctx = useCtx();
   const r = read(b.bind, ctx);
-  const history = useHistory(Array.isArray(r.raw) ? Number.NaN : r.value);
+  // the readings a live value keeps (about one a second): the block's window, or the option it follows
+  const window = followed(b.window, ctx.values, wholeIn(10, 600), 60);
+  const history = useHistory(Array.isArray(r.raw) ? Number.NaN : r.value, window);
   const values = Array.isArray(r.raw) ? (r.raw as number[]) : history;
   const ink = inkOf(b.color, r.value, b.thresholds, ctx);
   return <Spark values={values} min={b.min} max={b.max} color={ink.color ?? (ink.t !== "ok" ? TONES[ink.t] : undefined)} graph={b.style ?? "area"} fill={b.style !== "line"} grid={false} className="h-full min-h-[12px] w-full" />;
@@ -269,34 +273,80 @@ function HeatmapView({ b }: { b: Extract<Block, { type: "heatmap" }> }) {
   );
 }
 
-/** A Repeat's items: one per place of its list option, each with the sample fields of its place (by name, else by place). */
-export function itemsOf(recipe: Recipe, over: string, values: Record<string, unknown>): Item[] {
-  const places = (Array.isArray(values[over]) ? values[over] : []) as Place[];
-  const sample = recipe.sample.items?.[over] ?? [];
-  return places.map((p, k) => ({ ...(sample.find((s) => s.name === p.name) ?? sample[k] ?? {}), name: p.name }));
+/** How a Repeat draws its items for a placement: its direction, most shown, forecast hours and units (each fixed or following an option). */
+export function repeatShape(b: RepeatBlock, values: Record<string, unknown>): { direction: RepeatDirection; max: number; hours: number; units: WeatherUnits } {
+  return {
+    direction: followed(b.direction, values, oneOf<RepeatDirection>(["rows", "columns", "grid"]), "rows"),
+    max: followed(b.max, values, wholeIn(1, 12), 12),
+    hours: followed(b.hours, values, wholeIn(1, HOURS_MAX), HOURS_DEFAULT),
+    units: followed(b.units, values, oneOf<WeatherUnits>(["metric", "imperial"]), "metric"),
+  };
 }
 
-function RepeatView({ b, path }: { b: Extract<Block, { type: "repeat" }>; path: string }) {
+/** The places of a Repeat's list option for a placement. */
+const placesIn = (over: string, values: Record<string, unknown>): Place[] => (Array.isArray(values[over]) ? values[over] : []) as Place[];
+
+/**
+ * A Repeat's items: one per place of its list option. With `live` data, each place's fields from the server's readings; without,
+ * the sample fields of its place (by name, else by place). Either way in the units and hours asked for.
+ */
+export function itemsOf(recipe: Recipe, over: string, values: Record<string, unknown>, how: { live?: ShellProps["data"]; hours?: number; units?: WeatherUnits } = {}): Item[] {
+  const places = placesIn(over, values);
+  const hours = how.hours ?? HOURS_DEFAULT;
+  const units = how.units ?? "metric";
+  if (how.live) return places.map((p) => liveItem(how.live, p, hours, units));
+  const sample = recipe.sample.items?.[over] ?? [];
+  return places.map((p, k) => inUnits({ ...(sample.find((s) => s.name === p.name) ?? sample[k] ?? {}), name: p.name }, hours, units));
+}
+
+function RepeatView({ b, path }: { b: RepeatBlock; path: string }) {
   const ctx = useCtx();
-  const items = itemsOf(ctx.recipe, b.over, ctx.values).slice(0, b.max ?? 12);
-  const dir = b.direction ?? "rows";
+  const shape = repeatShape(b, ctx.values);
+  const items = itemsOf(ctx.recipe, b.over, ctx.values, { live: ctx.sample ? undefined : (ctx.data ?? {}), hours: shape.hours, units: shape.units }).slice(0, shape.max);
+  const dir = shape.direction;
   const cols = dir === "grid" ? Math.ceil(Math.sqrt(items.length)) : dir === "columns" ? items.length : 1;
   return (
-    <div className="flex h-full w-full min-h-0 flex-col">
-      <div className="grid min-h-0 flex-1" style={{ gridTemplateColumns: `repeat(${Math.max(1, cols)}, minmax(0, 1fr))`, gridAutoRows: "minmax(0, 1fr)" }}>
-        {items.map((item, k) => (
-          <div key={k} data-recipe-item="" className="min-h-0 min-w-0 px-1 py-1" style={b.dividers && k > 0 ? (dir === "columns" ? { borderLeft: "1px solid var(--w-track)" } : { borderTop: "1px solid var(--w-track)" }) : undefined}>
-            <RecipeCtx.Provider value={{ ...ctx, item }}>
-              <Blocks blocks={b.children} path={path} direction="row" gap={8} align="center" />
-            </RecipeCtx.Provider>
-          </div>
-        ))}
-      </div>
-      {/* 5a: Weather by place is not served yet; the items are the recipe's sample */}
-      <span data-recipe-sample="" className="shrink-0 truncate text-right text-[color:var(--w-faint)]" style={{ fontSize: 11 }}>
+    <div className="grid h-full w-full min-h-0" style={{ gridTemplateColumns: `repeat(${Math.max(1, cols)}, minmax(0, 1fr))`, gridAutoRows: "minmax(0, 1fr)" }}>
+      {items.map((item, k) => (
+        <div key={k} data-recipe-item="" className="min-h-0 min-w-0 px-1 py-1" style={b.dividers && k > 0 ? (dir === "columns" ? { borderLeft: "1px solid var(--w-track)" } : { borderTop: "1px solid var(--w-track)" }) : undefined}>
+          <RecipeCtx.Provider value={{ ...ctx, item }}>
+            <Blocks blocks={b.children} path={path} direction="row" gap={8} align="center" />
+          </RecipeCtx.Provider>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The Repeats over places a placement shows: those whose own and every ancestor's condition holds. */
+export function weatherShown(root: Block, values: Record<string, unknown>, cells: Cells | undefined): RepeatBlock[] {
+  if (!holds(root.when, values, cells)) return [];
+  if (root.type === "repeat") return root.source === "weather-by-place" ? [root] : [];
+  return "children" in root ? root.children.flatMap((c) => weatherShown(c, values, cells)) : [];
+}
+
+/**
+ * The line under the blocks while weather by place is shown: the provider's credit (CC BY 4.0) for live data, with how old the
+ * oldest answer is when it is late; "Sample weather" for the recipe's sample. Drawn by the renderer outside the block tree, so no
+ * block, condition or option of a recipe can hide it; it wraps rather than cuts off.
+ */
+function WeatherFooter({ repeats }: { repeats: RepeatBlock[] }) {
+  const ctx = useCtx();
+  if (!repeats.length) return null;
+  if (ctx.sample)
+    return (
+      <span data-recipe-sample="" className="block shrink-0 text-right leading-tight text-[color:var(--w-faint)]" style={{ fontSize: 11 }}>
         Sample weather
       </span>
-    </div>
+    );
+  const states = repeats.flatMap((b) => placesIn(b.over, ctx.values).slice(0, repeatShape(b, ctx.values).max)).map((p) => placeState(ctx.data, p));
+  const late = Math.max(0, ...states.filter((s) => s.status === "stale" && Number.isFinite(s.age)).map((s) => s.age));
+  const none = states.length > 0 && states.every((s) => s.status === "" || s.status === "waiting" || s.status === "error");
+  return (
+    <span data-recipe-attribution="" className="block shrink-0 text-right leading-tight text-[color:var(--w-muted)]" style={{ fontSize: 11 }}>
+      {ATTRIBUTION} · {LICENCE}
+      {none ? " · no weather data yet" : late > 0 ? ` · ${late} min old` : ""}
+    </span>
   );
 }
 
@@ -306,7 +356,7 @@ export default function RecipeView(p: RecipeViewProps) {
   const data = p.sample ? Object.fromEntries(Object.entries(recipe.sample.sensors).map(([k, v]) => [k, String(v)])) : p.data;
   const values = optionValues(recipe, p.saved);
   const root = recipe.root;
-  const base: Omit<Ctx, "w" | "h"> = { recipe, data, names: p.names, values, t3: p.t3, saved: p.saved };
+  const base: Omit<Ctx, "w" | "h"> = { recipe, data, names: p.names, values, t3: p.t3, saved: p.saved, sample: p.sample };
   const sub = root.subtitle ? read(root.subtitle, { ...base, w: 0, h: 0 }) : undefined;
   // the reading's name, else the device a key named (a device option), else the value itself
   const found = sub?.key ? hw({ [sub.key]: "" }) : undefined;
@@ -318,8 +368,11 @@ export default function RecipeView(p: RecipeViewProps) {
       {({ w, h, outerW, outerH }) =>
         root.children.length ? (
           <RecipeCtx.Provider value={{ ...base, w, h, cells: cellsOf(outerW, outerH) }}>
-            <div data-recipe={recipe.id} className="h-full w-full">
-              <Blocks blocks={root.children} path="" />
+            <div data-recipe={recipe.id} className="flex h-full w-full min-h-0 flex-col">
+              <div className="min-h-0 flex-1">
+                <Blocks blocks={root.children} path="" />
+              </div>
+              <WeatherFooter repeats={weatherShown(root, values, cellsOf(outerW, outerH))} />
             </div>
           </RecipeCtx.Provider>
         ) : (

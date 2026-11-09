@@ -2,7 +2,7 @@
 // Repeat item's field) and "Let people pick …", its range, its colour from the theme (accent, a series or the thresholds), what
 // its type has (a ring's centre value and thickness, a Repeat's list and direction, a row's direction), when it shows, and its
 // share of its row. Every change is one edit of the recipe (one undo step).
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Copy, Trash2 } from "lucide-react";
 import { IconButton } from "@/components/ui/icon-button";
 import { Segmented } from "@/components/ui/segmented";
@@ -10,10 +10,11 @@ import { Toggle } from "@/components/ui/toggle";
 import { useDataModel } from "@/lib/use-data-model";
 import { DataPicker } from "@/components/studio/inspector/data-picker";
 import type { Data } from "@/widgets/core/types";
+import { isFollow, oneOf, wholeIn } from "@/widgets/recipe/follow";
 import { expandKey } from "@/widgets/recipe/reads";
 import { DEFAULT_SCALE } from "@/widgets/recipe/validate";
-import { type Binding, type Block, type Cells, type Recipe, type RecipeColour, type RecipeDeviceKind, WEATHER_PLACE_FIELDS } from "@/widgets/recipe/types";
-import { BLOCK_LABEL, blockAt, deviceOfKey, layerName, pickBinding, pickedOption, pickWhat, repeatAbove, unpickBinding, updateBlock, valueText, type Path } from "./builder-model";
+import { type Binding, type Block, type Cells, type Follows, type Recipe, type RecipeColour, type RecipeDeviceKind, WEATHER_PLACE_FIELDS } from "@/widgets/recipe/types";
+import { BLOCK_LABEL, blockAt, deviceOfKey, followable, followOf, layerName, pickBinding, pickedOption, pickWhat, repeatAbove, unpickBinding, updateBlock, valueText, type Path } from "./builder-model";
 import { BlockIcon } from "./block-icons";
 import { Field, Heading, NumberInput, Select, TextInput } from "./fields";
 
@@ -41,6 +42,70 @@ const COLOURS = [
 
 const RANGED = new Set(["ring", "gauge", "bar", "sparkline", "heatmap"]);
 const SIZE_OPTIONS = ["", "1", "2", "3", "4", "5", "6"];
+
+const DIRECTIONS = [
+  { value: "rows", label: "Rows" },
+  { value: "columns", label: "Columns" },
+  { value: "grid", label: "Grid" },
+] as const;
+const UNITS = [
+  { value: "metric", label: "°C, km/h" },
+  { value: "imperial", label: "°F, mph" },
+] as const;
+
+interface FollowProps<T extends string | number> {
+  label: string;
+  recipe: Recipe;
+  value: Follows<T> | undefined;
+  /** The words the setting takes (a direction, units), else it is a whole number in `range`. */
+  words?: readonly { value: T & string; label: string }[];
+  range?: [number, number];
+  fallback: T;
+  /** The control for a fixed value. */
+  fixed: ReactNode;
+  onChange: (v: Follows<T> | undefined) => void;
+}
+
+/**
+ * A block setting a person may pick when they add the widget (5c): fixed here, or following one of the recipe's options. A select
+ * whose choices are not values the setting takes is followed through a map, one row per choice.
+ */
+function FollowRows<T extends string | number>({ label, recipe, value, words, range, fallback, fixed, onChange }: FollowProps<T>) {
+  const takes = (words ? oneOf(words.map((w) => w.value)) : wholeIn(range![0], range![1])) as (x: unknown) => x is T;
+  const options = followable(recipe, !words);
+  const following = isFollow(value) ? value : undefined;
+  const followed = recipe.options.find((o) => o.key === following?.option);
+  return (
+    <>
+      <Field label={label}>
+        {following ? <span className="text-body text-ui-3">From “{followed?.label ?? following.option}”</span> : fixed}
+      </Field>
+      {options.length > 0 && (
+        <Field label={`${label}: who picks`}>
+          <Select
+            label={`${label}: who picks`}
+            value={following?.option ?? ""}
+            options={[{ value: "", label: "Fixed here" }, ...options.map((o) => ({ value: o.key, label: `Option “${o.label}”` }))]}
+            onChange={(k) => {
+              const o = recipe.options.find((x) => x.key === k);
+              onChange(o ? followOf(o, takes, fallback) : undefined);
+            }}
+          />
+        </Field>
+      )}
+      {following?.map &&
+        (followed?.options ?? []).map((c) => (
+          <Field key={c.value} label={`· ${c.label}`}>
+            {words ? (
+              <Select label={`${label} for ${c.label}`} value={String(following.map?.[c.value] ?? fallback)} options={words} onChange={(v) => onChange({ ...following, map: { ...following.map, [c.value]: v as T } })} />
+            ) : (
+              <NumberInput label={`${label} for ${c.label}`} value={Number(following.map?.[c.value] ?? fallback)} min={range![0]} max={range![1]} onChange={(v) => onChange({ ...following, map: { ...following.map, [c.value]: (v ?? fallback) as T } })} />
+            )}
+          </Field>
+        ))}
+    </>
+  );
+}
 
 /** The reading a binding shows on the stage, and where it comes from. */
 function bindingInfo(recipe: Recipe, b: Binding, data: Data, names: Record<string, string> | undefined): { name: string; from?: string; value: string } {
@@ -226,12 +291,26 @@ export function BlockTab(props: BlockTabProps) {
           <Field label="Data for each">
             <span className="text-body text-ui-2">Weather · by place</span>
           </Field>
-          <Field label="Direction">
-            <Segmented label="Direction" value={block.direction ?? "rows"} options={[{ value: "rows", label: "Rows" }, { value: "columns", label: "Columns" }, { value: "grid", label: "Grid" }]} onChange={(v) => set({ direction: v })} />
-          </Field>
-          <Field label="Most shown">
-            <NumberInput label="Most shown" value={block.max ?? 12} min={1} max={12} onChange={(v) => set({ max: v })} />
-          </Field>
+          <FollowRows
+            label="Direction"
+            recipe={recipe}
+            value={block.direction}
+            words={DIRECTIONS}
+            fallback="rows"
+            fixed={<Segmented label="Direction" value={isFollow(block.direction) ? "rows" : (block.direction ?? "rows")} options={[...DIRECTIONS]} onChange={(v) => set({ direction: v })} />}
+            onChange={(v) => set({ direction: v })}
+          />
+          <FollowRows label="Most shown" recipe={recipe} value={block.max} range={[1, 12]} fallback={12} fixed={<NumberInput label="Most shown" value={isFollow(block.max) ? 12 : (block.max ?? 12)} min={1} max={12} onChange={(v) => set({ max: v })} />} onChange={(v) => set({ max: v })} />
+          <FollowRows label="Forecast hours" recipe={recipe} value={block.hours} range={[1, 24]} fallback={8} fixed={<NumberInput label="Forecast hours" value={isFollow(block.hours) ? 8 : (block.hours ?? 8)} min={1} max={24} onChange={(v) => set({ hours: v })} />} onChange={(v) => set({ hours: v })} />
+          <FollowRows
+            label="Units"
+            recipe={recipe}
+            value={block.units}
+            words={UNITS}
+            fallback="metric"
+            fixed={<Segmented label="Units" value={isFollow(block.units) ? "metric" : (block.units ?? "metric")} options={[...UNITS]} onChange={(v) => set({ units: v === "metric" ? undefined : v })} />}
+            onChange={(v) => set({ units: v })}
+          />
           <Field label="Divider lines">
             <Toggle label="Divider lines" checked={!!block.dividers} onChange={(v) => set({ dividers: v || undefined })} />
           </Field>
@@ -313,6 +392,17 @@ export function BlockTab(props: BlockTabProps) {
             onChange={(v) => set({ style: v })}
           />
         </Field>
+      )}
+      {block.type === "sparkline" && (
+        <FollowRows
+          label="History"
+          recipe={recipe}
+          value={block.window}
+          range={[10, 600]}
+          fallback={60}
+          fixed={<NumberInput label="History" value={isFollow(block.window) ? 60 : block.window} placeholder="60" min={10} max={600} step={10} unit="s" onChange={(v) => set({ window: v })} />}
+          onChange={(v) => set({ window: v })}
+        />
       )}
       {block.type === "heatmap" && (
         <Field label="Columns">

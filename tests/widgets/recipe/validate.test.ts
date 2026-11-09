@@ -182,6 +182,51 @@ describe("validateRecipe", () => {
     expect(errors(await weather((r) => (list(r).max = 12)))).toEqual([]);
   });
 
+  it("follow: a Repeat's direction, most shown, hours and units and a sparkline's window follow an option that gives what they take", async () => {
+    const weather = (edit: (r: Recipe) => void) => variant("weather-places", edit);
+    const list = (r: Recipe) => rootOf(r).children[0] as Extract<Block, { type: "repeat" }>;
+    // the fixture follows layout (mapped), hours (a number 4-12) and units (mapped)
+    expect(errors(await weather(() => {}))).toEqual([]);
+    expect(errors(await weather((r) => (list(r).direction = { option: "nope" })))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).direction = { option: "layout" })))).toEqual(["follow"]); // list, grid, one are not directions: it needs a map
+    expect(errors(await weather((r) => (list(r).direction = { option: "layout", map: { list: "rows", diagonal: "rows" } })))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).direction = { option: "layout", map: { list: "sideways" as "rows" } })))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).direction = { option: "hours" })))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).max = { option: "layout", map: { one: 13 } })))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).max = { option: "hours" })))).toEqual([]);
+    expect(errors(await weather((r) => (list(r).hours = { option: "units" })))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).hours = { option: "hours", map: { "8": 8 } })))).toEqual(["follow"]); // a map reads a select
+    expect(errors(await weather((r) => (r.options.find((o) => o.key === "hours")!.max = 30)))).toEqual(["follow"]);
+    expect(errors(await weather((r) => void delete r.options.find((o) => o.key === "hours")!.min))).toEqual(["follow"]);
+    expect(errors(await weather((r) => (list(r).hours = 25)))).toEqual(["repeat"]);
+    expect(errors(await weather((r) => (list(r).hours = 24)))).toEqual([]);
+    expect(errors(await weather((r) => (list(r).units = { option: "units" })))).toEqual(["follow"]); // c and f are not units: it needs a map
+    // a sparkline's window: fixed or following a number option
+    expect(errors(await cpu((r) => r.options.push({ key: "secs", label: "History", type: "number", default: 60, min: 10, max: 300, step: 10 })))).toEqual([]);
+    const spark = (r: Recipe) => (rootOf(r).children as Block[]).find((b) => b.type === "sparkline") as Extract<Block, { type: "sparkline" }>;
+    expect(errors(await cpu((r) => (r.options.push({ key: "secs", label: "History", type: "number", default: 60, min: 10, max: 300, step: 10 }), (spark(r).window = { option: "secs" }))))).toEqual([]);
+    expect(errors(await cpu((r) => (spark(r).window = 5)))).toEqual(["block"]);
+    expect(errors(await cpu((r) => (spark(r).window = 600)))).toEqual([]);
+    // nothing else follows, and hours, units and window stay on their own blocks
+    expect(errors(await cpu((r) => Object.assign(ring(r), { max: { option: "showCores" } })))).toEqual(["follow"]);
+    expect(errors(await cpu((r) => Object.assign(ring(r), { window: 60 })))).toEqual(["block"]);
+    expect(errors(await weather((r) => Object.assign(list(r).children[2], { direction: { option: "layout", map: { list: "row" } } })))).toEqual(["follow"]);
+  });
+
+  it("attribution: a recipe does not write the weather provider's credit", async () => {
+    expect(errors(await cpu((r) => (r.description = "Weather data by somebody")))).toEqual(["attribution"]);
+    expect(errors(await cpu((r) => (r.root.title = "Open-Meteo")))).toEqual(["attribution"]);
+    expect(errors(await cpu((r) => (r.root.title = "Openmeteo")))).toEqual(["attribution"]);
+    expect(errors(await cpu((r) => (r.root.title = "Weather")))).toEqual([]);
+  });
+
+  it("place-list: a place may be the one this PC's location put first, once", async () => {
+    const weather = (edit: (r: Recipe) => void) => variant("weather-places", edit);
+    const places = (r: Recipe) => r.options.find((o) => o.key === "places")!;
+    expect(errors(await weather((r) => (places(r).default = [{ name: "Here", lat: 59.9, lon: 10.7, here: true }, { name: "Tokyo", lat: 35.68, lon: 139.69 }])))).toEqual([]);
+    expect(errors(await weather((r) => (places(r).default = [{ name: "Here", lat: 59.9, lon: 10.7, here: true }, { name: "There", lat: 1, lon: 1, here: true }])))).toEqual(["option"]);
+  });
+
   it("image: a file of the package, whose bytes are the image its name says", async () => {
     expect(errors(await variant("gpu-card", () => {}, []))).toEqual(["image"]);
     expect(errors(await variant("gpu-card", () => {}, [{ path: "images/logo.png", bytes: enc.encode("not a png") }]))).toEqual(["image"]);
