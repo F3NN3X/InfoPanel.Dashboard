@@ -72,11 +72,11 @@ const writeSwitches = async (patch: Partial<Pick<Switches, "on" | "off">>): Prom
   return res?.ok ? undefined : (await res?.text().catch(() => "")) || "the server did not answer";
 };
 
-/** A code widget's preview in the detail pane: its module drawn with the live readings. */
-function CodePreview({ id, reads }: { id: string; reads: string[] }) {
+/** A code widget's preview (the detail pane's, or a card's `small` one): its module drawn with the live readings. */
+function CodePreview({ id, reads, small }: { id: string; reads: string[]; small?: boolean }) {
   const sensors = useSensors(reads);
   const mod = recipeModule(id);
-  return <div className="h-[160px] w-[240px]">{mod?.render(sensors, {}) ?? <span className="text-body text-ui-3">No readings yet</span>}</div>;
+  return <div className={small ? "h-[132px] w-[260px]" : "h-[160px] w-[240px]"}>{mod?.render(sensors, {}) ?? <span className="text-body text-ui-3">No readings yet</span>}</div>;
 }
 
 export interface WidgetsPageProps {
@@ -446,7 +446,7 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
             thirdParty={thirdParty}
             onThirdParty={setThirdParty}
             thirdPartyLocked={!switches.env}
-            codePreview={(w) => w.def && <CodePreview id={w.id} reads={w.def.reads} />}
+            codePreview={(w) => w.def && <CodePreview id={w.id} reads={w.def.reads} small />}
             yours={visible.filter((w) => w.yours)}
             imported={visible.filter((w) => !w.yours)}
             builtIns={builtIns}
