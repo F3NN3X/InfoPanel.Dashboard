@@ -1,5 +1,9 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { presetFromZone } from "./editor/preset-model";
 import { viewKeyOf, viewsOf } from "./editor/view-presets";
+import { builtinPresets, useWidgetPresets } from "./widget-presets";
+import { ALL_MODULES } from "./studio-modules";
+import { normalizeWidgetPresets, widgetPresetsOf, type UserWidgetPreset } from "@/lib/widget-presets";
 import { useInspectorChrome } from "./inspector-layout";
 import { useToast } from "@/components/ui/toast";
 import { VectorGaugeSvg } from "@/components/infopanel/VectorGaugeSvg";
@@ -85,6 +89,10 @@ interface ZoneInspectorProps {
   onSavePreset: (name: string, settings: ModuleSettings) => void;
   /** Overwrite a saved Style with the widget's own look. */
   onUpdatePreset: (id: string, settings: ModuleSettings) => void;
+  /** The widget presets of the Preset row (`config.widgetPresets`): save one from this zone, rename, delete. */
+  onSaveWidgetPreset: (preset: UserWidgetPreset) => void;
+  onRenameWidgetPreset: (id: string, name: string) => void;
+  onDeleteWidgetPreset: (id: string) => void;
   onToggleVisible: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
@@ -184,6 +192,9 @@ export function ZoneInspector({
   onPickWidget,
   onSavePreset,
   onUpdatePreset,
+  onSaveWidgetPreset,
+  onRenameWidgetPreset,
+  onDeleteWidgetPreset,
   onToggleVisible,
   onDuplicate,
   onRemove,
@@ -205,6 +216,7 @@ export function ZoneInspector({
   const { mode: chromeMode } = useInspectorChrome();
   const catalog = useSensorCatalog();
   const data = useZoneData(profile);
+  const builtinMap = useWidgetPresets();
   const mod = modules.find((m) => m.id === zone.module);
   const blank = zone.module === BLANK_MODULE;
   const defs = zoneDefs(zone);
@@ -458,14 +470,24 @@ export function ZoneInspector({
     <PlaceRow cell={{ col: zone.colStart, row: zone.rowStart, cols: zone.colSpan, rows: zone.rowSpan }} onCells={(patch) => onZoneBox(patch)} />
   );
   // The widget's views: tiles in place of the view select, which stays for the phone sheet's tools.
-  const presetMod = !item && viewsOf(mod).length > 0 ? mod : undefined;
-  const viewKey = presetMod && viewKeyOf(presetMod);
+  const presetMod = !item && mod ? mod : undefined;
+  const viewKey = presetMod && viewsOf(presetMod).length > 1 ? viewKeyOf(presetMod) : undefined;
   const presets = presetMod && (
     <Suspense fallback={null}>
       <PresetRow
         mod={presetMod}
+        builtin={builtinPresets(ALL_MODULES.find((m) => m.id === presetMod.id)!, builtinMap)}
+        saved={widgetPresetsOf(normalizeWidgetPresets(config.widgetPresets), presetMod.id)}
         settings={zone.settings}
-        onPick={(patch, clear) => update((p) => withoutSettings(customised(withSettings(p, patch), appearance, defs, Object.keys(patch)), clear), `setting:${viewKey}`)}
+        onPick={(patch, clear, size) => {
+          update((p) => withoutSettings(customised(withSettings(p, patch), appearance, defs, Object.keys(patch)), clear), `preset:${presetMod.id}`);
+          if (size && onZoneBox({ cols: size[0], rows: size[1] }) === false) toast("Not enough room for the preset's size");
+        }}
+        onSave={(name) =>
+          onSaveWidgetPreset(presetFromZone(presetMod, zone.settings, [zone.colSpan, zone.rowSpan], `my-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, name, new Date().toISOString()))
+        }
+        onRename={onRenameWidgetPreset}
+        onDelete={onDeleteWidgetPreset}
         onSaveStyle={
           Object.keys(style).length > 0
             ? () => {
