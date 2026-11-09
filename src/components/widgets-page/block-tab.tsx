@@ -214,8 +214,26 @@ function WhenRows({ recipe, path, block, onChange }: { recipe: Recipe; path: Pat
         />
       </Field>
       {option && (
-        <Field label="is">
-          <Select label="Is" value={String(when?.is)} options={values.map((v) => ({ value: String(v), label: valueText(option, v) }))} onChange={(v) => set({ ...when, option: option.key, is: option.type === "boolean" ? v === "true" : v })} />
+        <Field label="">
+          <Select
+            label="Is or is not"
+            value={when?.not !== undefined ? "not" : "is"}
+            options={[
+              { value: "is", label: "is" },
+              { value: "not", label: "is not" },
+            ]}
+            onChange={(m) => set({ ...when, option: option.key, is: m === "is" ? (when?.is ?? when?.not) : undefined, not: m === "not" ? (when?.not ?? when?.is) : undefined })}
+            width={80}
+          />
+          <Select
+            label="Is"
+            value={String(when?.not ?? when?.is)}
+            options={values.map((v) => ({ value: String(v), label: valueText(option, v) }))}
+            onChange={(v) => {
+              const value = option.type === "boolean" ? v === "true" : v;
+              set({ ...when, option: option.key, ...(when?.not !== undefined ? { is: undefined, not: value } : { is: value, not: undefined }) });
+            }}
+          />
         </Field>
       )}
       <Field label="From the size" hint="Hidden in a smaller zone: what keeps text above 11 px at small sizes">
