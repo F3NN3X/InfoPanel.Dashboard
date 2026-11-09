@@ -29,6 +29,8 @@ export interface TemplateOptions<P extends object> {
   base?: ModuleSetting[];
   /** What it sends to the Dynamic Island; adds "Send to island" and the source's options after its own settings. */
   island?: IslandSourceDef;
+  /** The keys a zone reads from its stored values (`DashboardModule.readsFor`: a recipe's). */
+  readsFor?: DashboardModule["readsFor"];
 }
 
 /** A select value that means "unset": `auto` or empty. */
@@ -100,7 +102,7 @@ export function useZoneLook(defs: ModuleSetting[], saved: ModuleSettings | undef
   return look;
 }
 
-export function templateModule<P extends object>({ meta, Component, settings, toProps, prefixes, title, base, island }: TemplateOptions<P>): DashboardModule {
+export function templateModule<P extends object>({ meta, Component, settings, toProps, prefixes, title, base, island, readsFor }: TemplateOptions<P>): DashboardModule {
   const all = [...(base ?? STANDARD_SETTINGS), ...settings, ...(island ? islandSettings(island) : [])];
   const surfaceDefault = String(all.find((d) => d.key === "surface")?.default ?? "glass");
   const mod: DashboardModule = {
@@ -111,6 +113,7 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     prefixes: meta.prefixes,
     reads: prefixes,
     readsAll: !SENSORLESS.has(meta.id) && meta.prefixes.length === 0 && !prefixes?.length ? true : undefined,
+    ...(readsFor ? { readsFor } : {}),
     settings: all,
     category: meta.category,
     icon: meta.icon,
@@ -123,11 +126,11 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     ...(island ? { island } : {}),
     ...(preloadOf(Component) ? { preload: preloadOf(Component) } : {}),
     // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet"; a view with prefixes of
-    // its own gates on them (`placementReads`).
-    render: (sensors, saved) =>
-      !SENSORLESS.has(meta.id) && !hasKeys(sensors, placementReads(mod, saved) ?? []) ? null : (
-        <TemplateZone sensors={sensors} saved={saved} />
-      ),
+    // its own gates on them (`placementReads`); a zone that reads no key (`[]`, a recipe without sensors) draws without data.
+    render: (sensors, saved) => {
+      const reads = placementReads(mod, saved);
+      return !SENSORLESS.has(meta.id) && reads?.length !== 0 && !hasKeys(sensors, reads ?? []) ? null : <TemplateZone sensors={sensors} saved={saved} />;
+    },
   };
   function TemplateZone({ sensors, saved }: { sensors: SensorMap; saved?: ModuleSettings }) {
     // HWiNFO readings also under the LibreHardwareMonitor keys the widgets read (`hwinfo-aliases.ts`)

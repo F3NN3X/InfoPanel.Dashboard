@@ -2,7 +2,8 @@
 // per package, `<key>` the id with its namespace's colon as a dot (`recipe:cpu-card` is `recipe.cpu-card`, safe in a route and a
 // folder name). Read here, checked by the validator every time (the bytes on disk are never trusted), and cached per id. The
 // kiosk reaches this only through the recipe chunk; the studio through the Add panel's list and the import.
-import { isRecipeId } from "./resolve";
+import { recipeReads } from "./reads";
+import { isRecipeId, learnReads } from "./resolve";
 import type { Manifest, PackageFile, Recipe } from "./types";
 import { checkPackage, jsonOf, type RecipeIssue } from "./validate";
 
@@ -75,14 +76,22 @@ export function loadRecipe(id: string): Promise<LoadedRecipe> {
       if (!files.length) return { issues: [{ rule: "missing", severity: "error", file: "", message: `${id} is not on this server` }] };
       const checked = await checkPackage({ files });
       return checked.recipe?.id === id ? { recipe: checked.recipe, issues: checked.issues } : { issues: checked.issues.length ? checked.issues : [{ rule: "id", severity: "error", file: "recipe.json", message: `the package in ${keyOf(id)} is not ${id}` }] };
-    })().catch((e: Error): LoadedRecipe => ({ issues: [{ rule: "internal", severity: "error", file: "", message: e.message }] }));
+    })()
+      .catch((e: Error): LoadedRecipe => ({ issues: [{ rule: "internal", severity: "error", file: "", message: e.message }] }))
+      .then((loaded) => {
+        if (!loaded.off) learnReads(id, loaded.recipe ? recipeReads(loaded.recipe) : () => []);
+        return loaded;
+      });
     cache.set(id, hit);
   }
   return hit;
 }
 
-/** Drops a cached recipe (it was imported again or removed). */
-export const forgetRecipe = (id: string): void => void cache.delete(id);
+/** Drops a cached recipe and what its placements read (it was imported again or removed). */
+export const forgetRecipe = (id: string): void => {
+  cache.delete(id);
+  learnReads(id);
+};
 
 const base64 = (bytes: Uint8Array): string => {
   let s = "";
