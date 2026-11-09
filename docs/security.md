@@ -70,6 +70,38 @@ security model, what was fixed, what was decided, and what is deferred.
 - **Uploads**: per-type limits, magic-byte checks, a quota, two in flight; SVG assets are served with a sandbox CSP.
 - **Path safety**: static and asset paths reject `..` and dot segments with prefix checks.
 
+## Widget publisher keys
+
+Code widgets (`ext:<publisher>.<id>`) are taken only with a publisher signature: minisign (Ed25519, pre-hashed) over a
+canonical form of the package's manifest, which lists every file's SHA-256 (`crates/ips-server/src/widget_sign.rs`). The
+server checks it on import and on every read; a package that does not verify is not stored, or not served. This is not the
+pack signature (`pack_sign.rs`), a local check only the server can make.
+
+- **Trusted keys** (`crates/ips-server/src/widget_keys.rs`): the owner's key, built into the app; Themely's, a slot that
+  stays off until Themely signs packages; and keys the user adds in the desktop app's **Settings › Widget publishers**. A
+  user key is added only there, through the app's own commands (the Settings window's capability, the same gate as every
+  Settings write); never from an import or install prompt, and never over HTTP (`/api/widget-keys` is read-only).
+- **Publishers**: a key signs code widgets only for its publisher names. The owner's key holds `infopanel` and
+  `infopanel-studio`, Themely's `themely`; a user key holds the names given when it is added, none reserved and none
+  another key holds. An import never replaces a signed package unless the same key signed it.
+- **Revoke list** (`crates/ips-server/src/widget-keys-revoked.json`): ships with app updates only, never fetched. A key on it
+  (matched by its key bytes as well as its id) refuses everything it signed.
+- **Off switch**: `USER_CODE_WIDGETS=off` hides and refuses every code widget that is not built in (`USER_WIDGETS=off`
+  every user widget).
+
+### The owner's key (one-time owner step)
+
+The owner key is its own minisign key, never the updater's: a leak of one must not compromise the other. Until it is set,
+the slot shows "Not set up" and trusts nothing. To set it, on the owner's machine, outside the repo:
+
+```
+minisign -G -p infopanel-widgets.pub -s infopanel-widgets.key
+```
+
+Keep `infopanel-widgets.key` and its password offline (never in the repo, CI or an agent session). Put the second line of
+`infopanel-widgets.pub` into `OWNER_KEY` in `crates/ips-server/src/widget_keys.rs` (`Some("RW...")`), and sign a package
+with `node tools/widgets/sign.mjs <package-folder> --key infopanel-widgets.key --password-env MINISIGN_PASSWORD`.
+
 ## Review findings (2026-10-22) and what happened
 
 | Severity | Finding | Outcome |
