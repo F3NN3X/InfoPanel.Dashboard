@@ -15,8 +15,11 @@ import { storedCanvasKeys, storedCanvasWidgets, type StoredWidgetRef } from "@/l
 import { normalizePanelPlacement, panelLegacyLook, panelOwnSettings } from "@/lib/panel-model";
 import { lockedIn, resolveWith, type Appearance } from "@/lib/style-resolve";
 import { safeRender } from "@/components/zone-error-boundary";
+import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
 
 const moduleById = new Map(modules.map((m) => [m.id, m]));
+/** A placement's module: a registered widget, else a recipe widget (`recipe:<id>`, drawn by its lazy chunk). */
+const moduleOf = (id: string) => moduleById.get(id) ?? recipeModule(id);
 // The InfoPanel renderer loads only when a canvas zone is drawn.
 const CanvasZone = lazy(() => import("@/components/infopanel/CanvasZone"));
 
@@ -59,7 +62,7 @@ export function placementPrefixes(p: Placement): string[] | null {
     return [...keys].sort();
   }
   if (p.module === CARDS_ID) return null;
-  const mod = moduleById.get(p.module);
+  const mod = moduleOf(p.module);
   if (!mod) return [];
   // its view's own prefixes where the view has them (a merged-away widget's)
   const reads = placementReads(mod, p.settings);
@@ -68,14 +71,14 @@ export function placementPrefixes(p: Placement): string[] | null {
 
 /** The sensors a widget is bound to (a `sensor` setting), read besides its own prefixes. */
 const boundKeys = (p: Placement): string[] =>
-  (moduleById.get(p.module)?.settings ?? []).filter((d) => d.type === "sensor").flatMap((d) => String(p.settings?.[d.key] ?? "").split(",").filter(Boolean));
+  (moduleOf(p.module)?.settings ?? []).filter((d) => d.type === "sensor").flatMap((d) => String(p.settings?.[d.key] ?? "").split(",").filter(Boolean));
 
 /**
  * The prefix whose messages a placement ignores: a zone that reads every key skips the audio meter's 10 Hz
  * stream unless one of its bound sensors is an audio key (or a prefix holding them).
  */
 export function quietPrefix(p: Placement): string | undefined {
-  const mod = moduleById.get(p.module);
+  const mod = moduleOf(p.module);
   if (!mod || placementReads(mod, p.settings) !== null) return undefined;
   return boundKeys(p).some((k) => k.startsWith(AUDIO_PREFIX) || AUDIO_PREFIX.startsWith(k)) ? undefined : AUDIO_PREFIX;
 }
@@ -108,7 +111,7 @@ export function widgetPlacement(w: StoredWidgetRef & { design?: Placement["desig
 }
 
 /** Whether this build has the widget a Free page's item names (§11: an older or newer build's is shown greyed). */
-export const knownWidget = (module: string): boolean => module === PANEL_ID || moduleById.has(module);
+export const knownWidget = (module: string): boolean => module === PANEL_ID || moduleById.has(module) || isRecipeId(module);
 
 /** Tokens for the zone frame (`undefined` when nothing is re-scoped). */
 function frameScope(settings: ModuleSettings | undefined): CSSProperties | undefined {
@@ -197,7 +200,7 @@ export function placementContent(
       scope: frameScope(cfg),
     };
   }
-  const mod = moduleById.get(p.module);
+  const mod = moduleOf(p.module);
   // A widget this build doesn't have (a newer or older one saved it): kept as it is, drawn as a grey box.
   if (!mod) return { content: <UnavailableWidget />, hasData: true, title: p.module };
   const settings = resolveWith(appearance, p.settings, p.follow, undefined, mod.settings);

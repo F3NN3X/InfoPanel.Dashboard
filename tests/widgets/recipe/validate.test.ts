@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { packageOf } from "@/widgets/recipe/package";
-import type { Block, CardBlock, PackageFile, Recipe } from "@/widgets/recipe/types";
+import type { Block, CardBlock, PackageFile, Recipe, RingBlock } from "@/widgets/recipe/types";
 import { BLOCKS_MAX, checkPackage, DEPTH_MAX, FILE_COUNT_MAX, hashIssues, OPTIONS_MAX, PACKAGE_MAX_BYTES, PRESETS_MAX, RECIPE_MAX_BYTES, validateRecipe } from "@/widgets/recipe/validate";
 import { fixtureFiles, fixtureImages, fixtureRecipe, manifestOfFiles, variant, withFile } from "./fixture-files";
 
@@ -13,7 +13,7 @@ const cpu = (edit: (r: Recipe) => void) => variant("cpu-card", edit);
 const rootOf = (r: Recipe): CardBlock => r.root;
 /** The CPU card's top row, its ring and its values column. */
 const topRow = (r: Recipe) => rootOf(r).children[0] as Extract<Block, { type: "row" }>;
-const ring = (r: Recipe) => topRow(r).children[0] as Extract<Block, { type: "ring" }>;
+const ring = (r: Recipe) => topRow(r).children[0] as RingBlock;
 const enc = new TextEncoder();
 
 describe("validateRecipe", () => {
