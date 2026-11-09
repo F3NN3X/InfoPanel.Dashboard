@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "kind": "code",
+  "id": "ext:acme.example",
+  "version": "1.0.0",
+  "author": "TEST-ONLY publisher",
+  "name": "CPU ring (example)",
+  "publisher": "acme",
+  "entry": "widget.js",
+  "files": [
+    {
+      "path": "widget.js",
+      "bytes": 1125,
+      "sha256": "bb64e258715b59c4af21b7a1495e549d623d36c81c8d4a9d5183f6c2f65ea72c"
+    }
+  ],
+  "signature": {
+    "minisign": "untrusted comment: signature from minisign secret key A993D81C89F8D8C1\nRUTB2PiJHNiTqVAoOSGdUfAqDYfSgALdTyVb//2dQTPoe9VE0jIxPrO2g5CAbWZLUXCZZIivK2VzQF2s2LsnBc0Yxhm3hphlQwc=\ntrusted comment: ext:acme.example 1.0.0\nogECctOylO/6c3M7OO+Fni/4SixrMbWOlaeTNnNuuOEeiLxAEip8KpMQiNlUz4P5qSe9FSzFOyNEu9NnwecqCg==\n"
+  }
+}

@@ -485,6 +485,7 @@
         "tests/widgets/fps-monitor/**",
         "tests/widgets/weather-fx/**",
         "tests/widgets/recipe/**",
+        "tests/widgets/code/**",
         "tests/fixtures/recipes/**",
         "tests/fixtures/widgets/**",
         "tests/tools/widgets/**",

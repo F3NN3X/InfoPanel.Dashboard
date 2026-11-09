@@ -605,6 +605,18 @@ async fn a_bundle_asked_for_by_its_hash_is_served_only_while_it_is_those_bytes()
 }
 
 #[tokio::test]
+async fn the_example_code_widget_verifies_for_its_publisher_only() {
+    let s = start().await;
+    let key = std::fs::read_to_string(fixtures().join("TEST-ONLY-example.pub")).unwrap();
+    s.keys().add_user("Example", &key, &["test".into()]).unwrap();
+    let good = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("ext.test.example"))).await;
+    assert_eq!(good.status, 200, "{}", good.text());
+    let wrong = send(s.port, "POST", "/api/widgets", &WRITE, &import_body(&fixture("wrong-publisher/ext.acme.example"))).await;
+    assert_eq!((wrong.status, wrong.text()), (400, "refused: signed with a key (A993D81C89F8D8C1) that does not sign for the publisher acme".into()), "a wrong publisher");
+    s.stop().await;
+}
+
+#[tokio::test]
 async fn the_widgets_page_switches_hide_and_refuse_code_widgets_for_every_page() {
     let s = start().await;
     let clock = fixture("ext.test.clock");

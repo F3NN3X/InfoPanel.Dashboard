@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "kind": "code",
+  "id": "ext:test.example",
+  "version": "1.0.0",
+  "author": "TEST-ONLY publisher",
+  "name": "CPU ring (example)",
+  "publisher": "test",
+  "entry": "widget.js",
+  "files": [
+    {
+      "path": "widget.js",
+      "bytes": 1125,
+      "sha256": "bb64e258715b59c4af21b7a1495e549d623d36c81c8d4a9d5183f6c2f65ea72c"
+    }
+  ],
+  "signature": {
+    "minisign": "untrusted comment: signature from minisign secret key A993D81C89F8D8C1\nRUTB2PiJHNiTqYsYXaedYXL4pIulwX64X5egpqLa/BBTDLAfFcyyiBYRLcFYW69zn22Z34k5zPE+beA65FkB1DSH3+wvnmjTQw0=\ntrusted comment: ext:test.example 1.0.0\ngS80g3B0JSheXgk+OajG0o2146VCBdo89QOivqAf9MFVPemRBEcYkn0YV0HHmSft32pUKhSeMEV+egoQTYxoAw==\n"
+  }
+}
