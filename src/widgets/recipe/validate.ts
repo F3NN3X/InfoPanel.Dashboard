@@ -1,0 +1,374 @@
+// The recipe validator (Phase 5a), modelled on the pack validator (src/looks/pack-validate.ts): a widget package as files in, a
+// list of issues out, each naming the rule it breaks. An `error` refuses the package. It runs where a recipe is imported (the
+// studio, before the server is asked to store it) and again every time one is loaded to be drawn (the kiosk's lazy recipe chunk),
+// so a file changed on disk is refused there too. The server does what it does for packs: path safety, the caps and the file
+// hashes of the manifest (src-tauri/crates/ips-server/src/widgets.rs); this is the only reader of a recipe's meaning.
+import { rasterMatches, INJECTION, jsonShapeIssues } from "@/looks/pack-safety";
+import { schemaErrors } from "@/looks/schema-check";
+import { STANDARD_KEYS } from "@/modules/standard-settings";
+import manifestSchema from "./manifest.schema.json";
+import { cellBasePx, TEXT_FLOOR } from "./metrics";
+import recipeSchema from "./recipe.schema.json";
+import { BLOCK_TYPES, type Binding, type Block, type Manifest, OPTION_TYPES, type PackageFile, type Recipe, type RecipeOption, WEATHER_PLACE_FIELDS } from "./types";
+
+export interface RecipeIssue {
+  rule: string;
+  severity: "error" | "warn";
+  /** `manifest.json`, `recipe.json`, an image, or "" for the package as a whole. */
+  file: string;
+  message: string;
+}
+
+/** A package as files: `manifest.json`, `recipe.json` and its images. */
+export interface RecipeSource {
+  files: readonly PackageFile[];
+}
+
+/** A package holds at most this many files, no file over `FILE_MAX_BYTES`, all of them at most `PACKAGE_MAX_BYTES` (widgets.rs holds the same). */
+export const FILE_COUNT_MAX = 32;
+export const FILE_MAX_BYTES = 256_000;
+export const PACKAGE_MAX_BYTES = 512_000;
+/** `recipe.json` itself. */
+export const RECIPE_MAX_BYTES = 64_000;
+/** Blocks nest at most this deep (the root card is 1), and a recipe has at most this many. */
+export const DEPTH_MAX = 6;
+export const BLOCKS_MAX = 64;
+export const OPTIONS_MAX = 24;
+export const PRESETS_MAX = 16;
+/** A Repeat shows at most this many items, and a place list holds at most this many places. */
+export const ITEMS_MAX = 12;
+
+/** The package's files by path; anything else is refused. */
+export const PACKAGE_PATH = /^(manifest\.json|recipe\.json|images\/[a-z0-9][a-z0-9-]{0,63}\.(png|jpg|webp))$/;
+/** A sensor key: a dotted name of plain characters. */
+export const SENSOR_KEY = /^[A-Za-z0-9][\w.:#-]{0,199}$/;
+/** Keys a placement stores beside the options (the recipe's version) and so no option may take. */
+const RESERVED_KEYS = new Set(["recipeVersion", "view"]);
+/** What reads as an address or code wherever it stands. */
+const URLISH = /:\/\/|^\/\/|^(javascript|vbscript|data|https?|file|ftp|blob|wss?):/i;
+const HEX = /^#([\da-f]{3}|[\da-f]{6}|[\da-f]{8})$/i;
+
+const issue = (rule: string, file: string, message: string, severity: RecipeIssue["severity"] = "error"): RecipeIssue => ({ rule, severity, file, message });
+
+/** The text of a file as JSON, or undefined (not there, not UTF-8, not JSON). */
+export function jsonOf(files: readonly PackageFile[], path: string): unknown {
+  const f = files.find((x) => x.path === path);
+  try {
+    return f && JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(f.bytes));
+  } catch {
+    return undefined;
+  }
+}
+
+/** The lowercase hex SHA-256 of `bytes` (Web Crypto: the studio, the kiosk and Node alike). */
+export async function sha256(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** What is wrong with a package, errors first (empty: it may be drawn). Pure and synchronous; the hashes are `hashIssues`. A crash inside a rule is an issue. */
+export function validateRecipe(src: RecipeSource): RecipeIssue[] {
+  try {
+    return finish(validate(src.files));
+  } catch (e) {
+    return [issue("internal", "", `the package could not be read to the end (${(e as Error).name}: ${(e as Error).message.slice(0, 80)}): refused`)];
+  }
+}
+
+/** Each listed file whose bytes do not hash to what the manifest says. */
+export async function hashIssues(src: RecipeSource): Promise<RecipeIssue[]> {
+  const manifest = jsonOf(src.files, "manifest.json") as Partial<Manifest> | undefined;
+  const out: RecipeIssue[] = [];
+  for (const listed of Array.isArray(manifest?.files) ? manifest.files : []) {
+    const f = src.files.find((x) => x.path === listed?.path);
+    if (f && (await sha256(f.bytes)) !== listed.sha256) out.push(issue("hash", f.path, `${f.path}'s bytes are not the ones the manifest lists (SHA-256 differs)`));
+  }
+  return out;
+}
+
+/** The whole check: the rules, then the hashes. The recipe when nothing refuses it. */
+export async function checkPackage(src: RecipeSource): Promise<{ issues: RecipeIssue[]; recipe?: Recipe; manifest?: Manifest }> {
+  const issues = finish([...validateRecipe(src), ...(await hashIssues(src))]);
+  const ok = !issues.some((i) => i.severity === "error");
+  return { issues, ...(ok ? { recipe: jsonOf(src.files, "recipe.json") as Recipe, manifest: jsonOf(src.files, "manifest.json") as Manifest } : {}) };
+}
+
+function validate(files: readonly PackageFile[]): RecipeIssue[] {
+  const out: RecipeIssue[] = [];
+  const add = (rule: string, file: string, message: string, severity: RecipeIssue["severity"] = "error") => void out.push(issue(rule, file, message, severity));
+
+  // the files: paths, caps, both JSON files there
+  let total = 0;
+  const seen = new Set<string>();
+  if (files.length > FILE_COUNT_MAX) add("size", "", `${files.length} files, at most ${FILE_COUNT_MAX}`);
+  for (const f of files) {
+    total += f.bytes.length;
+    if (!PACKAGE_PATH.test(f.path)) add("path", f.path, `${f.path.slice(0, 60)} is not a file a recipe package has (manifest.json, recipe.json, images/<name>.png|jpg|webp)`);
+    if (seen.has(f.path)) add("path", f.path, `${f.path} is given twice`);
+    seen.add(f.path);
+    if (f.bytes.length > FILE_MAX_BYTES) add("size", f.path, `is ${f.bytes.length} bytes, over the ${FILE_MAX_BYTES} cap for a file`);
+  }
+  if (total > PACKAGE_MAX_BYTES) add("size", "", `the package is ${total} bytes, over the ${PACKAGE_MAX_BYTES} cap`);
+  const recipeBytes = files.find((f) => f.path === "recipe.json")?.bytes.length ?? 0;
+  if (recipeBytes > RECIPE_MAX_BYTES) add("size", "recipe.json", `is ${recipeBytes} bytes, over the ${RECIPE_MAX_BYTES} cap for a recipe`);
+  const manifest = jsonOf(files, "manifest.json");
+  const recipe = jsonOf(files, "recipe.json");
+  if (manifest === undefined) add("schema", "manifest.json", "manifest.json is missing or is not JSON");
+  if (recipe === undefined) add("schema", "recipe.json", "recipe.json is missing or is not JSON");
+  if (manifest === undefined || recipe === undefined) return out;
+
+  for (const [file, value] of [["manifest.json", manifest], ["recipe.json", recipe]] as const) for (const m of jsonShapeIssues(value)) add("json-shape", file, m);
+  if (out.some((i) => i.rule === "json-shape")) return out;
+
+  // the schemas
+  const manifestErrors = schemaErrors(manifest, manifestSchema as Record<string, unknown>, manifestSchema as Record<string, unknown>);
+  const recipeErrors = schemaErrors(recipe, recipeSchema as Record<string, unknown>, recipeSchema as Record<string, unknown>);
+  for (const m of manifestErrors) add("schema", "manifest.json", m);
+  for (const m of recipeErrors) add("schema", "recipe.json", m);
+  // a block this build does not know, named as such wherever it stands (the schema says only that a value is not in its list)
+  for (const [at, type] of blockTypes((recipe as { root?: unknown }).root)) if (!(BLOCK_TYPES as readonly string[]).includes(type)) add("block-type", "recipe.json", `${at}: ${type.slice(0, 30)} is not a block (${BLOCK_TYPES.join(", ")})`);
+  // no addresses, scripts or markup in any string of either file (the id's `recipe:` is its namespace, not a scheme)
+  for (const [file, value] of [["manifest.json", manifest], ["recipe.json", recipe]] as const) {
+    for (const [at, s] of strings(value)) if (at !== "$.id" && (URLISH.test(s) || INJECTION.test(s))) add("url", file, `${at}: ${s.slice(0, 40)} reads as an address, markup or code; a recipe holds plain values and its own files only`);
+  }
+  if (manifestErrors.length || recipeErrors.length) return out;
+
+  const m = manifest as Manifest;
+  const r = recipe as Recipe;
+  manifestRules(m, r, files, add);
+  recipeRules(r, files, add);
+  return out;
+}
+
+/** Every string of parsed JSON with its path. */
+function strings(value: unknown, at = "$", out: [string, string][] = []): [string, string][] {
+  if (typeof value === "string") out.push([at, value]);
+  else if (Array.isArray(value)) value.forEach((v, k) => strings(v, `${at}[${k}]`, out));
+  else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) strings(v, `${at}.${k}`, out);
+  return out;
+}
+
+/** The `type` of every block of a tree as written, with its path (whatever else the tree holds). */
+function blockTypes(block: unknown, at = "$.root", out: [string, string][] = []): [string, string][] {
+  if (!block || typeof block !== "object") return out;
+  const b = block as { type?: unknown; children?: unknown };
+  out.push([at, String(b.type)]);
+  if (Array.isArray(b.children)) b.children.forEach((c, k) => blockTypes(c, `${at}.children[${k}]`, out));
+  return out;
+}
+
+type Add = (rule: string, file: string, message: string, severity?: RecipeIssue["severity"]) => void;
+
+function manifestRules(m: Manifest, r: Recipe, files: readonly PackageFile[], add: Add): void {
+  if (m.kind !== "recipe") add("kind", "manifest.json", `kind ${m.kind}: this build takes recipe packages only (code widgets come with signatures, Phase 6)`);
+  if (m.signature !== undefined) add("signature", "manifest.json", "a recipe package carries no signature (the field is kept for code widgets)");
+  if (m.id !== r.id) add("id", "manifest.json", `the manifest's id ${m.id} is not the recipe's ${r.id}`);
+  if (m.version !== r.version) add("version", "manifest.json", `the manifest's version ${m.version} is not the recipe's ${r.version}`);
+  const listed = new Set<string>();
+  for (const f of m.files) {
+    if (listed.has(f.path)) add("files", "manifest.json", `${f.path} is listed twice`);
+    listed.add(f.path);
+    const real = files.find((x) => x.path === f.path);
+    if (!real) add("files", "manifest.json", `${f.path} is listed and not in the package`);
+    else if (real.bytes.length !== f.bytes) add("files", f.path, `is listed as ${f.bytes} bytes and holds ${real.bytes.length}`);
+  }
+  if (!listed.has("recipe.json")) add("files", "manifest.json", "recipe.json is not listed");
+  for (const f of files) if (f.path !== "manifest.json" && !listed.has(f.path)) add("files", f.path, "not in the manifest's file list: anything not listed is refused");
+}
+
+/** A block's children (none for a block that holds none). */
+const childrenOf = (b: Block): Block[] => ("children" in b && Array.isArray(b.children) ? b.children : []);
+const CONTAINERS = new Set(["card", "row", "repeat"]);
+const BOUND = new Set(["ring", "gauge", "bar", "sparkline", "value", "weather-icon"]);
+/** A block's text size by default, times the card's base (`metrics.ts`): the floor is checked against these when a block names none. */
+export const DEFAULT_SCALE: Partial<Record<Block["type"], number>> = { value: 1, label: 0.85, ring: 1.6, gauge: 1.6 };
+const DIRECTIONS: Record<string, readonly string[]> = { row: ["row", "column"], repeat: ["rows", "columns", "grid"] };
+const STYLES: Record<string, readonly string[]> = { bar: ["bar", "segments"], sparkline: ["line", "area", "bars"] };
+
+function recipeRules(r: Recipe, files: readonly PackageFile[], add: Add): void {
+  const R = "recipe.json";
+  const options = new Map<string, RecipeOption>();
+  // size: min <= default <= max, every number a whole cell
+  const { min, max } = r.size;
+  for (const [name, cells] of Object.entries(r.size)) if (!cells.every(Number.isInteger) || cells.length !== 2) add("size-range", R, `size.${name} is two whole numbers of cells`);
+  const within = (c: readonly number[]) => c[0] >= min[0] && c[1] >= min[1] && c[0] <= max[0] && c[1] <= max[1];
+  if (min[0] > max[0] || min[1] > max[1]) add("size-range", R, `size.min ${min.join("x")} is larger than size.max ${max.join("x")}`);
+  else if (!within(r.size.default)) add("size-range", R, `size.default ${r.size.default.join("x")} is outside ${min.join("x")} to ${max.join("x")}`);
+
+  // options: plain unique keys, none the standard block's, a default of their type
+  if (r.options.length > OPTIONS_MAX) add("size", R, `${r.options.length} options, at most ${OPTIONS_MAX}`);
+  for (const o of r.options) {
+    if (options.has(o.key)) add("option", R, `option ${o.key} is defined twice`);
+    if (STANDARD_KEYS.has(o.key) || RESERVED_KEYS.has(o.key)) add("option", R, `option ${o.key} takes a key every widget already has`);
+    options.set(o.key, o);
+    const why = optionDefaultIssue(o);
+    if (why) add("option", R, `option ${o.key}: ${why}`);
+  }
+
+  // presets: one default, sizes inside the recipe's, settings that are option values
+  if (r.presets.length > PRESETS_MAX) add("size", R, `${r.presets.length} presets, at most ${PRESETS_MAX}`);
+  const defaults = r.presets.filter((p) => p.default).length;
+  if (defaults !== 1) add("preset", R, `${defaults} presets are the default; exactly one is`);
+  const ids = new Set<string>();
+  for (const p of r.presets) {
+    if (ids.has(p.id)) add("preset", R, `preset ${p.id} is defined twice`);
+    ids.add(p.id);
+    if (!within(p.size)) add("preset", R, `preset ${p.id}: size ${p.size.join("x")} is outside ${min.join("x")} to ${max.join("x")}`);
+    if (p.minSize && !within(p.minSize)) add("preset", R, `preset ${p.id}: minSize ${p.minSize.join("x")} is outside ${min.join("x")} to ${max.join("x")}`);
+    for (const [key, value] of Object.entries(p.settings)) {
+      const o = options.get(key);
+      if (!o) add("preset", R, `preset ${p.id} sets ${key}, which is not an option`);
+      else {
+        const why = optionValueIssue(o, o.type === "place-list" ? placesOf(value) : value);
+        if (why) add("preset", R, `preset ${p.id}: ${key} ${why}`);
+      }
+    }
+  }
+
+  // the block tree
+  if (r.root.type !== "card") add("block", R, "the root block is a card");
+  let count = 0;
+  const walk = (b: Block, at: string, depth: number, repeat: string | undefined) => {
+    count++;
+    if (depth > DEPTH_MAX) return void add("depth", R, `${at}: blocks nest ${depth} deep, at most ${DEPTH_MAX}`);
+    blockRules(b, at, repeat, options, files, add);
+    if (b.type === "repeat" && repeat) add("repeat", R, `${at}: a Repeat inside a Repeat`);
+    childrenOf(b).forEach((c, k) => walk(c, `${at}.children[${k}]`, depth + 1, b.type === "repeat" ? b.over : repeat));
+  };
+  walk(r.root, "$.root", 1, undefined);
+  if (count > BLOCKS_MAX) add("size", R, `${count} blocks, at most ${BLOCKS_MAX}`);
+
+  // the text floor at every size the recipe allows
+  floorRules(r, add);
+
+  // sample data: sensor keys, and items for the list options with the source's fields
+  for (const key of Object.keys(r.sample.sensors)) if (!SENSOR_KEY.test(key) || !key.includes(".")) add("sample", R, `sample sensor ${key.slice(0, 40)} is not a sensor key`);
+  for (const [key, items] of Object.entries(r.sample.items ?? {})) {
+    if (options.get(key)?.type !== "place-list") add("sample", R, `sample items ${key}: not a place-list option`);
+    if (items.length > ITEMS_MAX) add("sample", R, `sample items ${key}: ${items.length} items, at most ${ITEMS_MAX}`);
+    for (const item of items) for (const field of Object.keys(item)) if (!(WEATHER_PLACE_FIELDS as readonly string[]).includes(field)) add("sample", R, `sample items ${key}: ${field} is not a field of Weather by place (${WEATHER_PLACE_FIELDS.join(", ")})`);
+  }
+}
+
+/** A stored place list (JSON text, or the recipe's own array) as places, or undefined when it is not one. */
+export function placesOf(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+}
+
+const isPlace = (p: unknown): boolean => {
+  const x = p as { name?: unknown; lat?: unknown; lon?: unknown } | null;
+  return !!x && typeof x.name === "string" && x.name.length > 0 && x.name.length <= 60 && typeof x.lat === "number" && Math.abs(x.lat) <= 90 && typeof x.lon === "number" && Math.abs(x.lon) <= 180 && Object.keys(x).length === 3;
+};
+
+/** Why a value does not suit an option, or undefined. */
+function optionValueIssue(o: RecipeOption, v: unknown): string | undefined {
+  switch (o.type) {
+    case "number":
+      if (typeof v !== "number" || !Number.isFinite(v)) return "is a number";
+      return (o.min !== undefined && v < o.min) || (o.max !== undefined && v > o.max) ? `${v} is outside ${o.min ?? "-"} to ${o.max ?? "-"}` : undefined;
+    case "boolean":
+      return typeof v === "boolean" ? undefined : "is true or false";
+    case "place-list":
+      return Array.isArray(v) && v.length <= ITEMS_MAX && v.every(isPlace) ? undefined : `is a list of at most ${ITEMS_MAX} places ({ name, lat, lon })`;
+    case "select":
+      return typeof v === "string" && (o.options ?? []).some((x) => x.value === v) ? undefined : `${String(v)} is not one of its choices`;
+    case "sensor":
+      return v === "" || (typeof v === "string" && SENSOR_KEY.test(v) && v.includes(".")) ? undefined : "is a sensor key";
+    case "color":
+      return v === "" || (typeof v === "string" && HEX.test(v)) ? undefined : "is a #rgb or #rrggbb colour";
+    case "date":
+      return v === "" || (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) ? undefined : "is YYYY-MM-DD";
+    case "time":
+      return v === "" || (typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v)) ? undefined : "is HH:MM";
+    default:
+      return typeof v === "string" && v.length <= 200 ? undefined : "is text of at most 200 characters";
+  }
+}
+
+function optionDefaultIssue(o: RecipeOption): string | undefined {
+  if (!(OPTION_TYPES as readonly string[]).includes(o.type)) return `${o.type} is not an option type`;
+  if (o.options && o.type !== "select") return "only a select has choices";
+  if (o.type === "select" && !o.options?.length) return "a select needs its choices";
+  const why = optionValueIssue(o, o.default);
+  return why && `default ${why}`;
+}
+
+/** Why a binding names nothing there, or undefined. */
+function bindingIssue(b: Binding, repeat: string | undefined, options: Map<string, RecipeOption>): string | undefined {
+  if ("sensor" in b) return SENSOR_KEY.test(b.sensor) && b.sensor.includes(".") ? undefined : `sensor ${b.sensor.slice(0, 40)} is not a sensor key`;
+  if ("option" in b) {
+    const o = options.get(b.option);
+    if (!o) return `option ${b.option} is not one of the recipe's options`;
+    return o.type === "place-list" ? `option ${b.option} is a place list, which a Repeat runs over` : undefined;
+  }
+  if (!repeat) return `field ${b.field} is read only inside a Repeat`;
+  return (WEATHER_PLACE_FIELDS as readonly string[]).includes(b.field) ? undefined : `field ${b.field} is not a field of Weather by place (${WEATHER_PLACE_FIELDS.join(", ")})`;
+}
+
+function blockRules(b: Block, at: string, repeat: string | undefined, options: Map<string, RecipeOption>, files: readonly PackageFile[], add: Add): void {
+  const R = "recipe.json";
+  const raw = b as unknown as Record<string, unknown>;
+  const bind = (binding: Binding | undefined, where: string) => {
+    const why = binding && bindingIssue(binding, repeat, options);
+    if (why) add("binding", R, `${where}: ${why}`);
+  };
+  const container = CONTAINERS.has(b.type);
+  if (container && !Array.isArray(raw.children)) add("block", R, `${at}: a ${b.type} holds its blocks in children`);
+  if (!container && raw.children !== undefined) add("block", R, `${at}: a ${b.type} holds no blocks`);
+  if (BOUND.has(b.type) && raw.bind === undefined) add("binding", R, `${at}: a ${b.type} needs its data (bind)`);
+  if (raw.direction !== undefined && !DIRECTIONS[b.type]?.includes(String(raw.direction))) add("block", R, `${at}: direction ${String(raw.direction)} is not a ${b.type}'s`);
+  if (raw.style !== undefined && !STYLES[b.type]?.includes(String(raw.style))) add("block", R, `${at}: style ${String(raw.style)} is not a ${b.type}'s`);
+  if (typeof raw.min === "number" && typeof raw.max === "number" && raw.min >= raw.max) add("block", R, `${at}: min ${raw.min} is not under max ${raw.max}`);
+  if (raw.color === "thresholds" && raw.thresholds === undefined) add("block", R, `${at}: colour by thresholds needs its thresholds`);
+  if (b.when) {
+    if (!options.has(b.when.option)) add("binding", R, `${at}.when: option ${b.when.option} is not one of the recipe's options`);
+    if (b.when.is === undefined && b.when.not === undefined) add("block", R, `${at}.when: says neither is nor not`);
+  }
+  if ("bind" in b && b.bind) bind(b.bind, `${at}.bind`);
+  if (b.type === "card" && b.subtitle) bind(b.subtitle, `${at}.subtitle`);
+  if (b.type === "label" && b.text === undefined && b.bind === undefined) add("binding", R, `${at}: a label needs its text or its data`);
+  if (b.type === "heatmap") {
+    if (!b.cells && !b.bind) add("binding", R, `${at}: a heatmap needs its cells or a field of numbers`);
+    b.cells?.forEach((c, k) => bind(c, `${at}.cells[${k}]`));
+  }
+  if (b.type === "repeat") {
+    if (options.get(b.over)?.type !== "place-list") add("repeat", R, `${at}: over ${b.over} is not a place-list option`);
+    if (b.max !== undefined && !(Number.isInteger(b.max) && b.max >= 1 && b.max <= ITEMS_MAX)) add("repeat", R, `${at}: most shown ${b.max}, a whole number from 1 to ${ITEMS_MAX}`);
+  }
+  if (b.type === "image") {
+    const f = files.find((x) => x.path === b.file);
+    if (!f) add("image", R, `${at}: ${b.file} is not in the package`);
+    else if (!rasterMatches(b.file.split(".").pop()!, f.bytes)) add("image", f.path, `the bytes are not a ${b.file.split(".").pop()} image`);
+  }
+}
+
+/** The text blocks with their size (the default where they name none): what the floor applies to. */
+function textBlocks(root: Block, out: { at: string; scale: number }[] = [], at = "$.root"): { at: string; scale: number }[] {
+  const own = (root as { scale?: number }).scale ?? DEFAULT_SCALE[root.type];
+  const text = root.type === "value" || root.type === "label" || ((root.type === "ring" || root.type === "gauge") && root.center !== false);
+  if (text && own !== undefined) out.push({ at, scale: own });
+  childrenOf(root).forEach((c, k) => textBlocks(c, out, `${at}.children[${k}]`));
+  return out;
+}
+
+function floorRules(r: Recipe, add: Add): void {
+  const { min, max } = r.size;
+  const sizes: [number, number][] = [];
+  for (let c = min[0]; c <= max[0]; c++) for (let h = min[1]; h <= max[1]; h++) sizes.push([c, h]);
+  for (const t of textBlocks(r.root)) {
+    const under = sizes.find(([c, h]) => cellBasePx(c, h) * t.scale < TEXT_FLOOR);
+    if (under) add("text-floor", "recipe.json", `${t.at}: text is ${(cellBasePx(...under) * t.scale).toFixed(1)} px at ${under.join("x")}, under ${TEXT_FLOOR} px (raise its scale or the recipe's smallest size)`);
+  }
+}
+
+/** Errors first; the same rule on the same file and message once. */
+function finish(issues: RecipeIssue[]): RecipeIssue[] {
+  const seen = new Set<string>();
+  const unique = issues.filter((i) => !seen.has(`${i.rule}|${i.file}|${i.message}`) && seen.add(`${i.rule}|${i.file}|${i.message}`));
+  return [...unique.filter((i) => i.severity === "error"), ...unique.filter((i) => i.severity === "warn")];
+}

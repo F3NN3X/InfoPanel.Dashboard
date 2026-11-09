@@ -1,0 +1,262 @@
+{
+  "format": 1,
+  "id": "recipe:cpu-card",
+  "name": "CPU card",
+  "version": "1.0.0",
+  "author": "InfoPanel Studio",
+  "description": "The CPU's load as a ring, its temperature, clock and power, and a history of the load.",
+  "icon": "memory",
+  "category": "Hardware",
+  "size": {
+    "min": [
+      2,
+      2
+    ],
+    "max": [
+      4,
+      3
+    ],
+    "default": [
+      3,
+      2
+    ]
+  },
+  "options": [
+    {
+      "key": "load",
+      "label": "CPU load",
+      "type": "sensor",
+      "default": "libre.amd_ryzen_9_9950x3d_cpu_total"
+    },
+    {
+      "key": "temp",
+      "label": "Temperature",
+      "type": "sensor",
+      "default": "libre.amd_ryzen_9_9950x3d_core__tctl_tdie"
+    },
+    {
+      "key": "showClock",
+      "label": "Show clock",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "showValues",
+      "label": "Show values",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "showHistory",
+      "label": "Show history",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "key": "showCores",
+      "label": "Show cores",
+      "type": "boolean",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "id": "full",
+      "name": "Full",
+      "settings": {},
+      "size": [
+        3,
+        2
+      ],
+      "blurb": "Ring, three values, history",
+      "default": true
+    },
+    {
+      "id": "compact",
+      "name": "Compact",
+      "settings": {
+        "showClock": false,
+        "showHistory": false
+      },
+      "size": [
+        2,
+        2
+      ],
+      "blurb": "Ring and temperature"
+    },
+    {
+      "id": "ring",
+      "name": "Ring only",
+      "settings": {
+        "showValues": false,
+        "showHistory": false
+      },
+      "size": [
+        2,
+        2
+      ],
+      "blurb": "Just the ring"
+    },
+    {
+      "id": "cores",
+      "name": "Cores",
+      "settings": {
+        "showHistory": false,
+        "showCores": true
+      },
+      "size": [
+        3,
+        3
+      ],
+      "blurb": "Ring, values and a load per core"
+    }
+  ],
+  "root": {
+    "type": "card",
+    "title": "CPU",
+    "icon": "memory",
+    "subtitle": {
+      "option": "load"
+    },
+    "children": [
+      {
+        "type": "row",
+        "name": "Top row",
+        "gap": 12,
+        "grow": 3,
+        "children": [
+          {
+            "type": "ring",
+            "name": "Ring",
+            "bind": {
+              "option": "load"
+            },
+            "min": 0,
+            "max": 100,
+            "color": "thresholds",
+            "thresholds": {
+              "warn": 70,
+              "crit": 90
+            },
+            "unit": "%",
+            "grow": 2
+          },
+          {
+            "type": "row",
+            "name": "Values",
+            "direction": "column",
+            "align": "stretch",
+            "gap": 4,
+            "grow": 3,
+            "when": {
+              "option": "showValues",
+              "is": true
+            },
+            "children": [
+              {
+                "type": "value",
+                "label": "Temp",
+                "bind": {
+                  "option": "temp"
+                },
+                "decimals": 1,
+                "scale": 0.9
+              },
+              {
+                "type": "value",
+                "label": "Clock",
+                "bind": {
+                  "sensor": "libre.amd_ryzen_9_9950x3d_cores__average"
+                },
+                "decimals": 0,
+                "scale": 0.9,
+                "when": {
+                  "option": "showClock",
+                  "is": true
+                }
+              },
+              {
+                "type": "value",
+                "label": "Power",
+                "bind": {
+                  "sensor": "libre.amd_ryzen_9_9950x3d_package"
+                },
+                "decimals": 0,
+                "scale": 0.9
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "sparkline",
+        "name": "Sparkline",
+        "bind": {
+          "option": "load"
+        },
+        "min": 0,
+        "max": 100,
+        "style": "area",
+        "grow": 1,
+        "when": {
+          "option": "showHistory",
+          "is": true
+        }
+      },
+      {
+        "type": "heatmap",
+        "name": "Cores",
+        "min": 0,
+        "max": 100,
+        "columns": 8,
+        "grow": 1,
+        "when": {
+          "option": "showCores",
+          "is": true
+        },
+        "cells": [
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__1"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__2"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__3"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__4"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__5"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__6"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__7"
+          },
+          {
+            "sensor": "libre.amd_ryzen_9_9950x3d_cpu_core__8"
+          }
+        ]
+      }
+    ]
+  },
+  "sample": {
+    "sensors": {
+      "libre.amd_ryzen_9_9950x3d_cpu_total": "64.2 %",
+      "libre.amd_ryzen_9_9950x3d_core__tctl_tdie": "67.5 °C",
+      "libre.amd_ryzen_9_9950x3d_cores__average": "5120 MHz",
+      "libre.amd_ryzen_9_9950x3d_package": "132 W",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__1": "80 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__2": "62 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__3": "45 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__4": "91 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__5": "12 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__6": "33 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__7": "70 %",
+      "libre.amd_ryzen_9_9950x3d_cpu_core__8": "55 %"
+    }
+  }
+}

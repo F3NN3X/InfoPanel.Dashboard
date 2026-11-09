@@ -12,3 +12,5 @@ tests/fixtures/parity/*.json text eol=lf
 tools/parity/*.mjs text eol=lf
 # The optional pre-push hook is a shell script.
 .githooks/* text eol=lf
+# The recipe fixture packages are hashed byte for byte by their manifests (tools/widgets/recipe-fixtures.mjs): never converted.
+tests/fixtures/recipes/** -text

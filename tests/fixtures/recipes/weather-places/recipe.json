@@ -1,0 +1,386 @@
+{
+  "format": 1,
+  "id": "recipe:weather-places",
+  "name": "Weather · places",
+  "version": "1.0.0",
+  "author": "InfoPanel Studio",
+  "description": "The weather in several places: now, today's high and low, and the next hours. Until Weather by place is served it draws its sample weather.",
+  "icon": "partly_cloudy_day",
+  "category": "Info",
+  "size": {
+    "min": [
+      3,
+      2
+    ],
+    "max": [
+      6,
+      4
+    ],
+    "default": [
+      4,
+      3
+    ]
+  },
+  "options": [
+    {
+      "key": "places",
+      "label": "Locations",
+      "type": "place-list",
+      "default": [
+        {
+          "name": "Oslo",
+          "lat": 59.91,
+          "lon": 10.75
+        },
+        {
+          "name": "Brevik",
+          "lat": 59.05,
+          "lon": 9.7
+        },
+        {
+          "name": "Tokyo",
+          "lat": 35.68,
+          "lon": 139.69
+        }
+      ]
+    },
+    {
+      "key": "units",
+      "label": "Units",
+      "type": "select",
+      "default": "c",
+      "options": [
+        {
+          "value": "c",
+          "label": "°C"
+        },
+        {
+          "value": "f",
+          "label": "°F"
+        }
+      ]
+    },
+    {
+      "key": "hours",
+      "label": "Forecast hours",
+      "type": "number",
+      "default": 8,
+      "min": 4,
+      "max": 12,
+      "step": 1
+    },
+    {
+      "key": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "list",
+      "options": [
+        {
+          "value": "list",
+          "label": "List"
+        },
+        {
+          "value": "grid",
+          "label": "Grid"
+        },
+        {
+          "value": "one",
+          "label": "One place"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "id": "list",
+      "name": "List",
+      "settings": {},
+      "size": [
+        4,
+        3
+      ],
+      "blurb": "One row per place",
+      "default": true
+    },
+    {
+      "id": "grid",
+      "name": "Grid",
+      "settings": {
+        "layout": "grid"
+      },
+      "size": [
+        6,
+        2
+      ],
+      "blurb": "The places side by side"
+    },
+    {
+      "id": "one",
+      "name": "One place",
+      "settings": {
+        "layout": "one"
+      },
+      "size": [
+        3,
+        2
+      ],
+      "blurb": "The first place only"
+    }
+  ],
+  "root": {
+    "type": "card",
+    "title": "Weather",
+    "icon": "partly_cloudy_day",
+    "children": [
+      {
+        "type": "repeat",
+        "name": "Locations",
+        "over": "places",
+        "source": "weather-by-place",
+        "direction": "rows",
+        "max": 4,
+        "dividers": true,
+        "when": {
+          "option": "layout",
+          "is": "list"
+        },
+        "children": [
+          {
+            "type": "weather-icon",
+            "name": "Weather icon",
+            "bind": {
+              "field": "condition"
+            },
+            "scale": 1.6,
+            "grow": 0.6
+          },
+          {
+            "type": "row",
+            "name": "City and condition",
+            "direction": "column",
+            "gap": 2,
+            "grow": 2,
+            "children": [
+              {
+                "type": "label",
+                "bind": {
+                  "field": "name"
+                },
+                "scale": 0.85
+              },
+              {
+                "type": "label",
+                "bind": {
+                  "field": "condition"
+                },
+                "scale": 0.7,
+                "tone": "muted"
+              }
+            ]
+          },
+          {
+            "type": "value",
+            "name": "Temperature",
+            "bind": {
+              "field": "temp"
+            },
+            "unit": "°",
+            "decimals": 0,
+            "scale": 1.3,
+            "grow": 1.2
+          },
+          {
+            "type": "value",
+            "name": "High",
+            "bind": {
+              "field": "high"
+            },
+            "unit": "°",
+            "decimals": 0,
+            "scale": 0.7,
+            "grow": 0.8
+          },
+          {
+            "type": "value",
+            "name": "Low",
+            "bind": {
+              "field": "low"
+            },
+            "unit": "°",
+            "decimals": 0,
+            "scale": 0.7,
+            "grow": 0.8
+          },
+          {
+            "type": "sparkline",
+            "name": "Next 8 hours",
+            "bind": {
+              "field": "hourly"
+            },
+            "style": "bars",
+            "color": "series-1",
+            "grow": 2
+          }
+        ]
+      },
+      {
+        "type": "repeat",
+        "name": "Grid",
+        "over": "places",
+        "source": "weather-by-place",
+        "direction": "columns",
+        "max": 4,
+        "dividers": true,
+        "when": {
+          "option": "layout",
+          "is": "grid"
+        },
+        "children": [
+          {
+            "type": "weather-icon",
+            "bind": {
+              "field": "condition"
+            },
+            "scale": 1.6,
+            "grow": 1
+          },
+          {
+            "type": "row",
+            "direction": "column",
+            "gap": 2,
+            "grow": 2,
+            "children": [
+              {
+                "type": "label",
+                "bind": {
+                  "field": "name"
+                },
+                "scale": 0.7
+              },
+              {
+                "type": "value",
+                "bind": {
+                  "field": "temp"
+                },
+                "unit": "°",
+                "decimals": 0,
+                "scale": 1.1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "repeat",
+        "name": "One place",
+        "over": "places",
+        "source": "weather-by-place",
+        "max": 1,
+        "when": {
+          "option": "layout",
+          "is": "one"
+        },
+        "children": [
+          {
+            "type": "weather-icon",
+            "bind": {
+              "field": "condition"
+            },
+            "scale": 2.4,
+            "grow": 1
+          },
+          {
+            "type": "row",
+            "direction": "column",
+            "gap": 2,
+            "grow": 2,
+            "children": [
+              {
+                "type": "label",
+                "bind": {
+                  "field": "name"
+                },
+                "scale": 0.8
+              },
+              {
+                "type": "value",
+                "bind": {
+                  "field": "temp"
+                },
+                "unit": "°",
+                "decimals": 0,
+                "scale": 1.6
+              },
+              {
+                "type": "label",
+                "bind": {
+                  "field": "condition"
+                },
+                "scale": 0.6,
+                "tone": "muted"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "sample": {
+    "sensors": {},
+    "items": {
+      "places": [
+        {
+          "name": "Oslo",
+          "condition": "Cloudy",
+          "temp": 4,
+          "high": 6,
+          "low": 1,
+          "hourly": [
+            3,
+            3,
+            4,
+            4,
+            5,
+            5,
+            4,
+            4
+          ]
+        },
+        {
+          "name": "Brevik",
+          "condition": "Light rain",
+          "temp": 5,
+          "high": 7,
+          "low": 3,
+          "hourly": [
+            4,
+            4,
+            5,
+            5,
+            6,
+            5,
+            5,
+            4
+          ]
+        },
+        {
+          "name": "Tokyo",
+          "condition": "Clear",
+          "temp": 14,
+          "high": 17,
+          "low": 9,
+          "hourly": [
+            10,
+            12,
+            14,
+            16,
+            17,
+            15,
+            13,
+            11
+          ]
+        }
+      ]
+    }
+  }
+}

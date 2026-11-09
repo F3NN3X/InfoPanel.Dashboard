@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "kind": "recipe",
+  "id": "recipe:gpu-card",
+  "version": "1.0.0",
+  "author": "InfoPanel Studio",
+  "name": "GPU card",
+  "files": [
+    {
+      "path": "images/logo.png",
+      "bytes": 128,
+      "sha256": "bb11561650e7f98e4b3acc432a7d81f97026350fee56088baf139eddeb6ebeae"
+    },
+    {
+      "path": "recipe.json",
+      "bytes": 4718,
+      "sha256": "a8023fcd030b3c72562e4247eab9e3e02caf134c7eed7757f3efca399aa91b4c"
+    }
+  ]
+}
