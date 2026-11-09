@@ -1,5 +1,6 @@
 import type { StoredCanvas } from "@/lib/infopanel/import/stored";
 import type { DashboardConfig, Placement } from "@/lib/layout";
+import { migratePlacementV19 } from "@/lib/settings-migrate.v19";
 
 /**
  * Canvas zones and the server's canvas store (ips-server's canvases.rs, #44). In
@@ -127,7 +128,10 @@ async function mapPlacementsAsync<T extends WithProfiles>(config: T, change: (p:
 
 /**
  * `config` with every `canvasRef` replaced by its canvas: what the studio edits, the kiosk
- * draws and an exported file carries. A ref the store has no file for stays as it is.
+ * draws and an exported file carries. A ref the store has no file for stays as it is. A stored
+ * canvas is outside the config the upgrade saw, so its Studio widgets of a merged-away id become
+ * their survivor here (config v19, `migratePlacementV19`); such a canvas is a new object, sent
+ * again on the next push.
  */
 export async function inlineCanvases<T extends WithProfiles>(config: T): Promise<T> {
   const used = new Set<string>();
@@ -137,7 +141,7 @@ export async function inlineCanvases<T extends WithProfiles>(config: T): Promise
     const canvas = await loadCanvas(p.canvasRef);
     if (!canvas) return p;
     const { canvasRef: _ref, ...rest } = p;
-    return { ...rest, canvas };
+    return migratePlacementV19({ ...rest, canvas });
   });
   // A kiosk pulls each edit's new ref: keep only the canvases this config draws.
   for (const ref of loaded.keys()) if (!used.has(ref)) loaded.delete(ref);
