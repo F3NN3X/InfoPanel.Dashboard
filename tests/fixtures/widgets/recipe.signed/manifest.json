@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "kind": "recipe",
+  "id": "recipe:signed",
+  "version": "1.0.0",
+  "author": "TEST-ONLY publisher",
+  "name": "Signed recipe",
+  "files": [
+    {
+      "path": "recipe.json",
+      "bytes": 64,
+      "sha256": "04348d41ed0cbf87582a72979238e9f2fee22ab1374b12f99e8e757c7bd77942"
+    }
+  ],
+  "signature": {
+    "minisign": "untrusted comment: signature from minisign secret key FD89B8C08B250DF6\nRUT2DSWLwLiJ/VyJglft/kevX3a/DA3wzYWMGHkddVPcmCPVXsRNUU2mEki4Qs7027sX8EaX4RbxnvIneqDA8vFXgxDQMqUyoQY=\ntrusted comment: recipe:signed 1.0.0\nlzK98yXxDGy0AmZ2HwDkO1u88/xfkWBsfJzGcB4aKOdl/UisptaNRZg5lyy1XgIEKAyI58A1soF2+BBRTZfwDA==\n"
+  }
+}

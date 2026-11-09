@@ -7,10 +7,18 @@
 // never followed), and a folder whose files are not exactly the manifest's, byte for byte (the hashes are taken on every read),
 // is not a package: not listed, not served.
 //
-// A package's key is its id with the namespace's colon as a dot (`recipe:cpu-card` is `recipe.cpu-card`), safe in a route and a
-// folder name (Gate 0 answer 5). Code widgets (`ext:<publisher>.<id>`, kind `code`) are refused until 6a adds their signatures.
+// A package's key is its id with the namespace's colon as a dot (`recipe:cpu-card` is `recipe.cpu-card`, `ext:acme.clock` is
+// `ext.acme.clock`), safe in a route and a folder name (Gate 0 answer 5).
 //
-// GET /api/widgets                 list: id, kind, name, version, size and origin of each package (`X-User-Widgets: off` when off)
+// Code widgets (Phase 6a: kind `code`, id `ext:<publisher>.<id>`, an ES-module bundle `widget.js`) must carry a publisher signature
+// (widget_sign.rs) from a key this app trusts (widget_keys.rs); a recipe may carry one, and is refused when it does not verify.
+// The signature is checked on import and on every read (the list, each file): a package whose signature no longer verifies (its key
+// removed or revoked) is listed with `trust: "refused:<reason>"` and its files are 403. Nothing here runs a bundle: 6a stores and
+// verifies it only. `USER_CODE_WIDGETS=off` hides and refuses every code widget, as `USER_WIDGETS=off` does every package.
+//
+// GET /api/widgets                 list: id, kind, name, version, size, origin and trust (`owner`, `themely`, `user:<name>`,
+//                                  `unsigned` for a recipe without a signature, `refused:<reason>`) of each package
+//                                  (`X-User-Widgets: off` when off, `X-User-Code-Widgets: off` when code widgets are)
 // POST /api/widgets                import: `{ "files": [{ "path", "data" (base64) }], "origin"?: "studio" | "import" }`, replaces
 //                                  the package of that id
 //
@@ -19,6 +27,8 @@
 // package's files, outside the manifest and its hashes: never a package file, never served, so an export leaves it out.
 // GET/HEAD /api/widgets/<key>/<file>   one file, typed by its extension, `nosniff`, a CSP that allows nothing
 // DELETE /api/widgets/<key>        remove a package
+// GET /api/widget-keys             the publisher keys (widget_keys.rs `KeyView`s); a write is 403 from anywhere: keys are added and
+//                                  removed in the app's Settings window only, through the app's commands, never over HTTP
 //
 // Writes need `X-Dashboard-Widget: 1` and come from this computer unless ALLOW_REMOTE_UPLOAD=1 (the packs' rule). The rollback
 // switch: `USER_WIDGETS=off` turns the folder read and every route off (the list is empty, a file is 404, a write 403); each
@@ -35,6 +45,8 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 
 use crate::http::{self, Req};
+use crate::widget_keys::KeyStore;
+use crate::widget_sign::{self, Keyring};
 use crate::{js, App};
 
 /// A package is at most this many bytes, a file at most `FILE_MAX_BYTES`, a package at most `FILE_COUNT_MAX` files (the
@@ -50,6 +62,8 @@ const IMPORT_BODY_MAX: usize = (PACKAGE_MAX_BYTES as usize) * 4 / 3 + 64 * 1024;
 
 const MANIFEST: &str = "manifest.json";
 const RECIPE: &str = "recipe.json";
+/// A code widget's bundle: its manifest's `entry`, an ES module.
+const BUNDLE: &str = "widget.js";
 const IMAGES: &str = "images";
 /// The sidecar the server writes beside a package's files: where it came from, one of `ORIGINS`.
 const ORIGIN: &str = ".origin";
@@ -62,6 +76,7 @@ const UUID_LEN: usize = 36;
 /// The extensions an image may have (`images/<name>.<ext>`).
 const IMAGE_EXTS: [&str; 3] = ["png", "jpg", "webp"];
 const RECIPE_NS: &str = "recipe.";
+const EXT_NS: &str = "ext.";
 
 /// A name Windows keeps for a device (`con`, `nul`, `com1`, ... with or without an extension).
 fn is_device_name(s: &str) -> bool {
@@ -74,22 +89,30 @@ fn is_name(s: &str, max: usize) -> bool {
     (1..=max).contains(&s.len()) && !is_device_name(s) && !s.starts_with('-') && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
-/// A package key: `recipe.<name>` with a name of up to 48 (the id `recipe:<name>`).
+/// A package key: `recipe.<name>` with a name of up to 48 (the id `recipe:<name>`), or `ext.<publisher>.<name>` with a publisher
+/// of up to 32 and a name of up to 48 (the id `ext:<publisher>.<name>`).
 pub fn is_widget_key(s: &str) -> bool {
-    s.strip_prefix(RECIPE_NS).is_some_and(|name| is_name(name, 48))
+    if let Some(name) = s.strip_prefix(RECIPE_NS) {
+        return is_name(name, 48);
+    }
+    s.strip_prefix(EXT_NS).and_then(|rest| rest.split_once('.')).is_some_and(|(publisher, name)| is_name(publisher, 32) && is_name(name, 48))
 }
 
-/// The key of a package id (`recipe:<name>` -> `recipe.<name>`), when the id is a recipe's.
+/// The key of a package id (`recipe:<name>` -> `recipe.<name>`, `ext:<publisher>.<name>` -> `ext.<publisher>.<name>`).
 pub fn key_of(id: &str) -> Option<String> {
-    let name = id.strip_prefix("recipe:")?;
-    let key = format!("{RECIPE_NS}{name}");
+    let key = match (id.strip_prefix("recipe:"), id.strip_prefix("ext:")) {
+        (Some(name), _) => format!("{RECIPE_NS}{name}"),
+        (_, Some(rest)) => format!("{EXT_NS}{rest}"),
+        _ => return None,
+    };
     is_widget_key(&key).then_some(key)
 }
 
-/// A file of a package by its path from the package folder: `manifest.json`, `recipe.json` or `images/<name>.<ext>`. Nothing else
-/// is a path: no separator but the one after `images`, no dot but the extension's, no `%`, backslash, colon, NUL or non-ASCII.
+/// A file of a package by its path from the package folder: `manifest.json`, `recipe.json`, `widget.js` or `images/<name>.<ext>`.
+/// Nothing else is a path: no separator but the one after `images`, no dot but the extension's, no `%`, backslash, colon, NUL or
+/// non-ASCII.
 pub fn is_widget_file(s: &str) -> bool {
-    if s == MANIFEST || s == RECIPE {
+    if s == MANIFEST || s == RECIPE || s == BUNDLE {
         return true;
     }
     let Some(name) = s.strip_prefix("images/") else {
@@ -102,6 +125,7 @@ pub fn is_widget_file(s: &str) -> bool {
 fn mime_of(file: &str) -> Option<&'static str> {
     Some(match file.rsplit_once('.')?.1 {
         "json" => "application/json; charset=utf-8",
+        "js" => "text/javascript; charset=utf-8",
         "png" => "image/png",
         "jpg" => "image/jpeg",
         "webp" => "image/webp",
@@ -124,18 +148,20 @@ fn refuse(status: u16, message: impl Into<String>) -> Refused {
     Refused(status, message.into())
 }
 
-/// What a valid manifest says of its package.
+/// What a valid manifest says of its package, and the package's trust state (`trust_of`).
 #[derive(Debug, PartialEq)]
 pub struct Listed {
     pub id: String,
     pub kind: String,
     pub name: String,
     pub version: String,
+    pub trust: String,
 }
 
-/// Checks a package's files against its manifest: every file a package has, within the caps, the manifest a recipe's naming
-/// `key`'s id, every other file listed once with its exact size and SHA-256, and `recipe.json` JSON naming the same id and version.
-fn checked_files(files: &Files, key: Option<&str>) -> Result<Listed, Refused> {
+/// Checks a package's files against its manifest: every file a package has, within the caps, the manifest naming `key`'s id,
+/// every other file listed once with its exact size and SHA-256; a recipe's `recipe.json` JSON naming the same id and version, a
+/// code widget's `widget.js` its entry and its `publisher` the id's. Its manifest comes back with it, for `trust_of`.
+fn checked_files(files: &Files, key: Option<&str>) -> Result<(Listed, Value), Refused> {
     if files.len() > FILE_COUNT_MAX {
         return Err(refuse(413, format!("{} files, at most {FILE_COUNT_MAX}", files.len())));
     }
@@ -162,23 +188,42 @@ fn checked_files(files: &Files, key: Option<&str>) -> Result<Listed, Refused> {
     let manifest = json(MANIFEST)?;
     let text = |v: &Value, field: &str| v.get(field).and_then(Value::as_str).map(str::to_string);
     let kind = text(&manifest, "kind").unwrap_or_default();
-    if kind != "recipe" {
-        return Err(refuse(400, format!("kind {:?}: this server takes recipe packages only (code widgets need signatures, Phase 6)", kind.chars().take(20).collect::<String>())));
-    }
-    if manifest.get("signature").is_some() {
-        return Err(refuse(400, "a recipe package carries no signature"));
-    }
     let id = text(&manifest, "id").unwrap_or_default();
-    let Some(own) = key_of(&id) else {
-        return Err(refuse(400, "the manifest's id is not recipe:<name> (lowercase letters, digits and hyphens, 48 at most)"));
-    };
-    if key.is_some_and(|k| k != own) {
-        return Err(refuse(400, "the manifest names another package than its folder"));
-    }
     let version = text(&manifest, "version").unwrap_or_default();
-    let recipe = json(RECIPE)?;
-    if text(&recipe, "id").as_deref() != Some(id.as_str()) || text(&recipe, "version").as_deref() != Some(version.as_str()) {
-        return Err(refuse(400, "recipe.json names another id or version than the manifest"));
+    let has = |name: &str| files.iter().any(|(p, _)| p == name);
+    let recipe = match kind.as_str() {
+        "recipe" => {
+            if !id.starts_with("recipe:") || key_of(&id).is_none() {
+                return Err(refuse(400, "the manifest's id is not recipe:<name> (lowercase letters, digits and hyphens, 48 at most)"));
+            }
+            if has(BUNDLE) {
+                return Err(refuse(400, "a recipe package has no widget.js"));
+            }
+            let recipe = json(RECIPE)?;
+            if text(&recipe, "id").as_deref() != Some(id.as_str()) || text(&recipe, "version").as_deref() != Some(version.as_str()) {
+                return Err(refuse(400, "recipe.json names another id or version than the manifest"));
+            }
+            Some(recipe)
+        }
+        "code" => {
+            let Some(publisher) = id.strip_prefix("ext:").and_then(|rest| rest.split_once('.')).map(|(p, _)| p).filter(|_| key_of(&id).is_some()) else {
+                return Err(refuse(400, "the manifest's id is not ext:<publisher>.<name> (lowercase letters, digits and hyphens; 32 and 48 at most)"));
+            };
+            if text(&manifest, "publisher").as_deref() != Some(publisher) {
+                return Err(refuse(400, "the manifest's publisher is not the one its id names"));
+            }
+            if text(&manifest, "entry").as_deref() != Some(BUNDLE) || !has(BUNDLE) {
+                return Err(refuse(400, "a code widget's entry is widget.js, and the package has it"));
+            }
+            if has(RECIPE) {
+                return Err(refuse(400, "a code widget package has no recipe.json"));
+            }
+            None
+        }
+        _ => return Err(refuse(400, format!("kind {:?}: a widget package is a recipe or code", kind.chars().take(20).collect::<String>()))),
+    };
+    if key.is_some_and(|k| Some(k) != key_of(&id).as_deref()) {
+        return Err(refuse(400, "the manifest names another package than its folder"));
     }
     let list = manifest.get("files").and_then(Value::as_array).ok_or_else(|| refuse(400, "the manifest lists no files"))?;
     let mut listed: Vec<&str> = Vec::new();
@@ -198,31 +243,51 @@ fn checked_files(files: &Files, key: Option<&str>) -> Result<Listed, Refused> {
     if let Some((path, _)) = files.iter().find(|(p, _)| p != MANIFEST && !listed.contains(&p.as_str())) {
         return Err(refuse(400, format!("{path} is not in the manifest")));
     }
-    let name = text(&manifest, "name").or_else(|| text(&recipe, "name")).unwrap_or_else(|| id.clone()).chars().take(80).collect();
-    Ok(Listed { id, kind, name, version })
+    let name = text(&manifest, "name").or_else(|| recipe.as_ref().and_then(|r| text(r, "name"))).unwrap_or_else(|| id.clone()).chars().take(80).collect();
+    Ok((Listed { id, kind, name, version, trust: String::new() }, manifest))
 }
 
-/// The user-widget store: its folder, whether it is read at all, and who may write.
+/// The trust state of a package whose files are its manifest's: `owner`, `themely` or `user:<name>` for a signature from a trusted
+/// key, `unsigned` for a recipe without one, or why it is refused (a code widget without a signature, an unreadable signature, an
+/// unknown or revoked key, a signature that does not match).
+fn trust_of(kind: &str, manifest: &Value, ring: &Keyring) -> Result<String, String> {
+    match widget_sign::verify(manifest, ring)? {
+        Some(signer) => Ok(signer.state()),
+        None if kind == "code" => Err("a code widget must be signed, and this one is not".into()),
+        None => Ok("unsigned".into()),
+    }
+}
+
+/// The user-widget store: its folder, whether it is read at all (and its code widgets), the publisher keys, and who may write.
 pub struct Widgets {
     dir: PathBuf,
     enabled: bool,
+    code_enabled: bool,
+    keys: KeyStore,
     allow_remote: bool,
     /// Held across an import's cap checks and write, and a remove, so two at once cannot both pass the caps.
     write: Mutex<()>,
 }
 
 impl Widgets {
-    /// The store in `dir`. `USER_WIDGETS=off` (or `0`) is the rollback switch.
-    pub fn new(dir: PathBuf, allow_remote: bool) -> Self {
-        let enabled = !matches!(std::env::var("USER_WIDGETS").ok().as_deref(), Some("off" | "0"));
-        let widgets = Self { dir, enabled, allow_remote, write: Mutex::new(()) };
+    /// The store in `dir`, verified against `keys`. `USER_WIDGETS=off` (or `0`) is the rollback switch; `USER_CODE_WIDGETS=off`
+    /// turns off the code widgets only.
+    pub fn new(dir: PathBuf, keys: KeyStore, allow_remote: bool) -> Self {
+        let off = |name: &str| matches!(std::env::var(name).ok().as_deref(), Some("off" | "0"));
+        let widgets = Self { dir, enabled: !off("USER_WIDGETS"), code_enabled: !off("USER_CODE_WIDGETS"), keys, allow_remote, write: Mutex::new(()) };
         widgets.sweep();
         widgets
     }
 
     #[cfg(test)]
     fn with(dir: PathBuf, enabled: bool) -> Self {
-        Self { dir, enabled, allow_remote: false, write: Mutex::new(()) }
+        let keys = KeyStore::with(&dir, None, "{}");
+        Self { dir, enabled, code_enabled: true, keys, allow_remote: false, write: Mutex::new(()) }
+    }
+
+    /// Whether `key` names a code widget while code widgets are off: such a package is not read at all.
+    fn hidden(&self, key: &str) -> bool {
+        !self.code_enabled && key.starts_with(EXT_NS)
     }
 
     /// Whether the store is read at all.
@@ -316,7 +381,7 @@ impl Widgets {
     /// The file `file` of package `key`, or `None` for anything not a package file inside its folder: the names are matched first,
     /// then the path is canonicalised and must stay under the canonical `widgets/<key>/`; a link is refused whatever it points at.
     pub fn path_of(&self, key: &str, file: &str) -> Option<PathBuf> {
-        if !self.enabled || !is_widget_key(key) || !is_widget_file(file) {
+        if !self.enabled || !is_widget_key(key) || !is_widget_file(file) || self.hidden(key) {
             return None;
         }
         let root = self.package_dir(key)?;
@@ -404,10 +469,12 @@ fn read_files(root: &Path) -> Option<Files> {
     Some(files)
 }
 
-/// What a folder holds when it is a package that may be served: its manifest's word, checked against the files as they are now.
-fn measured(root: &Path, key: &str) -> Option<(Listed, u64)> {
+/// What a folder holds when it is a package: its manifest's word, checked against the files as they are now, and its trust state
+/// against `ring` now (`refused:<reason>` when the signature does not verify any more: listed, never served).
+fn measured(root: &Path, key: &str, ring: &Keyring) -> Option<(Listed, u64)> {
     let files = read_files(root)?;
-    let listed = checked_files(&files, Some(key)).ok()?;
+    let (mut listed, manifest) = checked_files(&files, Some(key)).ok()?;
+    listed.trust = trust_of(&listed.kind, &manifest, ring).unwrap_or_else(|reason| format!("refused:{reason}"));
     Some((listed, files.iter().map(|(_, b)| b.len() as u64).sum()))
 }
 
@@ -426,9 +493,13 @@ fn listed(widgets: &Widgets) -> Vec<(String, (Listed, u64))> {
     let Ok(entries) = std::fs::read_dir(&widgets.dir) else {
         return found;
     };
+    let ring = widgets.keys.keyring();
     for entry in entries.filter_map(Result::ok) {
         let key = entry.file_name().to_string_lossy().into_owned();
-        if let Some(done) = is_widget_key(&key).then(|| widgets.package_dir(&key)).flatten().and_then(|root| measured(&root, &key)) {
+        if widgets.hidden(&key) {
+            continue;
+        }
+        if let Some(done) = is_widget_key(&key).then(|| widgets.package_dir(&key)).flatten().and_then(|root| measured(&root, &key, &ring)) {
             found.push((key, done));
         }
     }
@@ -448,10 +519,13 @@ fn handle_list(app: &App) -> Response<Body> {
         .into_iter()
         .map(|(key, (l, size))| {
             let origin = widgets.package_dir(&key).map_or("import", |root| origin_of(&root));
-            json!({ "id": l.id, "kind": l.kind, "name": l.name, "version": l.version, "size": size, "origin": origin })
+            json!({ "id": l.id, "kind": l.kind, "name": l.name, "version": l.version, "size": size, "origin": origin, "trust": l.trust })
         })
         .collect();
-    let reply = http::json(200, &Value::Array(items));
+    let mut reply = http::json(200, &Value::Array(items));
+    if !widgets.code_enabled {
+        reply.headers_mut().insert("X-User-Code-Widgets", HeaderValue::from_static("off"));
+    }
     if widgets.enabled { reply } else { off(reply) }
 }
 
@@ -497,16 +571,23 @@ async fn handle_import(app: &App, mut req: Req) -> std::io::Result<Response<Body
         },
     };
     let checked = decoded(&body).and_then(|files| checked_files(&files, None).map(|l| (files, l)));
-    let (files, listed) = match checked {
+    let (files, (mut listed, manifest)) = match checked {
         Ok(done) => done,
         Err(Refused(status, message)) => return Ok(http::text(status, message)),
+    };
+    if listed.kind == "code" && !widgets.code_enabled {
+        return Ok(http::text(403, "code widgets are off (USER_CODE_WIDGETS=off)"));
+    }
+    listed.trust = match trust_of(&listed.kind, &manifest, &widgets.keys.keyring()) {
+        Ok(trust) => trust,
+        Err(reason) => return Ok(http::text(400, format!("refused: {reason}"))),
     };
     let key = key_of(&listed.id).unwrap_or_default();
     if let Err(Refused(status, message)) = widgets.store(&key, &files, origin)? {
         return Ok(http::text(status, message));
     }
     let size: u64 = files.iter().map(|(_, b)| b.len() as u64).sum();
-    Ok(http::json(200, &json!({ "id": listed.id, "kind": listed.kind, "name": listed.name, "version": listed.version, "size": size, "origin": origin })))
+    Ok(http::json(200, &json!({ "id": listed.id, "kind": listed.kind, "name": listed.name, "version": listed.version, "size": size, "origin": origin, "trust": listed.trust })))
 }
 
 fn handle_delete(app: &App, req: &Req, key: &str) -> std::io::Result<Response<Body>> {
@@ -518,7 +599,8 @@ fn handle_delete(app: &App, req: &Req, key: &str) -> std::io::Result<Response<Bo
     Ok(http::empty(if widgets.remove(key)? { 204 } else { 404 }))
 }
 
-/// One file of a package: refused whole (413) when the folder is not a package within the caps and its manifest, typed by its extension.
+/// One file of a package: refused whole when the folder is not a package within the caps and its manifest (413) or its signature
+/// does not verify now (403), typed by its extension.
 fn serve_file(app: &App, req: &Req, key: &str, file: &str) -> Response<Body> {
     let widgets = &app.widgets;
     if !widgets.enabled {
@@ -527,8 +609,10 @@ fn serve_file(app: &App, req: &Req, key: &str, file: &str) -> Response<Body> {
     let Some(path) = widgets.path_of(key, file) else {
         return http::empty(404);
     };
-    if widgets.package_dir(key).and_then(|root| measured(&root, key)).is_none() {
-        return http::empty(413);
+    match widgets.package_dir(key).and_then(|root| measured(&root, key, &widgets.keys.keyring())) {
+        None => return http::empty(413),
+        Some((listed, _)) if listed.trust.starts_with("refused:") => return http::text(403, listed.trust),
+        Some(_) => {}
     }
     let (Some(mime), Ok(bytes)) = (mime_of(file), std::fs::read(&path)) else {
         return http::empty(404);
@@ -543,6 +627,15 @@ fn serve_file(app: &App, req: &Req, key: &str, file: &str) -> Response<Body> {
         .header("Content-Security-Policy", "default-src 'none'; sandbox")
         .body(if req.method == Method::HEAD { Body::empty() } else { Body::from(bytes) })
         .unwrap_or_default()
+}
+
+/// /api/widget-keys: the publisher keys, read only. Adding or removing one is the Settings window's alone (the app's commands).
+pub fn handle_keys(app: &App, req: &Req) -> Response<Body> {
+    match req.method {
+        Method::GET => http::json(200, &json!({ "keys": app.widgets.keys.list() })),
+        Method::POST | Method::PUT | Method::PATCH | Method::DELETE => http::text(403, "publisher keys are added and removed in the app's Settings window only"),
+        _ => http::empty(405),
+    }
 }
 
 /// /api/widgets and /api/widgets/<key>/<file>.
@@ -569,27 +662,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn keys_are_recipe_names_of_at_most_48() {
-        for ok in ["recipe.a", "recipe.cpu-card", "recipe.0x", &format!("recipe.{}", "a".repeat(48))] {
+    fn keys_are_recipe_names_of_at_most_48_or_publisher_and_name() {
+        for ok in ["recipe.a", "recipe.cpu-card", "recipe.0x", &format!("recipe.{}", "a".repeat(48)), "ext.me.a", "ext.acme-co.cpu-card", &format!("ext.{}.{}", "p".repeat(32), "a".repeat(48))] {
             assert!(is_widget_key(ok), "{ok}");
         }
-        for bad in ["recipe.", "recipe.nul", "recipe.com1", "recipe.-a", "recipe.A", "recipe.a_b", "recipe.a.b", "recipe.a/b", "recipe:a", "Recipe.a", "ext.me.a", "a", "..", "", "recipe.é", &format!("recipe.{}", "a".repeat(49))] {
+        for bad in ["recipe.", "recipe.nul", "recipe.com1", "recipe.-a", "recipe.A", "recipe.a_b", "recipe.a.b", "recipe.a/b", "recipe:a", "Recipe.a", "a", "..", "", "recipe.é", &format!("recipe.{}", "a".repeat(49))] {
+            assert!(!is_widget_key(bad), "{bad:?}");
+        }
+        for bad in ["ext.", "ext.me", "ext.me.", "ext..a", "ext.me.a.b", "ext.me.nul", "ext.Me.a", "ext.me/a", "ext:me.a", "ext.-me.a", &format!("ext.{}.a", "p".repeat(33)), &format!("ext.p.{}", "a".repeat(49))] {
             assert!(!is_widget_key(bad), "{bad:?}");
         }
         assert_eq!(key_of("recipe:cpu-card").as_deref(), Some("recipe.cpu-card"));
-        assert_eq!(key_of("ext:me.card"), None);
+        assert_eq!(key_of("ext:me.card").as_deref(), Some("ext.me.card"));
+        assert_eq!(key_of("ext:me"), None);
         assert_eq!(key_of("recipe:../x"), None);
+        assert_eq!(key_of("ext:me.../x"), None);
     }
 
     #[test]
     fn files_are_the_two_json_files_or_an_image_of_a_known_type() {
-        for ok in ["manifest.json", "recipe.json", "images/logo.png", "images/a.jpg", "images/a-b.webp"] {
+        for ok in ["manifest.json", "recipe.json", "widget.js", "images/logo.png", "images/a.jpg", "images/a-b.webp"] {
             assert!(is_widget_file(ok), "{ok}");
         }
         for bad in [
             "", "pack.json", "Manifest.json", "../recipe.json", "images/../recipe.json", "images/", "images/a", "images/a.svg", "images/a.gif", "images/a.PNG", "images/a/b.png",
             "images\\a.png", "images/a%2epng", "images/a.png ", "images/a.png\0", "images/é.png", "C:/x.png", "//x/y.png", "images/con.png", "images/-a.png", "recipe.json/", "./recipe.json",
-            "bundle.js", "images/a.png:stream",
+            "bundle.js", "images/a.png:stream", "widget.mjs", "images/widget.js", "./widget.js",
         ] {
             assert!(!is_widget_file(bad), "{bad:?}");
         }
@@ -604,7 +702,7 @@ mod tests {
     #[test]
     fn a_package_is_its_manifest_byte_for_byte() {
         let ok = package("recipe:mine");
-        assert_eq!(checked_files(&ok, Some("recipe.mine")).map(|l| l.id).ok().as_deref(), Some("recipe:mine"));
+        assert_eq!(checked_files(&ok, Some("recipe.mine")).map(|(l, _)| l.id).ok().as_deref(), Some("recipe:mine"));
         let refused = |files: &Files| checked_files(files, None).err().map(|Refused(s, _)| s);
         let mut edited = ok.clone();
         edited[1].1.push(b' ');
@@ -614,6 +712,120 @@ mod tests {
         assert_eq!(refused(&extra), Some(400), "a file not listed");
         assert_eq!(refused(&vec![ok[0].clone()]), Some(400), "a listed file missing");
         assert_eq!(checked_files(&ok, Some("recipe.other")).err().map(|Refused(s, _)| s), Some(400), "another folder's");
+    }
+
+    fn fixture(name: &str) -> Files {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets").join(name);
+        read_files(&root).unwrap()
+    }
+
+    fn manifest_of(files: &Files) -> Value {
+        serde_json::from_slice(&files.iter().find(|(p, _)| p == MANIFEST).unwrap().1).unwrap()
+    }
+
+    fn with_manifest(files: &Files, manifest: &Value) -> Files {
+        files.iter().map(|(p, b)| (p.clone(), if p == MANIFEST { serde_json::to_vec_pretty(manifest).unwrap() } else { b.clone() })).collect()
+    }
+
+    /// A keyring that trusts the TEST-ONLY publisher key as a user key named Test, and revokes it when `revoked`.
+    fn ring(trusted: bool, revoked: bool) -> Keyring {
+        let pub_key = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets/TEST-ONLY-publisher.pub")).unwrap();
+        let key = widget_sign::Key::parse(&pub_key).unwrap();
+        Keyring {
+            trusted: if trusted { vec![(widget_sign::Signer::User("Test".into()), key.clone())] } else { vec![] },
+            revoked: if revoked { vec![key] } else { vec![] },
+        }
+    }
+
+    /// The trust state of `files` (`Err` names a refusal: the structure's or the signature's).
+    fn trust(files: &Files, ring: &Keyring) -> Result<String, String> {
+        let (listed, manifest) = checked_files(files, None).map_err(|Refused(_, m)| m)?;
+        trust_of(&listed.kind, &manifest, ring)
+    }
+
+    #[test]
+    fn a_signed_code_widget_verifies_with_a_trusted_key_only() {
+        let good = fixture("ext.test.clock");
+        assert_eq!(trust(&good, &ring(true, false)).as_deref(), Ok("user:Test"));
+        let (listed, _) = checked_files(&good, Some("ext.test.clock")).ok().unwrap();
+        assert_eq!((listed.id.as_str(), listed.kind.as_str(), listed.name.as_str()), ("ext:test.clock", "code", "Test clock"));
+
+        let mut tampered = good.clone();
+        tampered.iter_mut().find(|(p, _)| p == BUNDLE).unwrap().1.extend_from_slice(b"alert(1)");
+        assert!(trust(&tampered, &ring(true, false)).unwrap_err().contains("widget.js is not the file the manifest lists"), "a tampered file");
+
+        let mut renamed = manifest_of(&good);
+        renamed["name"] = json!("Another clock");
+        assert_eq!(trust(&with_manifest(&good, &renamed), &ring(true, false)).unwrap_err(), "the signature does not match the package", "a changed manifest field");
+        let mut moved = manifest_of(&good);
+        moved["files"][0]["sha256"] = json!(sha256_hex(b"other"));
+        assert!(trust(&with_manifest(&good, &moved), &ring(true, false)).is_err(), "a changed hash");
+
+        assert!(trust(&good, &ring(false, false)).unwrap_err().starts_with("signed with a key this app does not trust ("), "an unknown key");
+        assert!(trust(&good, &ring(true, true)).unwrap_err().starts_with("signed with a revoked key ("), "a revoked key");
+
+        let mut unsigned = manifest_of(&good);
+        unsigned.as_object_mut().unwrap().remove("signature");
+        assert_eq!(trust(&with_manifest(&good, &unsigned), &ring(true, false)).unwrap_err(), "a code widget must be signed, and this one is not", "a missing signature");
+
+        let mut forged = manifest_of(&good);
+        let text = forged["signature"]["minisign"].as_str().unwrap().to_string();
+        let mut lines: Vec<String> = text.lines().map(str::to_string).collect();
+        let mut sig = STANDARD.decode(&lines[1]).unwrap();
+        sig[20] ^= 1;
+        lines[1] = STANDARD.encode(sig);
+        forged["signature"]["minisign"] = json!(lines.join("\n"));
+        assert_eq!(trust(&with_manifest(&good, &forged), &ring(true, false)).unwrap_err(), "the signature does not match the package", "a bad signature");
+        for junk in [json!("text"), json!({ "minisign": "not one" }), json!({ "minisign": text, "extra": 1 })] {
+            let mut bad = manifest_of(&good);
+            bad["signature"] = junk;
+            assert_eq!(trust(&with_manifest(&good, &bad), &ring(true, false)).unwrap_err(), "the signature is not a minisign signature");
+        }
+    }
+
+    #[test]
+    fn a_code_package_names_its_publisher_and_bundle_and_nothing_of_a_recipe() {
+        let good = fixture("ext.test.clock");
+        let refused = |edit: &dyn Fn(&mut Value)| {
+            let mut m = manifest_of(&good);
+            edit(&mut m);
+            checked_files(&with_manifest(&good, &m), None).err().map(|Refused(s, _)| s)
+        };
+        assert_eq!(refused(&|m| m["publisher"] = json!("other")), Some(400));
+        assert_eq!(refused(&|m| m["entry"] = json!("main.js")), Some(400));
+        assert_eq!(refused(&|m| m["id"] = json!("recipe:test")), Some(400));
+        assert_eq!(refused(&|m| m["kind"] = json!("recipe")), Some(400));
+        assert_eq!(checked_files(&good, Some("ext.test.other")).err().map(|Refused(s, _)| s), Some(400), "another folder's");
+        let mut recipe = package("recipe:mine");
+        recipe.push((BUNDLE.into(), b"x".to_vec()));
+        assert!(checked_files(&recipe, None).is_err(), "a recipe with a bundle");
+    }
+
+    #[test]
+    fn a_recipe_may_be_signed_and_is_refused_when_its_signature_does_not_verify() {
+        assert_eq!(trust(&package("recipe:mine"), &ring(true, false)).as_deref(), Ok("unsigned"));
+        let signed = fixture("recipe.signed");
+        assert_eq!(trust(&signed, &ring(true, false)).as_deref(), Ok("user:Test"));
+        assert!(trust(&signed, &ring(false, false)).is_err(), "an unknown key");
+        let mut edited = manifest_of(&signed);
+        edited["author"] = json!("someone else");
+        assert!(trust(&with_manifest(&signed, &edited), &ring(true, false)).is_err(), "a changed field");
+    }
+
+    #[test]
+    fn a_stored_package_is_listed_with_its_trust_now_and_hidden_when_code_widgets_are_off() {
+        let dir = tempfile::tempdir().unwrap();
+        write(dir.path(), "ext.test.clock", &fixture("ext.test.clock"));
+        write(dir.path(), "recipe.mine", &package("recipe:mine"));
+        let mut widgets = Widgets::with(dir.path().to_path_buf(), true);
+        let trusts = |w: &Widgets| listed(w).into_iter().map(|(k, (l, _))| format!("{k} {}", l.trust)).collect::<Vec<_>>();
+        assert_eq!(trusts(&widgets), ["ext.test.clock refused:signed with a key this app does not trust (FD89B8C08B250DF6)", "recipe.mine unsigned"]);
+        widgets.keys.add_user("Test", &std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../tests/fixtures/widgets/TEST-ONLY-publisher.pub")).unwrap()).unwrap();
+        assert_eq!(trusts(&widgets), ["ext.test.clock user:Test", "recipe.mine unsigned"]);
+        assert!(widgets.path_of("ext.test.clock", BUNDLE).is_some());
+        widgets.code_enabled = false;
+        assert_eq!(trusts(&widgets), ["recipe.mine unsigned"], "off: a code widget is not listed");
+        assert!(widgets.path_of("ext.test.clock", BUNDLE).is_none(), "off: nor served");
     }
 
     fn write(dir: &Path, key: &str, files: &Files) -> PathBuf {

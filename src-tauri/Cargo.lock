@@ -2111,6 +2111,7 @@ dependencies = [
  "libc",
  "log",
  "lz4_flex",
+ "minisign-verify",
  "png 0.18.1",
  "prost",
  "reqwest",

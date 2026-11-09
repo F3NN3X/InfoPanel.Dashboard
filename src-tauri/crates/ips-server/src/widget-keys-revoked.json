@@ -1,0 +1,5 @@
+{
+  "format": 1,
+  "about": "Revoked widget publisher keys (the owner's and Themely's). Ships with app updates only; never fetched. A key here refuses every package it signed. Entry: { \"key\": \"<minisign public key line>\", \"reason\": \"...\", \"date\": \"YYYY-MM-DD\" }.",
+  "revoked": []
+}
