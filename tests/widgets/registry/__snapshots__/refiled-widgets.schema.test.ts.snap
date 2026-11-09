@@ -1135,6 +1135,11 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
 {
   "Behaviour": [
     {
+      "History": [
+        "window",
+      ],
+    },
+    {
       "Motion": [
         "smoothing",
       ],
@@ -1160,6 +1165,11 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
         "view · preset",
         "showMetrics",
         "sparkline",
+      ],
+    },
+    {
+      "Budget lines": [
+        "budgets",
       ],
     },
     {
@@ -1242,7 +1252,7 @@ exports[`FpsMonitor > files its rows by the rules 1`] = `
 }
 `;
 
-exports[`FramePacing > files its rows by the rules 1`] = `
+exports[`FpsMonitor in the { view: 'pacing' } view > files its rows by the rules 1`] = `
 {
   "Behaviour": [
     {
@@ -1255,6 +1265,11 @@ exports[`FramePacing > files its rows by the rules 1`] = `
         "smoothing",
       ],
     },
+    {
+      "Send to island": [
+        "island",
+      ],
+    },
   ],
   "Content": [
     {
@@ -1262,6 +1277,11 @@ exports[`FramePacing > files its rows by the rules 1`] = `
         "showTitle",
         "label",
         "icon · more",
+      ],
+    },
+    {
+      "Display": [
+        "view · preset",
       ],
     },
     {
@@ -1330,7 +1350,6 @@ exports[`FramePacing > files its rows by the rules 1`] = `
         "borderWidth",
         "borderColor",
         "glow",
-        "glowColor",
       ],
     },
     {
@@ -1474,98 +1493,8 @@ exports[`GpuMonitor > files its rows by the rules 1`] = `
       ],
     },
     {
-      "Fit": [
-        "compact",
-        "sizeTier · more",
-      ],
-    },
-  ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-    {
-      "Graphics card": [
-        "device",
-      ],
-    },
-  ],
-  "Style": [
-    {
-      "Theme": [
-        "lookId",
-        "graph · more",
-        "meter · more",
-        "stroke",
-      ],
-    },
-    {
-      "Colors": [
-        "accent",
-        "textColor",
-        "mutedColor",
-      ],
-    },
-    {
-      "Typography": [
-        "font",
-        "fontWeight",
-        "labelCase",
-        "numGlow",
-        "numGlowColor · more",
-      ],
-    },
-    {
-      "Shape & spacing": [
-        "scale",
-        "align",
-        "padding",
-        "gap",
-        "radius",
-      ],
-    },
-    {
-      "Surface & effects": [
-        "surface",
-        "decoration · more",
-        "background · more",
-        "backgroundOn · more",
-        "surfaceOpacity",
-        "blur",
-      ],
-    },
-    {
-      "Border & glow": [
-        "borderWidth",
-        "borderColor",
-        "glow",
-        "glowColor",
-      ],
-    },
-    {
-      "Advanced · CSS & locks": [
-        "customCss · more",
-      ],
-    },
-  ],
-}
-`;
-
-exports[`GpuRings > files its rows by the rules 1`] = `
-{
-  "Behaviour": [
-    {
-      "Motion": [
-        "smoothing",
-      ],
-    },
-  ],
-  "Content": [
-    {
-      "Header": [
-        "showTitle",
-        "label",
-        "icon · more",
+      "Display": [
+        "view",
       ],
     },
     {
@@ -1643,6 +1572,113 @@ exports[`GpuRings > files its rows by the rules 1`] = `
         "borderColor",
         "glow",
         "glowColor",
+      ],
+    },
+    {
+      "Advanced · CSS & locks": [
+        "customCss · more",
+      ],
+    },
+  ],
+}
+`;
+
+exports[`GpuMonitor in the { view: 'rings' } view > files its rows by the rules 1`] = `
+{
+  "Behaviour": [
+    {
+      "Motion": [
+        "smoothing",
+      ],
+    },
+  ],
+  "Content": [
+    {
+      "Header": [
+        "showTitle",
+        "label",
+        "icon · more",
+      ],
+    },
+    {
+      "Display": [
+        "view",
+      ],
+    },
+    {
+      "Rings": [
+        "outer",
+        "inner",
+      ],
+    },
+    {
+      "Fit": [
+        "compact",
+        "sizeTier · more",
+      ],
+    },
+  ],
+  "Data": [
+    {
+      "Bound data [boundData]": [],
+    },
+    {
+      "Graphics card": [
+        "device",
+      ],
+    },
+  ],
+  "Style": [
+    {
+      "Theme": [
+        "lookId",
+        "graph · more",
+        "meter · more",
+        "stroke",
+      ],
+    },
+    {
+      "Colors": [
+        "accent",
+        "textColor",
+        "mutedColor",
+        "outerColor · role s1",
+        "innerColor · role s2",
+      ],
+    },
+    {
+      "Typography": [
+        "font",
+        "fontWeight",
+        "labelCase",
+        "numGlow",
+        "numGlowColor · more",
+      ],
+    },
+    {
+      "Shape & spacing": [
+        "scale",
+        "align",
+        "padding",
+        "gap",
+        "radius",
+      ],
+    },
+    {
+      "Surface & effects": [
+        "surface",
+        "decoration · more",
+        "background · more",
+        "backgroundOn · more",
+        "surfaceOpacity",
+        "blur",
+      ],
+    },
+    {
+      "Border & glow": [
+        "borderWidth",
+        "borderColor",
+        "glow",
       ],
     },
     {

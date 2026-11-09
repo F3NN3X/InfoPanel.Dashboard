@@ -16,7 +16,7 @@ import { CARD_SETTINGS, PANEL_SETTINGS, replaceStyle, styleOf } from "@/modules/
 import { settingKeys } from "@/modules/types";
 import { makePreset, type PanelPreset } from "@/lib/panelPresets";
 import type { ModuleSettings } from "@/modules/types";
-import { ALL_MODULES } from "./studio-modules";
+import { ALL_MODULES, moduleMinSize } from "./studio-modules";
 import { dropKeys } from "./settings-model";
 import { firstFreeRect, zoneFits, type ZoneRect } from "./zone-geometry";
 
@@ -333,10 +333,9 @@ export function moveZonesToPage(
   };
 }
 
-/** A zone's minimum size: its widget's; blank zones and panels 1×1. */
+/** A zone's minimum size: its widget's, or its stored view's own (`moduleMinSize`); blank zones and panels 1×1. */
 export function zoneMinSize(p: Placement): Size {
-  const meta = ALL_MODULES.find((m) => m.id === p.module);
-  return meta ? { cols: meta.minCols, rows: meta.minRows } : { cols: 1, rows: 1 };
+  return ALL_MODULES.some((m) => m.id === p.module) ? moduleMinSize(p.module, p.settings) : { cols: 1, rows: 1 };
 }
 
 /** Make a zone blank: drop its widget, panel and settings. */

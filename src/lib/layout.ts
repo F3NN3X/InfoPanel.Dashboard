@@ -15,6 +15,7 @@ import { normalizeIsland, type IslandConfig } from "./island/config";
 import { usesSampleCards, userLookIds } from "@/looks/sample-cards";
 import { normalizePerformance, type ScreenPerformance } from "./performance";
 import type { LegacyDashboardFields } from "./screen-look-migrate";
+import { namesMergedWidget } from "./merged-widget-ids";
 import {
   normalizePanelPlacement,
   normalizePanelPresets,
@@ -328,7 +329,8 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
  * v19: the widget merges (`settings-migrate.v19.ts` `migrateMergedWidgetsV19`, _docs/widgets/MERGES.md): a placement of a
  *     merged-away widget, and one an inline canvas holds, becomes the survivor in the matching view with its settings
  *     mapped (Forecast: Weather's `forecast` view, its `days` as `forecastDays`, 0 = as many as fit when it stored none).
- *     Keyed on the id, so an imported file with an old id maps too. Nothing draws differently. A v18 build would not know
+ *     Keyed on the id, so an imported file with an old id maps too, and so does a config already at v19 whose read
+ *     (`readConfig`) finds one (a dev build's, saved before that merge landed). Nothing draws differently. A v18 build would not know
  *     the survivor's new values (Weather's `forecastDays: 0`) and its save is refused as any older one's is
  *     (`config_guard.rs`); before the first v19 save the server keeps the v18 file as `config.backup-before-v19.json`
  *     (once: an existing backup is never overwritten).
@@ -644,13 +646,26 @@ export function mergeConfig(input: StoredConfig): DashboardConfig {
 export const isCurrentConfig = (c: Pick<StoredConfig, "version">): boolean => typeof c.version === "number" && c.version >= CONFIG_VERSION;
 
 /**
+ * A current config with each zone of a merged-away widget as its survivor (config v19, the table is a chunk of its own, shared
+ * with the upgrade). The upgrade does it for an older config; a config saved at v19 by a dev build before a merge landed can
+ * still hold the merged id, and this build no longer registers it.
+ */
+async function withMergedWidgets(config: DashboardConfig): Promise<DashboardConfig> {
+  // Nothing to map (almost always): no request for the table's chunk.
+  if (!namesMergedWidget(config.profiles)) return config;
+  const { migrateMergedWidgetsV19 } = await import("./settings-migrate.v19");
+  const profiles = config.profiles.map(migrateMergedWidgetsV19);
+  return profiles.every((p, i) => p === config.profiles[i]) ? config : { ...config, profiles };
+}
+
+/**
  * A stored config of any version as this build's: a current one merged (`mergeConfig`), an older one upgraded first
  * (`upgradeConfig`, in a chunk of its own: only an older config loads it). `log` takes a line per change the v15 step
  * makes.
  */
 export async function readConfig(input: StoredConfig, log?: string[]): Promise<DashboardConfig> {
   await withSampleCards(input);
-  if (isCurrentConfig(input)) return mergeConfig(input);
+  if (isCurrentConfig(input)) return withMergedWidgets(mergeConfig(input));
   const { upgradeConfig } = await import("./config-upgrade");
   return upgradeConfig(input, log);
 }

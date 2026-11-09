@@ -23,7 +23,7 @@ const defsOf = (id: string) => mod(id).settings ?? [];
 const view = (id: string, s: ModuleSettings) =>
   /data-wp-view="(\w+)"/.exec(renderToStaticMarkup(mod(id).render(fixtureSensors(), s) as never))?.[1];
 const celsius = Object.entries(fixtureSensors()).find(([, v]) => v.unit === "°C")![0];
-const NO_CARD = ["Clock", "CoreHeatmap", "CustomGauge", "GpuRings", "MeterBridge", "SystemOverview", "Timer", "Visualizer"];
+const NO_CARD = ["Clock", "CoreHeatmap", "CustomGauge", "MeterBridge", "SystemOverview", "Timer", "Visualizer"];
 
 describe("Small zones (SPEC §4.6): every widget × auto / full / card / dense", () => {
   const withRow = modules.filter((m) => (m.settings ?? []).some((d) => d.key === "compact"));
@@ -47,6 +47,16 @@ describe("Small zones (SPEC §4.6): every widget × auto / full / card / dense",
       const row = defsOf(id).find((d) => d.key === "compact");
       expect(row?.options?.map((o) => o.value) ?? [], id).not.toContain("card");
     }
+  });
+
+  it("omits Card in GpuMonitor's rings view (the GPU Rings widget has no summary card), and keeps it in the monitor view", () => {
+    const options = (saved: ModuleSettings) => {
+      const context = widgetContext(mod("GpuMonitor"), saved);
+      return (context.kind === "widget" ? context.defs : []).find((d) => d.key === "compact")?.options?.map((o) => o.value) ?? [];
+    };
+    expect(options({ view: "rings" })).not.toContain("card");
+    expect(options({ view: "rings" })).toContain("dense");
+    expect(options({})).toContain("card");
   });
 
   it("hides the row where only Auto / Full remain; Density then shows without More", () => {

@@ -3,6 +3,7 @@ import { zone, type ScreenTemplate } from "../kit";
 
 const heat = { shape: "grid", ramp: "thermal" };
 const thermals = { view: "gauges", showFans: false };
+const rings = { view: "rings" };
 
 export const HARDWARE: ScreenTemplate = {
   id: "hardware",
@@ -25,7 +26,7 @@ export const HARDWARE: ScreenTemplate = {
       pages: [
         [
           zone("CoreHeatmap", [1, 1, 3, 2], heat),
-          zone("GpuRings", [4, 1, 3, 2]),
+          zone("GpuMonitor", [4, 1, 3, 2], rings),
           zone("Thermals", [7, 1, 2, 2]),
           zone("Fans", [9, 1, 2, 2]),
           zone("PowerDraw", [11, 1, 2, 2]),
@@ -39,7 +40,7 @@ export const HARDWARE: ScreenTemplate = {
         [
           zone("CoreHeatmap", [1, 1, 4, 2], heat),
           zone("Thermals", [1, 3, 4, 2], thermals),
-          zone("GpuRings", [5, 1, 4, 2]),
+          zone("GpuMonitor", [5, 1, 4, 2], rings),
           zone("Fans", [5, 3, 4, 2]),
           zone("PowerDraw", [9, 1, 4, 2]),
           zone("DriveSpace", [9, 3, 4, 2], { view: "bars" }),
@@ -52,7 +53,7 @@ export const HARDWARE: ScreenTemplate = {
       pages: [
         [
           zone("CoreHeatmap", [1, 1, 5, 3], heat),
-          zone("GpuRings", [6, 1, 4, 3]),
+          zone("GpuMonitor", [6, 1, 4, 3], rings),
           zone("PowerDraw", [10, 1, 3, 3]),
           zone("Thermals", [1, 4, 5, 3], thermals),
           zone("Fans", [6, 4, 4, 3]),
@@ -66,7 +67,7 @@ export const HARDWARE: ScreenTemplate = {
       pages: [
         [
           zone("CoreHeatmap", [1, 1, 6, 3], heat),
-          zone("GpuRings", [1, 4, 6, 3]),
+          zone("GpuMonitor", [1, 4, 6, 3], rings),
           zone("Thermals", [1, 7, 3, 3], thermals),
           zone("Fans", [4, 7, 3, 3]),
           zone("PowerDraw", [1, 10, 3, 3]),

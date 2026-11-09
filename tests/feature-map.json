@@ -102,6 +102,7 @@
       "summary": "Config load, save, migrations (every version), settings patches, undo history.",
       "paths": [
         "src/lib/settings-migrate*.ts",
+        "src/lib/merged-widget-ids.ts",
         "src/lib/screen-look-migrate.ts","src/lib/look-migrate.ts","src/lib/config-update*.ts","src/lib/config-upgrade.ts",
         "src/lib/legacy-zones*.ts",
         "src/lib/settings-patch.ts",
@@ -479,6 +480,8 @@
         "tests/widgets/weather/**",
         "tests/widgets/session-stats/**",
         "tests/widgets/kpi-tiles/**",
+        "tests/widgets/gpu-monitor/**",
+        "tests/widgets/fps-monitor/**",
         "tests/widgets/weather-fx/**",
         "tests/e2e/kiosk-renders.spec.ts",
         "tests/e2e/streaming-widgets-fit.spec.ts",

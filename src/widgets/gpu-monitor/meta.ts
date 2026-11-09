@@ -12,4 +12,9 @@ export const meta: WidgetMeta = {
   blurb: "Load, temps, power, VRAM and clocks",
   tags: "graphics nvidia amd vram temp",
   description: "Load, temps, power, VRAM, clocks, fans, PCIe and D3D engines.",
+  views: [
+    { id: "monitor", name: "Monitor" },
+    // The GPU Rings widget until config v19: added at its size and found by its words.
+    { id: "rings", name: "Rings", blurb: "GPU load, VRAM and temperature as rings", tags: "donut radial legend", defaultSize: [3, 2] },
+  ],
 };

@@ -2,10 +2,11 @@
 // survivor in the matching view, its settings mapped. In a module of its own so only an older config's load, and an
 // imported file's, carries it (config-upgrade.ts); the Widget QA page reads the table to draw the merged-away ids.
 import type { ModuleSettings } from "@/modules/types";
+import type { MergedWidgetId } from "./merged-widget-ids";
 
 /** One merge: the merged-away id, the survivor and the view it becomes, and its stored settings as the survivor's. */
 export interface WidgetMerge {
-  from: string;
+  from: MergedWidgetId;
   /** The merged-away widget's name, which the Widget QA page titles its frames with. */
   name: string;
   to: string;
@@ -42,6 +43,12 @@ export const WIDGET_MERGES: readonly WidgetMerge[] = [
     view: "cards",
     settings: ({ metrics, ...s }) => ({ ...s, view: "cards", ...(metrics === undefined ? {} : { cardMetrics: metrics }) }),
   },
+  // M2: GPU Rings is GPU Monitor's rings view. Its `device`, `outer`, `inner` and colours are the view's own keys under the same
+  // names (the card has `device` too); no default differs.
+  { from: "GpuRings", name: "GPU Rings", to: "GpuMonitor", view: "rings", settings: (s) => ({ ...s, view: "rings" }) },
+  // M4: Frame Pacing is FPS Monitor's pacing view. Its `budgets` and `window` are the view's own keys (FPS Monitor has neither);
+  // no default differs.
+  { from: "FramePacing", name: "Frame Pacing", to: "FpsMonitor", view: "pacing", settings: (s) => ({ ...s, view: "pacing" }) },
 ];
 
 const BY_ID: ReadonlyMap<string, WidgetMerge> = new Map(WIDGET_MERGES.map((m) => [m.from, m]));

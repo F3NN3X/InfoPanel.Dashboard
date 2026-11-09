@@ -27,7 +27,8 @@ const text = (v: unknown, fallback: string): string => (typeof v === "string" &&
 export function ringsOf(zone: Placement, on: GaugeOn): RingsEntry | null {
   const s = zone.settings ?? {};
   const base = { key: `rings:${zone.id}`, zoneId: zone.id, on };
-  if (zone.module === "GpuRings") {
+  // GPU Monitor's rings view (config v19), or a GPU Rings zone not yet migrated
+  if (zone.module === "GpuRings" || (zone.module === "GpuMonitor" && s.view === "rings")) {
     const outer = GPU_RINGS.outer[text(s.outer, "vram")] ?? "VRAM";
     const inner = GPU_RINGS.inner[text(s.inner, "load")] ?? "Load";
     return { ...base, name: text(s.title, "GPU Rings"), count: 2, reads: `${outer}, ${inner}` };

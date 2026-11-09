@@ -18,10 +18,9 @@ const specBlock = (id: string): string => {
 
 // Each spec prop and the settings that reach it (a flattened object prop is reached by its entries).
 const MANIFEST: Record<string, Record<string, string[]>> = {
-  FpsMonitor: { target: ["target"] },
+  FpsMonitor: { target: ["target"], budgets: ["budgets"], window: ["window"] },
   GameSpotlight: { layout: ["spotlightLayout"], motion: ["motion"], scrim: ["scrim"], music: ["music"], progress: ["progress"], vizMode: ["vizMode"] },
   OsdStrip: { cells: ["cells"], target: ["target"] },
-  FramePacing: { budgets: ["budgets"], window: ["window"] },
   PlaytimeShare: { colors: ["color1", "color2", "color3", "color4", "color5", "color6"] },
   SteamProfile: {},
   SteamFriends: { view: ["view"], sort: ["sort"], showCounts: ["showCounts"], ingameOnly: ["ingameOnly"], showTime: ["showTime"], colors: ["ingameColor", "onlineColor", "awayColor", "busyColor", "offlineColor"] },
@@ -36,6 +35,9 @@ const BEYOND_SPEC: Record<string, Record<string, string[]>> = {
   GameSpotlight: { showStats: ["showStats"], showNews: ["showNews"] },
   Achievements: { display: ["display"] },
 };
+
+// The Frame Pacing widget's spec still names the pacing view's props (config v19), which FpsMonitor's rows carry.
+const MERGED_SPECS: Record<string, string[]> = { FpsMonitor: ["FramePacing"] };
 
 const SENSORS = (snapshot as unknown as { sensors: SensorMap }).sensors;
 const STANDARD_KEYS = new Set(STANDARD_SETTINGS.map((s) => s.key));
@@ -53,7 +55,7 @@ describe("group D inspector schema", () => {
       it("is registered", () => expect(mod).toBeDefined());
 
       it("keeps the manifest, keys and enum defaults, and renders from its defaults", () => {
-        const block = specBlock(id);
+        const block = [id, ...(MERGED_SPECS[id] ?? [])].map(specBlock).join("\n");
         for (const p of Object.keys(props)) expect(block, p).toMatch(new RegExp(`\\b${p}\\b`));
         { // reaches every prop through exactly one setting each
           const own = OWN_KEYS(id);
@@ -88,6 +90,15 @@ describe("group D dependent settings", () => {
     for (const k of hidden) expect(shown("FpsMonitor", {})).not.toContain(k);
     for (const view of ["gauge", "trend"]) for (const k of hidden) expect(shown("FpsMonitor", { view })).toContain(k);
     expect(shown("FpsMonitor", {})).toContain("target");
+  });
+
+  it("gives the FpsMonitor pacing view its budget lines and samples, and none of the target or the gauge toggles", () => {
+    const pacing = shown("FpsMonitor", { view: "pacing" });
+    for (const k of ["budgets", "window"]) {
+      expect(pacing, k).toContain(k);
+      for (const view of [undefined, "gauge", "trend"]) expect(shown("FpsMonitor", view ? { view } : {}), `${k} in ${view}`).not.toContain(k);
+    }
+    for (const k of ["target", "showMetrics", "sparkline", "ringColor", "sparkColor"]) expect(pacing, k).not.toContain(k);
   });
 
   it("gates the GameSpotlight scrim, motion, music card and composite toggles on the layout", () => {

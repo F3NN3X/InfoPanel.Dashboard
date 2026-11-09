@@ -1,24 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { allSections, inspectorTabs, tabStates, widgetContext } from "@/components/studio/inspector-model";
+import { allSections, inspectorTabs, isVisible, tabStates, widgetContext } from "@/components/studio/inspector-model";
 import { modules } from "@/modules";
-import { isMore, type ModuleSetting } from "@/modules/types";
+import { effectiveSettings, isMore, type ModuleSetting, type ModuleSettings } from "@/modules/types";
 
 // Widget settings v2 (SPEC §6.4): the widgets filed by the rules rather than drawn in the concept, each
 // tab's sections in order with each row's key, More flag, palette role and per-widget flag.
 // Batch A: system and hardware (`a.ts`).
-const BATCH_A = ["MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans"];
+const BATCH_A = ["MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans"];
 
 // Batch B: storage, network, info, generic and audio (`b.ts`, `c.ts`).
 const BATCH_B = ["DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "CodingAgents", "Calendar", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink"];
 
 // Batch C: gaming and the plain plugin cards (`d.ts`, `e.ts`).
-const BATCH_C = ["FpsMonitor", "GameSpotlight", "OsdStrip", "FramePacing", "PlaytimeShare", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews", "TextFile", "Notifications", "Departures", "Bluetooth", "StreamDeck"];
+const BATCH_C = ["FpsMonitor", "GameSpotlight", "OsdStrip", "PlaytimeShare", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews", "TextFile", "Notifications", "Departures", "Bluetooth", "StreamDeck"];
 
 const row = (d: ModuleSetting): string => [d.key, isMore(d) ? "more" : "", d.role ? `role ${d.role}` : "", d.perWidget ? "per widget" : "", d.type === "preset" || d.type === "status" ? d.type : ""].filter(Boolean).join(" · ");
 
-function schemaOf(id: string) {
-  const context = widgetContext(modules.find((m) => m.id === id)!);
-  const sections = allSections(context);
+/** `saved` set: only the rows that show for those settings (a view's own rows), and the sections left with any. */
+function schemaOf(id: string, saved?: ModuleSettings) {
+  const mod = modules.find((m) => m.id === id)!;
+  const context = widgetContext(mod, saved);
+  const values = { ...effectiveSettings(mod, {}), ...saved };
+  const sections = allSections(context)
+    .map((s) => (saved ? { ...s, settings: s.settings.filter((d) => isVisible(d, values)) } : s))
+    .filter((s) => !saved || s.special || s.settings.length > 0);
   return Object.fromEntries(
     tabStates(inspectorTabs(context), sections).map((t) => [
       t.disabled ? `${t.label} (disabled)` : t.label,
@@ -33,10 +38,20 @@ describe.each([...BATCH_A, ...BATCH_B, ...BATCH_C])("%s", (id) => {
   });
 });
 
+// The views that were widgets of their own (config v19) keep their filing: the GPU Rings and Frame Pacing schemas.
+describe.each([
+  ["GpuMonitor", { view: "rings" }],
+  ["FpsMonitor", { view: "pacing" }],
+] as const)("%s in the %o view", (id, saved) => {
+  it("files its rows by the rules", () => {
+    expect(schemaOf(id, saved)).toMatchSnapshot();
+  });
+});
+
 describe("batch A", () => {
   it("files the colour rows that gained a role under Widget colors", () => {
     const roles = (id: string) => modules.find((m) => m.id === id)!.settings!.filter((d) => d.type === "color" && !d.section).map((d) => [d.key, d.role]);
-    expect(roles("GpuRings")).toEqual([["outerColor", "s1"], ["innerColor", "s2"]]);
+    expect(roles("GpuMonitor")).toEqual([["outerColor", "s1"], ["innerColor", "s2"]]);
     expect(roles("Thermals")).toEqual([["fanColor", "s3"]]);
   });
 

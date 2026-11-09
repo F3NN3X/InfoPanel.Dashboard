@@ -9,11 +9,11 @@ import { STANDARD_KEYS } from "@/modules/standard-settings";
 const REFILED = [
   "SystemOverview", "NowPlaying", "SensorGroup", "AudioMeter", "Weather", "CpuMonitor", "Uptime", "SteamProfile", "WebPage",
   // Batch A
-  "MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans",
+  "MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans",
   // Batch B
   "DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "Countdown", "StatusBar", "CodingAgents", "Calendar", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink",
   // Batch C
-  "FpsMonitor", "GameSpotlight", "OsdStrip", "FramePacing", "PlaytimeShare", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews", "TextFile", "Notifications", "Departures", "Bluetooth", "StreamDeck",
+  "FpsMonitor", "GameSpotlight", "OsdStrip", "PlaytimeShare", "SteamFriends", "SteamGame", "Achievements", "SteamLibrary", "SteamNews", "TextFile", "Notifications", "Departures", "Bluetooth", "StreamDeck",
   // Time and status
   "DayPlanner", "RadialClockStack", "OnAirBeacon",
   // Stream audio
@@ -24,9 +24,9 @@ const REFILED = [
   "BottleneckLens", "FrameHistogram", "SessionStats",
 ];
 
-it("covers all 66 widgets", () => {
-  expect(REFILED).toHaveLength(66);
-  expect(new Set(REFILED).size).toBe(66);
+it("covers all 64 widgets", () => {
+  expect(REFILED).toHaveLength(64);
+  expect(new Set(REFILED).size).toBe(64);
   expect([...REFILED].sort()).toEqual(modules.filter((m) => m.header).map((m) => m.id).sort());
 });
 

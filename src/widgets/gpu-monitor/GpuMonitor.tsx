@@ -1,5 +1,6 @@
 import type { ModuleSettings } from "@/modules/types";
 import { roomy, StatGrid, Widget, shell, get, num, fmt, unitStat, pretty, Metric, Ring, Spark, Stat, BarRow, useHistory, tone, Empty, hw, STATE, Num, type ShellProps } from "../kit";
+import GpuRings, { type GpuRingsProps } from "./GpuRings";
 import { meta } from "./meta";
 
 export { meta };
@@ -11,7 +12,17 @@ export interface GpuMonitorProps extends ShellProps {
   critTemp?: number;
 }
 
-export default function GpuMonitor(p: GpuMonitorProps) {
+/** The view: `monitor` the card (the default), `rings` the GPU Rings widget until config v19. */
+export type GpuMonitorView = "monitor" | "rings";
+
+/** Each view's props: the rings view reads the two rings and their colours. */
+export type GpuMonitorWidgetProps = GpuMonitorProps & Pick<GpuRingsProps, "outer" | "inner" | "colors"> & { view?: GpuMonitorView };
+
+export default function GpuMonitor(p: GpuMonitorWidgetProps) {
+  return p.view === "rings" ? <GpuRings {...p} /> : <Monitor {...p} />;
+}
+
+function Monitor(p: GpuMonitorProps) {
   const d = p.data;
   const id = p.gpu ?? hw(d).gpu;
   const k = (s: string) => num(get(d, `libre.${id}_${s}`));

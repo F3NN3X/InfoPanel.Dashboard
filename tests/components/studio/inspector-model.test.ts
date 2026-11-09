@@ -204,7 +204,13 @@ describe("header modes", () => {
     expect(modules.filter((m) => m.header === "none").map((m) => m.id).sort()).toEqual(NO_HEADER);
     expect(modules.filter((m) => m.header === "title-only").map((m) => m.id).sort()).toEqual(TITLE_ONLY);
     const noCard = modules.filter((m) => !m.compact?.card).map((m) => m.id).sort();
-    expect(noCard).toEqual(["AudioButton", "AudioFader", "Clock", "CoreHeatmap", "CustomGauge", "GpuRings", "MeterBridge", "ObsButton", "OnAirBeacon", "StatusBar", "SystemOverview", "Timer", "Visualizer", "WebPage"]);
+    expect(noCard).toEqual(["AudioButton", "AudioFader", "Clock", "CoreHeatmap", "CustomGauge", "MeterBridge", "ObsButton", "OnAirBeacon", "StatusBar", "SystemOverview", "Timer", "Visualizer", "WebPage"]);
+  });
+
+  it("GpuMonitor's rings view (the GPU Rings widget) has a dense view and no summary card, the monitor view a card", () => {
+    const compactOf = (c: InspectorContext) => (c.kind === "widget" ? c.compact : undefined);
+    expect(compactOf(widgetContext(mod("GpuMonitor"), { view: "rings" }))).toEqual({ card: false, dense: true });
+    expect(compactOf(widgetContext(mod("GpuMonitor")))).toEqual({ card: true, dense: "fallback" });
   });
 
   it("shows Show title, Title and Icon (More) on a widget with a header", () => {

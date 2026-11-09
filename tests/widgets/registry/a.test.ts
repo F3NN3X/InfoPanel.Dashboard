@@ -16,7 +16,6 @@ import * as ProcessList from "@/widgets/process-list/ProcessList";
 import * as Uptime from "@/widgets/uptime/Uptime";
 import * as CpuMonitor from "@/widgets/cpu-monitor/CpuMonitor";
 import * as CoreHeatmap from "@/widgets/core-heatmap/CoreHeatmap";
-import * as GpuRings from "@/widgets/gpu-rings/GpuRings";
 import * as GpuMonitor from "@/widgets/gpu-monitor/GpuMonitor";
 import * as MemoryUsage from "@/widgets/memory-usage/MemoryUsage";
 import * as Thermals from "@/widgets/thermals/Thermals";
@@ -30,7 +29,7 @@ interface Entry {
   meta: WidgetMeta;
   default: ComponentType<ShellProps>;
 }
-const WIDGETS = [SystemOverview, MenuBar, KpiTiles, StatusTracker, SystemStatus, ServiceHealth, ProcessList, Uptime, CpuMonitor, CoreHeatmap, GpuRings, GpuMonitor, MemoryUsage, Thermals, PowerDraw, Fans] as unknown as Entry[];
+const WIDGETS = [SystemOverview, MenuBar, KpiTiles, StatusTracker, SystemStatus, ServiceHealth, ProcessList, Uptime, CpuMonitor, CoreHeatmap, GpuMonitor, MemoryUsage, Thermals, PowerDraw, Fans] as unknown as Entry[];
 
 const DATA = toFlat(snapshot.sensors as SensorMap);
 // Widgets whose source keys are absent from the captured snapshot, so no live value shows.
@@ -39,9 +38,9 @@ const NO_LIVE: Record<string, string> = {};
 const render = (C: ComponentType<ShellProps>, data: ShellProps["data"], extra: Partial<ShellProps> = {}) => renderToString(createElement(C, { data, ...extra }));
 
 describe("group A modules", () => {
-  it("covers the 16 widgets in order", () => {
+  it("covers the 15 widgets in order", () => {
     expect(GROUP_A.map((m) => m.id)).toEqual(WIDGETS.map((w) => w.meta.id));
-    expect(GROUP_A).toHaveLength(16);
+    expect(GROUP_A).toHaveLength(15);
   });
 
   // One test per kind: its module mirrors its meta, and it renders (a live value, the extremes, no data) without throwing.
@@ -62,6 +61,14 @@ describe("group A modules", () => {
     expect(render(KpiTiles.default, DATA, { ...cards, size: "md" })).toMatch(/d/);
     expect(render(KpiTiles.default, DATA, { ...cards, size: "xs", variant: "studio", skin: "tui" }).length).toBeGreaterThan(0);
     expect(render(KpiTiles.default, {}, cards).length).toBeGreaterThan(0);
+  });
+
+  // The GPU Rings widget's render check, kept for the view it became (config v19).
+  it("GpuMonitor's rings view (the GPU Rings widget) renders a live value, the extremes and no data", () => {
+    const rings = { view: "rings" } as Partial<ShellProps>;
+    expect(render(GpuMonitor.default, DATA, { ...rings, size: "md" })).toMatch(/\d/);
+    expect(render(GpuMonitor.default, DATA, { ...rings, size: "xs", variant: "studio", skin: "tui" }).length).toBeGreaterThan(0);
+    expect(render(GpuMonitor.default, {}, rings).length).toBeGreaterThan(0);
   });
 
   it("passes stored settings through by prop name", () => {

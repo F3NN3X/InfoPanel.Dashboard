@@ -1,6 +1,7 @@
 import { modules } from "@/modules";
 import { canvasTitle, CARDS_ID, type Placement } from "@/lib/layout";
 import type { WidgetView } from "@/widgets/core/types";
+import type { ModuleSettings } from "@/modules/types";
 
 /** A placeable widget: its minimum zone footprint and the Library fields it declares. */
 export interface ModuleMeta {
@@ -43,10 +44,17 @@ export const DND_MIME_PANEL = "text/infopanel-panel";
 /** The settings a widget's view adds it with (JSON), beside its `DND_MIME` id. */
 export const DND_MIME_SETTINGS = "text/infopanel-module-settings";
 
-/** A module's minimum zone size (grid cells); unknown ids get 2×1. */
-export function moduleMinSize(module: string): { cols: number; rows: number } {
+/** The view a zone's settings name (the first when none is stored), where it has a minimum of its own (FPS Monitor's pacing view). */
+function viewMinSize(meta: ModuleMeta | undefined, settings: ModuleSettings | undefined): [number, number] | undefined {
+  const id = settings?.[meta?.viewKey ?? "view"] ?? meta?.views?.[0]?.id;
+  return meta?.views?.find((v) => v.id === id)?.minSize;
+}
+
+/** A module's minimum zone size (grid cells), its stored view's own when it has one; unknown ids get 2×1. */
+export function moduleMinSize(module: string, settings?: ModuleSettings): { cols: number; rows: number } {
   const meta = ALL_MODULES.find((m) => m.id === module);
-  return { cols: meta?.minCols ?? 2, rows: meta?.minRows ?? 1 };
+  const view = viewMinSize(meta, settings);
+  return { cols: view?.[0] ?? meta?.minCols ?? 2, rows: view?.[1] ?? meta?.minRows ?? 1 };
 }
 
 /** A panel's title: the Widget card's title (`label`) when it is set, else the panel's own. */
