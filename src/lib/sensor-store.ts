@@ -211,9 +211,6 @@ export class SensorStore {
     if (this.allRefs > 0) {
       for (const ns of BASE_NAMESPACES) wanted.add(ns);
       for (const ns of this.discovered) wanted.add(ns);
-      // every sensor is the server's weather too: a recipe placement reads every key until its recipe has loaded, and a weather
-      // recipe with no Data API running would otherwise never see a key to load on
-      wanted.add(SERVER_NS);
     }
     const fast = [...this.fastRefs.keys()];
     // a namespace the fast stream already covers needs no slow stream
