@@ -4,7 +4,7 @@
 // kiosk reaches this only through the recipe chunk; the studio through the Add panel's list and the import. A loaded recipe gives
 // its module what its placements read (`reads.ts`) and its options as Content tab rows (`settings.ts`).
 import { recipeReads } from "./reads";
-import { isRecipeId, learnReads, recipeModule } from "./resolve";
+import { isCodeId, isRecipeId, learnReads, recipeModule } from "./resolve";
 import { learnSettings } from "./settings";
 import type { Manifest, PackageFile, Recipe } from "./types";
 import { checkPackage, jsonOf, type RecipeIssue } from "./validate";
@@ -20,7 +20,8 @@ export const keyOf = (id: string): string => id.replace(":", ".");
 export type WidgetOrigin = "studio" | "import";
 
 /** What `GET /api/widgets` says of a package. `trust` is the server's check of its signature, now: `unsigned` (a recipe without
- * one), `owner`, `themely`, `user:<name>`, or `refused:<reason>` (its files are not served). */
+ * one), `owner`, `themely`, `user:<name>`, or `refused:<reason>` (its files are not served). `off`: a code widget turned off on the
+ * Widgets page (its files are not served either). */
 export interface UserWidgetInfo {
   id: string;
   kind: string;
@@ -29,6 +30,7 @@ export interface UserWidgetInfo {
   size: number;
   origin: WidgetOrigin;
   trust: string;
+  off?: boolean;
 }
 
 /** A loaded recipe: drawn when `recipe` is set; `off` when the server has user widgets switched off. */
@@ -38,14 +40,15 @@ export interface LoadedRecipe {
   off?: boolean;
 }
 
-/** The packages the server lists, and whether it has them switched off (`USER_WIDGETS=off`: the list is empty then). */
+/** The packages the server lists, recipes and code widgets, and whether it has them switched off (`USER_WIDGETS=off`: the list is
+ * empty then). */
 export async function listUserWidgets(): Promise<{ list: UserWidgetInfo[]; off: boolean }> {
   try {
     const res = await fetch(ROUTE, { cache: "no-store" });
     const off = res.headers.get("X-User-Widgets") === "off";
     const raw: unknown = res.ok ? await res.json() : [];
     const list = Array.isArray(raw)
-      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0, origin: w.origin === "studio" ? "studio" : "import", trust: typeof w.trust === "string" ? w.trust : "unsigned" }] : []))
+      ? raw.flatMap((w): UserWidgetInfo[] => (w && (isRecipeId(w.id) || isCodeId(w.id)) ? [{ id: w.id, kind: isCodeId(w.id) ? "code" : "recipe", name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0, origin: w.origin === "studio" ? "studio" : "import", trust: typeof w.trust === "string" ? w.trust : "unsigned", ...(w.off === true ? { off: true } : {}) }] : []))
       : [];
     return { list, off };
   } catch {

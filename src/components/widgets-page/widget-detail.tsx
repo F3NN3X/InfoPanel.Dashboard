@@ -40,20 +40,64 @@ export interface WidgetDetailProps {
   options: [string, string][];
   /** The screens it is on ("Perf heavy, Desk bar", "Not used yet"). */
   screens: string;
-  /** A refused recipe: why. */
+  /** A refused recipe or code widget: why. */
   refused?: string;
+  /** A code widget's trust box actions: Settings › Widget publishers, and turning this one widget off (or on again). */
+  onManageKeys?: () => void;
+  onTurnOff?: DetailAction;
 }
 
-/** Who stands behind a widget (the three states of screenshots 01-03). */
-export function TrustBox({ trust }: { trust: Trust }) {
-  if (trust.kind === "owner")
+/** What a code widget's box says besides who signed it (Phase 6b): it runs on kiosks elsewhere, and whose keys these are. */
+function CodeNotes() {
+  return (
+    <p data-code-notes className="mt-2 text-caption leading-snug text-ui-3">
+      Kiosks on other devices that show it run it too. The keys and widgets here are this server's: a server the app does not run reads its own data folder.
+    </p>
+  );
+}
+
+/** The user-key box's two actions (and the owner's, Themely's: turning the widget off). */
+function TrustActions({ onManageKeys, onTurnOff }: { onManageKeys?: () => void; onTurnOff?: DetailAction }) {
+  if (!onManageKeys && !onTurnOff) return null;
+  return (
+    <div className="mt-2 flex gap-2">
+      {onManageKeys && (
+        <Button small onClick={onManageKeys}>
+          Manage keys
+        </Button>
+      )}
+      {onTurnOff && (
+        <Button small variant="ghost" onClick={onTurnOff.run} disabled={onTurnOff.disabled} title={onTurnOff.title}>
+          {onTurnOff.label}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** Who stands behind a widget (the three states of screenshots 01-03, with Themely's and a refused one). */
+export function TrustBox({ trust, onManageKeys, onTurnOff }: { trust: Trust; onManageKeys?: () => void; onTurnOff?: DetailAction }) {
+  if (trust.kind === "owner" || trust.kind === "themely")
     return (
-      <div data-trust="owner" className="rounded-ui-lg border border-ui-ok/40 bg-ui-ok/8 px-4 py-3">
+      <div data-trust={trust.kind} className="rounded-ui-lg border border-ui-ok/40 bg-ui-ok/8 px-4 py-3">
         <div className="flex items-center gap-2 text-body text-ui-1">
           <CircleCheck className="h-4 w-4 shrink-0 text-ui-ok" strokeWidth={1.75} aria-hidden />
-          Signed by InfoPanel Studio · reviewed
+          Signed by {trust.kind === "owner" ? "InfoPanel Studio" : "Themely"} · reviewed
         </div>
         <p className="mt-1 pl-6 text-caption leading-snug text-ui-2">Code widget with the same access as built-in widgets</p>
+        <CodeNotes />
+        <TrustActions onTurnOff={onTurnOff} />
+      </div>
+    );
+  if (trust.kind === "refused")
+    return (
+      <div data-trust="refused" className="rounded-ui-lg border border-ui-danger/40 bg-ui-danger/10 px-4 py-3">
+        <div className="flex items-center gap-2 text-body text-ui-1">
+          <ShieldAlert className="h-4 w-4 shrink-0 text-ui-danger" strokeWidth={1.75} aria-hidden />
+          Not loaded: the signature does not check out
+        </div>
+        <p className="mt-1 text-caption leading-snug text-ui-2">Refused: {trust.why}. It is not offered in Add and draws "Widget not available" where it is placed.</p>
+        <TrustActions onManageKeys={onManageKeys} />
       </div>
     );
   if (trust.kind === "user-key")
@@ -64,14 +108,10 @@ export function TrustBox({ trust }: { trust: Trust }) {
           Signed by {trust.signer} · not reviewed
         </div>
         <p className="mt-1 text-caption leading-snug text-ui-2">
-          You trusted {trust.signer}'s key in Settings on {trust.trusted}. Code widgets have the same access as built-in widgets: sensors, your screens and settings, and the network.
+          You trusted {trust.signer}'s key in Settings{trust.trusted ? ` on ${trust.trusted}` : ""}. Code widgets have the same access as built-in widgets: sensors, your screens and settings, and the network.
         </p>
-        <div className="mt-2 flex gap-2">
-          <Button small>Manage keys</Button>
-          <Button small variant="ghost">
-            Turn this widget off
-          </Button>
-        </div>
+        <CodeNotes />
+        <TrustActions onManageKeys={onManageKeys} onTurnOff={onTurnOff} />
       </div>
     );
   return (
@@ -109,7 +149,7 @@ export function WidgetDetail(p: WidgetDetailProps) {
           Not drawn: {p.refused}
         </p>
       )}
-      {p.trust && <TrustBox trust={p.trust} />}
+      {p.trust && <TrustBox trust={p.trust} onManageKeys={p.onManageKeys} onTurnOff={p.onTurnOff} />}
       <div className="flex flex-col gap-2">
         <Button variant="primary" className="w-full" onClick={p.onAdd.run} disabled={p.onAdd.disabled} title={p.onAdd.title}>
           {p.onAdd.label}

@@ -46,6 +46,8 @@ export interface BuilderProps {
   onRedo: () => void;
   onBack: () => void;
   onSave: () => void;
+  /** The recipe on the server is signed (6a Q2): an edit is saved as a copy under a new id, the signed one stays as it is. */
+  onSaveCopy?: () => void;
   saving: boolean;
   onExport: () => void;
   onAddToScreen: (presetId: string | null) => void;
@@ -283,9 +285,15 @@ export function Builder(p: BuilderProps) {
         <Button variant="ghost" icon={<Upload strokeWidth={1.5} />} onClick={p.onExport} disabled={!line.ok} title={line.ok ? undefined : line.first}>
           Export
         </Button>
-        <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSave} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? undefined : line.first}>
-          Save
-        </Button>
+        {p.onSaveCopy ? (
+          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSaveCopy} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? "It is signed: only its publisher's key may replace it, so the edit is saved as a new recipe" : line.first}>
+            Save as a copy
+          </Button>
+        ) : (
+          <Button icon={<Save strokeWidth={1.5} />} onClick={p.onSave} disabled={p.saving || !line.ok || chip.text === "Recipe · saved"} title={line.ok ? undefined : line.first}>
+            Save
+          </Button>
+        )}
         <Button variant="primary" icon={<MonitorUp strokeWidth={1.5} />} onClick={() => p.onAddToScreen(preset)} disabled={p.saving || !line.ok} title={line.ok ? "Saves it, then adds it to the screen in Edit" : line.first}>
           Add to a screen
         </Button>

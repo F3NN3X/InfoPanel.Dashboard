@@ -2,16 +2,33 @@
 // studio) and Imported (from a file, later Themely), the built-ins after them, the filters and the search, where each widget is
 // placed, and the trust a widget is shown with. Pure but for the one stored list of the ids saved here.
 import type { DashboardConfig } from "@/lib/layout";
+import type { CodeWidgetDefinition } from "@/widgets/sdk";
 import type { Recipe } from "@/widgets/recipe/types";
 import type { RecipeIssue } from "@/widgets/recipe/validate";
 
 /**
- * Who stands behind a widget, the detail pane's box. A recipe holds no code (the only state that is live in 5b); the two code
- * widget states render from the dev fixtures (`src/dev/fixtures/widgets.ts`) until Phase 6 brings signed code widgets.
+ * Who stands behind a widget, the detail pane's box (Phase 6b: from the server's `trust`, `trustOf`). A recipe holds no code; a code
+ * widget is signed by the owner's key, Themely's (a slot that stays off until Themely signs), or a key the user trusted in Settings
+ * (`trusted`: when, where it is known), or refused (never loaded, never offered in Add).
  */
-export type Trust = { kind: "recipe" } | { kind: "owner" } | { kind: "user-key"; signer: string; trusted: string };
+export type Trust =
+  | { kind: "recipe" }
+  | { kind: "owner" }
+  | { kind: "themely" }
+  | { kind: "user-key"; signer: string; trusted?: string }
+  | { kind: "refused"; why: string };
 
-/** A user widget on the page: a recipe from the server, or a fixture code widget (dev builds only). */
+/** The detail pane's trust state for what the server says of a package (`GET /api/widgets` `trust`). */
+export function trustOf(kind: string, trust: string): Trust {
+  if (trust.startsWith("refused:")) return { kind: "refused", why: trust.slice(8) };
+  if (kind !== "code") return { kind: "recipe" };
+  if (trust === "owner") return { kind: "owner" };
+  if (trust === "themely") return { kind: "themely" };
+  if (trust.startsWith("user:")) return { kind: "user-key", signer: trust.slice(5) };
+  return { kind: "refused", why: "it is not signed by a key this app trusts" };
+}
+
+/** A user widget on the page: a recipe or a code widget from the server, or a fixture code widget (dev builds only). */
 export interface UserWidget {
   id: string;
   name: string;
@@ -27,6 +44,12 @@ export interface UserWidget {
   version: string;
   /** Bytes on the server (`GET /api/widgets` `size`). */
   bytes: number;
+  /** A recipe signed by a publisher (the server's `trust`, e.g. `user:Mika`): a plain save of an edit is refused (409), a copy is not. */
+  signed?: string;
+  /** A code widget's definition, once it verified and loaded (`code/loader.ts`). */
+  def?: CodeWidgetDefinition;
+  /** A code widget turned off on the Widgets page (the server's `off`): listed, never loaded. */
+  off?: boolean;
   /** A fixture's own preview, presets and options (code widgets have no recipe to read them from). */
   fixture?: { preview: string; presets: string[]; options: [string, string][] };
 }

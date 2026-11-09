@@ -2,6 +2,9 @@
 // user widgets the server holds (/api/widgets: Yours, saved from the builder here; Imported, from a package file) and the
 // built-ins; Import reads a package (.zip), the validator's errors shown in plain words before anything is stored; Export writes
 // one. The builder edits recipes and stores them through the same route. A lazy studio chunk: nothing here is in the kiosk entry.
+// Code widgets (Phase 6b) are listed with the server's trust state; one that verified is loaded (`code/loader.ts`) for its preview
+// and Add. "Third-party code widgets" and "Turn this widget off" are the server's switches (`/api/widgets/code`), so every page that
+// asks this server obeys them, kiosks on other devices included.
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Plus, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,21 +13,22 @@ import { WidgetStage } from "@/components/studio/add-preview";
 import { moduleItem } from "@/components/studio/add-catalog";
 import { ALL_MODULES, type ModuleMeta } from "@/components/studio/studio-modules";
 import { builtinPresets, useWidgetPresets } from "@/components/studio/widget-presets";
-import { useStoredFlag } from "@/components/studio/use-stored-flag";
 import { sensorName } from "@/components/studio/widget-kinds";
 import * as studio from "@/components/studio/studio-actions";
 import type { StudioBridge } from "@/components/library/library-actions";
 import { download } from "@/components/infopanel/export-dialog";
 import { useSensors } from "@/hooks/useSensors";
+import { openSettings } from "@/lib/desktop";
 import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
 import { CARDS_ID } from "@/lib/layout";
 import type { Appearance } from "@/lib/style-resolve";
 import { modules } from "@/modules";
 import { STANDARD_KEYS } from "@/modules/standard-settings";
 import type { ModuleSettings } from "@/modules/types";
+import { forgetCode, loadCode } from "@/widgets/code/loader";
 import type { Data } from "@/widgets/core/types";
 import { exportPackage, importPackage, packageOf } from "@/widgets/recipe/package";
-import { isRecipeId } from "@/widgets/recipe/resolve";
+import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
 import { listUserWidgets, loadRecipe, readPackage, removeWidget, storePackage } from "@/widgets/recipe/store";
 import type { PackageFile, Recipe } from "@/widgets/recipe/types";
 import { checkPackage } from "@/widgets/recipe/validate";
@@ -37,7 +41,7 @@ import { START, whyNoStart } from "./start-points";
 import { storedValues } from "./recipe-preview";
 import { WidgetDetail, type WidgetDetailProps } from "./widget-detail";
 import { WidgetsBrowse, type BuiltInEntry } from "./widgets-browse";
-import { counts, isUnsaved, kindLine, screensLine, shown, usesOf, type UserWidget, type WidgetFilter } from "./widgets-model";
+import { counts, isUnsaved, kindLine, screensLine, shown, trustOf, usesOf, type UserWidget, type WidgetFilter } from "./widgets-model";
 
 /** The builder comes with its first open. */
 const Builder = lazy(() => import("./builder").then((m) => ({ default: m.Builder })));
@@ -46,8 +50,34 @@ const Builder = lazy(() => import("./builder").then((m) => ({ default: m.Builder
 const FIXTURES = import.meta.env.DEV || import.meta.env.VITE_DEV_FIXTURES === "1";
 const fixtureState = (): string | undefined => (FIXTURES ? /^widgets\/(.+)$/.exec(new URLSearchParams(window.location.search).get("fixture") ?? "")?.[1] : undefined);
 
-/** "Third-party code widgets": a local switch, on by default (code widgets arrive in Phase 6, signed). */
-export const THIRD_PARTY_KEY = "studio.widgets.thirdParty";
+/** The server's code widget switches (`GET/PUT /api/widgets/code`): all on, `env` false under USER_CODE_WIDGETS=off, the ids off. */
+interface Switches {
+  on: boolean;
+  env: boolean;
+  off: string[];
+}
+const SWITCHES = "/api/widgets/code";
+const readSwitches = async (): Promise<Switches> => {
+  try {
+    const res = await fetch(SWITCHES, { cache: "no-store" });
+    const v = (res.ok ? await res.json() : {}) as Partial<Switches>;
+    return { on: v.on !== false, env: v.env !== false, off: Array.isArray(v.off) ? v.off.filter((x) => typeof x === "string") : [] };
+  } catch {
+    return { on: true, env: true, off: [] };
+  }
+};
+/** Sets the switches; undefined when the server took it, else why not. */
+const writeSwitches = async (patch: Partial<Pick<Switches, "on" | "off">>): Promise<string | undefined> => {
+  const res = await fetch(SWITCHES, { method: "PUT", headers: { "Content-Type": "application/json", "X-Dashboard-Widget": "1" }, body: JSON.stringify(patch) }).catch(() => undefined);
+  return res?.ok ? undefined : (await res?.text().catch(() => "")) || "the server did not answer";
+};
+
+/** A code widget's preview in the detail pane: its module drawn with the live readings. */
+function CodePreview({ id, reads }: { id: string; reads: string[] }) {
+  const sensors = useSensors(reads);
+  const mod = recipeModule(id);
+  return <div className="h-[160px] w-[240px]">{mod?.render(sensors, {}) ?? <span className="text-body text-ui-3">No readings yet</span>}</div>;
+}
 
 export interface WidgetsPageProps {
   bridge: StudioBridge;
@@ -79,7 +109,8 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<WidgetFilter>("all");
   const [allBuiltIns, setAllBuiltIns] = useState(false);
-  const [thirdParty, setThirdParty] = useStoredFlag(THIRD_PARTY_KEY, true);
+  const [switches, setSwitches] = useState<Switches>({ on: true, env: true, off: [] });
+  const thirdParty = switches.on && switches.env;
   const [selected, setSelected] = useState<string | null>(null);
   // open recipes with edits the server does not have come back from the autosave (`drafts-store.ts`), as the Gauges page's drafts do
   const [drafts, setDrafts] = useState<Draft[]>(loadDrafts);
@@ -92,12 +123,20 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
   const liveData = useMemo(() => toFlat(withHwinfoAliases(sensors)) as Data, [sensors]);
 
   const refresh = async (select?: string) => {
-    const { list, off } = await listUserWidgets();
+    const [{ list, off }, sw] = await Promise.all([listUserWidgets(), readSwitches()]);
+    setSwitches(sw);
     const loaded = await Promise.all(
       list.map(async (w): Promise<UserWidget> => {
+        if (w.kind === "code") {
+          const trust = trustOf(w.kind, w.trust);
+          const s = w.off || trust.kind === "refused" ? undefined : await loadCode(w.id);
+          const def = s && "def" in s ? s.def : undefined;
+          const why = s && "why" in s ? s.why : undefined;
+          return { id: w.id, name: def?.name ?? w.name, kind: "code", yours: false, issues: why ? [{ rule: "code", severity: "error", file: "widget.js", message: why }] : [], trust, def, off: w.off, blurb: def?.description ?? w.name, version: w.version, bytes: w.size };
+        }
         const l = await loadRecipe(w.id);
         const r = l.recipe;
-        return { id: w.id, name: r?.name ?? w.name, kind: "recipe", yours: w.origin === "studio", recipe: r, issues: l.issues, trust: { kind: "recipe" }, blurb: r ? blurbOf(r) : w.name, version: w.version, bytes: w.size };
+        return { id: w.id, name: r?.name ?? w.name, kind: "recipe", yours: w.origin === "studio", recipe: r, issues: l.issues, trust: { kind: "recipe" }, ...(w.trust === "unsigned" ? {} : { signed: w.trust }), blurb: r ? blurbOf(r) : w.name, version: w.version, bytes: w.size };
       }),
     );
     const state = fixtureState();
@@ -115,6 +154,20 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
   const visible = user.filter((w) => (thirdParty || w.kind !== "code") && shown(w, filter, query));
   const builtIns: BuiltInEntry[] = BUILT_INS.filter((m) => shown({ kind: "recipe", yours: false, name: m.title }, "all", query)).map((m) => ({ id: m.id, name: m.title, icon: m.icon, presets: builtinPresets(m, presetMap).length }));
   const c = counts(user.filter((w) => thirdParty || w.kind !== "code"), BUILT_INS.length);
+  const setThirdParty = (on: boolean) =>
+    void writeSwitches({ on }).then(async (why) => {
+      if (why) return toast(`Not switched: ${why}`);
+      toast(on ? "Third-party code widgets are on" : "Third-party code widgets are off on every screen of this server");
+      await refresh();
+      await Promise.all(user.filter((w) => w.kind === "code").map((w) => forgetCode(w.id)));
+    });
+  const turnOff = (w: UserWidget, off: boolean) =>
+    void writeSwitches({ off: off ? [...switches.off.filter((x) => x !== w.id), w.id] : switches.off.filter((x) => x !== w.id) }).then(async (why) => {
+      if (why) return toast(`Not switched: ${why}`);
+      toast(off ? `${w.name} is off on every screen of this server` : `${w.name} is on again`);
+      await forgetCode(w.id);
+      await refresh();
+    });
 
   /* ───────── adding to the screen in Edit ───────── */
 
@@ -210,6 +263,24 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
     }
   };
 
+  // An edited signed recipe (6a Q2): the server refuses a plain save (409), so the edit goes to a copy under a new id
+  const signedStored = draft?.stored && user.some((w) => w.id === draft.stored?.id && w.signed);
+  const saveCopy = async () => {
+    if (!draft) return;
+    setSaving(true);
+    try {
+      const recipe = withSample(duplicateRecipe(draft.history.present, `${draft.history.present.name} copy`, taken()), liveData);
+      const why = await storePackage(await packageOf(recipe, draft.images), "studio");
+      if (why) return toast(`Not saved: ${why}`);
+      setDrafts((list) => [...list.filter((d) => d.key !== draft.key), { key: recipe.id, history: historyOf(recipe), images: draft.images, stored: recipe }]);
+      setActive(recipe.id);
+      toast(`Saved a copy: ${recipe.name}`);
+      void refresh();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (draft)
     return (
       <Suspense fallback={<div className="flex-1 bg-ui-app" />}>
@@ -222,6 +293,7 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
           onRedo={() => setDraft({ ...draft, history: redo(draft.history) })}
           onBack={() => setActive(null)}
           onSave={() => void save()}
+          onSaveCopy={signedStored ? () => void saveCopy() : undefined}
           saving={saving}
           onExport={() => void packageOf(withSample(draft.history.present, liveData), draft.images).then((files) => download(fileName(draft.history.present), exportPackage(files), "application/zip"))}
           onAddToScreen={(presetId) =>
@@ -238,7 +310,33 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
 
   /* ───────── the detail pane ───────── */
 
+  const codeDetail = (w: UserWidget): WidgetDetailProps => {
+    const used = uses(w.id);
+    const def = w.def;
+    const why = w.off ? "it is turned off on the Widgets page" : w.trust.kind === "refused" ? "the signature does not check out" : w.issues[0]?.message;
+    const remove = { label: "Remove", run: () => void removeWidget(w.id).then((ok) => (ok ? (setSelected(null), toast(`Removed ${w.name}`), refresh()) : toast("Not removed: the server refused"))), disabled: used.length > 0, title: used.length ? "It is on a screen" : undefined };
+    const turn = { label: w.off ? "Turn this widget on" : "Turn this widget off", run: () => turnOff(w, !w.off) };
+    return {
+      name: w.name,
+      kind: kindLine(w),
+      trust: w.trust,
+      preview: def && !w.off ? <CodePreview id={w.id} reads={def.reads} /> : <span className="max-w-[300px] text-center text-body text-ui-3">Not loaded{why ? `: ${why}` : ""}</span>,
+      appearance,
+      pageStyle,
+      refused: w.trust.kind !== "refused" && !def && why ? why : undefined,
+      onAdd: def && !w.off ? { label: "Add to a screen", run: () => addZone(w.id, def.name, def.defaultSize) } : { label: "Add to a screen", run: () => {}, disabled: true, title: why ?? "It did not load" },
+      primary: { label: "About", icon: "about", run: () => toast(`${w.name} ${w.version}: ${def?.description ?? "a code widget"} (${w.id})`) },
+      onExport: { label: "Export", run: () => void readPackage(w.id).then(({ files }) => (files.length ? download(`${w.id.slice(4)}-${w.version}.widget.zip`, exportPackage(files), "application/zip") : toast("Not exported: the server did not serve it"))) },
+      menu: [turn, remove],
+      presets: [],
+      options: (def?.settings ?? []).slice(0, 6).map((o): [string, string] => [o.label, typeof o.default === "boolean" ? (o.default ? "On" : "Off") : String(o.default)]),
+      screens: screensLine(used),
+      onManageKeys: w.trust.kind === "user-key" || w.trust.kind === "refused" ? () => void openSettings("publishers") : undefined,
+      onTurnOff: w.trust.kind === "refused" ? undefined : turn,
+    };
+  };
   const userDetail = (w: UserWidget): WidgetDetailProps => {
+    if (w.kind === "code" && !w.fixture) return codeDetail(w);
     const used = uses(w.id);
     const r = w.recipe;
     const values = r ? presetValues(r, r.presets.find((p) => p.default)) : {};
@@ -251,8 +349,8 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
       appearance,
       pageStyle,
       refused: w.kind === "recipe" && !r ? (w.issues.find((i) => i.severity === "error")?.message ?? "the check refused it") : undefined,
-      onAdd: r ? { label: "Add to a screen", run: () => addRecipe(r) } : { label: "Add to a screen", run: () => {}, disabled: true, title: w.kind === "code" ? "Code widgets arrive with signatures in a later version" : "The check refused it" },
-      primary: w.kind === "code" ? { label: "About", icon: "about", run: () => toast(`${w.name}: a code widget (fixture). Code widgets arrive with signatures in a later version`) } : { label: "Edit recipe", icon: "edit", run: () => void editStored(w), disabled: !r },
+      onAdd: r ? { label: "Add to a screen", run: () => addRecipe(r) } : { label: "Add to a screen", run: () => {}, disabled: true, title: w.kind === "code" ? "A dev fixture: there is no package to load" : "The check refused it" },
+      primary: w.kind === "code" ? { label: "About", icon: "about", run: () => toast(`${w.name}: a dev fixture of an owner-signed code widget (the owner key is not set up yet)`) } : { label: "Edit recipe", icon: "edit", run: () => void editStored(w), disabled: !r },
       onExport: r ? { label: "Export", run: () => void exportStored(w.id, r) } : { label: "Export", run: () => {}, disabled: true },
       menu: r
         ? [
@@ -347,6 +445,8 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
             counts={c}
             thirdParty={thirdParty}
             onThirdParty={setThirdParty}
+            thirdPartyLocked={!switches.env}
+            codePreview={(w) => w.def && <CodePreview id={w.id} reads={w.def.reads} />}
             yours={visible.filter((w) => w.yours)}
             imported={visible.filter((w) => !w.yours)}
             builtIns={builtIns}
@@ -375,9 +475,10 @@ export default function WidgetsPage({ bridge, appearance, pageStyle, onShowEdit,
   );
 }
 
-/** The widget a fixture state opens on: the first recipe ("recipe"), the owner-signed or the user-key code widget. */
+/** The widget a fixture state opens on: the first recipe ("recipe"), the owner-signed fixture, or a real code widget in that state. */
 function fixtureSelection(state: string, loaded: readonly UserWidget[], fixtures: readonly UserWidget[]): string | null {
   if (state === "owner-signed") return fixtures.find((w) => w.trust.kind === "owner")?.id ?? null;
-  if (state === "user-key") return fixtures.find((w) => w.trust.kind === "user-key")?.id ?? null;
+  if (state === "user-key") return loaded.find((w) => w.trust.kind === "user-key")?.id ?? null;
+  if (state === "refused") return loaded.find((w) => w.trust.kind === "refused")?.id ?? null;
   return loaded.find((w) => w.yours)?.id ?? loaded[0]?.id ?? null;
 }
