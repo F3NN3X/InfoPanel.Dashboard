@@ -24,13 +24,15 @@ export function Heading({ children }: { children: ReactNode }) {
 }
 
 /** A number field that commits a finite number (an empty or bad entry keeps the last one), with a unit after it. */
-export function NumberInput({ label, value, onChange, unit, min, max, step, width = 72 }: { label: string; value: number | undefined; onChange: (v: number | undefined) => void; unit?: string; min?: number; max?: number; step?: number; width?: number }) {
+/** A number field; empty is "not set", and `placeholder` says what that draws. */
+export function NumberInput({ label, value, onChange, unit, min, max, step, width = 72, placeholder }: { label: string; value: number | undefined; onChange: (v: number | undefined) => void; unit?: string; min?: number; max?: number; step?: number; width?: number; placeholder?: string }) {
   return (
     <span className="relative flex items-center">
       <input
         aria-label={label}
         type="number"
         value={value ?? ""}
+        placeholder={placeholder}
         min={min}
         max={max}
         step={step}

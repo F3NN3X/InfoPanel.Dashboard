@@ -11,6 +11,7 @@ import { useDataModel } from "@/lib/use-data-model";
 import { DataPicker } from "@/components/studio/inspector/data-picker";
 import type { Data } from "@/widgets/core/types";
 import { expandKey } from "@/widgets/recipe/reads";
+import { DEFAULT_SCALE } from "@/widgets/recipe/validate";
 import { type Binding, type Block, type Cells, type Recipe, type RecipeColour, type RecipeDeviceKind, WEATHER_PLACE_FIELDS } from "@/widgets/recipe/types";
 import { BLOCK_LABEL, blockAt, deviceOfKey, layerName, pickBinding, pickedOption, pickWhat, repeatAbove, unpickBinding, updateBlock, valueText, type Path } from "./builder-model";
 import { BlockIcon } from "./block-icons";
@@ -274,8 +275,8 @@ export function BlockTab(props: BlockTabProps) {
       )}
       {(block.type === "value" || block.type === "ring" || block.type === "gauge") && (
         <Field label="Unit, decimals">
-          <TextInput label="Unit" value={block.unit ?? ""} placeholder="From data" onChange={(v) => set({ unit: v.slice(0, 8) || undefined })} width={72} />
-          <NumberInput label="Decimals" value={block.decimals} min={0} max={4} onChange={(v) => set({ decimals: v })} width={56} />
+          <TextInput label="Unit" value={block.unit ?? ""} placeholder="Auto" onChange={(v) => set({ unit: v.slice(0, 8) || undefined })} width={72} />
+          <NumberInput label="Decimals" value={block.decimals} placeholder="Auto" min={0} max={4} onChange={(v) => set({ decimals: v })} width={76} />
         </Field>
       )}
       {block.type === "value" && (
@@ -284,8 +285,8 @@ export function BlockTab(props: BlockTabProps) {
         </Field>
       )}
       {(block.type === "value" || block.type === "label" || block.type === "ring" || block.type === "gauge" || block.type === "weather-icon") && (
-        <Field label="Text size" hint="Times the card's base size; never drawn under 11 px">
-          <NumberInput label="Text size" value={block.scale} min={0.5} max={6} step={0.05} onChange={(v) => set({ scale: v })} unit="×" width={80} />
+        <Field label="Text size" hint="Times the card's base size; never drawn under 11 px. Empty is the block's own size">
+          <NumberInput label="Text size" value={block.scale} placeholder={String(DEFAULT_SCALE[block.type] ?? 2)} min={0.5} max={6} step={0.05} onChange={(v) => set({ scale: v })} unit="×" width={80} />
         </Field>
       )}
       {block.type === "label" && (
