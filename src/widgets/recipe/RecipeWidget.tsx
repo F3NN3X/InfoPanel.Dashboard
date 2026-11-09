@@ -10,6 +10,9 @@ import { recipeReads } from "./reads";
 import { loadRecipe, type LoadedRecipe } from "./store";
 import { WEATHER_PREFIX } from "./weather";
 
+// the chunk's loader for a placement's reads (`resolve.ts` `loadReads`), so the entry imports this chunk from one place
+export { loadRecipe };
+
 export interface RecipeWidgetProps extends ShellProps {
   look?: ModuleSettings;
   /** The placement's module id, `recipe:<id>`. */
