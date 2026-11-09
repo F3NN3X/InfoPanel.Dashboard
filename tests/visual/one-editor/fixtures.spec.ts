@@ -485,7 +485,7 @@ const BUILT: Partial<Record<FixtureName, Record<string, (page: Page) => Promise<
       expect(boxes.every((b) => b.h === 48)).toBe(true);
       expect(boxes.filter((b) => b.top === boxes[0].top)).toHaveLength(1);
       const weather = page.getByTestId("add-tile").filter({ hasText: "Weather" }).first();
-      await expect(weather).toContainText("6 styles");
+      await expect(weather).toContainText("6 presets");
     },
     [CHECKS.hover[1].text]: async (page) => {
       const list = page.getByRole("listbox");
