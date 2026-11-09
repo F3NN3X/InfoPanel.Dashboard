@@ -92,15 +92,20 @@ const decimalsOf = (v: number, own: number | undefined): number => own ?? (Math.
 const shown = (r: Reading, decimals?: number): string => (Number.isFinite(r.value) && (typeof r.raw === "number" || /^-?\d/.test(String(r.raw).trim())) ? fmt(r.value, decimalsOf(r.value, decimals)) : r.raw === undefined || r.raw === "" ? "–" : String(r.raw));
 
 /** The share a child takes of its row. */
-const grow = (b: Block): CSSProperties => ({ flex: `${b.grow ?? 1} 1 0`, minWidth: 0, minHeight: 0 });
+/** A weather icon keeps its glyph's width (its size is the text scale's, not the cell's); every other block shrinks to its cell. */
+const grow = (b: Block): CSSProperties => ({ flex: `${b.grow ?? 1} 1 0`, minWidth: b.type === "weather-icon" ? "auto" : 0, minHeight: 0 });
 
 function Blocks({ blocks, direction = "column", gap = 6, align }: { blocks: Block[]; direction?: "row" | "column"; gap?: number; align?: string }) {
   const ctx = useCtx();
   const shownBlocks = blocks.filter((b) => holds(b.when, ctx.values));
+  // Each block's cell stretches across the row, so a block that fills its cell (a column of labels, a sparkline) has a definite
+  // size; `align` places the block inside its cell instead.
+  const place = align === "center" ? "center" : align === "end" ? "flex-end" : align === "start" ? "flex-start" : undefined;
+  const cell: CSSProperties | undefined = place && (direction === "row" ? { alignItems: place } : { justifyContent: place });
   return (
-    <div className="flex h-full w-full min-h-0 min-w-0" style={{ flexDirection: direction, gap, alignItems: align === "center" ? "center" : align === "end" ? "flex-end" : align === "start" ? "flex-start" : "stretch" }}>
+    <div className="flex h-full w-full min-h-0 min-w-0" style={{ flexDirection: direction, gap }}>
       {shownBlocks.map((b, k) => (
-        <div key={k} data-recipe-block={b.type} className="flex min-h-0 min-w-0" style={grow(b)}>
+        <div key={k} data-recipe-block={b.type} className="flex min-h-0 min-w-0" style={{ ...grow(b), ...cell }}>
           <BlockView b={b} />
         </div>
       ))}
