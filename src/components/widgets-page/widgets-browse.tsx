@@ -158,6 +158,10 @@ export function WidgetsBrowse(p: WidgetsBrowseProps) {
           Third-party code widgets
           <Toggle label="Third-party code widgets" checked={p.thirdParty} onChange={p.onThirdParty} />
         </span>
+        {/* The SDK's types for code widget authors (Phase 6a, written by tools/widgets/sdk-types.mjs into public/). */}
+        <a href={`${import.meta.env.BASE_URL}widget-sdk/infopanel-widget-sdk.d.ts`} download className="text-caption text-ui-2 underline hover:text-ui-1">
+          Widget SDK types (.d.ts)
+        </a>
       </div>
       {p.notice && (
         <p role="status" className="mb-5 rounded-ui-md border border-ui-subtle bg-ui-panel px-3 py-2 text-caption text-ui-2">
