@@ -1,8 +1,8 @@
 import { lazy, Suspense, useMemo, type CSSProperties, type ReactNode } from "react";
 import { OtherSensors } from "@/modules/other-sensors";
-import { isClaimed, moduleReads, modules } from "@/modules";
+import { isClaimed, modules } from "@/modules";
 import { chromeOf } from "@/modules/standard-settings";
-import { effectiveSettings, type ModuleSettings, type SensorMap } from "@/modules/types";
+import { effectiveSettings, placementReads, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { tokenScope } from "@/components/widget-style";
 import type { SensorValue } from "@/hooks/useSensors";
 import { useSensors } from "@/hooks/useSensors";
@@ -60,8 +60,10 @@ export function placementPrefixes(p: Placement): string[] | null {
   }
   if (p.module === CARDS_ID) return null;
   const mod = moduleById.get(p.module);
-  if (mod?.readsAll) return null;
-  return mod ? [...moduleReads(mod), ...boundKeys(p)] : [];
+  if (!mod) return [];
+  // its view's own prefixes where the view has them (a merged-away widget's)
+  const reads = placementReads(mod, p.settings);
+  return reads === null ? null : [...reads, ...boundKeys(p)];
 }
 
 /** The sensors a widget is bound to (a `sensor` setting), read besides its own prefixes. */
@@ -73,7 +75,8 @@ const boundKeys = (p: Placement): string[] =>
  * stream unless one of its bound sensors is an audio key (or a prefix holding them).
  */
 export function quietPrefix(p: Placement): string | undefined {
-  if (!moduleById.get(p.module)?.readsAll) return undefined;
+  const mod = moduleById.get(p.module);
+  if (!mod || placementReads(mod, p.settings) !== null) return undefined;
   return boundKeys(p).some((k) => k.startsWith(AUDIO_PREFIX) || AUDIO_PREFIX.startsWith(k)) ? undefined : AUDIO_PREFIX;
 }
 

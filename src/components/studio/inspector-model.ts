@@ -8,7 +8,9 @@ import {
   type ModuleSetting,
   type ModuleSettings,
   type SharedSectionId,
+  viewOf,
 } from "@/modules/types";
+import { fitSettings } from "@/widgets/registry/inspector-meta";
 import { resolveStyle, type Appearance, type StyleSource } from "@/lib/style-resolve";
 import {
   following,
@@ -120,15 +122,23 @@ export type InspectorContext =
       placeRow?: boolean;
     };
 
-/** The context of a selected widget zone. */
-export const widgetContext = (mod: DashboardModule): InspectorContext => ({
-  kind: "widget",
-  defs: (mod.settings ?? []).filter((d) => !d.hidden),
-  reducedStyle: mod.styleSubset !== undefined,
-  noData: mod.noData,
-  header: mod.header,
-  compact: mod.compact,
-});
+/**
+ * The context of a selected widget zone. A view with inspector fields of its own (`DashboardModule.byView`, a
+ * merged-away widget's) sets them over the widget's for a zone in that view, its small-zone shape narrowing the Fit rows too.
+ */
+export const widgetContext = (mod: DashboardModule, saved?: ModuleSettings): InspectorContext => {
+  const own = mod.byView?.[viewOf(mod, saved)?.id ?? ""];
+  const m = own ? { ...mod, ...own } : mod;
+  const defs = (mod.settings ?? []).filter((d) => !d.hidden);
+  return {
+    kind: "widget",
+    defs: own?.compact ? fitSettings(defs, own.compact) : defs,
+    reducedStyle: m.styleSubset !== undefined,
+    noData: m.noData,
+    header: m.header,
+    compact: m.compact,
+  };
+};
 
 /** Custom UI a whole section stands for (not a list of settings). */
 export type SpecialSection =

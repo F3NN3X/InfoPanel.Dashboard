@@ -6,7 +6,7 @@ import { STANDARD_SETTINGS } from "@/modules/standard-settings";
 import { withHwinfoAliases } from "@/lib/hwinfo-aliases";
 import { usePack } from "@/looks/pack";
 import { islandSettings, type IslandSourceDef } from "@/lib/island/sources";
-import { effectiveSettings, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
+import { effectiveSettings, placementReads, type DashboardModule, type ModuleSetting, type ModuleSettings, type SensorMap } from "@/modules/types";
 import { ensureSkinFonts } from "./core/fonts";
 import { SKINS, skinOfLook } from "./core/theme";
 import type { ShellProps, WidgetMeta } from "./core/types";
@@ -122,9 +122,10 @@ export function templateModule<P extends object>({ meta, Component, settings, to
     viewKey: meta.viewKey,
     ...(island ? { island } : {}),
     ...(preloadOf(Component) ? { preload: preloadOf(Component) } : {}),
-    // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet".
+    // No data renders nothing, so the kiosk hides the zone and the studio says "no live data yet"; a view with prefixes of
+    // its own gates on them (`placementReads`).
     render: (sensors, saved) =>
-      !SENSORLESS.has(meta.id) && !hasKeys(sensors, [...mod.prefixes, ...(mod.reads ?? [])]) ? null : (
+      !SENSORLESS.has(meta.id) && !hasKeys(sensors, placementReads(mod, saved) ?? []) ? null : (
         <TemplateZone sensors={sensors} saved={saved} />
       ),
   };

@@ -229,6 +229,28 @@ export interface DashboardModule {
   styleSubset?: string[];
   /** Binds and picks nothing: no Bound data card, so its Data tab is empty (shown disabled). */
   noData?: boolean;
+  /** The inspector fields a view sets in place of the widget's, by view id (a merged-away widget's; `widgetContext`). */
+  byView?: Readonly<Record<string, ViewInspector>>;
+}
+
+/** What a view may set of the inspector fields (a widget folder's `inspector.byView`). */
+export type ViewInspector = Partial<Pick<DashboardModule, "header" | "compact" | "fmt" | "thr" | "styleSubset" | "noData">>;
+
+/** The view a zone shows: its stored view key, else the widget's first view (undefined for a widget without views). */
+export const viewOf =(mod: DashboardModule, saved: ModuleSettings | undefined): WidgetView | undefined => {
+  const id = saved?.[mod.viewKey ?? "view"] ?? mod.views?.[0]?.id;
+  return mod.views?.find((v) => v.id === id);
+};
+
+/**
+ * The prefixes a zone gates on and subscribes to: its view's own where the view has them (`WidgetView.prefixes`), else
+ * the module's and what it reads; `null` = every key (a widget that reads all, or a view with no prefixes of its own).
+ */
+export function placementReads(mod: DashboardModule, saved: ModuleSettings | undefined): string[] | null {
+  const own = viewOf(mod, saved)?.prefixes;
+  if (!own) return mod.readsAll ? null : [...mod.prefixes, ...(mod.reads ?? [])];
+  const all = [...own, ...(mod.reads ?? [])];
+  return all.length > 0 ? all : null;
 }
 
 /** Whether a setting sits behind its section's "More (n)" (`more`, or the old `advanced`). */

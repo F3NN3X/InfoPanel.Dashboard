@@ -60,7 +60,10 @@ export interface WidgetControlsProps {
 export interface WidgetDefinition<P extends object = object> {
   /** The catalog entry, views and view key included, from the folder's meta.ts. */
   meta: WidgetMeta;
-  /** Header, small-zone shape, Units & Thresholds rows (what `INSPECTOR_META` holds for the group widgets). */
+  /**
+   * Header, small-zone shape, Units & Thresholds rows (what `INSPECTOR_META` holds for the group widgets); `byView` sets
+   * some of them per view, for a view that draws a merged-away widget as it did (its data gate is `meta.views[].prefixes`).
+   */
   inspector: InspectorMeta;
   /** The widget's own settings, after the standard block. */
   settings: ModuleSetting[];

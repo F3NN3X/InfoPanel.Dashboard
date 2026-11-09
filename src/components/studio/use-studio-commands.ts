@@ -325,7 +325,7 @@ export function useStudioCommands({
       return { kind: "item", widget: selectedWidget, layout: layout === "grid" || layout === "overlay" ? layout : "stack" };
     }
     const mod = selected.panel ? undefined : modules.find((m) => m.id === selected.module);
-    if (mod) return widgetContext(mod);
+    if (mod) return widgetContext(mod, selected.settings);
     return { kind: selected.panel ? "panel" : "widget", defs: zoneDefs(selected) } as InspectorContext;
   };
   const commands = ui.paletteOpen
