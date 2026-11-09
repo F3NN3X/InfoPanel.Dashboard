@@ -160,7 +160,7 @@
     "src/widgets/stream-deck/look.ts": 5,
     "src/widgets/stream-deck/StreamDeck.tsx": 1,
     "src/widgets/system-overview/SystemOverview.tsx": 1,
-    "src/widgets/Vitals.tsx": 1,
+    "src/widgets/kpi-tiles/Vitals.tsx": 1,
     "src/widgets/weather-fx/lightning.ts": 2,
     "src/widgets/weather-fx/particles.ts": 15,
     "src/widgets/weather-fx/sky.ts": 13,

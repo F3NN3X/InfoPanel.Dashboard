@@ -2,10 +2,8 @@
 // widget folders (`src/widgets/<kebab-id>/`, listed in registry.generated.ts) side by side, in `order.ts`'s order: the
 // generator turns that into each folder widget's place, so the kiosk entry carries three numbers, not the list.
 import { isDeviceKind, type DashboardModule } from "@/modules/types";
-import { GROUP_A } from "./registry/a";
 import { GROUP_B } from "./registry/b";
 import { GROUP_D } from "./registry/d";
-import { GROUP_HISTORY } from "./registry/history";
 import { fitSettings, INSPECTOR_META } from "./registry/inspector-meta";
 import { folderModule } from "./folder-module";
 import { FOLDER_SLOTS, FOLDER_WIDGETS } from "./registry.generated";
@@ -16,7 +14,7 @@ const deviceKindOf = (m: DashboardModule): DashboardModule["deviceKind"] => {
   return isDeviceKind(from) ? from : undefined;
 };
 
-const GROUPS: DashboardModule[] = [...GROUP_A, ...GROUP_B, ...GROUP_D, ...GROUP_HISTORY];
+const GROUPS: DashboardModule[] = [...GROUP_B, ...GROUP_D];
 
 /** The group widgets with their `INSPECTOR_META` entry, and each folder widget inserted at its place (in ascending order). */
 const ALL = FOLDER_WIDGETS.reduce(

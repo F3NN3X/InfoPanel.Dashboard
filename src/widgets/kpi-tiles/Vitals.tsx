@@ -1,11 +1,10 @@
+// KPI Tiles' cards view: metric cards that reflow into a row, grid or stack, drawn as the Vitals widget drew them before
+// it merged into KPI Tiles (config v19).
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { SKINS } from "./core/theme";
-import { fitFontPx } from "./fit-font";
-import { Unit, bodyGap, fitRows, Widget, shell, get, num, fmt, fmtRate, rateParts, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps } from "./kit";
-import { meta } from "./meta/Vitals";
-
-export { meta };
+import { SKINS } from "../core/theme";
+import { fitFontPx } from "../fit-font";
+import { Unit, bodyGap, fitRows, Widget, shell, get, num, fmt, fmtRate, rateParts, toMBps, detect, Spark, useHistory, useSkin, tone, TONES, hw, type ShellProps } from "../kit";
 
 type Metric = "cpu" | "gpu" | "ram" | "net" | "vram" | "fps";
 interface Vital {

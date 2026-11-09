@@ -193,7 +193,7 @@ describe("tabs of every widget", () => {
 });
 
 describe("header modes", () => {
-  const NO_HEADER = ["Calendar", "GameSpotlight", "KpiTiles", "MenuBar", "OsdStrip", "StatusBar", "SteamGame", "Vitals", "WebPage"];
+  const NO_HEADER = ["Calendar", "GameSpotlight", "KpiTiles", "MenuBar", "OsdStrip", "StatusBar", "SteamGame", "WebPage"];
   const TITLE_ONLY = ["Clock", "SystemOverview"];
 
   it("declares the header and small-zone shape of every widget", () => {

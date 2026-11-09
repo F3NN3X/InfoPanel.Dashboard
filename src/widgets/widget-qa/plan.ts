@@ -15,7 +15,7 @@ export function pickModules(all: DashboardModule[], templates: DashboardModule[]
 export function mergedModules(templates: DashboardModule[]): DashboardModule[] {
   return WIDGET_MERGES.flatMap((m) => {
     const to = templates.find((t) => t.id === m.to);
-    return to ? [{ ...to, id: m.from, title: m.from, views: undefined, viewKey: undefined }] : [];
+    return to ? [{ ...to, id: m.from, title: m.name, views: undefined, viewKey: undefined }] : [];
   });
 }
 

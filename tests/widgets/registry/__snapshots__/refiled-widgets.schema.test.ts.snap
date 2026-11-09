@@ -1670,8 +1670,18 @@ exports[`KpiTiles > files its rows by the rules 1`] = `
   ],
   "Content": [
     {
+      "Display": [
+        "view",
+      ],
+    },
+    {
       "Tiles": [
         "metrics",
+      ],
+    },
+    {
+      "Metrics": [
+        "cardMetrics",
       ],
     },
     {
@@ -4247,96 +4257,6 @@ exports[`Visualizer > files its rows by the rules 1`] = `
         "vizColor2 · role s2",
         "vizColor3 · role s3",
         "vizPeakColor · more · role crit",
-      ],
-    },
-    {
-      "Typography": [
-        "font",
-        "fontWeight",
-        "labelCase",
-        "numGlow",
-        "numGlowColor · more",
-      ],
-    },
-    {
-      "Shape & spacing": [
-        "scale",
-        "align",
-        "padding",
-        "gap",
-        "radius",
-      ],
-    },
-    {
-      "Surface & effects": [
-        "surface",
-        "decoration · more",
-        "background · more",
-        "backgroundOn · more",
-        "surfaceOpacity",
-        "blur",
-      ],
-    },
-    {
-      "Border & glow": [
-        "borderWidth",
-        "borderColor",
-        "glow",
-        "glowColor",
-      ],
-    },
-    {
-      "Advanced · CSS & locks": [
-        "customCss · more",
-      ],
-    },
-  ],
-}
-`;
-
-exports[`Vitals > files its rows by the rules 1`] = `
-{
-  "Behaviour": [
-    {
-      "Motion": [
-        "smoothing",
-      ],
-    },
-  ],
-  "Content": [
-    {
-      "Metrics": [
-        "metrics",
-      ],
-    },
-    {
-      "Fit": [
-        "compact",
-        "sizeTier · more",
-        "label",
-        "icon · more",
-      ],
-    },
-  ],
-  "Data": [
-    {
-      "Bound data [boundData]": [],
-    },
-  ],
-  "Style": [
-    {
-      "Theme": [
-        "lookId",
-        "graph · more",
-        "meter · more",
-        "stroke",
-      ],
-    },
-    {
-      "Colors": [
-        "accent",
-        "textColor",
-        "mutedColor",
       ],
     },
     {

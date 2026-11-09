@@ -1,6 +1,8 @@
 // Config v19 (the widget merges, _docs/widgets/MERGES.md): a merged-away widget's placement becomes its survivor in the
-// matching view (M1: Forecast is Weather's forecast view). Each case loads a config through `upgradeConfig` as the app
-// does, or an outside file through `readImportedConfig`. What a migrated zone draws is tests/widgets/weather/forecast-view.test.tsx.
+// matching view (M1: Forecast is Weather's forecast view; M3: Threshold Timeline is Session Stats' lanes view; M5: Vitals is
+// KPI Tiles' cards view). Each case loads a config through `upgradeConfig` as the app does, or an outside file through
+// `readImportedConfig`. What a migrated zone draws is tests/widgets/weather/forecast-view.test.tsx,
+// tests/widgets/session-stats/lanes-view.test.tsx and tests/widgets/kpi-tiles/cards-view.test.tsx.
 import { describe, expect, it } from "vitest";
 import { upgradeConfig } from "@/lib/config-upgrade";
 import { CONFIG_VERSION, readConfig, readImportedConfig, type DashboardConfig, type StoredConfig } from "@/lib/layout";
@@ -87,9 +89,72 @@ describe("v19: a Forecast zone is Weather's forecast view", () => {
   });
 });
 
+describe("v19: a Threshold Timeline zone is Session Stats' lanes view (M3)", () => {
+  it("one with no settings of its own gets the view and nothing else (no default differs)", () => {
+    expect(zones(upgradeConfig(stored(18, [screen("s", [zone("t", "ThresholdTimeline")])])))[0]).toEqual(zone("t", "SessionStats", { settings: { view: "lanes" } }));
+  });
+
+  it("keeps its sensors, window, value thresholds and every other key, and the zone's id, box and flags", () => {
+    const settings = { sensors: "libre.a,libre.b", window: 12, "warn.value": 60, "crit.value": 85, accent: "#00ff00", label: "Heat", compact: "card" };
+    const extra = { colStart: 3, rowStart: 2, colSpan: 4, rowSpan: 2, visible: false, design: { header: true }, follow: { colors: false }, locked: true, name: "Lanes" };
+    const out = zones(upgradeConfig(stored(18, [screen("s", [zone("t", "ThresholdTimeline", { ...extra, settings })])])))[0];
+    expect(out).toEqual({ ...zone("t", "SessionStats", extra), settings: { ...settings, view: "lanes" } });
+  });
+
+  it("maps an inline canvas's Studio widget and an imported file", async () => {
+    const canvas = { items: [{ kind: "Image", $: { widget: { module: "ThresholdTimeline", settings: { window: 3 } } } }] };
+    const out = upgradeConfig(stored(18, [screen("s", [zone("c", "infopanel", { canvas })])]));
+    expect((zones(out)[0].canvas as unknown as { items: { $: { widget: unknown } }[] }).items[0].$.widget).toEqual({ module: "SessionStats", settings: { window: 3, view: "lanes" } });
+    const imported = await readImportedConfig(stored(CONFIG_VERSION, [screen("s", [zone("t", "ThresholdTimeline", { settings: { window: 7 } })])]));
+    expect(zones(imported)[0]).toMatchObject({ module: "SessionStats", settings: { window: 7, view: "lanes" } });
+  });
+
+  it("leaves an existing Session Stats zone in its own view", () => {
+    for (const settings of [undefined, { above: 70 }, { view: "stats", sensors: "libre.a" }]) {
+      const z = zone("s", "SessionStats", settings ? { settings } : {});
+      expect(zones(upgradeConfig(stored(18, [screen("s", [z])])))[0], JSON.stringify(settings)).toEqual(z);
+    }
+  });
+});
+
+describe("v19: a Vitals zone is KPI Tiles' cards view (M5)", () => {
+  it("one with no metrics of its own gets the view, and the cards view's default (Vitals' own) applies", () => {
+    expect(zones(upgradeConfig(stored(18, [screen("s", [zone("v", "Vitals")])])))[0]).toEqual(zone("v", "KpiTiles", { settings: { view: "cards" } }));
+    const kpi = modules.find((m) => m.id === "KpiTiles")!;
+    expect(kpi.settings?.find((d) => d.key === "cardMetrics")?.default).toBe("cpu,gpu,ram,net");
+  });
+
+  it("moves its metrics to cardMetrics, so the tiles view's own metrics never take FPS, and keeps every other key", () => {
+    const out = zones(upgradeConfig(stored(18, [screen("s", [zone("v", "Vitals", { name: "Vitals", settings: { metrics: "cpu,fps,net", accent: "#ff0000", compact: "dense" } })])])))[0];
+    expect(out).toEqual(zone("v", "KpiTiles", { name: "Vitals", settings: { cardMetrics: "cpu,fps,net", accent: "#ff0000", compact: "dense", view: "cards" } }));
+    expect(out.settings).not.toHaveProperty("metrics");
+  });
+
+  it("maps an inline canvas's Studio widget and an imported file", async () => {
+    const canvas = { items: [{ kind: "Group", DisplayItems: [{ kind: "Image", $: { widget: { module: "Vitals", settings: { metrics: "gpu" } } } }] }] };
+    const out = upgradeConfig(stored(18, [screen("s", [zone("c", "infopanel", { canvas })])]));
+    const items = (zones(out)[0].canvas as unknown as { items: { DisplayItems: { $: { widget: unknown } }[] }[] }).items;
+    expect(items[0].DisplayItems[0].$.widget).toEqual({ module: "KpiTiles", settings: { cardMetrics: "gpu", view: "cards" } });
+    const imported = await readImportedConfig({ profiles: [screen("s", [zone("v", "Vitals", { settings: { metrics: "vram" } })])] } as unknown as StoredConfig);
+    expect(zones(imported)[0]).toMatchObject({ module: "KpiTiles", settings: { cardMetrics: "vram", view: "cards" } });
+  });
+
+  it("a Vitals from before v8 goes through the older steps first, then becomes the cards view", () => {
+    const out = zones(upgradeConfig(stored(7, [screen("s", [zone("v", "Vitals", { settings: { metrics: "cpu,fps,net" } })])])))[0];
+    expect(out).toMatchObject({ module: "KpiTiles", settings: { cardMetrics: "cpu,fps,net", view: "cards" } });
+  });
+
+  it("leaves an existing KPI Tiles zone in its own view, its metrics its own", () => {
+    for (const settings of [undefined, { metrics: "cpu,power", lookback: 20 }]) {
+      const z = zone("k", "KpiTiles", settings ? { settings } : {});
+      expect(zones(upgradeConfig(stored(18, [screen("s", [z])])))[0], JSON.stringify(settings)).toEqual(z);
+    }
+  });
+});
+
 describe("v19: the version", () => {
   it("is stamped, and a migrated config loads again identical (the step is idempotent)", async () => {
-    const out = upgradeConfig(stored(18, [screen("s", [zone("f", "Forecast", { settings: { days: 3 } }), zone("w", "Weather")])]));
+    const out = upgradeConfig(stored(18, [screen("s", [zone("f", "Forecast", { settings: { days: 3 } }), zone("w", "Weather"), zone("t", "ThresholdTimeline", { settings: { window: 9 } }), zone("v", "Vitals", { settings: { metrics: "fps" } })])]));
     expect(out.version).toBe(CONFIG_VERSION);
     const again = JSON.parse(JSON.stringify(out)) as StoredConfig;
     expect(upgradeConfig(again)).toEqual(out);
@@ -98,7 +163,7 @@ describe("v19: the version", () => {
   });
 
   it("passes a v18 file without a merged-away id through untouched", () => {
-    const profile = screen("s", [zone("w", "Weather", { settings: { view: "forecast", forecastDays: 3 } }), zone("c", "Clock")]);
+    const profile = screen("s", [zone("w", "Weather", { settings: { view: "forecast", forecastDays: 3 } }), zone("c", "Clock"), zone("l", "SessionStats", { settings: { view: "lanes" } }), zone("k", "KpiTiles", { settings: { view: "cards", cardMetrics: "fps" } })]);
     expect(migrateMergedWidgetsV19(profile as never)).toBe(profile);
     const out = upgradeConfig(stored(18, [profile]));
     expect(zones(out)).toEqual(profile.pages[0].placements);

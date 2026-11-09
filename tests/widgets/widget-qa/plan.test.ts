@@ -48,10 +48,17 @@ describe("widget-qa parity", () => {
 describe("the merged-away widgets on the page (config v19)", () => {
   it("draws each under its old id from its survivor, without the survivor's views, so its frames keep their baseline keys", () => {
     const merged = mergedModules(TEMPLATE_MODULES);
-    expect(merged.map((m) => m.id)).toEqual(["Forecast"]);
+    expect(merged.map((m) => m.id)).toEqual(["Forecast", "ThresholdTimeline", "Vitals"]);
     const weather = TEMPLATE_MODULES.find((m) => m.id === "Weather")!;
     expect(merged[0]).toMatchObject({ id: "Forecast", title: "Forecast", category: weather.category, minCols: 1, minRows: 1, views: undefined });
     expect(viewPlans(merged[0])).toEqual([]);
     expect(pickModules([...modules, ...merged], [...TEMPLATE_MODULES, ...merged], ["Forecast"]).map((m) => m.id)).toEqual(["Forecast"]);
+    // titled and sized as the old widgets were (their frames keep the old spans)
+    expect(merged.map((m) => [m.title, m.category, m.minCols, m.minRows])).toEqual([
+      ["Forecast", "Info", 1, 1],
+      ["Threshold Timeline", "Generic", 2, 1],
+      ["Vitals", "System", 1, 1],
+    ]);
+    for (const m of merged.slice(1)) expect(viewPlans(m), m.id).toEqual([]);
   });
 });

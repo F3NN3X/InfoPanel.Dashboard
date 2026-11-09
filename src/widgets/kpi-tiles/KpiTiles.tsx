@@ -1,7 +1,8 @@
 import { readSystemFlat } from "@/lib/system-metrics";
 import type { ModuleSettings } from "@/modules/types";
-import { Unit, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, STATE, type ShellProps } from "./kit";
-import { meta } from "./meta/KpiTiles";
+import { Unit, roomy, useFitRows, Widget, shell, get, num, fmt, rateParts, toMBps, pretty, Spark, useHistory, useSkin, numFont, hw, adapterOf, STATE, type ShellProps } from "../kit";
+import { meta } from "./meta";
+import Vitals, { type VitalsProps } from "./Vitals";
 
 export { meta };
 
@@ -24,7 +25,17 @@ export interface KpiTilesProps extends ShellProps {
   lookback?: number;
 }
 
-export default function KpiTiles(p: KpiTilesProps) {
+/** The view: `tiles` the KPI tiles (the default), `cards` the Vitals widget until config v19. */
+export type KpiTilesView = "tiles" | "cards";
+
+/** Each view's props: the metrics are the view's own (`metrics` or `cardMetrics`, widget.ts). */
+export type KpiTilesWidgetProps = Omit<KpiTilesProps, "metrics"> & { metrics?: (NonNullable<KpiTilesProps["metrics"]>[number] | NonNullable<VitalsProps["metrics"]>[number])[]; view?: KpiTilesView };
+
+export default function KpiTiles(p: KpiTilesWidgetProps) {
+  return p.view === "cards" ? <Vitals {...(p as VitalsProps)} /> : <Tiles {...(p as KpiTilesProps)} />;
+}
+
+function Tiles(p: KpiTilesProps) {
   const d = p.data;
   const sk = useSkin();
   const cpu = hw(d).cpu,

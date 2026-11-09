@@ -9,7 +9,7 @@ import { STANDARD_KEYS } from "@/modules/standard-settings";
 const REFILED = [
   "SystemOverview", "NowPlaying", "SensorGroup", "AudioMeter", "Weather", "CpuMonitor", "Uptime", "SteamProfile", "WebPage",
   // Batch A
-  "MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "Vitals", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans",
+  "MenuBar", "KpiTiles", "StatusTracker", "SystemStatus", "ServiceHealth", "ProcessList", "CoreHeatmap", "GpuRings", "GpuMonitor", "MemoryUsage", "Thermals", "PowerDraw", "Fans",
   // Batch B
   "DriveSpace", "StorageHealth", "DiskIO", "NetworkThroughput", "NetworkAdapters", "Clock", "Timer", "Countdown", "StatusBar", "CodingAgents", "Calendar", "SensorValue", "CustomGauge", "VolumeMixer", "MeterBridge", "Visualizer", "WaveLink",
   // Batch C
@@ -21,12 +21,12 @@ const REFILED = [
   // Stream OBS
   "StreamControl", "ObsButton", "StreamChat",
   // History and analysis
-  "BottleneckLens", "FrameHistogram", "SessionStats", "ThresholdTimeline",
+  "BottleneckLens", "FrameHistogram", "SessionStats",
 ];
 
-it("covers all 68 widgets", () => {
-  expect(REFILED).toHaveLength(68);
-  expect(new Set(REFILED).size).toBe(68);
+it("covers all 66 widgets", () => {
+  expect(REFILED).toHaveLength(66);
+  expect(new Set(REFILED).size).toBe(66);
   expect([...REFILED].sort()).toEqual(modules.filter((m) => m.header).map((m) => m.id).sort());
 });
 

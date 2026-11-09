@@ -6,6 +6,8 @@ import type { ModuleSettings } from "@/modules/types";
 /** One merge: the merged-away id, the survivor and the view it becomes, and its stored settings as the survivor's. */
 export interface WidgetMerge {
   from: string;
+  /** The merged-away widget's name, which the Widget QA page titles its frames with. */
+  name: string;
   to: string;
   view: string;
   /**
@@ -23,9 +25,22 @@ export const WIDGET_MERGES: readonly WidgetMerge[] = [
   // any sensor reported; Weather's view hides without weather data).
   {
     from: "Forecast",
+    name: "Forecast",
     to: "Weather",
     view: "forecast",
     settings: ({ days, ...s }) => ({ ...s, view: "forecast", showForecast: true, showStats: false, showFeels: false, forecastDays: days ?? 0, emptyCard: true }),
+  },
+  // M3: Threshold Timeline is Session Stats' lanes view: the same `sensors`, its `window` and value thresholds kept (no
+  // default differs; `above` is the stats view's only).
+  { from: "ThresholdTimeline", name: "Threshold Timeline", to: "SessionStats", view: "lanes", settings: (s) => ({ ...s, view: "lanes" }) },
+  // M5: Vitals is KPI Tiles' cards view. Its `metrics` (FPS where the tiles offer Power) is the view's own `cardMetrics`,
+  // with the same default.
+  {
+    from: "Vitals",
+    name: "Vitals",
+    to: "KpiTiles",
+    view: "cards",
+    settings: ({ metrics, ...s }) => ({ ...s, view: "cards", ...(metrics === undefined ? {} : { cardMetrics: metrics }) }),
   },
 ];
 
