@@ -18,6 +18,7 @@ import type {
   Touchscreen,
   TouchView,
   UpdateState,
+  WidgetKey,
 } from "./types";
 
 /** The commands of the app windows (src-tauri/src/commands.rs); the settings pages that use them run only in the desktop app. */
@@ -71,6 +72,11 @@ export const ipc = {
   openHelp: (target: { article?: string; heading?: string }) => invoke<void>("open_help", target),
   /** The Settings window at a page (Help's "Open settings"). */
   openSettings: (section?: string) => invoke<void>("open_settings", { section }),
+  /** Widget publisher keys: trusted, added and removed only here (Settings › Widget publishers). */
+  widgetKeys: () => invoke<WidgetKey[]>("widget_keys"),
+  trustWidgetKey: (name: string, key: string, publishers: string[]) => invoke<WidgetKey[]>("trust_widget_key", { name, key, publishers }),
+  removeWidgetKey: (id: string) => invoke<WidgetKey[]>("remove_widget_key", { id }),
+  restoreWidgetKey: (id: string) => invoke<WidgetKey[]>("restore_widget_key", { id }),
 };
 
 /** Calls `handler` with the payload of each `event`; resolves to the unsubscribe. */

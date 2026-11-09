@@ -603,6 +603,41 @@ pub fn quit_app(app: AppHandle) {
     std::thread::spawn(move || windows::quit(&app));
 }
 
+// ---- Widget publisher keys (the Settings window only) ----
+//
+// The only way to trust or remove a widget publisher key (Phase 6a): these commands are granted to the Settings window alone
+// (SETTINGS_PERMISSIONS in control.rs on the studio's origin, and the local rescue page through capabilities/default.json), the
+// same gate as every Settings write (`set_setting`). The studio page, the kiosk and other devices have no such command, and the
+// server's /api/widget-keys refuses every write. The store is the server's data folder's widget-keys.json; the server reads it on
+// every verification, so a change applies at once.
+
+fn widget_key_store(app: &AppHandle) -> ips_server::widget_keys::KeyStore {
+    ips_server::widget_keys::KeyStore::new(&crate::native::server_data_dir(&app.state::<AppState>().paths))
+}
+
+#[tauri::command]
+pub fn widget_keys(app: AppHandle) -> Vec<ips_server::widget_keys::KeyView> {
+    widget_key_store(&app).list()
+}
+
+#[tauri::command]
+pub fn trust_widget_key(app: AppHandle, name: String, key: String, publishers: Vec<String>) -> CmdResult<Vec<ips_server::widget_keys::KeyView>> {
+    log::info!("ipc: trust_widget_key {name:?} for {publishers:?}");
+    widget_key_store(&app).add_user(&name, &key, &publishers)
+}
+
+#[tauri::command]
+pub fn remove_widget_key(app: AppHandle, id: String) -> CmdResult<Vec<ips_server::widget_keys::KeyView>> {
+    log::info!("ipc: remove_widget_key {id:?}");
+    widget_key_store(&app).remove(&id)
+}
+
+#[tauri::command]
+pub fn restore_widget_key(app: AppHandle, id: String) -> CmdResult<Vec<ips_server::widget_keys::KeyView>> {
+    log::info!("ipc: restore_widget_key {id:?}");
+    widget_key_store(&app).restore(&id)
+}
+
 // ---- Studio (and local pages) ----
 
 #[tauri::command]

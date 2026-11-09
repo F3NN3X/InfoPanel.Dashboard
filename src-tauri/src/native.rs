@@ -12,6 +12,11 @@ use tokio::sync::oneshot;
 /// How long a stop waits for open requests before the server is dropped.
 pub const STOP_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// The server's data folder: INFOPANEL_STUDIO_DATA_DIR as the app passes it, else ips-server's default.
+pub fn server_data_dir(paths: &Paths) -> PathBuf {
+    paths.data_dir.as_ref().map_or_else(env::default_data_dir, |dir| env::resolve(&paths::display(dir)))
+}
+
 /// The settings as ips-server's config, with the app's version for GET /api/health.
 pub fn server_config(s: &Settings, paths: &Paths, debug: bool, version: &str) -> ServerConfig {
     ServerConfig {
@@ -22,10 +27,7 @@ pub fn server_config(s: &Settings, paths: &Paths, debug: bool, version: &str) ->
         allow_remote_edit: s.allow_remote_edit,
         allow_remote_upload: s.allow_remote_edit,
         dist: env::resolve(&paths::display(&paths.dist_dir())),
-        data_dir: paths
-            .data_dir
-            .as_ref()
-            .map_or_else(env::default_data_dir, |dir| env::resolve(&paths::display(dir))),
+        data_dir: server_data_dir(paths),
         infopanel_dir: env::infopanel_dir(),
         debug,
         version: version.into(),

@@ -258,3 +258,14 @@ export interface Touchscreen {
   driver: string | null;
   ready: boolean;
 }
+
+/** A widget publisher key (`widget_keys`, ips-server widget_keys.rs `KeyView`): `id` is what Remove key names. */
+export interface WidgetKey {
+  id: string;
+  kind: "owner" | "themely" | "user";
+  name: string;
+  fingerprint: string | null;
+  /** The publishers (`ext:<publisher>.<id>`) whose code widgets the key may sign. */
+  publishers: string[];
+  state: "trusted" | "not-set-up" | "not-available" | "removed" | "revoked";
+}

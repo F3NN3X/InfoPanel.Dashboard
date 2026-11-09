@@ -7,6 +7,7 @@ import { ConnectionsSection } from "./sections/connections";
 import { DiagnosticsSection } from "./sections/diagnostics";
 import { GeneralSection } from "./sections/general";
 import { LogsSection } from "./sections/logs";
+import { PublishersSection } from "./sections/publishers";
 import { ServerSection } from "./sections/server";
 import { TouchSection } from "./sections/touch";
 import { UpdatesSection } from "./sections/updates";
@@ -26,6 +27,7 @@ export const PAGES: Record<SectionId, Page> = {
   agents: { subtitle: "Claude Code and Codex on your dashboard.", Section: AgentsSection },
   touch: { subtitle: "Experimental: touch panels that drive the kiosk, never Windows.", Section: TouchSection },
   updates: { subtitle: "Get new versions of InfoPanel Studio.", Section: UpdatesSection },
+  publishers: { subtitle: "The keys a code widget must be signed with before it runs.", Section: PublishersSection },
   diagnostics: { subtitle: "Find errors and memory leaks.", wide: true, Section: DiagnosticsSection },
   logs: { subtitle: "Live output from the server, the app and the studio.", wide: true, Section: LogsSection },
   about: { subtitle: "Version, system and file locations.", Section: AboutSection },

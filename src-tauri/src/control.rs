@@ -103,6 +103,11 @@ const SETTINGS_PERMISSIONS: &[&str] = &[
     "allow-touch-calibrate",
     "allow-touch-identify",
     "allow-touch-cancel",
+    // Widget publishers: the only place a publisher key is trusted or removed (never the studio, an import or an install prompt).
+    "allow-widget-keys",
+    "allow-trust-widget-key",
+    "allow-remove-widget-key",
+    "allow-restore-widget-key",
     "core:event:allow-listen",
     "core:event:allow-unlisten",
     "core:window:allow-minimize",
@@ -735,6 +740,11 @@ mod tests {
         }
         for command in ["allow-set-setting", "allow-stop-server", "allow-install-update", "allow-set-agents", "allow-read-log", "allow-reveal-path", "allow-show-studio"] {
             assert!(!STUDIO_PERMISSIONS.contains(&command), "{command} is granted to the studio");
+        }
+        // A widget publisher key is trusted or removed in the Settings window only (Phase 6a), never from the studio.
+        for command in ["allow-widget-keys", "allow-trust-widget-key", "allow-remove-widget-key", "allow-restore-widget-key"] {
+            assert!(!STUDIO_PERMISSIONS.contains(&command) && !SETUP_PERMISSIONS.contains(&command), "{command} is granted to the studio");
+            assert!(SETTINGS_PERMISSIONS.contains(&command), "{command} is missing from the settings window");
         }
         // Starting or restarting InfoPanel and writing settings come only with a setup session the shell opens.
         assert_unique(SETUP_PERMISSIONS);
