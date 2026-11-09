@@ -7,7 +7,7 @@ import { STANDARD_KEYS } from "@/modules/standard-settings";
 import RecipeWidget from "@/widgets/recipe/RecipeWidget";
 import { recipeReads } from "@/widgets/recipe/reads";
 import { isRecipeId, recipeModule } from "@/widgets/recipe/resolve";
-import { forgetRecipe, loadRecipe, removeWidget, storePackage } from "@/widgets/recipe/store";
+import { forgetRecipe, listUserWidgets, loadRecipe, removeWidget, storePackage } from "@/widgets/recipe/store";
 import type { PackageFile } from "@/widgets/recipe/types";
 import { fixtureFiles, fixtureRecipe, withFile } from "./fixture-files";
 
@@ -110,6 +110,22 @@ describe("storing a recipe", () => {
     expect(calls[0]).toBe("POST /api/widgets");
     expect(calls.slice(1).sort()).toEqual(["GET /api/widgets/recipe.cpu-card/manifest.json", "GET /api/widgets/recipe.cpu-card/recipe.json"]);
     expect(await removeWidget("recipe:cpu-card")).toBe(true);
+  });
+
+  it("sends where the package came from (an import unless said), and reads the server's word back in the list", async () => {
+    const files = fixtureFiles("cpu-card");
+    const bodies: unknown[] = [];
+    vi.stubGlobal("fetch", async (url: string, init?: RequestInit) => {
+      if (init?.method === "POST") return bodies.push(JSON.parse(String(init.body))), new Response("{}", { status: 200 });
+      if (url === "/api/widgets") return Response.json([{ id: "recipe:cpu-card", kind: "recipe", name: "CPU card", version: "1.0.0", size: 1, origin: "studio" }, { id: "recipe:old", kind: "recipe", name: "Old", version: "1.0.0", size: 1 }]);
+      const file = files.find((f) => url === `/api/widgets/recipe.cpu-card/${f.path}`);
+      return file ? new Response(file.bytes, { status: 200 }) : new Response(null, { status: 404 });
+    });
+    await storePackage(files, "studio");
+    forgetRecipe("recipe:cpu-card");
+    await storePackage(files);
+    expect(bodies.map((b) => (b as { origin: unknown }).origin)).toEqual(["studio", "import"]);
+    expect((await listUserWidgets()).list.map((w) => w.origin)).toEqual(["studio", "import"]);
   });
 });
 

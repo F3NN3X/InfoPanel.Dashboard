@@ -16,6 +16,9 @@ const WRITE = { "Content-Type": "application/json", "X-Dashboard-Widget": "1" };
 /** A package's folder and route name: its id with the namespace's colon as a dot. */
 export const keyOf = (id: string): string => id.replace(":", ".");
 
+/** Where a package came from, as the server recorded it: saved from the studio's builder, or imported from a file. */
+export type WidgetOrigin = "studio" | "import";
+
 /** What `GET /api/widgets` says of a package. */
 export interface UserWidgetInfo {
   id: string;
@@ -23,6 +26,7 @@ export interface UserWidgetInfo {
   name: string;
   version: string;
   size: number;
+  origin: WidgetOrigin;
 }
 
 /** A loaded recipe: drawn when `recipe` is set; `off` when the server has user widgets switched off. */
@@ -39,7 +43,7 @@ export async function listUserWidgets(): Promise<{ list: UserWidgetInfo[]; off: 
     const off = res.headers.get("X-User-Widgets") === "off";
     const raw: unknown = res.ok ? await res.json() : [];
     const list = Array.isArray(raw)
-      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0 }] : []))
+      ? raw.flatMap((w): UserWidgetInfo[] => (w && isRecipeId(w.id) ? [{ id: w.id, kind: String(w.kind), name: typeof w.name === "string" ? w.name : w.id, version: String(w.version ?? ""), size: Number(w.size) || 0, origin: w.origin === "studio" ? "studio" : "import" }] : []))
       : [];
     return { list, off };
   } catch {
@@ -105,12 +109,13 @@ const base64 = (bytes: Uint8Array): string => {
   return btoa(s);
 };
 
-/** Stores a package the validator passed, then reads it back through the route and validates it again. Undefined when it is stored and loads; else why not. */
-export async function storePackage(files: readonly PackageFile[]): Promise<string | undefined> {
+/** Stores a package the validator passed, then reads it back through the route and validates it again. Undefined when it is stored and loads; else why not.
+ * `origin` is what the server records beside it (the builder's save is "studio"). */
+export async function storePackage(files: readonly PackageFile[], origin: WidgetOrigin = "import"): Promise<string | undefined> {
   const checked = await checkPackage({ files });
   if (!checked.recipe) return checked.issues.find((i) => i.severity === "error")?.message ?? "the package has errors";
   const id = checked.recipe.id;
-  const res = await fetch(ROUTE, { method: "POST", headers: WRITE, body: JSON.stringify({ files: files.map((f) => ({ path: f.path, data: base64(f.bytes) })) }) });
+  const res = await fetch(ROUTE, { method: "POST", headers: WRITE, body: JSON.stringify({ files: files.map((f) => ({ path: f.path, data: base64(f.bytes) })), origin }) });
   if (!res.ok) return (await res.text()) || `the server refused the package (${res.status})`;
   forgetRecipe(id);
   const back = await loadRecipe(id);
