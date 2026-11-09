@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { BLANK_MODULE } from "@/lib/layout";
 import type { UserPanelPreset } from "@/lib/panel-model";
+import { loadWidgetPresets } from "@/components/studio/widget-presets";
 import { addCatalog, addGroups, categoriesOf, firstSentence, sameDrop, searchItems, widgetRows, type AddItem } from "@/components/studio/add-catalog";
 
-const catalog = addCatalog();
+const catalog = addCatalog(undefined, await loadWidgetPresets());
 const names = (list: AddItem[]) => list.map((i) => i.name);
 
 describe("addCatalog", () => {

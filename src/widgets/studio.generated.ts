@@ -7,4 +7,25 @@ import type { WidgetControlsProps, WidgetPreset } from "./define";
 export const WIDGET_CONTROLS: Readonly<Record<string, () => Promise<{ default: ComponentType<WidgetControlsProps> }>>> = {
 };
 export const WIDGET_PRESETS: Readonly<Record<string, () => Promise<{ default: readonly WidgetPreset[] }>>> = {
+  AudioMeter: () => import("./audio-meter/presets"),
+  Bluetooth: () => import("./bluetooth/presets"),
+  CodingAgents: () => import("./coding-agents/presets"),
+  Countdown: () => import("./countdown/presets"),
+  DriveSpace: () => import("./drive-space/presets"),
+  FpsMonitor: () => import("./fps-monitor/presets"),
+  GameSpotlight: () => import("./game-spotlight/presets"),
+  GpuMonitor: () => import("./gpu-monitor/presets"),
+  KpiTiles: () => import("./kpi-tiles/presets"),
+  NowPlaying: () => import("./now-playing/presets"),
+  SensorGroup: () => import("./sensor-group/presets"),
+  ServiceHealth: () => import("./service-health/presets"),
+  SessionStats: () => import("./session-stats/presets"),
+  StatusBar: () => import("./status-bar/presets"),
+  SteamFriends: () => import("./steam-friends/presets"),
+  StreamMixer: () => import("./stream-mixer/presets"),
+  SystemOverview: () => import("./system-overview/presets"),
+  Thermals: () => import("./thermals/presets"),
+  VolumeMixer: () => import("./volume-mixer/presets"),
+  WaveLink: () => import("./wave-link/presets"),
+  Weather: () => import("./weather/presets"),
 };

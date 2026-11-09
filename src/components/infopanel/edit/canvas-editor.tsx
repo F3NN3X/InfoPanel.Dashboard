@@ -43,6 +43,8 @@ import { RemapDialog, useRemapIndex } from "../remap-dialog";
 import { AddPalette, idOf, paletteEntryOf, type AddEntry } from "./add-palette";
 import { AddPanel } from "@/components/studio/add-panel";
 import { addCatalog, sameDrop, widgetRows, type AddItem } from "@/components/studio/add-catalog";
+import { useWidgetPresets } from "@/components/studio/widget-presets";
+import { normalizeWidgetPresets } from "@/lib/widget-presets";
 import { freeSize } from "@/components/studio/add-place";
 import { useAddListDensity, useAddPreviewOnHover, type AddFilter } from "@/components/studio/add-prefs";
 import { useRecentAdds } from "@/components/studio/add-recent";
@@ -219,7 +221,11 @@ export default function CanvasEditorView({ zone, setConfig, shell, hidden = fals
     if (entry.file) return setFileFor({ entry, place });
     askSensor(entry, editor.add(newItem(entry.kind, editor.open.profile, editor.palette), place));
   };
-  const catalog = useMemo(() => addCatalog(widgetHost?.config.panelPresets), [widgetHost?.config.panelPresets]);
+  const builtinPresets = useWidgetPresets();
+  const catalog = useMemo(
+    () => addCatalog(widgetHost?.config.panelPresets, builtinPresets, normalizeWidgetPresets(widgetHost?.config.widgetPresets)),
+    [widgetHost?.config.panelPresets, widgetHost?.config.widgetPresets, builtinPresets]
+  );
   const [recent, pushRecent] = useRecentAdds();
   const [addDensity] = useAddListDensity();
   const [addPreview] = useAddPreviewOnHover();

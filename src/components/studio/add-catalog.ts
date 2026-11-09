@@ -3,6 +3,9 @@ import type { UserPanelPreset } from "@/lib/panel-model";
 import { allPanelPresets, type PanelPreset } from "@/lib/panelPresets";
 import type { LibraryItem } from "./drop-ghost";
 import { ALL_MODULES, type ModuleMeta } from "./studio-modules";
+import { addSettings, defaultSize, presetsFor, type PresetMap } from "./widget-presets";
+import type { UserWidgetPreset } from "@/lib/widget-presets";
+import type { WidgetPreset } from "@/widgets/define";
 
 /**
  * The Add panel's catalog (handoff SPEC §3): every widget, panel and layout as one row shape, with search
@@ -41,8 +44,8 @@ export interface AddItem {
   dir?: "row" | "column";
   /** A saved panel (My panels): it can be renamed and deleted. */
   saved?: boolean;
-  /** A widget's further views (D-5): one row each, its presets, added with that view set. */
-  styles?: AddItem[];
+  /** A widget's further presets (D-5, FORMAT.md §11): one row each, the built-in ones then the user's, added with that preset's settings. */
+  presets?: AddItem[];
   /** What the add path places. */
   drop: LibraryItem;
 }
@@ -72,15 +75,10 @@ function partsOf(panel: PanelDef): AddPart[] {
   }));
 }
 
-/** A widget's default size: its declared one, else 3×2; never below its minimum. */
-function defaultSize(def: [number, number] | undefined, mw: number, mh: number): [number, number] {
-  const [w, h] = def ?? [3, 2];
-  return [Math.max(w, mw), Math.max(h, mh)];
-}
-
-/** A widget's one row (D-5): its further views are its `styles`, found by search through the row's tags. */
-function moduleItem(m: ModuleMeta): AddItem {
-  const [w, h] = defaultSize(m.defaultSize, m.minCols, m.minRows);
+/** A widget's one row (D-5): its further presets are its `presets` rows, found by search through the row's tags. */
+function moduleItem(m: ModuleMeta, presets: readonly WidgetPreset[]): AddItem {
+  const base = presets.find((p) => p.default);
+  const [w, h] = base?.size ?? defaultSize(m.defaultSize, m.minCols, m.minRows);
   const description = m.description ?? (m.id === CARDS_ID ? "Every sensor no other widget shows, as cards." : "");
   const item: AddItem = {
     kind: "widget",
@@ -97,37 +95,37 @@ function moduleItem(m: ModuleMeta): AddItem {
     description,
     drop: { kind: "module", id: m.id },
   };
-  const views = m.views ?? [];
-  if (views.length < 2) return item;
-  const key = m.viewKey ?? "view";
+  if (presets.length < 2) return item;
   return {
     ...item,
-    tags: [item.tags, ...views.flatMap((v) => [v.name.toLowerCase(), v.tags ?? ""])].filter(Boolean).join(" "),
-    styles: views.slice(1).map((v): AddItem => {
-      const [mw, mh] = v.minSize ?? [m.minCols, m.minRows];
-      const [vw, vh] = defaultSize(v.defaultSize ?? m.defaultSize, mw, mh);
-      return {
-        ...item,
-        id: `${m.id}:${v.id}`,
-        name: `${m.title} · ${v.name}`,
-        w: vw,
-        h: vh,
-        mw,
-        mh,
-        blurb: v.blurb ?? item.blurb,
-        tags: v.tags ?? item.tags,
-        drop: { kind: "module", id: m.id, settings: { [key]: v.id, ...v.applies } },
-      };
-    }),
+    tags: [item.tags, ...presets.flatMap((p) => [p.name.toLowerCase(), p.tags ?? ""])].filter(Boolean).join(" "),
+    presets: presets
+      .filter((p) => !p.default)
+      .map((p): AddItem => {
+        const [mw, mh] = p.minSize ?? [m.minCols, m.minRows];
+        const [pw, ph] = p.size;
+        return {
+          ...item,
+          id: `${m.id}:${p.id}`,
+          name: `${m.title} · ${p.name}`,
+          w: pw,
+          h: ph,
+          mw,
+          mh,
+          blurb: p.blurb ?? item.blurb,
+          tags: p.tags ?? item.tags,
+          drop: { kind: "module", id: m.id, settings: addSettings(m, p) },
+        };
+      }),
   };
 }
 
-function widgetItems(): AddItem[] {
-  return ALL_MODULES.map(moduleItem);
+function widgetItems(map: PresetMap, saved: readonly UserWidgetPreset[] | undefined): AddItem[] {
+  return ALL_MODULES.map((m) => moduleItem(m, presetsFor(m, map, saved)));
 }
 
-/** The widgets with each one's views as rows: what a drop that carries a view resolves against. */
-export const widgetRows = (items: readonly AddItem[]): AddItem[] => items.flatMap((i) => [i, ...(i.styles ?? [])]);
+/** The widgets with each one's presets as rows: what a drop that carries a preset's settings resolves against. */
+export const widgetRows = (items: readonly AddItem[]): AddItem[] => items.flatMap((i) => [i, ...(i.presets ?? [])]);
 
 /** Whether two library items add the same thing (a widget's views differ by their settings). */
 export const sameDrop = (a: LibraryItem, b: LibraryItem): boolean =>
@@ -181,16 +179,16 @@ const BLANK_ZONE: AddItem = {
 export type AddCatalog = Record<AddKind, AddItem[]>;
 
 /** Every widget, panel (saved first, then presets) and layout (Blank zone, then the starters). */
-export function addCatalog(saved?: UserPanelPreset[]): AddCatalog {
-  const presets = allPanelPresets(saved);
+export function addCatalog(saved?: UserPanelPreset[], presets: PresetMap = {}, userPresets?: readonly UserWidgetPreset[]): AddCatalog {
+  const panelPresets = allPanelPresets(saved);
   const isLayout = (p: PanelPreset) => !p.user && p.id.startsWith("layout-");
   return {
-    widget: widgetItems(),
+    widget: widgetItems(presets, userPresets),
     panel: [
-      ...presets.filter((p) => p.user).map((p) => presetItem(p, "panel", MY_PANELS)),
-      ...presets.filter((p) => !p.user && !isLayout(p)).map((p) => presetItem(p, "panel", PANEL_PRESETS)),
+      ...panelPresets.filter((p) => p.user).map((p) => presetItem(p, "panel", MY_PANELS)),
+      ...panelPresets.filter((p) => !p.user && !isLayout(p)).map((p) => presetItem(p, "panel", PANEL_PRESETS)),
     ],
-    layout: [BLANK_ZONE, ...presets.filter(isLayout).map((p) => presetItem(p, "layout", STARTERS))],
+    layout: [BLANK_ZONE, ...panelPresets.filter(isLayout).map((p) => presetItem(p, "layout", STARTERS))],
   };
 }
 

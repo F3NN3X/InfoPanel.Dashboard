@@ -1,6 +1,7 @@
 // Adding Studio widgets to a Free page (one-editor SPEC §5.3) and editing them as zones (§5.5).
 import { describe, expect, it } from "vitest";
 import { addCatalog, widgetRows } from "@/components/studio/add-catalog";
+import { loadWidgetPresets } from "@/components/studio/widget-presets";
 import { freeSize } from "@/components/studio/add-place";
 import { parseAddFilter } from "@/components/studio/add-prefs";
 import { mergePrefixes, placementPrefixes, widgetPlacement } from "@/components/studio/placement-content";
@@ -9,7 +10,7 @@ import { newStored, readStored, toStored } from "@/lib/infopanel/import/stored";
 import { newWidgetItem } from "@/lib/infopanel/native/widget-item";
 import { CANVAS_ID, PANEL_ID, type Placement } from "@/lib/layout";
 
-const catalog = addCatalog();
+const catalog = addCatalog(undefined, await loadWidgetPresets());
 const row = (id: string) => catalog.widget.find((w) => w.id === id)!;
 
 describe("an Add row as a widget record", () => {

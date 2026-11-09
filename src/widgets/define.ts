@@ -34,13 +34,24 @@ export interface WidgetMigration {
   up: (saved: ModuleSettings) => ModuleSettings;
 }
 
-/** A named bundle of a view, option values and a size. */
+/**
+ * A named bundle of a view, option values and a size (`presets.ts`, a studio-only chunk). Add writes the view and the settings
+ * (the default preset writes nothing: it is what a fresh widget is) and opens the zone at `size`; picking one in the inspector
+ * writes the view and the settings. Exactly one preset per widget has `default: true`.
+ */
 export interface WidgetPreset {
   id: string;
   name: string;
+  /** The `meta.views` id it sets; absent for a widget without views. */
   view?: string;
   settings: ModuleSettings;
+  /** The size Add opens it at, in cells (never below the widget's, or the view's, minimum). */
   size: [number, number];
+  /** The view's own minimum when it differs from the widget's. */
+  minSize?: [number, number];
+  /** The Add row's line and its search words; absent = the widget's. */
+  blurb?: string;
+  tags?: string;
   default?: true;
 }
 

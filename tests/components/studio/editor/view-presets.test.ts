@@ -2,9 +2,11 @@
 import { describe, expect, it } from "vitest";
 import { addCatalog, widgetRows } from "@/components/studio/add-catalog";
 import { currentView, viewChange, viewHolds, viewKeyOf, viewsOf } from "@/components/studio/editor/view-presets";
+import { loadWidgetPresets } from "@/components/studio/widget-presets";
 import { modules } from "@/modules";
 import type { DashboardModule } from "@/modules/types";
 
+const presets = await loadWidgetPresets();
 const mod = (views: DashboardModule["views"], rest: Partial<DashboardModule> = {}) => ({ id: "M", views, ...rest }) as DashboardModule;
 const two = mod([
   { id: "full", name: "Full" },
@@ -40,7 +42,7 @@ describe("view presets", () => {
   });
 
   it("writes what Add wrote for every view of every widget", () => {
-    const rows = widgetRows(addCatalog().widget).filter((r) => r.drop.settings);
+    const rows = widgetRows(addCatalog(undefined, presets).widget).filter((r) => r.drop.settings);
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
       const m = modules.find((x) => x.id === row.drop.id) as DashboardModule;
@@ -49,7 +51,7 @@ describe("view presets", () => {
     }
   });
   it("opens a fresh widget on a tile: Add's settings hold their view, and a view-bearing widget's first view holds with none", () => {
-    for (const row of widgetRows(addCatalog().widget)) {
+    for (const row of widgetRows(addCatalog(undefined, presets).widget)) {
       const m = modules.find((x) => x.id === row.drop.id) as DashboardModule;
       if (viewsOf(m).length === 0) continue;
       const settings = row.drop.settings;
