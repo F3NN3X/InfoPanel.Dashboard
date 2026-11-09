@@ -35,4 +35,3 @@ export function normalizeWidgetPresets(v: unknown): UserWidgetPreset[] | undefin
   }
   return kept.length > 0 ? kept : undefined;
 }
-
