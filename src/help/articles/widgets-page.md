@@ -29,7 +29,7 @@ Both kinds are rows in [Add](studio#add) after the built-in ones, with their pre
 
 ## Import and export
 
-**Import** takes a widget package, a `.zip`. Studio checks it before it stores anything and, if it is refused, lists what is wrong in plain words and which file. **Export** in a widget's details (or in the builder) writes the package back out as `<name>-<version>.widget.zip`, to share or to keep. A package is at most 512 KB.
+**Import** takes a widget package, a `.zip`. Studio checks it before it stores anything and, if it is refused, lists what is wrong in plain words and which file. When the widget is already installed, Studio asks first and shows both versions: **Replace** or **Keep the installed one**. The same files again change nothing, a signed package is never replaced by another of the same version, and a replaced recipe stays in **Yours** if you made it. **Export** in a widget's details (or in the builder) writes the package back out as `<name>-<version>.widget.zip`, to share or to keep; in the builder it saves your edits first. A package is at most 512 KB.
 
 ## The builder
 
@@ -41,11 +41,17 @@ The builder has three columns:
 - The preview, in the middle. **Size** switches between the sizes the recipe supports, **Preview in** shows it in another look, and **Data** switches between **Live data** and **Sample** values.
 - The inspector, on the right, with the tabs **Block**, **Options** and **Presets**.
 
-In **Block**, bind a block to a sensor, choose its colour (the accent, a series or by thresholds), and set when it shows (always, or when an option has a value) and the smallest size it is drawn at. **Let people pick** turns a binding into an option, so the person adding the widget chooses the sensor or the device (a CPU, GPU, drive or adapter, **Auto** by default).
+To move a block, drag its row in **Layers** onto the middle of a Row, Card or Repeat to put it inside, or between rows to place it there. With the keyboard, **Alt+←** takes it out of its container, **Alt+→** puts it into the container just above it, and **Alt+↑** and **Alt+↓** move it among its neighbours. A move the recipe can't hold, such as a Repeat inside another Repeat, is refused and the reason shows where you dropped it.
 
-**Options** are what people can change when they add the widget; they appear in its **Content** tab. An option is a toggle, a choice, a number, a text, a sensor, a place list or a device. A recipe holds up to 24. **Presets** are named sets of options and a size (up to 16); people can save their own on top (see [Layouts and presets](presets#widget-presets)).
+In **Block**, bind a block to a sensor, choose its colour (the accent, a series or by thresholds), and set when it shows (always, or when an option has a value) and the smallest size it is drawn at. **Let people pick** turns a binding into an option, so the person adding the widget chooses the sensor or the device (a CPU, GPU, drive or adapter, **Auto** by default). **Opens at** is also the size the widget is added at.
 
-Type the widget's name at the top. **Undo** and **Redo** (`Ctrl+Z`, `Ctrl+Shift+Z`) step through your edits, and each open recipe keeps its own history. The line at the top says whether the recipe is valid, and if not, the first problem. **Save** stores the recipe on the server. **Add to a screen** saves it and puts it on the screen you were editing. A recipe signed by someone else cannot be replaced by a save, only copied: **Save as a copy**.
+A **Label**'s text is **Typed** or **From data**: a sensor, an option people set, or a place's field inside a Repeat. From data, **Add a part** builds a line of several parts, typed text and readings each with their own unit and decimals, shown as chips you can drag: the high, " / " and the low make "6° / 1°". A **Heatmap** lists its **Cells**: **Add a cell** picks readings, and the rows drag to reorder.
+
+**Options** are what people can change when they add the widget; they appear in its **Content** tab. An option is a toggle, a choice, a number, a text, a sensor, a place list or a device. A recipe holds up to 24. A device option's **Kind** switches every block that follows it to another kind of device at once, reading the same sort of value (load, temperature, clock, power); readings it can't match are listed so you can pick them again. That is how a GPU card is made from a CPU card. **Presets** are named sets of options and a size (up to 16); people can save their own on top (see [Layouts and presets](presets#widget-presets)).
+
+Type the widget's name at the top. **Undo** and **Redo** (`Ctrl+Z`, `Ctrl+Shift+Z`) step through your edits, and each open recipe keeps its own history. A field counts as one edit when you leave it or press **Enter** (the preview follows as you type, and **Esc** puts it back); a slider drag is one edit. The line under the preview says whether the recipe is valid; if not, it lists every problem, each naming its block as Layers does, and a click on one selects that block. **Save** stores the recipe on the server. **Add to a screen** saves it and puts it on the screen you were editing. A recipe signed by someone else cannot be replaced by a save, only copied: **Save as a copy**.
+
+A recipe with a label of parts is saved as a newer recipe format, which an older Studio cannot draw (it shows "Widget not available"); recipes without one draw everywhere.
 
 ## Weather by place
 
