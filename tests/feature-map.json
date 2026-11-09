@@ -560,6 +560,7 @@
       "summary": "Page and profile layout, the kiosk page and its refresh, profile shots, the app entry.",
       "paths": [
         "src/lib/layout.ts",
+        "src/lib/widget-presets.ts",
         "src/lib/pages.ts",
         "src/lib/profile-grid.ts",
         "src/lib/free-pages.ts",
@@ -581,6 +582,7 @@
       ],
       "tests": [
         "tests/lib/layout.test.ts",
+        "tests/lib/widget-presets.test.ts",
         "tests/lib/layout-pages.test.ts",
         "tests/lib/pages.test.ts",
         "tests/lib/page-layout.test.ts",

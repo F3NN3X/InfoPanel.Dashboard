@@ -25,6 +25,7 @@ import {
   type WidgetKind,
 } from "./panel-model";
 import type { StoredCanvas, StoredItem } from "./infopanel/import/stored.ts";
+import type { UserWidgetPreset } from "./widget-presets";
 
 /**
  * Layout engine — the dashboard is a grid of *placements*. Each placement
@@ -334,6 +335,8 @@ export type ProfileView = Omit<MonitorProfile, "pages"> & {
  *     the survivor's new values (Weather's `forecastDays: 0`) and its save is refused as any older one's is
  *     (`config_guard.rs`); before the first v19 save the server keeps the v18 file as `config.backup-before-v19.json`
  *     (once: an existing backup is never overwritten).
+ *     Widget presets (`widget-presets.ts`) are an optional key of v19 too, `widgetPresets`: the presets a user saved for a widget.
+ *     v19 has no release yet (no tag carries it), so it takes the key without a version of its own, as the merges did.
  */
 export const CONFIG_VERSION = 19;
 
@@ -355,6 +358,8 @@ export interface DashboardConfig {
   stylePresets?: StylePreset[];
   /** Panels the user saved for reuse (Add / widget picker). */
   panelPresets?: UserPanelPreset[];
+  /** Presets the user saved for a widget: its view, settings and size (see widget-presets.ts). */
+  widgetPresets?: UserWidgetPreset[];
   /** Whole looks the user saved (saved Themes; see appearance-presets.ts). */
   appearancePresets?: AppearancePreset[];
   /** Palettes the user saved (Theme › Palette › Yours; see palettes.ts). */
@@ -635,6 +640,7 @@ export function mergeConfig(input: StoredConfig): DashboardConfig {
     dataApiUrl: normalizeApiBase(input.dataApiUrl) ?? undefined,
     stylePresets: Array.isArray(input.stylePresets) ? input.stylePresets : undefined,
     panelPresets: normalizePanelPresets(input.panelPresets),
+    widgetPresets: Array.isArray(input.widgetPresets) ? input.widgetPresets : undefined,
     appearancePresets: normalizeAppearancePresets(input.appearancePresets),
     palettes: normalizePalettes(input.palettes),
     general: normalizeGeneral(isSettings(input.general) ? input.general : undefined),
