@@ -22,12 +22,13 @@ afterEach(() => {
 vi.mock("@/hooks/useSensors", () => ({ useSensors: () => ({ "system.cpu.load": { value: 42, unit: "%" } }) }));
 
 /** A placement of the widget. */
-const Placed = (p: CodeWidgetHostProps) => <CodeWidget {...p} />;
+const Placed = (p: Omit<CodeWidgetHostProps, "data">) => <CodeWidget data={{}} {...p} />;
 
 function serve() {
   vi.stubGlobal("fetch", async (url: string) =>
     url === "/api/widgets" ? new Response(list) : url.endsWith("/manifest.json") ? new Response(manifest) : new Response(null, { status: 404 })
   );
+  // @ts-expect-error the fixture bundle is plain JS: what it returns is checked at run time, as every bundle's is
   setImportBundle(() => import("../../fixtures/widgets/ext.test.example/widget.js"));
 }
 
