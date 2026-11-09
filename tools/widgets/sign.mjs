@@ -13,7 +13,7 @@ import { pathToFileURL } from "node:url";
 import { generateKeyPair, readSecretKey, signManifest } from "./minisign.mjs";
 
 /** Every file under `dir` but the manifest, as package paths (`widget.js`, `images/a.png`), sorted. */
-function packageFiles(dir) {
+export function packageFiles(dir) {
   const out = [];
   const walk = (at) => {
     for (const name of readdirSync(at)) {
